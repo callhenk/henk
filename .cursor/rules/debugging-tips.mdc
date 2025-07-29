@@ -1,0 +1,59 @@
+# Debugging & Troubleshooting
+
+## Common Issues
+
+### Supabase Issues
+
+- **401 Unauthorized**: Check `SUPABASE_ANON_KEY` in environment variables
+- **Database connection errors**: Verify `SUPABASE_URL` and network connectivity
+- **RLS policy issues**: Test policies with different user contexts
+- **Migration failures**: Check migration logs and rollback if needed
+
+### Twilio Issues
+
+- **11200 Error**: Webhook URL unreachable - restart ngrok and update Twilio webhook
+- **Call not connecting**: Verify `TWILIO_CALLER_ID` is a verified number
+- **No audio**: Check ElevenLabs quota or incorrect `voice_id`
+- **Webhook not receiving**: Ensure HTTPS URL and proper endpoint setup
+
+### ElevenLabs Issues
+
+- **No audio generation**: Check API key and quota limits
+- **Poor voice quality**: Verify voice model selection
+- **Rate limiting**: Implement proper retry logic and caching
+
+## Debugging Tools
+
+- Use Supabase dashboard for database debugging
+- Check Twilio logs for call issues
+- Monitor ElevenLabs API usage
+- Use browser dev tools for frontend issues
+- Check Next.js server logs
+
+## Environment Setup
+
+```bash
+# Verify environment variables
+echo $SUPABASE_URL
+echo $TWILIO_ACCOUNT_SID
+echo $ELEVENLABS_API_KEY
+
+# Test Supabase connection
+pnpm supabase status
+
+# Test Twilio credentials
+curl -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN \
+  https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Calls.json
+```
+
+## Performance Monitoring
+
+- Monitor database query performance
+- Track API response times
+- Monitor voice generation costs
+- Check for memory leaks in long-running processes
+  description:
+  globs:
+  alwaysApply: false
+
+---

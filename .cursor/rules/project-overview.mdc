@@ -1,0 +1,30 @@
+# Henk AI - Voice Fundraising Platform
+
+Henk is an AI-powered voice fundraising platform that enables charities to engage donors through natural phone conversations at scale. Built with Next.js, Supabase, Twilio, and ElevenLabs.
+
+## Core Architecture
+
+- **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions, Realtime)
+- **Voice**: Twilio Programmable Voice, ElevenLabs Conversational AI
+- **Package Manager**: pnpm
+
+## Key Features
+
+- 24/7 donor outreach with AI voice agents
+- Natural conversations using ElevenLabs neural TTS
+- Real-time analytics and conversion tracking
+- GDPR-compliant data handling
+- CRM integration and CSV import capabilities
+
+## Critical Considerations
+
+- This is a fundraising platform handling sensitive donor data
+- Always prioritize security, compliance, and user privacy
+- Follow GDPR compliance patterns for all data operations
+- Implement proper consent tracking and data erasure workflows
+  description:
+  globs:
+  alwaysApply: false
+
+---
