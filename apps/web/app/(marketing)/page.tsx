@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { ArrowRightIcon, LayoutDashboard } from 'lucide-react';
+import { ArrowRightIcon, Phone, Shield, TrendingUp, Users } from 'lucide-react';
 
 import {
   CtaButton,
@@ -22,20 +22,21 @@ function Home() {
       <div className={'container mx-auto'}>
         <Hero
           pill={
-            <Pill label={'New'}>
-              <span>The leading SaaS Starter Kit for ambitious developers</span>
+            <Pill label={'AI-Powered'}>
+              <span>Voice fundraising platform for charities</span>
             </Pill>
           }
           title={
             <>
-              <span>The ultimate SaaS Starter</span>
-              <span>for your next project</span>
+              <span>Transform fundraising with</span>
+              <span>AI-powered voice calls</span>
             </>
           }
           subtitle={
             <span>
-              Build and Ship a SaaS faster than ever before with the next-gen
-              SaaS Starter Kit. Ship your SaaS in days, not months.
+              Henk enables charities to engage donors through natural phone
+              conversations at scale. Reduce operational costs while improving
+              donor experience and conversion rates.
             </span>
           }
           cta={<MainCallToActionButton />}
@@ -48,7 +49,7 @@ function Home() {
               width={3558}
               height={2222}
               src={`/images/dashboard.webp`}
-              alt={`App Image`}
+              alt={`Henk AI Dashboard`}
             />
           }
         />
@@ -62,47 +63,47 @@ function Home() {
             heading={
               <>
                 <b className="font-semibold dark:text-white">
-                  The ultimate SaaS Starter Kit
+                  AI-Powered Voice Fundraising
                 </b>
                 .{' '}
                 <span className="text-muted-foreground font-normal">
-                  Unleash your creativity and build your SaaS faster than ever
-                  with Henk.
+                  Engage donors through natural conversations at scale with Henk
+                  AI.
                 </span>
               </>
             }
             icon={
               <FeatureShowcaseIconContainer>
-                <LayoutDashboard className="h-5" />
-                <span>All-in-one solution</span>
+                <Phone className="h-5" />
+                <span>Voice AI Platform</span>
               </FeatureShowcaseIconContainer>
             }
           >
             <FeatureGrid>
               <FeatureCard
                 className={'relative col-span-2 overflow-hidden'}
-                label={'Beautiful Dashboard'}
-                description={`Henk provides a beautiful dashboard to manage your SaaS business.`}
+                label={'Natural Conversations'}
+                description={`Henk uses advanced AI to have natural, engaging phone conversations with donors.`}
               />
 
               <FeatureCard
                 className={
                   'relative col-span-2 w-full overflow-hidden lg:col-span-1'
                 }
-                label={'Authentication'}
-                description={`Henk provides a variety of providers to allow your users to sign in.`}
+                label={'CRM Integration'}
+                description={`Seamlessly connect with existing donor management systems and workflows.`}
               />
 
               <FeatureCard
                 className={'relative col-span-2 overflow-hidden lg:col-span-1'}
-                label={'Multi Tenancy'}
-                description={`Multi tenant memberships for your SaaS business.`}
+                label={'Compliance First'}
+                description={`Built with fundraising regulations and best practices in mind.`}
               />
 
               <FeatureCard
                 className={'relative col-span-2 overflow-hidden'}
-                label={'Billing'}
-                description={`Henk supports multiple payment gateways to charge your customers.`}
+                label={'Scalable Architecture'}
+                description={`Handle thousands of concurrent calls with intelligent routing and management.`}
               />
             </FeatureGrid>
           </FeatureShowcase>

@@ -10,11 +10,11 @@ import { VariantProps, cva } from 'class-variance-authority';
 import { ChevronDown, PanelLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useIsMobile } from '../hooks/use-mobile';
-import { cn, isRouteActive } from '../lib/utils';
 import { If } from '../henk/if';
 import type { SidebarConfig } from '../henk/sidebar';
 import { Trans } from '../henk/trans';
+import { useIsMobile } from '../hooks/use-mobile';
+import { cn, isRouteActive } from '../lib/utils';
 import { Button } from './button';
 import {
   Collapsible,

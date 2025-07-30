@@ -73,7 +73,7 @@ Reusable UI components built with Radix UI and Tailwind CSS.
 ```
 packages/ui/
 ├── src/
-│   ├── makerkit/          # Custom UI components
+│   ├── henk/              # Custom UI components
 │   ├── shadcn/            # Shadcn UI components
 │   ├── hooks/             # UI-related hooks
 │   └── lib/               # UI utilities
@@ -247,7 +247,7 @@ packages/accounts
 ## 🎯 Development Workflow
 
 ### Adding New Features
-1. **UI Components**: Add to `packages/ui/src/makerkit/`
+1. **UI Components**: Add to `packages/ui/src/henk/`
 2. **Authentication**: Add to `packages/auth/src/`
 3. **Account Features**: Add to `packages/accounts/src/`
 4. **Database Changes**: Add migrations to `apps/web/supabase/migrations/`

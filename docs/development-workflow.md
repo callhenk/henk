@@ -95,7 +95,7 @@ git checkout -b fix/descriptive-bug-name
 ```
 
 ### 2. Making Changes
-- **UI Components**: Add to `packages/ui/src/makerkit/`
+- **UI Components**: Add to `packages/ui/src/henk/`
 - **Authentication**: Add to `packages/auth/src/`
 - **Account Features**: Add to `packages/accounts/src/`
 - **Database Changes**: Add migrations to `apps/web/supabase/migrations/`
