@@ -1,4 +1,12 @@
-import { Home, User } from 'lucide-react';
+import {
+  BarChart3,
+  Database,
+  Home,
+  MessageSquare,
+  Phone,
+  User,
+  Users,
+} from 'lucide-react';
 import { z } from 'zod';
 
 import { NavigationConfigSchema } from '@kit/ui/navigation-schema';
@@ -12,10 +20,37 @@ const routes = [
     label: 'common:routes.application',
     children: [
       {
-        label: 'common:routes.home',
+        label: 'Dashboard',
         path: pathsConfig.app.home,
         Icon: <Home className={iconClasses} />,
         end: true,
+      },
+      {
+        label: 'Campaigns',
+        path: '/campaigns',
+        Icon: <Phone className={iconClasses} />,
+        badge: '4 Active',
+      },
+      {
+        label: 'Agents',
+        path: '/agents',
+        Icon: <Users className={iconClasses} />,
+      },
+      {
+        label: 'Conversations',
+        path: '/conversations',
+        Icon: <MessageSquare className={iconClasses} />,
+        badge: '124 Today',
+      },
+      {
+        label: 'Integrations',
+        path: '/integrations',
+        Icon: <Database className={iconClasses} />,
+      },
+      {
+        label: 'Analytics',
+        path: '/analytics',
+        Icon: <BarChart3 className={iconClasses} />,
       },
     ],
   },

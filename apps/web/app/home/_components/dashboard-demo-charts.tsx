@@ -1,25 +1,27 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-import { ArrowDown, ArrowUp, Menu, TrendingUp } from 'lucide-react';
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  XAxis,
-} from 'recharts';
+  ArrowDown,
+  ArrowUp,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  Menu,
+  Pause,
+  Phone,
+  TrendingUp,
+  Users,
+  XCircle,
+} from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 
 import { Badge } from '@kit/ui/badge';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
@@ -39,10 +41,9 @@ import {
 } from '@kit/ui/table';
 
 export default function DashboardDemo() {
-  const mrr = useMemo(() => generateDemoData(), []);
-  const netRevenue = useMemo(() => generateDemoData(), []);
-  const fees = useMemo(() => generateDemoData(), []);
-  const newCustomers = useMemo(() => generateDemoData(), []);
+  const callMetrics = useMemo(() => generateCallMetrics(), []);
+  const conversionData = useMemo(() => generateConversionData(), []);
+  const agentStatus = useMemo(() => generateAgentStatus(), []);
 
   return (
     <div
@@ -50,109 +51,94 @@ export default function DashboardDemo() {
         'animate-in fade-in flex flex-col space-y-4 pb-36 duration-500'
       }
     >
-      <div
-        className={
-          'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'
-        }
-      >
+      {/* Key Metrics Cards */}
+      <div className={'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'}>
         <Card>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
-              <span>MRR</span>
-              <Trend trend={'up'}>20%</Trend>
-            </CardTitle>
-
-            <CardDescription>
-              <span>Monthly recurring revenue</span>
-            </CardDescription>
-
-            <div>
-              <Figure>{`$${mrr[1]}`}</Figure>
-            </div>
-          </CardHeader>
-
-          <CardContent className={'space-y-4'}>
-            <Chart data={mrr[0]} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className={'flex items-center gap-2.5'}>
-              <span>Revenue</span>
+              <Phone className="h-5 w-5 text-blue-500" />
+              <span>Calls Today</span>
               <Trend trend={'up'}>12%</Trend>
             </CardTitle>
-
             <CardDescription>
-              <span>Total revenue including fees</span>
+              <span>Total calls made today</span>
             </CardDescription>
-
             <div>
-              <Figure>{`$${netRevenue[1]}`}</Figure>
+              <Figure>{callMetrics.today}</Figure>
             </div>
           </CardHeader>
-
-          <CardContent>
-            <Chart data={netRevenue[0]} />
-          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
-              <span>Fees</span>
-              <Trend trend={'up'}>9%</Trend>
+              <DollarSign className="h-5 w-5 text-green-500" />
+              <span>Conversion Rate</span>
+              <Trend trend={'up'}>8%</Trend>
             </CardTitle>
-
             <CardDescription>
-              <span>Total fees collected</span>
+              <span>Successful donations rate</span>
             </CardDescription>
-
             <div>
-              <Figure>{`$${fees[1]}`}</Figure>
+              <Figure>{conversionData.rate}%</Figure>
             </div>
           </CardHeader>
-
-          <CardContent>
-            <Chart data={fees[0]} />
-          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
-              <span>New Customers</span>
-              <Trend trend={'down'}>-25%</Trend>
+              <Users className="h-5 w-5 text-purple-500" />
+              <span>Active Agents</span>
+              <Trend trend={'stale'}>0%</Trend>
             </CardTitle>
-
             <CardDescription>
-              <span>Customers who signed up this month</span>
+              <span>Currently running agents</span>
             </CardDescription>
-
             <div>
-              <Figure>{`${Number(newCustomers[1]).toFixed(0)}`}</Figure>
+              <Figure>{agentStatus.active}</Figure>
             </div>
           </CardHeader>
+        </Card>
 
-          <CardContent>
-            <Chart data={newCustomers[0]} />
-          </CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle className={'flex items-center gap-2.5'}>
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+              <span>Revenue Today</span>
+              <Trend trend={'up'}>15%</Trend>
+            </CardTitle>
+            <CardDescription>
+              <span>Total donations today</span>
+            </CardDescription>
+            <div>
+              <Figure>${callMetrics.revenue}</Figure>
+            </div>
+          </CardHeader>
         </Card>
       </div>
 
-      <VisitorsChart />
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <CallVolumeChart />
+        <ConversionChart />
+      </div>
 
-      <PageViewsChart />
+      {/* Agent Status and Campaign Summaries */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <AgentStatusCard />
+        <CampaignSummariesCard />
+      </div>
 
+      {/* Recent Conversations */}
       <div>
         <Card>
           <CardHeader>
-            <CardTitle>Best Customers</CardTitle>
-            <CardDescription>Showing the top customers by MRR</CardDescription>
+            <CardTitle>Recent Conversations</CardTitle>
+            <CardDescription>Latest calls and their outcomes</CardDescription>
           </CardHeader>
-
           <CardContent>
-            <CustomersTable />
+            <ConversationsTable />
           </CardContent>
         </Card>
       </div>
@@ -160,307 +146,389 @@ export default function DashboardDemo() {
   );
 }
 
-function generateDemoData() {
-  const today = new Date();
-  const formatter = new Intl.DateTimeFormat('en-us', {
-    month: 'long',
-    year: '2-digit',
-  });
-
-  const data: { value: string; name: string }[] = [];
-
-  for (let n = 8; n > 0; n -= 1) {
-    const date = new Date(today.getFullYear(), today.getMonth() - n, 1);
-
-    data.push({
-      name: formatter.format(date),
-      value: (Math.random() * 10).toFixed(1),
-    });
-  }
-
-  const lastValue = data[data.length - 1]?.value;
-
-  return [data, lastValue] as [typeof data, string];
+function generateCallMetrics() {
+  return {
+    today: 124,
+    thisWeek: 847,
+    revenue: 2847,
+    avgDuration: '3m 24s',
+  };
 }
 
-function Chart(
-  props: React.PropsWithChildren<{ data: { value: string; name: string }[] }>,
-) {
+function generateConversionData() {
+  return {
+    rate: 23.4,
+    successful: 29,
+    total: 124,
+    avgDonation: 98.2,
+  };
+}
+
+function generateAgentStatus() {
+  return {
+    active: 4,
+    total: 8,
+    statuses: [
+      { name: 'Sarah', status: 'active', calls: 45, success: 12 },
+      { name: 'Mike', status: 'active', calls: 38, success: 9 },
+      { name: 'Emma', status: 'paused', calls: 0, success: 0 },
+      { name: 'David', status: 'active', calls: 41, success: 8 },
+    ],
+  };
+}
+
+function CallVolumeChart() {
+  const chartData = useMemo(
+    () => [
+      { date: 'Mon', calls: 45, successful: 12 },
+      { date: 'Tue', calls: 52, successful: 15 },
+      { date: 'Wed', calls: 38, successful: 9 },
+      { date: 'Thu', calls: 67, successful: 18 },
+      { date: 'Fri', calls: 41, successful: 11 },
+      { date: 'Sat', calls: 29, successful: 8 },
+      { date: 'Sun', calls: 34, successful: 10 },
+    ],
+    [],
+  );
+
   const chartConfig = {
-    desktop: {
-      label: 'Desktop',
+    calls: {
+      label: 'Total Calls',
       color: 'var(--chart-1)',
     },
-    mobile: {
-      label: 'Mobile',
+    successful: {
+      label: 'Successful',
       color: 'var(--chart-2)',
     },
   } satisfies ChartConfig;
 
   return (
-    <ChartContainer config={chartConfig}>
-      <LineChart accessibilityLayer data={props.data}>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="name"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent hideLabel />}
-        />
-        <Line
-          dataKey="value"
-          type="natural"
-          stroke="var(--color-desktop)"
-          strokeWidth={2}
-          dot={false}
-        />
-      </LineChart>
-    </ChartContainer>
+    <Card>
+      <CardHeader>
+        <CardTitle>Call Volume This Week</CardTitle>
+        <CardDescription>
+          Daily call volume and successful conversions
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer className={'h-64 w-full'} config={chartConfig}>
+          <BarChart accessibilityLayer data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Bar dataKey="calls" fill="var(--color-calls)" />
+            <Bar dataKey="successful" fill="var(--color-successful)" />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
 
-function CustomersTable() {
-  const customers = [
+function ConversionChart() {
+  const chartData = useMemo(
+    () => [
+      { time: '9AM', rate: 18 },
+      { time: '10AM', rate: 22 },
+      { time: '11AM', rate: 25 },
+      { time: '12PM', rate: 20 },
+      { time: '1PM', rate: 28 },
+      { time: '2PM', rate: 32 },
+      { time: '3PM', rate: 26 },
+      { time: '4PM', rate: 24 },
+      { time: '5PM', rate: 19 },
+    ],
+    [],
+  );
+
+  const chartConfig = {
+    rate: {
+      label: 'Conversion Rate',
+      color: 'var(--chart-1)',
+    },
+  } satisfies ChartConfig;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Conversion Rate by Hour</CardTitle>
+        <CardDescription>Best times for successful donations</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer className={'h-64 w-full'} config={chartConfig}>
+          <LineChart accessibilityLayer data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Line
+              dataKey="rate"
+              type="natural"
+              stroke="var(--color-rate)"
+              strokeWidth={2}
+              dot={true}
+            />
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AgentStatusCard() {
+  const agents = [
     {
-      name: 'John Doe',
-      email: 'john@henk.dev',
-      plan: 'Pro',
-      mrr: '$120.5',
-      logins: 1020,
-      status: 'Healthy',
-      trend: 'up',
+      name: 'Sarah',
+      status: 'active',
+      calls: 45,
+      success: 12,
+      lastCall: '2 min ago',
     },
     {
-      name: 'Emma Smith',
-      email: 'emma@makerit.dev',
-      plan: 'Basic',
-      mrr: '$65.4',
-      logins: 570,
-      status: 'Possible Churn',
-      trend: 'stale',
+      name: 'Mike',
+      status: 'active',
+      calls: 38,
+      success: 9,
+      lastCall: '5 min ago',
     },
     {
-      name: 'Robert Johnson',
-      email: 'robert@henk.dev',
-      plan: 'Pro',
-      mrr: '$500.1',
-      logins: 2050,
-      status: 'Healthy',
-      trend: 'up',
+      name: 'Emma',
+      status: 'paused',
+      calls: 0,
+      success: 0,
+      lastCall: '1 hour ago',
     },
     {
-      name: 'Olivia Brown',
-      email: 'olivia@henk.dev',
-      plan: 'Basic',
-      mrr: '$10',
-      logins: 50,
-      status: 'Churn',
-      trend: 'down',
-    },
-    {
-      name: 'Michael Davis',
-      email: 'michael@henk.dev',
-      plan: 'Pro',
-      mrr: '$300.2',
-      logins: 1520,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Emily Jones',
-      email: 'emily@henk.dev',
-      plan: 'Pro',
-      mrr: '$75.7',
-      logins: 780,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Daniel Garcia',
-      email: 'daniel@henk.dev',
-      plan: 'Basic',
-      mrr: '$50',
-      logins: 320,
-      status: 'Possible Churn',
-      trend: 'stale',
-    },
-    {
-      name: 'Liam Miller',
-      email: 'liam@henk.dev',
-      plan: 'Pro',
-      mrr: '$90.8',
-      logins: 1260,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Emma Clark',
-      email: 'emma@henk.dev',
-      plan: 'Basic',
-      mrr: '$0',
-      logins: 20,
-      status: 'Churn',
-      trend: 'down',
-    },
-    {
-      name: 'Elizabeth Rodriguez',
-      email: 'liz@henk.dev',
-      plan: 'Pro',
-      mrr: '$145.3',
-      logins: 1380,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'James Martinez',
-      email: 'james@henk.dev',
-      plan: 'Pro',
-      mrr: '$120.5',
-      logins: 940,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Charlotte Ryan',
-      email: 'carlotte@henk.dev',
-      plan: 'Basic',
-      mrr: '$80.6',
-      logins: 460,
-      status: 'Possible Churn',
-      trend: 'stale',
-    },
-    {
-      name: 'Lucas Evans',
-      email: 'lucas@henk.dev',
-      plan: 'Pro',
-      mrr: '$210.3',
-      logins: 1850,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Sophia Wilson',
-      email: 'sophia@henk.dev',
-      plan: 'Basic',
-      mrr: '$10',
-      logins: 35,
-      status: 'Churn',
-      trend: 'down',
-    },
-    {
-      name: 'William Kelly',
-      email: 'will@henk.dev',
-      plan: 'Pro',
-      mrr: '$350.2',
-      logins: 1760,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Oliver Thomas',
-      email: 'olly@henk.dev',
-      plan: 'Pro',
-      mrr: '$145.6',
-      logins: 1350,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Samantha White',
-      email: 'sam@henk.dev',
-      plan: 'Basic',
-      mrr: '$60.3',
-      logins: 425,
-      status: 'Possible Churn',
-      trend: 'stale',
-    },
-    {
-      name: 'Benjamin Lewis',
-      email: 'ben@henk.dev',
-      plan: 'Pro',
-      mrr: '$175.8',
-      logins: 1600,
-      status: 'Healthy',
-      trend: 'up',
-    },
-    {
-      name: 'Zoe Harris',
-      email: 'zoe@henk.dev',
-      plan: 'Basic',
-      mrr: '$0',
-      logins: 18,
-      status: 'Churn',
-      trend: 'down',
-    },
-    {
-      name: 'Zachary Nelson',
-      email: 'zac@henk.dev',
-      plan: 'Pro',
-      mrr: '$255.9',
-      logins: 1785,
-      status: 'Healthy',
-      trend: 'up',
+      name: 'David',
+      status: 'active',
+      calls: 41,
+      success: 8,
+      lastCall: '3 min ago',
     },
   ];
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'paused':
+        return <Pause className="h-4 w-4 text-yellow-500" />;
+      case 'inactive':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Status</CardTitle>
+        <CardDescription>
+          Current agent activity and performance
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {agents.map((agent) => (
+            <div
+              key={agent.name}
+              className="flex items-center justify-between rounded-lg border p-3"
+            >
+              <div className="flex items-center gap-3">
+                {getStatusIcon(agent.status)}
+                <div>
+                  <div className="font-medium">{agent.name}</div>
+                  <div className="text-muted-foreground text-sm">
+                    {agent.calls} calls • {agent.success} successful
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-muted-foreground text-sm">
+                  {agent.lastCall}
+                </div>
+                <Badge
+                  variant={agent.status === 'active' ? 'default' : 'secondary'}
+                >
+                  {agent.status}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CampaignSummariesCard() {
+  const campaigns = [
+    {
+      name: 'Summer Fundraiser',
+      status: 'active',
+      calls: 124,
+      conversions: 29,
+      revenue: 2847,
+      agent: 'Sarah',
+    },
+    {
+      name: 'Emergency Relief',
+      status: 'active',
+      calls: 89,
+      conversions: 18,
+      revenue: 1650,
+      agent: 'Mike',
+    },
+    {
+      name: 'Annual Campaign',
+      status: 'draft',
+      calls: 0,
+      conversions: 0,
+      revenue: 0,
+      agent: 'Emma',
+    },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Active Campaigns</CardTitle>
+        <CardDescription>Campaign performance overview</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {campaigns.map((campaign) => (
+            <div
+              key={campaign.name}
+              className="flex items-center justify-between rounded-lg border p-3"
+            >
+              <div>
+                <div className="font-medium">{campaign.name}</div>
+                <div className="text-muted-foreground text-sm">
+                  {campaign.calls} calls • {campaign.conversions} conversions
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">${campaign.revenue}</div>
+                <Badge
+                  variant={
+                    campaign.status === 'active' ? 'default' : 'secondary'
+                  }
+                >
+                  {campaign.status}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ConversationsTable() {
+  const conversations = [
+    {
+      donor: 'John Smith',
+      campaign: 'Summer Fundraiser',
+      agent: 'Sarah',
+      duration: '4m 12s',
+      outcome: 'donated',
+      amount: 150,
+      time: '2 min ago',
+    },
+    {
+      donor: 'Mary Johnson',
+      campaign: 'Emergency Relief',
+      agent: 'Mike',
+      duration: '2m 45s',
+      outcome: 'callback requested',
+      amount: 0,
+      time: '5 min ago',
+    },
+    {
+      donor: 'Robert Davis',
+      campaign: 'Summer Fundraiser',
+      agent: 'Sarah',
+      duration: '1m 30s',
+      outcome: 'no answer',
+      amount: 0,
+      time: '8 min ago',
+    },
+    {
+      donor: 'Lisa Wilson',
+      campaign: 'Emergency Relief',
+      agent: 'Mike',
+      duration: '5m 20s',
+      outcome: 'donated',
+      amount: 75,
+      time: '12 min ago',
+    },
+    {
+      donor: 'James Brown',
+      campaign: 'Summer Fundraiser',
+      agent: 'David',
+      duration: '3m 15s',
+      outcome: 'donated',
+      amount: 200,
+      time: '15 min ago',
+    },
+  ];
+
+  const getOutcomeBadge = (outcome: string) => {
+    switch (outcome) {
+      case 'donated':
+        return <Badge className="bg-green-100 text-green-800">Donated</Badge>;
+      case 'callback requested':
+        return <Badge className="bg-blue-100 text-blue-800">Callback</Badge>;
+      case 'no answer':
+        return <Badge className="bg-gray-100 text-gray-800">No Answer</Badge>;
+      default:
+        return <Badge variant="secondary">{outcome}</Badge>;
+    }
+  };
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Customer</TableHead>
-          <TableHead>Plan</TableHead>
-          <TableHead>MRR</TableHead>
-          <TableHead>Logins</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>Donor</TableHead>
+          <TableHead>Campaign</TableHead>
+          <TableHead>Agent</TableHead>
+          <TableHead>Duration</TableHead>
+          <TableHead>Outcome</TableHead>
+          <TableHead>Amount</TableHead>
+          <TableHead>Time</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {customers.map((customer) => (
-          <TableRow key={customer.name}>
-            <TableCell className={'flex flex-col'}>
-              <span>{customer.name}</span>
-              <span className={'text-muted-foreground text-sm'}>
-                {customer.email}
-              </span>
-            </TableCell>
-            <TableCell>{customer.plan}</TableCell>
-            <TableCell>{customer.mrr}</TableCell>
-            <TableCell>{customer.logins}</TableCell>
+        {conversations.map((conversation, index) => (
+          <TableRow key={index}>
+            <TableCell className="font-medium">{conversation.donor}</TableCell>
+            <TableCell>{conversation.campaign}</TableCell>
+            <TableCell>{conversation.agent}</TableCell>
+            <TableCell>{conversation.duration}</TableCell>
+            <TableCell>{getOutcomeBadge(conversation.outcome)}</TableCell>
             <TableCell>
-              <BadgeWithTrend trend={customer.trend}>
-                {customer.status}
-              </BadgeWithTrend>
+              {conversation.amount > 0 ? `$${conversation.amount}` : '-'}
+            </TableCell>
+            <TableCell className="text-muted-foreground">
+              {conversation.time}
             </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  );
-}
-
-function BadgeWithTrend(props: React.PropsWithChildren<{ trend: string }>) {
-  const className = useMemo(() => {
-    switch (props.trend) {
-      case 'up':
-        return 'text-green-500';
-      case 'down':
-        return 'text-destructive';
-      case 'stale':
-        return 'text-orange-500';
-    }
-  }, [props.trend]);
-
-  return (
-    <Badge
-      variant={'outline'}
-      className={'border-transparent px-1.5 font-normal'}
-    >
-      <span className={className}>{props.children}</span>
-    </Badge>
   );
 }
 
@@ -500,397 +568,24 @@ function Trend(
   );
 }
 
-export function VisitorsChart() {
-  const chartData = useMemo(
-    () => [
-      { date: '2024-04-01', desktop: 222, mobile: 150 },
-      { date: '2024-04-02', desktop: 97, mobile: 180 },
-      { date: '2024-04-03', desktop: 167, mobile: 120 },
-      { date: '2024-04-04', desktop: 242, mobile: 260 },
-      { date: '2024-04-05', desktop: 373, mobile: 290 },
-      { date: '2024-04-06', desktop: 301, mobile: 340 },
-      { date: '2024-04-07', desktop: 245, mobile: 180 },
-      { date: '2024-04-08', desktop: 409, mobile: 320 },
-      { date: '2024-04-09', desktop: 59, mobile: 110 },
-      { date: '2024-04-10', desktop: 261, mobile: 190 },
-      { date: '2024-04-11', desktop: 327, mobile: 350 },
-      { date: '2024-04-12', desktop: 292, mobile: 210 },
-      { date: '2024-04-13', desktop: 342, mobile: 380 },
-      { date: '2024-04-14', desktop: 137, mobile: 220 },
-      { date: '2024-04-15', desktop: 120, mobile: 170 },
-      { date: '2024-04-16', desktop: 138, mobile: 190 },
-      { date: '2024-04-17', desktop: 446, mobile: 360 },
-      { date: '2024-04-18', desktop: 364, mobile: 410 },
-      { date: '2024-04-19', desktop: 243, mobile: 180 },
-      { date: '2024-04-20', desktop: 89, mobile: 150 },
-      { date: '2024-04-21', desktop: 137, mobile: 200 },
-      { date: '2024-04-22', desktop: 224, mobile: 170 },
-      { date: '2024-04-23', desktop: 138, mobile: 230 },
-      { date: '2024-04-24', desktop: 387, mobile: 290 },
-      { date: '2024-04-25', desktop: 215, mobile: 250 },
-      { date: '2024-04-26', desktop: 75, mobile: 130 },
-      { date: '2024-04-27', desktop: 383, mobile: 420 },
-      { date: '2024-04-28', desktop: 122, mobile: 180 },
-      { date: '2024-04-29', desktop: 315, mobile: 240 },
-      { date: '2024-04-30', desktop: 454, mobile: 380 },
-      { date: '2024-05-01', desktop: 165, mobile: 220 },
-      { date: '2024-05-02', desktop: 293, mobile: 310 },
-      { date: '2024-05-03', desktop: 247, mobile: 190 },
-      { date: '2024-05-04', desktop: 385, mobile: 420 },
-      { date: '2024-05-05', desktop: 481, mobile: 390 },
-      { date: '2024-05-06', desktop: 498, mobile: 520 },
-      { date: '2024-05-07', desktop: 388, mobile: 300 },
-      { date: '2024-05-08', desktop: 149, mobile: 210 },
-      { date: '2024-05-09', desktop: 227, mobile: 180 },
-      { date: '2024-05-10', desktop: 293, mobile: 330 },
-      { date: '2024-05-11', desktop: 335, mobile: 270 },
-      { date: '2024-05-12', desktop: 197, mobile: 240 },
-      { date: '2024-05-13', desktop: 197, mobile: 160 },
-      { date: '2024-05-14', desktop: 448, mobile: 490 },
-      { date: '2024-05-15', desktop: 473, mobile: 380 },
-      { date: '2024-05-16', desktop: 338, mobile: 400 },
-      { date: '2024-05-17', desktop: 499, mobile: 420 },
-      { date: '2024-05-18', desktop: 315, mobile: 350 },
-      { date: '2024-05-19', desktop: 235, mobile: 180 },
-      { date: '2024-05-20', desktop: 177, mobile: 230 },
-      { date: '2024-05-21', desktop: 82, mobile: 140 },
-      { date: '2024-05-22', desktop: 81, mobile: 120 },
-      { date: '2024-05-23', desktop: 252, mobile: 290 },
-      { date: '2024-05-24', desktop: 294, mobile: 220 },
-      { date: '2024-05-25', desktop: 201, mobile: 250 },
-      { date: '2024-05-26', desktop: 213, mobile: 170 },
-      { date: '2024-05-27', desktop: 420, mobile: 460 },
-      { date: '2024-05-28', desktop: 233, mobile: 190 },
-      { date: '2024-05-29', desktop: 78, mobile: 130 },
-      { date: '2024-05-30', desktop: 340, mobile: 280 },
-      { date: '2024-05-31', desktop: 178, mobile: 230 },
-      { date: '2024-06-01', desktop: 178, mobile: 200 },
-      { date: '2024-06-02', desktop: 470, mobile: 410 },
-      { date: '2024-06-03', desktop: 103, mobile: 160 },
-      { date: '2024-06-04', desktop: 439, mobile: 380 },
-      { date: '2024-06-05', desktop: 88, mobile: 140 },
-      { date: '2024-06-06', desktop: 294, mobile: 250 },
-      { date: '2024-06-07', desktop: 323, mobile: 370 },
-      { date: '2024-06-08', desktop: 385, mobile: 320 },
-      { date: '2024-06-09', desktop: 438, mobile: 480 },
-      { date: '2024-06-10', desktop: 155, mobile: 200 },
-      { date: '2024-06-11', desktop: 92, mobile: 150 },
-      { date: '2024-06-12', desktop: 492, mobile: 420 },
-      { date: '2024-06-13', desktop: 81, mobile: 130 },
-      { date: '2024-06-14', desktop: 426, mobile: 380 },
-      { date: '2024-06-15', desktop: 307, mobile: 350 },
-      { date: '2024-06-16', desktop: 371, mobile: 310 },
-      { date: '2024-06-17', desktop: 475, mobile: 520 },
-      { date: '2024-06-18', desktop: 107, mobile: 170 },
-      { date: '2024-06-19', desktop: 341, mobile: 290 },
-      { date: '2024-06-20', desktop: 408, mobile: 450 },
-      { date: '2024-06-21', desktop: 169, mobile: 210 },
-      { date: '2024-06-22', desktop: 317, mobile: 270 },
-      { date: '2024-06-23', desktop: 480, mobile: 530 },
-      { date: '2024-06-24', desktop: 132, mobile: 180 },
-      { date: '2024-06-25', desktop: 141, mobile: 190 },
-      { date: '2024-06-26', desktop: 434, mobile: 380 },
-      { date: '2024-06-27', desktop: 448, mobile: 490 },
-      { date: '2024-06-28', desktop: 149, mobile: 200 },
-      { date: '2024-06-29', desktop: 103, mobile: 160 },
-      { date: '2024-06-30', desktop: 446, mobile: 400 },
-    ],
-    [],
-  );
-
-  const chartConfig = {
-    visitors: {
-      label: 'Visitors',
-    },
-    desktop: {
-      label: 'Desktop',
-      color: 'var(--chart-1)',
-    },
-    mobile: {
-      label: 'Mobile',
-      color: 'var(--chart-2)',
-    },
-  } satisfies ChartConfig;
+function BadgeWithTrend(props: React.PropsWithChildren<{ trend: string }>) {
+  const className = useMemo(() => {
+    switch (props.trend) {
+      case 'up':
+        return 'text-green-500';
+      case 'down':
+        return 'text-destructive';
+      case 'stale':
+        return 'text-orange-500';
+    }
+  }, [props.trend]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Visitors</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <ChartContainer className={'h-64 w-full'} config={chartConfig}>
-          <AreaChart accessibilityLayer data={chartData}>
-            <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-desktop)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-desktop)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-mobile)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-mobile)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value: string) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
-            />
-            <Area
-              dataKey="mobile"
-              type="natural"
-              fill="url(#fillMobile)"
-              fillOpacity={0.4}
-              stroke="var(--color-mobile)"
-              stackId="a"
-            />
-            <Area
-              dataKey="desktop"
-              type="natural"
-              fill="url(#fillDesktop)"
-              fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-              stackId="a"
-            />
-          </AreaChart>
-        </ChartContainer>
-      </CardContent>
-
-      <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              January - June 2024
-            </div>
-          </div>
-        </div>
-      </CardFooter>
-    </Card>
-  );
-}
-
-export function PageViewsChart() {
-  const [activeChart, setActiveChart] =
-    useState<keyof typeof chartConfig>('desktop');
-
-  const chartData = [
-    { date: '2024-04-01', desktop: 222, mobile: 150 },
-    { date: '2024-04-02', desktop: 97, mobile: 180 },
-    { date: '2024-04-03', desktop: 167, mobile: 120 },
-    { date: '2024-04-04', desktop: 242, mobile: 260 },
-    { date: '2024-04-05', desktop: 373, mobile: 290 },
-    { date: '2024-04-06', desktop: 301, mobile: 340 },
-    { date: '2024-04-07', desktop: 245, mobile: 180 },
-    { date: '2024-04-08', desktop: 409, mobile: 320 },
-    { date: '2024-04-09', desktop: 59, mobile: 110 },
-    { date: '2024-04-10', desktop: 261, mobile: 190 },
-    { date: '2024-04-11', desktop: 327, mobile: 350 },
-    { date: '2024-04-12', desktop: 292, mobile: 210 },
-    { date: '2024-04-13', desktop: 342, mobile: 380 },
-    { date: '2024-04-14', desktop: 137, mobile: 220 },
-    { date: '2024-04-15', desktop: 120, mobile: 170 },
-    { date: '2024-04-16', desktop: 138, mobile: 190 },
-    { date: '2024-04-17', desktop: 446, mobile: 360 },
-    { date: '2024-04-18', desktop: 364, mobile: 410 },
-    { date: '2024-04-19', desktop: 243, mobile: 180 },
-    { date: '2024-04-20', desktop: 89, mobile: 150 },
-    { date: '2024-04-21', desktop: 137, mobile: 200 },
-    { date: '2024-04-22', desktop: 224, mobile: 170 },
-    { date: '2024-04-23', desktop: 138, mobile: 230 },
-    { date: '2024-04-24', desktop: 387, mobile: 290 },
-    { date: '2024-04-25', desktop: 215, mobile: 250 },
-    { date: '2024-04-26', desktop: 75, mobile: 130 },
-    { date: '2024-04-27', desktop: 383, mobile: 420 },
-    { date: '2024-04-28', desktop: 122, mobile: 180 },
-    { date: '2024-04-29', desktop: 315, mobile: 240 },
-    { date: '2024-04-30', desktop: 454, mobile: 380 },
-    { date: '2024-05-01', desktop: 165, mobile: 220 },
-    { date: '2024-05-02', desktop: 293, mobile: 310 },
-    { date: '2024-05-03', desktop: 247, mobile: 190 },
-    { date: '2024-05-04', desktop: 385, mobile: 420 },
-    { date: '2024-05-05', desktop: 481, mobile: 390 },
-    { date: '2024-05-06', desktop: 498, mobile: 520 },
-    { date: '2024-05-07', desktop: 388, mobile: 300 },
-    { date: '2024-05-08', desktop: 149, mobile: 210 },
-    { date: '2024-05-09', desktop: 227, mobile: 180 },
-    { date: '2024-05-10', desktop: 293, mobile: 330 },
-    { date: '2024-05-11', desktop: 335, mobile: 270 },
-    { date: '2024-05-12', desktop: 197, mobile: 240 },
-    { date: '2024-05-13', desktop: 197, mobile: 160 },
-    { date: '2024-05-14', desktop: 448, mobile: 490 },
-    { date: '2024-05-15', desktop: 473, mobile: 380 },
-    { date: '2024-05-16', desktop: 338, mobile: 400 },
-    { date: '2024-05-17', desktop: 499, mobile: 420 },
-    { date: '2024-05-18', desktop: 315, mobile: 350 },
-    { date: '2024-05-19', desktop: 235, mobile: 180 },
-    { date: '2024-05-20', desktop: 177, mobile: 230 },
-    { date: '2024-05-21', desktop: 82, mobile: 140 },
-    { date: '2024-05-22', desktop: 81, mobile: 120 },
-    { date: '2024-05-23', desktop: 252, mobile: 290 },
-    { date: '2024-05-24', desktop: 294, mobile: 220 },
-    { date: '2024-05-25', desktop: 201, mobile: 250 },
-    { date: '2024-05-26', desktop: 213, mobile: 170 },
-    { date: '2024-05-27', desktop: 420, mobile: 460 },
-    { date: '2024-05-28', desktop: 233, mobile: 190 },
-    { date: '2024-05-29', desktop: 78, mobile: 130 },
-    { date: '2024-05-30', desktop: 340, mobile: 280 },
-    { date: '2024-05-31', desktop: 178, mobile: 230 },
-    { date: '2024-06-01', desktop: 178, mobile: 200 },
-    { date: '2024-06-02', desktop: 470, mobile: 410 },
-    { date: '2024-06-03', desktop: 103, mobile: 160 },
-    { date: '2024-06-04', desktop: 439, mobile: 380 },
-    { date: '2024-06-05', desktop: 88, mobile: 140 },
-    { date: '2024-06-06', desktop: 294, mobile: 250 },
-    { date: '2024-06-07', desktop: 323, mobile: 370 },
-    { date: '2024-06-08', desktop: 385, mobile: 320 },
-    { date: '2024-06-09', desktop: 438, mobile: 480 },
-    { date: '2024-06-10', desktop: 155, mobile: 200 },
-    { date: '2024-06-11', desktop: 92, mobile: 150 },
-    { date: '2024-06-12', desktop: 492, mobile: 420 },
-    { date: '2024-06-13', desktop: 81, mobile: 130 },
-    { date: '2024-06-14', desktop: 426, mobile: 380 },
-    { date: '2024-06-15', desktop: 307, mobile: 350 },
-    { date: '2024-06-16', desktop: 371, mobile: 310 },
-    { date: '2024-06-17', desktop: 475, mobile: 520 },
-    { date: '2024-06-18', desktop: 107, mobile: 170 },
-    { date: '2024-06-19', desktop: 341, mobile: 290 },
-    { date: '2024-06-20', desktop: 408, mobile: 450 },
-    { date: '2024-06-21', desktop: 169, mobile: 210 },
-    { date: '2024-06-22', desktop: 317, mobile: 270 },
-    { date: '2024-06-23', desktop: 480, mobile: 530 },
-    { date: '2024-06-24', desktop: 132, mobile: 180 },
-    { date: '2024-06-25', desktop: 141, mobile: 190 },
-    { date: '2024-06-26', desktop: 434, mobile: 380 },
-    { date: '2024-06-27', desktop: 448, mobile: 490 },
-    { date: '2024-06-28', desktop: 149, mobile: 200 },
-    { date: '2024-06-29', desktop: 103, mobile: 160 },
-    { date: '2024-06-30', desktop: 446, mobile: 400 },
-  ];
-
-  const chartConfig = {
-    views: {
-      label: 'Page Views',
-    },
-    desktop: {
-      label: 'Desktop',
-      color: 'var(--chart-1)',
-    },
-    mobile: {
-      label: 'Mobile',
-      color: 'var(--chart-2)',
-    },
-  } satisfies ChartConfig;
-
-  const total = useMemo(
-    () => ({
-      desktop: chartData.reduce((acc, curr) => acc + curr.desktop, 0),
-      mobile: chartData.reduce((acc, curr) => acc + curr.mobile, 0),
-    }),
-    [],
-  );
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Page Views</CardTitle>
-
-          <CardDescription>
-            Showing total visitors for the last 3 months
-          </CardDescription>
-        </div>
-
-        <div className="flex">
-          {['desktop', 'mobile'].map((key) => {
-            const chart = key as keyof typeof chartConfig;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
-                </span>
-                <span className="text-lg leading-none font-bold sm:text-3xl">
-                  {total[key as keyof typeof total].toLocaleString()}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader>
-
-      <CardContent className="px-2 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-64 w-full"
-        >
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                });
-              }}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="views"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    });
-                  }}
-                />
-              }
-            />
-            <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <Badge
+      variant={'outline'}
+      className={'border-transparent px-1.5 font-normal'}
+    >
+      <span className={className}>{props.children}</span>
+    </Badge>
   );
 }

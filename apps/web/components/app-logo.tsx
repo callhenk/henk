@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { cn } from '@kit/ui/utils';
@@ -10,15 +11,14 @@ function LogoImage({
   width?: number;
 }) {
   return (
-    <div
-      className={cn(
-        'text-primary text-sm font-bold lg:text-lg dark:text-white',
-        className,
-      )}
-      style={{ width: `${width}px` }}
-    >
-      Henk
-    </div>
+    <Image
+      src="/images/logo.png"
+      alt="Henk AI"
+      width={width}
+      height={width * 0.3} // Assuming aspect ratio of roughly 3:1
+      className={cn('object-contain', className)}
+      priority
+    />
   );
 }
 

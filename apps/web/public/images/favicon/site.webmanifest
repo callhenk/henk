@@ -1,23 +1,7 @@
 {
-  "name": "Makerkit",
-  "short_name": "makerkit",
-  "theme_color": "#fff",
-  "background_color": "#fff",
-  "display": "fullscreen",
-  "orientation": "portrait",
-  "scope": "/",
-  "start_url": "/",
+  "name": "Henk AI",
+  "short_name": "Henk",
   "icons": [
-    {
-      "src": "/images/favicon/favicon-16x16.png",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
-    {
-      "src": "/images/favicon/favicon-32x32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
     {
       "src": "/images/favicon/android-chrome-192x192.png",
       "sizes": "192x192",
@@ -29,5 +13,7 @@
       "type": "image/png"
     }
   ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "display": "standalone"
 }

@@ -5,7 +5,7 @@ import { DashboardDemo } from '~/home/_components/dashboard-demo';
 export default function HomePage() {
   return (
     <>
-      <PageHeader description={'Your SaaS at a glance'} />
+      <PageHeader description={'Your AI voice fundraising dashboard'} />
 
       <PageBody>
         <DashboardDemo />
