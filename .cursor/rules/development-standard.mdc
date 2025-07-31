@@ -1,5 +1,408 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: Outlines our development standards and project structure for consistent, maintainable code.
+alwaysApply: true
 ---
+
+# Development Standards
+
+## 🏗 Architecture Principles
+
+### **Monorepo Structure**
+
+- **apps/web**: Main Next.js application
+- **packages/ui**: Reusable UI components (`@kit/ui`)
+- **packages/features**: Modular feature packages
+- **packages/supabase**: Database utilities
+- **packages/shared**: Shared utilities and hooks
+
+### **Component Organization**
+
+```typescript
+// ✅ Good: Use existing components from @kit/ui
+import { Button } from '@kit/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+import { PageBody, PageHeader } from '@kit/ui/page';
+
+// ✅ Good: Create reusable components in packages/ui
+// packages/ui/src/henk/form-section.tsx
+
+// ❌ Avoid: Creating duplicate components
+// Don’t recreate Button, Card, etc.—use @kit/ui
+```
+
+## 📝 Code Standards
+
+### **TypeScript Standards**
+
+```typescript
+// ✅ Good: Proper interfaces and types
+interface Campaign {
+  id: string;
+  name: string;
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  leads: number;
+  contacted: number;
+  conversions: number;
+  revenue: number;
+  startDate: string;
+  endDate?: string;
+  description: string;
+}
+
+// ✅ Good: Strict typing for props
+interface CampaignDetailProps {
+  campaignId: string;
+}
+
+// ✅ Good: Proper async/await for Next.js 15
+export default async function CampaignPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  // ...
+}
+```
+
+### **React Component Standards**
+
+```typescript
+// ✅ Good: Standard page structure
+export default function CampaignsPage() {
+  return (
+    <>
+      <PageHeader
+        title="Campaigns"
+        description="Manage your fundraising campaigns"
+      />
+      <PageBody>
+        <CampaignsList />
+      </PageBody>
+    </>
+  );
+}
+
+// ✅ Good: Proper hooks usage
+export function CampaignsList() {
+  const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState('all');
+
+  const getFilteredCampaigns = useCallback(() => {
+    // Filter logic
+  }, [selectedTab]);
+}
+```
+
+### **Styling Standards**
+
+```typescript
+// ✅ Good: Consistent Tailwind classes
+<div className="space-y-6">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-sm font-medium">Title</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground text-xs">Description</p>
+    </CardContent>
+  </Card>
+</div>
+
+// ✅ Good: Responsive design
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  {/* Cards */}
+</div>
+
+// ✅ Good: Consistent spacing
+<div className="space-y-4">
+  <div className="flex items-center justify-between">
+    {/* Header content */}
+  </div>
+  <div className="space-y-2">
+    {/* Content */}
+  </div>
+</div>
+```
+
+## 🎨 UI/UX Standards
+
+### **Page Layout Patterns**
+
+```typescript
+// ✅ Standard page structure
+export default function ExamplePage() {
+  return (
+    <>
+      <PageHeader
+        title="Page Title"
+        description="Page description"
+      />
+      <PageBody className="py-8">
+        {/* Content with proper vertical padding */}
+      </PageBody>
+    </>
+  );
+}
+```
+
+### **Form Patterns**
+
+```typescript
+// ✅ Good: Use FormSection component
+import { FormSection } from '~/components/form-styles';
+
+export function CampaignForm() {
+  return (
+    <div className="mx-auto max-w-4xl space-y-8">
+      <FormSection title="Campaign Details">
+        {/* Form fields */}
+      </FormSection>
+      <FormSection title="Settings">
+        {/* More form fields */}
+      </FormSection>
+    </div>
+  );
+}
+```
+
+### **Table Patterns**
+
+```typescript
+// ✅ Good: Consistent table structure
+<Table>
+  <TableHeader>
+    <TableRow>
+      <TableHead>Name</TableHead>
+      <TableHead>Status</TableHead>
+      <TableHead className="text-right">Actions</TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    {items.map((item) => (
+      <TableRow key={item.id}>
+        <TableCell>
+          <div>
+            <div className="font-medium">{item.name}</div>
+            <div className="text-muted-foreground text-sm">
+              {item.description}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>{getStatusBadge(item.status)}</TableCell>
+        <TableCell className="text-right">
+          {/* Actions */}
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+```
+
+## 🔧 Component Guidelines
+
+### **Reusable Components**
+
+1. **Check `@kit/ui` first** before creating new components
+2. **Use established patterns** from existing components
+3. **Create in `packages/ui`** if truly reusable
+4. **Follow naming conventions** and file structure
+
+### **Component Structure**
+
+```typescript
+// ✅ Good: Proper component structure
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@kit/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+
+interface ComponentProps {
+  // Proper TypeScript interfaces
+}
+
+export function ComponentName({ prop }: ComponentProps) {
+  // Hooks at the top
+  const router = useRouter();
+  const [state, setState] = useState();
+
+  // Helper functions
+  const handleAction = () => {
+    // Action logic
+  };
+
+  // Render
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Title</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Content */}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### **Error Handling**
+
+```typescript
+// ✅ Good: Proper error boundaries and loading states
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingOverlay />}>
+      <PageContent />
+    </Suspense>
+  );
+}
+
+// ✅ Good: Loading components
+export function LoadingOverlay() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Spinner />
+    </div>
+  );
+}
+```
+
+## 📊 Data Management
+
+### **Mock Data Standards**
+
+```typescript
+// ✅ Good: Comprehensive mock data
+const mockCampaigns: Campaign[] = [
+  {
+    id: '1',
+    name: 'Summer Fundraiser 2024',
+    status: 'active',
+    leads: 500,
+    contacted: 124,
+    conversions: 29,
+    revenue: 2847,
+    startDate: '2024-06-01',
+    description: 'Annual summer fundraising campaign',
+  },
+  // More realistic data...
+];
+```
+
+### **State Management**
+
+```typescript
+// ✅ Good: Use React hooks properly
+const [selectedTab, setSelectedTab] = useState('all');
+const [filteredData, setFilteredData] = useState([]);
+
+// ✅ Good: Memoized calculations
+const getTotalStats = useCallback(() => {
+  return {
+    total: data.length,
+    active: data.filter((item) => item.status === 'active').length,
+    // ...
+  };
+}, [data]);
+```
+
+## 🎯 Performance Standards
+
+### **Optimization Guidelines**
+
+1. **Use `React.memo`** for expensive components
+2. **Implement proper loading states**
+3. **Lazy load components** when appropriate
+4. **Optimize images** with Next.js `<Image>` component
+5. **Use proper `key` props** in lists
+
+### **Bundle Optimization**
+
+```typescript
+// ✅ Good: Dynamic imports for heavy components
+const WorkflowBuilder = dynamic(() => import('./workflow-builder'), {
+  loading: () => <LoadingOverlay />,
+  ssr: false,
+});
+
+// ✅ Good: Proper icon imports
+import { Plus, Edit, Trash2 } from 'lucide-react';
+```
+
+## 🔍 Code Quality
+
+### **Linting Standards**
+
+- **Fix all TypeScript errors** before committing
+- **Use proper import/export** statements
+- **Follow ESLint rules** consistently
+- **Remove unused imports** and variables
+
+### **Documentation Standards**
+
+```typescript
+// ✅ Good: Proper JSDoc comments
+/**
+ * Campaign management component
+ * Handles listing, filtering, and actions for campaigns
+ */
+export function CampaignsList() {
+  // Component implementation
+}
+
+// ✅ Good: Interface documentation
+interface Campaign {
+  /** Unique identifier for the campaign */
+  id: string;
+  /** Display name of the campaign */
+  name: string;
+  /** Current status of the campaign */
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  // ...
+}
+```
+
+## 🚀 Deployment Standards
+
+### **Environment Variables**
+
+```bash
+# ✅ Good: Proper environment setup
+NEXT_PUBLIC_SITE_URL=https://app.callhenk.com
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+```
+
+### **Build Optimization**
+
+- **Use proper Next.js 15 features**
+- **Implement proper caching strategies**
+- **Optimize images and static assets**
+- **Use proper error boundaries**
+
+## 📋 Checklist for New Features
+
+### **Before Implementation**
+
+- [ ] Check existing components in `@kit/ui`
+- [ ] Review similar pages for patterns
+- [ ] Plan proper TypeScript interfaces
+- [ ] Design responsive layout
+
+### **During Implementation**
+
+- [ ] Use `PageHeader` + `PageBody` structure
+- [ ] Implement proper loading states
+- [ ] Add comprehensive mock data
+- [ ] Follow established styling patterns
+- [ ] Include proper error handling
+
+### **After Implementation**
+
+- [ ] Update documentation (markdown files)
+- [ ] Test responsive behavior
+- [ ] Verify TypeScript compliance
+- [ ] Check accessibility
+- [ ] Review performance impact

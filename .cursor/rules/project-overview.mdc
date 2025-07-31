@@ -1,3 +1,129 @@
 ---
+description: Helpful overview of Henk AI structure and standards
 alwaysApply: false
 ---
+
+# Henk AI — project overview
+
+## 🎯 Project purpose
+
+Henk AI is an AI-powered voice fundraising platform that helps charities engage donors with natural phone conversations at scale. By combining synthetic speech, CRM integration, and compliance controls, it lowers costs and boosts donor experience and conversion rates.
+
+## 🏗 Architecture overview
+
+### Monorepo structure
+
+```
+henk/
+├── apps/
+│   ├── web/       # Next.js 15 app
+│   └── e2e/       # Playwright end-to-end tests
+├── packages/
+│   ├── ui/        # reusable UI components (@kit/ui)
+│   ├── features/  # modular feature packages
+│   │   ├── auth/      # authentication
+│   │   └── accounts/  # account management
+│   ├── supabase/  # database & auth utilities
+│   ├── shared/    # common utilities & hooks
+│   ├── i18n/      # internationalization
+│   └── next/      # Next.js helpers
+└── tooling/      # ESLint, Prettier, TypeScript configs
+```
+
+### Tech stack
+
+- **Frontend**: Next.js 15 · TypeScript · Tailwind CSS v4
+- **UI components**: Radix UI · shadcn/ui · custom Henk components
+- **Database**: Supabase (Postgres 16 · RLS · realtime)
+- **Voice AI**: ElevenLabs conversational TTS
+- **Telephony**: Twilio programmable voice + TwiML
+- **State management**: React Query · Supabase hooks
+- **Deployment**: Vercel (serverless)
+
+## 🎨 Design system
+
+### Component library
+
+- **@kit/ui**: core design components
+- **Henk components**: `packages/ui/src/henk/`
+- **shadcn/ui**: `packages/ui/src/shadcn/`
+- **Patterns**: form sections · page layouts · navigation
+
+### Page layout
+
+```tsx
+import { PageBody, PageHeader } from '@kit/ui/page';
+
+export default function ExamplePage() {
+  return (
+    <>
+      <PageHeader title="Page title" description="Page description" />
+      <PageBody>{/* content */}</PageBody>
+    </>
+  );
+}
+```
+
+## 📁 File organization
+
+### App router (`apps/web/app/`)
+
+```
+app/
+├── (marketing)/    # landing, legal
+├── auth/           # sign-in, sign-up
+├── home/
+│   ├── campaigns/    # campaign pages
+│   ├── agents/       # AI agent settings
+│   ├── conversations/# call history & analysis
+│   └── settings/     # user preferences
+├── components/     # page-specific UI
+├── config/         # feature flags, env config
+├── lib/            # server utilities
+└── public/         # static assets
+```
+
+## 🔧 Development standards
+
+1. **reuse** existing components in `@kit/ui` before creating new ones
+2. **follow** established form, table, and layout patterns
+3. **use** strict TypeScript with clear interfaces
+4. **implement** loading and error states consistently
+5. **adhere** to the monorepo structure for features
+
+### Component guidelines
+
+- apply consistent Tailwind CSS classes
+- ensure accessibility with ARIA and keyboard support
+- build mobile-first and responsive layouts
+- optimize heavy components with `React.memo` and code splitting
+
+### Documentation
+
+- update markdown docs (e.g. `CAMPAIGNS_PAGE.md`) for new pages
+- include mock data and interface definitions
+- follow these cursor rules for consistency
+
+## 🚀 Key features
+
+- **campaigns**: create and manage fundraising campaigns
+- **agents**: configure AI voice agents and scripts
+- **conversations**: view call history, transcripts, sentiment
+- **dashboard**: monitor metrics and analytics in real time
+
+## 📋 Development workflow
+
+1. check for existing components in `@kit/ui`
+2. review similar pages for patterns
+3. update or add docs for any new feature
+4. write strict TypeScript types and interfaces
+5. test responsive behavior across devices
+
+## 🎯 Success criteria
+
+- all UI components are reusable and follow patterns
+- consistent UI/UX and responsive design
+- zero TypeScript errors with complete typing
+- clear, up-to-date documentation for every feature
+- optimized performance using React best practices
+- full accessibility compliance

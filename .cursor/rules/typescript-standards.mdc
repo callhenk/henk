@@ -1,3 +1,582 @@
----
-alwaysApply: false
----
+# TypeScript Standards
+
+## 🏗 Type System Architecture
+
+### **Strict TypeScript Configuration**
+
+```json
+// tsconfig.json standards
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true
+  }
+}
+```
+
+### **Interface Design Patterns**
+
+```typescript
+// ✅ Good: Comprehensive interfaces with proper typing
+interface Campaign {
+  id: string;
+  name: string;
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  description: string;
+  agent: string;
+  leads: number;
+  contacted: number;
+  conversions: number;
+  revenue: number;
+  startDate: string;
+  endDate?: string;
+  callingHours: string;
+  maxAttempts: number;
+  dailyCallCap: number;
+  script: string;
+  retryLogic: string;
+}
+
+// ✅ Good: Union types for status values
+type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
+type LeadStatus = 'new' | 'contacted' | 'pledged' | 'failed';
+
+// ✅ Good: Proper optional properties
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company?: string; // Optional property
+  status: LeadStatus;
+  lastContactDate?: string; // Optional date
+  attempts: number;
+  notes?: string;
+}
+```
+
+## 🎯 Component Typing
+
+### **React Component Props**
+
+```typescript
+// ✅ Good: Proper component props typing
+interface CampaignDetailProps {
+  campaignId: string;
+}
+
+interface CampaignFormProps {
+  mode: 'create' | 'edit';
+  campaignId?: string;
+  initialData?: Partial<Campaign>;
+}
+
+// ✅ Good: Component with proper typing
+export function CampaignDetail({ campaignId }: CampaignDetailProps) {
+  // Component implementation
+}
+
+// ✅ Good: Form component with mode handling
+export function CampaignForm({
+  mode,
+  campaignId,
+  initialData,
+}: CampaignFormProps) {
+  const isEditMode = mode === 'edit';
+
+  // Component implementation
+}
+```
+
+### **Event Handler Typing**
+
+```typescript
+// ✅ Good: Proper event handler types
+import { MouseEvent, FormEvent } from 'react';
+
+interface ComponentProps {
+  onSave: (data: Campaign) => void;
+  onCancel: () => void;
+}
+
+export function CampaignForm({ onSave, onCancel }: ComponentProps) {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Form submission logic
+  };
+
+  const handleCancel = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    onCancel();
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Form content */}
+      <Button onClick={handleCancel}>Cancel</Button>
+    </form>
+  );
+}
+```
+
+## 🔄 State Management Typing
+
+### **useState with Proper Types**
+
+```typescript
+// ✅ Good: Explicit typing for useState
+const [selectedTab, setSelectedTab] = useState<
+  'all' | 'active' | 'draft' | 'paused' | 'completed'
+>('all');
+const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+const [loading, setLoading] = useState<boolean>(true);
+const [error, setError] = useState<string | null>(null);
+
+// ✅ Good: Complex state objects
+interface FilterState {
+  status: CampaignStatus | 'all';
+  search: string;
+  dateRange: {
+    start: Date | null;
+    end: Date | null;
+  };
+}
+
+const [filters, setFilters] = useState<FilterState>({
+  status: 'all',
+  search: '',
+  dateRange: {
+    start: null,
+    end: null,
+  },
+});
+```
+
+### **useCallback and useMemo Typing**
+
+```typescript
+// ✅ Good: Proper callback typing
+const handleStatusChange = useCallback((status: CampaignStatus) => {
+  setFilters((prev) => ({ ...prev, status }));
+}, []);
+
+const handleSearchChange = useCallback((search: string) => {
+  setFilters((prev) => ({ ...prev, search }));
+}, []);
+
+// ✅ Good: Memoized calculations with proper typing
+const filteredCampaigns = useMemo((): Campaign[] => {
+  return campaigns.filter((campaign) => {
+    if (filters.status !== 'all' && campaign.status !== filters.status) {
+      return false;
+    }
+    if (
+      filters.search &&
+      !campaign.name.toLowerCase().includes(filters.search.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+}, [campaigns, filters]);
+```
+
+## 🎨 API and Data Typing
+
+### **API Response Types**
+
+```typescript
+// ✅ Good: API response interfaces
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+interface CampaignsResponse extends ApiResponse<Campaign[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// ✅ Good: Error handling types
+interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+// ✅ Good: API function with proper typing
+async function fetchCampaigns(page: number = 1): Promise<CampaignsResponse> {
+  try {
+    const response = await fetch(`/api/campaigns?page=${page}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch campaigns: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  }
+}
+```
+
+### **Form Data Typing**
+
+```typescript
+// ✅ Good: Zod schema with TypeScript inference
+import { z } from 'zod';
+
+const campaignSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  startDate: z.date(),
+  endDate: z.date().optional(),
+  callingHours: z.string(),
+  maxAttempts: z.number().min(1).max(10),
+  dailyCallCap: z.number().min(1).max(1000),
+  script: z.string(),
+  retryLogic: z.string(),
+});
+
+type CampaignFormData = z.infer<typeof campaignSchema>;
+
+// ✅ Good: Form component with proper typing
+export function CampaignForm({ mode, initialData }: CampaignFormProps) {
+  const form = useForm<CampaignFormData>({
+    resolver: zodResolver(campaignSchema),
+    defaultValues: initialData,
+  });
+
+  const onSubmit = (data: CampaignFormData) => {
+    // Form submission with properly typed data
+    console.log(data.name); // TypeScript knows this is string
+  };
+}
+```
+
+## 🎯 Utility Types
+
+### **Type Guards and Assertions**
+
+```typescript
+// ✅ Good: Type guards for runtime type checking
+function isCampaign(obj: unknown): obj is Campaign {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj &&
+    'status' in obj
+  );
+}
+
+// ✅ Good: Status validation
+function isValidCampaignStatus(status: string): status is CampaignStatus {
+  return ['draft', 'active', 'paused', 'completed'].includes(status);
+}
+
+// ✅ Good: Safe type assertion
+function assertCampaign(data: unknown): Campaign {
+  if (!isCampaign(data)) {
+    throw new Error('Invalid campaign data');
+  }
+  return data;
+}
+```
+
+### **Utility Types**
+
+```typescript
+// ✅ Good: Utility types for common patterns
+type CreateCampaignData = Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>;
+type UpdateCampaignData = Partial<CreateCampaignData>;
+
+type CampaignStats = Pick<
+  Campaign,
+  'leads' | 'contacted' | 'conversions' | 'revenue'
+>;
+
+type CampaignListItem = Pick<
+  Campaign,
+  'id' | 'name' | 'status' | 'startDate'
+> & {
+  agent: string;
+  conversionRate: number;
+};
+
+// ✅ Good: Conditional types
+type CampaignActions = CampaignStatus extends 'active'
+  ? { pause: () => void }
+  : { activate: () => void };
+```
+
+## 🔧 Function Typing
+
+### **Function Signatures**
+
+```typescript
+// ✅ Good: Proper function typing
+function getStatusBadge(status: CampaignStatus): JSX.Element {
+  switch (status) {
+    case 'active':
+      return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+    case 'draft':
+      return <Badge variant="outline">Draft</Badge>;
+    case 'paused':
+      return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
+    case 'completed':
+      return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+}
+
+// ✅ Good: Generic functions
+function formatCurrency<T extends number>(amount: T): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+// ✅ Good: Async function typing
+async function saveCampaign(data: CreateCampaignData): Promise<Campaign> {
+  const response = await fetch('/api/campaigns', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to save campaign');
+  }
+
+  return response.json();
+}
+```
+
+### **Higher-Order Functions**
+
+```typescript
+// ✅ Good: Higher-order function typing
+type FilterFunction<T> = (item: T) => boolean;
+type TransformFunction<T, U> = (item: T) => U;
+
+function filterCampaigns(
+  campaigns: Campaign[],
+  filterFn: FilterFunction<Campaign>,
+): Campaign[] {
+  return campaigns.filter(filterFn);
+}
+
+function mapCampaigns<T>(
+  campaigns: Campaign[],
+  transformFn: TransformFunction<Campaign, T>,
+): T[] {
+  return campaigns.map(transformFn);
+}
+
+// ✅ Good: Usage with proper typing
+const activeCampaigns = filterCampaigns(
+  campaigns,
+  (campaign) => campaign.status === 'active',
+);
+const campaignNames = mapCampaigns(campaigns, (campaign) => campaign.name);
+```
+
+## 🎨 Component Props Patterns
+
+### **Discriminated Unions**
+
+```typescript
+// ✅ Good: Discriminated union for component modes
+type CampaignFormMode =
+  | { mode: 'create' }
+  | { mode: 'edit'; campaignId: string; initialData: Campaign };
+
+interface CampaignFormProps extends CampaignFormMode {
+  onSave: (data: Campaign) => void;
+  onCancel: () => void;
+}
+
+export function CampaignForm(props: CampaignFormProps) {
+  const { mode, onSave, onCancel } = props;
+
+  if (mode === 'create') {
+    // Handle create mode
+    return <CreateCampaignForm onSave={onSave} onCancel={onCancel} />;
+  } else {
+    // Handle edit mode - TypeScript knows campaignId and initialData exist
+    const { campaignId, initialData } = mode;
+    return <EditCampaignForm
+      campaignId={campaignId}
+      initialData={initialData}
+      onSave={onSave}
+      onCancel={onCancel}
+    />;
+  }
+}
+```
+
+### **Render Props Pattern**
+
+```typescript
+// ✅ Good: Render props with proper typing
+interface RenderProps<T> {
+  data: T[];
+  loading: boolean;
+  error: string | null;
+  render: (item: T) => React.ReactNode;
+}
+
+export function DataRenderer<T>({ data, loading, error, render }: RenderProps<T>) {
+  if (loading) return <LoadingOverlay />;
+  if (error) return <ErrorMessage message={error} />;
+
+  return (
+    <div className="space-y-4">
+      {data.map((item, index) => (
+        <div key={index}>
+          {render(item)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ✅ Good: Usage with proper typing
+<DataRenderer
+  data={campaigns}
+  loading={loading}
+  error={error}
+  render={(campaign: Campaign) => <CampaignCard campaign={campaign} />}
+/>
+```
+
+## 🔍 Type Safety Best Practices
+
+### **Strict Null Checks**
+
+```typescript
+// ✅ Good: Proper null handling
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return 'Never';
+  return new Date(dateString).toLocaleDateString();
+}
+
+// ✅ Good: Optional chaining and nullish coalescing
+const campaignName = campaign?.name ?? 'Unnamed Campaign';
+const conversionRate =
+  campaign?.conversions && campaign?.contacted
+    ? (campaign.conversions / campaign.contacted) * 100
+    : 0;
+```
+
+### **Exhaustive Type Checking**
+
+```typescript
+// ✅ Good: Exhaustive switch statements
+function getStatusColor(status: CampaignStatus): string {
+  switch (status) {
+    case 'active':
+      return 'green';
+    case 'draft':
+      return 'gray';
+    case 'paused':
+      return 'yellow';
+    case 'completed':
+      return 'blue';
+    default:
+      // TypeScript will error if we miss a case
+      const _exhaustiveCheck: never = status;
+      return 'gray';
+  }
+}
+```
+
+## 📋 TypeScript Checklist
+
+### **Before Implementation**
+
+- [ ] Define comprehensive interfaces for all data structures
+- [ ] Use union types for status/enum values
+- [ ] Plan proper generic types for reusable components
+- [ ] Consider discriminated unions for complex component states
+
+### **During Implementation**
+
+- [ ] Use strict typing for all function parameters and return values
+- [ ] Implement proper error handling with typed error objects
+- [ ] Use type guards for runtime type checking
+- [ ] Leverage utility types for common patterns
+- [ ] Ensure exhaustive type checking in switch statements
+
+### **After Implementation**
+
+- [ ] Verify all TypeScript errors are resolved
+- [ ] Test type safety with edge cases
+- [ ] Document complex type definitions
+- [ ] Review for any `any` types that could be more specific
+- [ ] Ensure proper generic constraints where applicable
+
+## 🎯 Common Patterns
+
+### **Event Handler Types**
+
+```typescript
+// ✅ Good: Proper event handler types
+const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+  // Handler logic
+};
+
+const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
+  // Handler logic
+};
+
+const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  // Form submission logic
+};
+```
+
+### **API Call Types**
+
+```typescript
+// ✅ Good: Typed API calls
+async function fetchCampaign(id: string): Promise<Campaign> {
+  const response = await fetch(`/api/campaigns/${id}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch campaign: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// ✅ Good: Typed API hooks
+function useCampaign(id: string) {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCampaign(id)
+      .then(setCampaign)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  return { campaign, loading, error };
+}
+```
+
+## alwaysApply: false

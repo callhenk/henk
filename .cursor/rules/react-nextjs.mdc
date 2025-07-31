@@ -1,3 +1,599 @@
 ---
+description: This is helpful when checking how th next is structured.
 alwaysApply: false
 ---
+
+# React & Next.js Standards
+
+## 🏗 Next.js 15 Architecture
+
+### **App Router Structure**
+
+```typescript
+// ✅ Good: Proper app router structure
+app/
+├── (marketing)/              # Route groups for marketing pages
+├── auth/                     # Authentication routes
+├── home/                     # Main application routes
+│   ├── campaigns/           # Campaign management
+│   │   ├── page.tsx        # List page
+│   │   ├── create/         # Create sub-route
+│   │   └── [id]/           # Dynamic route
+│   ├── agents/              # Agent management
+│   └── conversations/       # Conversation history
+├── layout.tsx               # Root layout
+├── page.tsx                 # Root page (redirect to auth)
+└── not-found.tsx           # 404 page
+```
+
+### **Page Component Standards**
+
+```typescript
+// ✅ Good: Standard page structure
+import { PageBody, PageHeader } from '@kit/ui/page';
+
+export default function CampaignsPage() {
+  return (
+    <>
+      <PageHeader
+        title="Campaigns"
+        description="Manage your fundraising campaigns"
+      />
+      <PageBody>
+        <CampaignsList />
+      </PageBody>
+    </>
+  );
+}
+```
+
+### **Dynamic Routes (Next.js 15)**
+
+```typescript
+// ✅ Good: Proper async params handling
+interface CampaignPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function CampaignPage({ params }: CampaignPageProps) {
+  const { id } = await params;
+
+  return (
+    <>
+      <PageHeader description="Campaign details" />
+      <PageBody>
+        <CampaignDetail campaignId={id} />
+      </PageBody>
+    </>
+  );
+}
+```
+
+## 🎨 React Component Patterns
+
+### **Client Components**
+
+```typescript
+// ✅ Good: Proper client component structure
+'use client';
+
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@kit/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+
+interface ComponentProps {
+  // TypeScript interfaces
+}
+
+export function ComponentName({ prop }: ComponentProps) {
+  // Hooks at the top
+  const router = useRouter();
+  const [state, setState] = useState();
+
+  // Memoized callbacks
+  const handleAction = useCallback(() => {
+    // Action logic
+  }, []);
+
+  // Render
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Title</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Content */}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### **Server Components**
+
+```typescript
+// ✅ Good: Server component for data fetching
+import { Suspense } from 'react';
+import { LoadingOverlay } from '@kit/ui/loading-overlay';
+
+export default function CampaignsPage() {
+  return (
+    <Suspense fallback={<LoadingOverlay />}>
+      <CampaignsContent />
+    </Suspense>
+  );
+}
+
+async function CampaignsContent() {
+  // Server-side data fetching
+  const campaigns = await getCampaigns();
+
+  return (
+    <>
+      <PageHeader title="Campaigns" />
+      <PageBody>
+        <CampaignsList campaigns={campaigns} />
+      </PageBody>
+    </>
+  );
+}
+```
+
+## 🔄 State Management
+
+### **React Hooks Best Practices**
+
+```typescript
+// ✅ Good: Proper hooks usage
+export function CampaignsList() {
+  const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState('all');
+  const [filteredData, setFilteredData] = useState<Campaign[]>([]);
+
+  // Memoized calculations
+  const getTotalStats = useCallback(() => {
+    return {
+      total: filteredData.length,
+      active: filteredData.filter(c => c.status === 'active').length,
+      // ...
+    };
+  }, [filteredData]);
+
+  // Effects for data filtering
+  useEffect(() => {
+    const filtered = mockCampaigns.filter(campaign => {
+      if (selectedTab === 'all') return true;
+      return campaign.status === selectedTab;
+    });
+    setFilteredData(filtered);
+  }, [selectedTab]);
+
+  return (
+    // Component JSX
+  );
+}
+```
+
+### **Custom Hooks**
+
+```typescript
+// ✅ Good: Custom hooks for reusable logic
+export function useCampaigns() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      setLoading(true);
+      // API call logic
+      setCampaigns(mockCampaigns);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch campaigns',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
+
+  return { campaigns, loading, error, refetch: fetchCampaigns };
+}
+```
+
+## 🎯 Performance Optimization
+
+### **Component Optimization**
+
+```typescript
+// ✅ Good: React.memo for expensive components
+import { memo } from 'react';
+
+export const CampaignCard = memo(function CampaignCard({ campaign }: { campaign: Campaign }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{campaign.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Content */}
+      </CardContent>
+    </Card>
+  );
+});
+
+// ✅ Good: Dynamic imports for heavy components
+import dynamic from 'next/dynamic';
+
+const WorkflowBuilder = dynamic(() => import('./workflow-builder'), {
+  loading: () => <LoadingOverlay />,
+  ssr: false, // Disable SSR for client-only components
+});
+```
+
+### **Bundle Optimization**
+
+```typescript
+// ✅ Good: Proper icon imports
+import { Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
+
+// ✅ Good: Conditional imports
+const Chart = dynamic(
+  () => import('recharts').then((mod) => ({ default: mod.LineChart })),
+  {
+    ssr: false,
+  },
+);
+```
+
+## 🎨 UI Component Patterns
+
+### **Form Components**
+
+```typescript
+// ✅ Good: Form with proper validation
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormSection } from '~/components/form-styles';
+
+const campaignSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  startDate: z.date(),
+  endDate: z.date().optional(),
+});
+
+type CampaignFormData = z.infer<typeof campaignSchema>;
+
+export function CampaignForm({ mode, initialData }: CampaignFormProps) {
+  const form = useForm<CampaignFormData>({
+    resolver: zodResolver(campaignSchema),
+    defaultValues: initialData,
+  });
+
+  const onSubmit = (data: CampaignFormData) => {
+    // Form submission logic
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <FormSection title="Campaign Details">
+        {/* Form fields */}
+      </FormSection>
+    </form>
+  );
+}
+```
+
+### **Table Components**
+
+```typescript
+// ✅ Good: Reusable table component
+export function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
+  const router = useRouter();
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      case 'draft':
+        return <Badge variant="outline">Draft</Badge>;
+      // ...
+    }
+  };
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Start Date</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {campaigns.map((campaign) => (
+          <TableRow key={campaign.id}>
+            <TableCell>
+              <div>
+                <div className="font-medium">{campaign.name}</div>
+                <div className="text-muted-foreground text-sm">
+                  {campaign.description}
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+            <TableCell>{formatDate(campaign.startDate)}</TableCell>
+            <TableCell className="text-right">
+              {/* Actions */}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+```
+
+## 🔄 Navigation & Routing
+
+### **Next.js Navigation**
+
+```typescript
+// ✅ Good: Proper navigation patterns
+import { useRouter } from 'next/navigation';
+
+export function CampaignActions({ campaignId }: { campaignId: string }) {
+  const router = useRouter();
+
+  const handleView = () => {
+    router.push(`/home/campaigns/${campaignId}`);
+  };
+
+  const handleEdit = () => {
+    router.push(`/home/campaigns/${campaignId}/edit`);
+  };
+
+  const handleBack = () => {
+    router.push('/home/campaigns');
+  };
+
+  return (
+    <div className="flex space-x-2">
+      <Button onClick={handleView}>View</Button>
+      <Button onClick={handleEdit}>Edit</Button>
+      <Button variant="outline" onClick={handleBack}>Back</Button>
+    </div>
+  );
+}
+```
+
+### **Layout Components**
+
+```typescript
+// ✅ Good: Layout with proper loading states
+export default function CampaignsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<LoadingOverlay />}>
+      {children}
+    </Suspense>
+  );
+}
+```
+
+## 🎨 Styling Patterns
+
+### **Tailwind CSS Standards**
+
+```typescript
+// ✅ Good: Consistent spacing and layout
+<div className="space-y-6">
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    {/* Stats cards */}
+  </div>
+
+  <Card>
+    <CardHeader>
+      <div className="flex items-center justify-between">
+        <CardTitle>Campaigns</CardTitle>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Campaign
+        </Button>
+      </div>
+    </CardHeader>
+    <CardContent>
+      {/* Content */}
+    </CardContent>
+  </Card>
+</div>
+```
+
+### **Responsive Design**
+
+```typescript
+// ✅ Good: Mobile-first responsive design
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  {/* Responsive grid */}
+</div>
+
+<div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+  {/* Responsive flex layout */}
+</div>
+```
+
+## 🔧 Error Handling
+
+### **Error Boundaries**
+
+```typescript
+// ✅ Good: Error boundary for client components
+'use client';
+
+import { Component, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Something went wrong</h2>
+            <Button onClick={() => this.setState({ hasError: false })}>
+              Try again
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+### **Loading States**
+
+```typescript
+// ✅ Good: Comprehensive loading patterns
+export function LoadingOverlay() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex items-center space-x-2">
+        <Spinner />
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    </div>
+  );
+}
+
+export function LoadingCard() {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="h-4 bg-muted rounded animate-pulse" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="h-4 bg-muted rounded animate-pulse" />
+          <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## 📊 Data Fetching
+
+### **Server-Side Data Fetching**
+
+```typescript
+// ✅ Good: Server component data fetching
+async function getCampaigns(): Promise<Campaign[]> {
+  // Simulate API call
+  return mockCampaigns;
+}
+
+export default async function CampaignsPage() {
+  const campaigns = await getCampaigns();
+
+  return (
+    <>
+      <PageHeader title="Campaigns" />
+      <PageBody>
+        <CampaignsList campaigns={campaigns} />
+      </PageBody>
+    </>
+  );
+}
+```
+
+### **Client-Side Data Fetching**
+
+```typescript
+// ✅ Good: Client-side data fetching with proper states
+export function useCampaigns() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // API call
+      setCampaigns(mockCampaigns);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
+
+  return { campaigns, loading, error, refetch: fetchCampaigns };
+}
+```
+
+## 🎯 Best Practices Checklist
+
+### **Component Development**
+
+- [ ] Use TypeScript strictly with proper interfaces
+- [ ] Implement proper loading and error states
+- [ ] Follow established component patterns
+- [ ] Use React.memo for expensive components
+- [ ] Implement proper accessibility attributes
+- [ ] Test responsive behavior
+
+### **Performance**
+
+- [ ] Use dynamic imports for heavy components
+- [ ] Implement proper key props in lists
+- [ ] Optimize images with Next.js Image
+- [ ] Use proper caching strategies
+- [ ] Minimize bundle size with tree shaking
+
+### **Code Quality**
+
+- [ ] Follow ESLint rules consistently
+- [ ] Remove unused imports and variables
+- [ ] Use proper JSDoc comments
+- [ ] Implement proper error boundaries
+- [ ] Test component behavior thoroughly

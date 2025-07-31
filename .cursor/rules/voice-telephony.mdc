@@ -1,3 +1,668 @@
----
-alwaysApply: false
+# Voice Telephony Standards
+
+## 🎤 Voice AI Architecture
+
+### **ElevenLabs Integration**
+
+```typescript
+// ✅ Good: ElevenLabs API client setup
+interface ElevenLabsConfig {
+  apiKey: string;
+  baseUrl: string;
+  defaultVoiceId: string;
+}
+
+class ElevenLabsClient {
+  private config: ElevenLabsConfig;
+
+  constructor(config: ElevenLabsConfig) {
+    this.config = config;
+  }
+
+  async generateSpeech(text: string, voiceId?: string): Promise<ArrayBuffer> {
+    const response = await fetch(
+      `${this.config.baseUrl}/text-to-speech/${voiceId || this.config.defaultVoiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': this.config.apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.statusText}`);
+    }
+
+    return response.arrayBuffer();
+  }
+
+  async getVoices(): Promise<Voice[]> {
+    const response = await fetch(`${this.config.baseUrl}/voices`, {
+      headers: {
+        'xi-api-key': this.config.apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch voices: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.voices;
+  }
+}
+```
+
+### **Voice Agent Configuration**
+
+```typescript
+// ✅ Good: Voice agent interface
+interface VoiceAgent {
+  id: string;
+  name: string;
+  voiceId: string;
+  voiceName: string;
+  language: string;
+  tone: 'professional' | 'friendly' | 'persuasive' | 'empathetic';
+  script: string;
+  workflow: WorkflowNode[];
+  settings: {
+    speechRate: number;
+    pitch: number;
+    volume: number;
+  };
+}
+
+interface WorkflowNode {
+  id: string;
+  type: 'start' | 'decision' | 'action' | 'end';
+  label: string;
+  description?: string;
+  action?: string;
+  options?: string[];
+  position: { x: number; y: number };
+}
+```
+
+## 📞 Twilio Integration
+
+### **Twilio Client Setup**
+
+```typescript
+// ✅ Good: Twilio client configuration
+import twilio from 'twilio';
+
+interface TwilioConfig {
+  accountSid: string;
+  authToken: string;
+  callerId: string;
+  webhookUrl: string;
+}
+
+class TwilioClient {
+  private client: twilio.Twilio;
+  private config: TwilioConfig;
+
+  constructor(config: TwilioConfig) {
+    this.config = config;
+    this.client = twilio(config.accountSid, config.authToken);
+  }
+
+  async makeCall(
+    to: string,
+    campaignId: string,
+    agentId: string,
+  ): Promise<string> {
+    try {
+      const call = await this.client.calls.create({
+        to,
+        from: this.config.callerId,
+        url: `${this.config.webhookUrl}/api/twilio/webhook`,
+        statusCallback: `${this.config.webhookUrl}/api/twilio/status`,
+        statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+        statusCallbackMethod: 'POST',
+        machineDetection: 'Enable',
+        machineDetectionTimeout: 30,
+        machineDetectionSpeechEndThreshold: 500,
+        machineDetectionSpeechThreshold: 2400,
+        machineDetectionSilenceTimeout: 10000,
+        twiml: this.generateTwiML(campaignId, agentId),
+      });
+
+      return call.sid;
+    } catch (error) {
+      throw new Error(
+        `Failed to initiate call: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  private generateTwiML(campaignId: string, agentId: string): string {
+    return `
+      <Response>
+        <Gather 
+          input="speech dtmf" 
+          action="${this.config.webhookUrl}/api/twilio/gather"
+          method="POST"
+          speechTimeout="auto"
+          enhanced="true"
+          speechModel="phone_call"
+        >
+          <Say>Hello, this is an important call about your donation.</Say>
+        </Gather>
+        <Say>Thank you for your time. Goodbye.</Say>
+      </Response>
+    `;
+  }
+}
+```
+
+### **Webhook Handlers**
+
+```typescript
+// ✅ Good: Twilio webhook handler
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const callSid = formData.get('CallSid') as string;
+  const from = formData.get('From') as string;
+  const to = formData.get('To') as string;
+  const callStatus = formData.get('CallStatus') as string;
+
+  // Log call details
+  await logCall({
+    callSid,
+    from,
+    to,
+    status: callStatus,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Handle different call statuses
+  switch (callStatus) {
+    case 'initiated':
+      await handleCallInitiated(callSid, from, to);
+      break;
+    case 'ringing':
+      await handleCallRinging(callSid);
+      break;
+    case 'answered':
+      await handleCallAnswered(callSid);
+      break;
+    case 'completed':
+      await handleCallCompleted(callSid);
+      break;
+    case 'failed':
+      await handleCallFailed(callSid);
+      break;
+    case 'busy':
+      await handleCallBusy(callSid);
+      break;
+    case 'no-answer':
+      await handleCallNoAnswer(callSid);
+      break;
+  }
+
+  return new Response('OK', { status: 200 });
+}
+
+// ✅ Good: Speech gathering handler
+export async function handleSpeechGather(request: Request) {
+  const formData = await request.formData();
+  const speechResult = formData.get('SpeechResult') as string;
+  const confidence = formData.get('Confidence') as string;
+  const callSid = formData.get('CallSid') as string;
+
+  // Process speech input
+  const response = await processSpeechInput({
+    callSid,
+    speechResult,
+    confidence: parseFloat(confidence),
+  });
+
+  // Generate dynamic TwiML response
+  const twiml = generateDynamicTwiML(response);
+
+  return new Response(twiml, {
+    headers: { 'Content-Type': 'text/xml' },
+  });
+}
+```
+
+## 🎯 Conversation Flow Management
+
+### **Workflow Engine**
+
+```typescript
+// ✅ Good: Workflow execution engine
+interface ConversationState {
+  callSid: string;
+  campaignId: string;
+  agentId: string;
+  currentNodeId: string;
+  variables: Record<string, any>;
+  history: ConversationEvent[];
+}
+
+interface ConversationEvent {
+  timestamp: string;
+  type: 'speech' | 'decision' | 'action' | 'error';
+  data: any;
+}
+
+class WorkflowEngine {
+  async executeWorkflow(
+    state: ConversationState,
+    input: string,
+    confidence: number,
+  ): Promise<WorkflowResponse> {
+    try {
+      // Get current node
+      const currentNode = await this.getWorkflowNode(state.currentNodeId);
+
+      // Process input based on node type
+      switch (currentNode.type) {
+        case 'start':
+          return this.handleStartNode(state, currentNode);
+        case 'decision':
+          return this.handleDecisionNode(state, currentNode, input, confidence);
+        case 'action':
+          return this.handleActionNode(state, currentNode, input);
+        case 'end':
+          return this.handleEndNode(state, currentNode);
+        default:
+          throw new Error(`Unknown node type: ${currentNode.type}`);
+      }
+    } catch (error) {
+      return this.handleError(state, error);
+    }
+  }
+
+  private async handleDecisionNode(
+    state: ConversationState,
+    node: WorkflowNode,
+    input: string,
+    confidence: number,
+  ): Promise<WorkflowResponse> {
+    // Process decision logic
+    const decision = await this.processDecision(node, input, confidence);
+
+    // Update state
+    state.variables[node.id] = decision;
+    state.history.push({
+      timestamp: new Date().toISOString(),
+      type: 'decision',
+      data: { nodeId: node.id, decision, input, confidence },
+    });
+
+    // Get next node based on decision
+    const nextNode = await this.getNextNode(node, decision);
+    state.currentNodeId = nextNode.id;
+
+    return {
+      action: 'continue',
+      message: nextNode.action || '',
+      nextNode: nextNode.id,
+    };
+  }
+}
+```
+
+### **Speech Processing**
+
+```typescript
+// ✅ Good: Speech processing and intent recognition
+interface SpeechProcessor {
+  processInput(text: string, confidence: number): Promise<ProcessedInput>;
+  generateResponse(context: ConversationContext): Promise<string>;
+}
+
+class HenkSpeechProcessor implements SpeechProcessor {
+  async processInput(
+    text: string,
+    confidence: number,
+  ): Promise<ProcessedInput> {
+    // Clean and normalize input
+    const normalizedText = this.normalizeText(text);
+
+    // Extract intent and entities
+    const intent = await this.extractIntent(normalizedText);
+    const entities = await this.extractEntities(normalizedText);
+
+    return {
+      originalText: text,
+      normalizedText,
+      intent,
+      entities,
+      confidence,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  async generateResponse(context: ConversationContext): Promise<string> {
+    const { campaign, agent, conversationState } = context;
+
+    // Generate personalized response based on context
+    let response = agent.script;
+
+    // Replace variables in script
+    response = this.replaceVariables(response, conversationState.variables);
+
+    // Add dynamic content based on conversation flow
+    response = await this.addDynamicContent(response, context);
+
+    return response;
+  }
+
+  private normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s]/g, '');
+  }
+
+  private async extractIntent(text: string): Promise<string> {
+    // Implement intent recognition logic
+    // This could use NLP services or simple keyword matching
+    const intents = {
+      donate: /(donate|give|contribute|support)/i,
+      decline: /(no|decline|not interested|busy)/i,
+      callback: /(call back|call me back|later)/i,
+      information: /(what|how|tell me|information)/i,
+    };
+
+    for (const [intent, pattern] of Object.entries(intents)) {
+      if (pattern.test(text)) {
+        return intent;
+      }
+    }
+
+    return 'unknown';
+  }
+}
+```
+
+## 🎨 Voice Agent Management
+
+### **Agent Configuration**
+
+```typescript
+// ✅ Good: Voice agent management
+interface VoiceAgentConfig {
+  id: string;
+  name: string;
+  voiceId: string;
+  language: string;
+  tone: VoiceTone;
+  script: string;
+  workflow: WorkflowNode[];
+  settings: VoiceSettings;
+}
+
+class VoiceAgentManager {
+  async createAgent(config: VoiceAgentConfig): Promise<VoiceAgent> {
+    // Validate voice exists in ElevenLabs
+    const voices = await this.elevenLabsClient.getVoices();
+    const voice = voices.find((v) => v.voice_id === config.voiceId);
+
+    if (!voice) {
+      throw new Error(`Voice ${config.voiceId} not found in ElevenLabs`);
+    }
+
+    // Save agent configuration
+    const agent: VoiceAgent = {
+      ...config,
+      voiceName: voice.name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveAgent(agent);
+    return agent;
+  }
+
+  async updateAgent(
+    id: string,
+    updates: Partial<VoiceAgentConfig>,
+  ): Promise<VoiceAgent> {
+    const agent = await this.getAgent(id);
+    if (!agent) {
+      throw new Error(`Agent ${id} not found`);
+    }
+
+    const updatedAgent: VoiceAgent = {
+      ...agent,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveAgent(updatedAgent);
+    return updatedAgent;
+  }
+
+  async generateAgentSpeech(
+    agentId: string,
+    text: string,
+  ): Promise<ArrayBuffer> {
+    const agent = await this.getAgent(agentId);
+    if (!agent) {
+      throw new Error(`Agent ${agentId} not found`);
+    }
+
+    return this.elevenLabsClient.generateSpeech(text, agent.voiceId);
+  }
+}
+```
+
+## 📊 Call Analytics
+
+### **Call Tracking**
+
+```typescript
+// ✅ Good: Call analytics and tracking
+interface CallRecord {
+  id: string;
+  callSid: string;
+  campaignId: string;
+  agentId: string;
+  from: string;
+  to: string;
+  status: CallStatus;
+  duration: number;
+  outcome: CallOutcome;
+  sentiment: SentimentScore;
+  transcript: ConversationTranscript;
+  metadata: CallMetadata;
+  createdAt: string;
+  updatedAt: string;
+}
+
+class CallAnalytics {
+  async trackCall(callData: Partial<CallRecord>): Promise<void> {
+    const call: CallRecord = {
+      id: generateId(),
+      callSid: callData.callSid!,
+      campaignId: callData.campaignId!,
+      agentId: callData.agentId!,
+      from: callData.from!,
+      to: callData.to!,
+      status: callData.status || 'initiated',
+      duration: callData.duration || 0,
+      outcome: callData.outcome || 'unknown',
+      sentiment: callData.sentiment || { score: 0, label: 'neutral' },
+      transcript: callData.transcript || { events: [] },
+      metadata: callData.metadata || {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveCallRecord(call);
+  }
+
+  async updateCallStatus(
+    callSid: string,
+    status: CallStatus,
+    metadata?: any,
+  ): Promise<void> {
+    const call = await this.getCallBySid(callSid);
+    if (!call) {
+      throw new Error(`Call ${callSid} not found`);
+    }
+
+    call.status = status;
+    call.updatedAt = new Date().toISOString();
+
+    if (metadata) {
+      call.metadata = { ...call.metadata, ...metadata };
+    }
+
+    await this.saveCallRecord(call);
+  }
+
+  async generateCallReport(campaignId: string): Promise<CallReport> {
+    const calls = await this.getCallsByCampaign(campaignId);
+
+    const totalCalls = calls.length;
+    const answeredCalls = calls.filter((c) => c.status === 'completed').length;
+    const successfulCalls = calls.filter((c) => c.outcome === 'donated').length;
+
+    const averageDuration =
+      calls.reduce((sum, call) => sum + call.duration, 0) / totalCalls;
+    const averageSentiment =
+      calls.reduce((sum, call) => sum + call.sentiment.score, 0) / totalCalls;
+
+    return {
+      campaignId,
+      totalCalls,
+      answeredCalls,
+      successfulCalls,
+      answerRate: (answeredCalls / totalCalls) * 100,
+      successRate: (successfulCalls / answeredCalls) * 100,
+      averageDuration,
+      averageSentiment,
+      calls,
+    };
+  }
+}
+```
+
+## 🔧 Error Handling
+
+### **Voice System Error Handling**
+
+```typescript
+// ✅ Good: Comprehensive error handling
+class VoiceSystemError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public context?: Record<string, any>,
+  ) {
+    super(message);
+    this.name = 'VoiceSystemError';
+  }
+}
+
+class VoiceErrorHandler {
+  async handleElevenLabsError(error: any, context: any): Promise<void> {
+    console.error('ElevenLabs error:', error);
+
+    // Log error for monitoring
+    await this.logError({
+      type: 'elevenlabs',
+      error: error.message,
+      context,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Handle specific error types
+    if (error.message.includes('quota')) {
+      await this.handleQuotaExceeded(context);
+    } else if (error.message.includes('voice')) {
+      await this.handleVoiceNotFound(context);
+    } else {
+      await this.handleGenericError(context);
+    }
+  }
+
+  async handleTwilioError(error: any, context: any): Promise<void> {
+    console.error('Twilio error:', error);
+
+    await this.logError({
+      type: 'twilio',
+      error: error.message,
+      context,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Handle specific Twilio error codes
+    switch (error.code) {
+      case 11200:
+        await this.handleWebhookError(context);
+        break;
+      case 13200:
+        await this.handleInvalidPhoneNumber(context);
+        break;
+      case 13201:
+        await this.handleUnauthorizedNumber(context);
+        break;
+      default:
+        await this.handleGenericError(context);
+    }
+  }
+}
+```
+
+## 📋 Best Practices Checklist
+
+### **Voice AI Integration**
+
+- [ ] Use proper error handling for API calls
+- [ ] Implement retry logic for transient failures
+- [ ] Cache voice configurations for performance
+- [ ] Monitor API usage and quotas
+- [ ] Implement fallback voices
+
+### **Twilio Integration**
+
+- [ ] Use proper webhook validation
+- [ ] Implement comprehensive call status tracking
+- [ ] Handle all possible call outcomes
+- [ ] Use proper TwiML generation
+- [ ] Implement call recording when needed
+
+### **Conversation Management**
+
+- [ ] Implement proper state management
+- [ ] Use typed interfaces for all data structures
+- [ ] Implement conversation history tracking
+- [ ] Add proper error recovery mechanisms
+- [ ] Use async/await for all operations
+
+### **Performance & Monitoring**
+
+- [ ] Monitor call success rates
+- [ ] Track voice generation latency
+- [ ] Implement proper logging
+- [ ] Monitor API quotas and usage
+- [ ] Implement alerting for failures
+
+### **Security & Compliance**
+
+- [ ] Validate all webhook requests
+- [ ] Implement proper authentication
+- [ ] Follow telephony compliance regulations
+- [ ] Secure API keys and credentials
+- [ ] Implement proper data encryption
+      alwaysApply: false
+
 ---
