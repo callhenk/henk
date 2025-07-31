@@ -26,9 +26,9 @@ export default async function EditAgentPage({ params }: EditAgentPageProps) {
     <>
       <PageHeader description={'Edit your AI voice agent'} />
 
-      <PageBody>
+      <PageBody className="py-8">
         <AgentForm mode="edit" agentId={id} initialData={mockAgentData} />
       </PageBody>
     </>
   );
-} 
+}

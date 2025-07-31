@@ -7,9 +7,9 @@ export default function CreateAgentPage() {
     <>
       <PageHeader description={'Create a new AI voice agent'} />
 
-      <PageBody>
+      <PageBody className="py-8">
         <AgentForm mode="create" />
       </PageBody>
     </>
   );
-} 
+}

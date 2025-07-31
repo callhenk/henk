@@ -90,7 +90,7 @@ export function FormSection({
 
   return (
     <Card className={`border-2 border-dashed ${config.border}`}>
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-6">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div
             className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bg}`}
@@ -101,7 +101,7 @@ export function FormSection({
         </CardTitle>
         <CardDescription className="text-base">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {infoBox && (
           <div className={`rounded-lg p-4 ${config.info.bg}`}>
             {infoBox.badge && (
@@ -127,11 +127,11 @@ export function FormSection({
 
 // Common form field styles
 export const formFieldStyles = {
-  label: 'text-base font-medium',
+  label: 'text-base font-medium mb-2',
   input: 'h-12 text-base',
   textarea: 'min-h-[160px] text-base resize-none',
   select: 'h-12 text-base',
-  description: 'text-sm text-muted-foreground',
+  description: 'text-sm text-muted-foreground mt-2',
 };
 
 // Common button styles
@@ -143,15 +143,16 @@ export const buttonStyles = {
 // Common page header styles
 export const pageHeaderStyles = {
   title: 'text-3xl font-bold tracking-tight',
-  description: 'text-muted-foreground mt-1',
-  container: 'mb-8 flex items-center justify-between',
+  description: 'text-muted-foreground mt-2',
+  container: 'mb-10 flex items-center justify-between',
   backButton: 'gap-4',
 };
 
 // Common form container styles
 export const formContainerStyles = {
-  container: 'mx-auto max-w-4xl',
-  form: 'space-y-8',
-  buttons: 'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between',
+  container: 'mx-auto max-w-4xl space-y-8',
+  form: 'space-y-10',
+  buttons:
+    'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-6',
   buttonGroup: 'flex gap-4',
 };

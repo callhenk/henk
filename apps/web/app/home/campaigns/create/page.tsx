@@ -7,7 +7,7 @@ export default function CreateCampaignPage() {
     <>
       <PageHeader description={'Create a new AI voice fundraising campaign'} />
 
-      <PageBody>
+      <PageBody className="py-8">
         <CampaignForm mode="create" />
       </PageBody>
     </>
