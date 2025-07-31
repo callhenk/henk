@@ -26,6 +26,11 @@ import {
   Volume2,
 } from 'lucide-react';
 
+// Import our Supabase hooks
+import type { Tables } from '@kit/supabase/database';
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -54,39 +59,31 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-// Types
-interface Agent {
-  id: string;
-  name: string;
-  language: string;
-  tone: string;
-  voiceId: string;
-  voiceName: string;
-  status: 'active' | 'inactive' | 'training' | 'agent_paused';
-  campaigns: number;
-  totalCalls: number;
-  successRate: number;
-  defaultScript: string;
-  createdAt: string;
-  lastActive?: string;
+type Agent = Tables<'agents'>;
+
+// Enhanced agent interface with calculated fields
+interface EnhancedAgent extends Agent {
   performance?: {
     callsToday: number;
     conversionsToday: number;
     avgCallDuration: number;
     satisfactionScore: number;
   };
-  tags?: string[];
+  totalCalls: number;
+  successRate: number;
+  campaigns: number;
+  lastActive?: string;
 }
 
 interface AgentCardProps {
-  agent: Agent;
+  agent: EnhancedAgent;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
 interface AgentTableRowProps {
-  agent: Agent;
+  agent: EnhancedAgent;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -123,9 +120,9 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>{agent.tone}</span>
+                <span>{agent.speaking_tone || 'Default tone'}</span>
                 <span>•</span>
-                <span>{agent.language}</span>
+                <span>{agent.voice_type || 'Default voice'}</span>
               </CardDescription>
             </div>
           </div>
@@ -214,17 +211,6 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
           </div>
         )}
 
-        {/* Tags */}
-        {agent.tags && agent.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {agent.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           <Button
@@ -264,16 +250,17 @@ function AgentTableRow({
           <div>
             <div className="font-medium">{agent.name}</div>
             <div className="text-muted-foreground text-sm">
-              {agent.language} • {agent.tone}
+              {agent.voice_type || 'Default voice'} •{' '}
+              {agent.speaking_tone || 'Default tone'}
             </div>
           </div>
         </div>
       </TableCell>
       <TableCell>
         <div>
-          <div className="font-medium">{agent.voiceName}</div>
+          <div className="font-medium">{agent.voice_type || 'Default'}</div>
           <div className="text-muted-foreground text-sm">
-            ID: {agent.voiceId}
+            ID: {agent.voice_id || 'N/A'}
           </div>
         </div>
       </TableCell>
@@ -404,150 +391,114 @@ function SortableTableHeader({
   );
 }
 
-// Mock data
-const mockAgents: Agent[] = [
-  {
-    id: 'sarah',
-    name: 'Sarah',
-    language: 'English',
-    tone: 'Warm and friendly',
-    voiceId: 'voice_sarah_001',
-    voiceName: 'Sarah',
-    status: 'active',
-    campaigns: 3,
-    totalCalls: 124,
-    successRate: 23.4,
-    defaultScript:
-      'Hello, this is Sarah calling on behalf of [Organization]. We&apos;re reaching out to discuss our current fundraising campaign...',
-    createdAt: '2024-01-15',
-    lastActive: '2 hours ago',
-    performance: {
-      callsToday: 12,
-      conversionsToday: 3,
-      avgCallDuration: 4.2,
-      satisfactionScore: 4.8,
-    },
-    tags: ['fundraising', 'renewal', 'premium'],
-  },
-  {
-    id: 'mike',
-    name: 'Mike',
-    language: 'English',
-    tone: 'Professional and confident',
-    voiceId: 'voice_mike_002',
-    voiceName: 'Mike',
-    status: 'active',
-    campaigns: 2,
-    totalCalls: 89,
-    successRate: 20.2,
-    defaultScript:
-      "Hi, this is Mike calling from [Organization]. I'm reaching out to discuss our fundraising efforts...",
-    createdAt: '2024-02-01',
-    lastActive: '1 hour ago',
-    performance: {
-      callsToday: 8,
-      conversionsToday: 2,
-      avgCallDuration: 3.8,
-      satisfactionScore: 4.6,
-    },
-    tags: ['corporate', 'high-value'],
-  },
-  {
-    id: 'emma',
-    name: 'Emma',
-    language: 'English',
-    tone: 'Compassionate and caring',
-    voiceId: 'voice_emma_003',
-    voiceName: 'Emma',
-    status: 'active',
-    campaigns: 1,
-    totalCalls: 45,
-    successRate: 26.7,
-    defaultScript:
-      'Hello, this is Emma calling on behalf of [Organization]. We&apos;re reaching out with an important message...',
-    createdAt: '2024-03-10',
-    lastActive: '30 minutes ago',
-    performance: {
-      callsToday: 15,
-      conversionsToday: 4,
-      avgCallDuration: 5.1,
-      satisfactionScore: 4.9,
-    },
-    tags: ['community', 'first-time'],
-  },
-  {
-    id: 'david',
-    name: 'David',
-    language: 'English',
-    tone: 'Enthusiastic and energetic',
-    voiceId: 'voice_david_004',
-    voiceName: 'David',
-    status: 'training',
-    campaigns: 0,
-    totalCalls: 0,
-    successRate: 0,
-    defaultScript:
-      "Hi there! This is David calling from [Organization]. I'm excited to share some great news with you...",
-    createdAt: '2024-04-05',
-    performance: {
-      callsToday: 0,
-      conversionsToday: 0,
-      avgCallDuration: 0,
-      satisfactionScore: 0,
-    },
-    tags: ['new', 'testing'],
-  },
-  {
-    id: 'lisa',
-    name: 'Lisa',
-    language: 'English',
-    tone: 'Calm and reassuring',
-    voiceId: 'voice_lisa_005',
-    voiceName: 'Lisa',
-    status: 'agent_paused',
-    campaigns: 1,
-    totalCalls: 67,
-    successRate: 18.5,
-    defaultScript:
-      "Hello, this is Lisa calling from [Organization]. I hope you're having a wonderful day...",
-    createdAt: '2024-03-20',
-    lastActive: '2 days ago',
-    performance: {
-      callsToday: 0,
-      conversionsToday: 0,
-      avgCallDuration: 4.0,
-      satisfactionScore: 4.7,
-    },
-    tags: ['paused', 'maintenance'],
-  },
-];
-
 // Main Component
 export function AgentsList() {
   const router = useRouter();
-  const [agents] = useState<Agent[]>(mockAgents);
+
+  // Fetch real data using our hooks
+  const { data: agents = [], isLoading: agentsLoading } = useAgents();
+  const { data: conversations = [] } = useConversations();
+  const { data: campaigns = [] } = useCampaigns();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Enhance agents with calculated performance data
+  const enhancedAgents = useMemo(() => {
+    return agents.map((agent) => {
+      const agentConversations = conversations.filter(
+        (conv) => conv.agent_id === agent.id,
+      );
+      const agentCampaigns = campaigns.filter(
+        (campaign) => campaign.agent_id === agent.id,
+      );
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayConversations = agentConversations.filter((conv) => {
+        const convDate = new Date(conv.created_at);
+        return convDate >= today;
+      });
+
+      const successfulConversations = agentConversations.filter(
+        (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+      );
+
+      const successRate =
+        agentConversations.length > 0
+          ? (successfulConversations.length / agentConversations.length) * 100
+          : 0;
+
+      const lastActive =
+        agentConversations.length > 0
+          ? formatTimeAgo(agentConversations[0]?.created_at || '')
+          : undefined;
+
+      const avgCallDuration =
+        agentConversations.length > 0
+          ? agentConversations.reduce(
+              (sum, conv) => sum + (conv.duration_seconds || 0),
+              0,
+            ) / agentConversations.length
+          : 0;
+
+      return {
+        ...agent,
+        totalCalls: agentConversations.length,
+        successRate: Math.round(successRate * 10) / 10,
+        campaigns: agentCampaigns.length,
+        lastActive,
+        performance: {
+          callsToday: todayConversations.length,
+          conversionsToday: todayConversations.filter(
+            (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+          ).length,
+          avgCallDuration: Math.round((avgCallDuration / 60) * 10) / 10, // Convert to minutes
+          satisfactionScore: 4.5, // Placeholder - would need to be calculated from actual data
+        },
+      } as EnhancedAgent;
+    });
+  }, [agents, conversations, campaigns]);
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60),
+    );
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440)
+      return `${Math.floor(diffInMinutes / 60)} hour ago`;
+    return `${Math.floor(diffInMinutes / 1440)} day ago`;
+  };
+
   const getTotalStats = () => {
-    const activeAgents = agents.filter((agent) => agent.status === 'active');
-    const totalCalls = agents.reduce((sum, agent) => sum + agent.totalCalls, 0);
-    const totalCampaigns = agents.reduce(
+    const activeAgents = enhancedAgents.filter(
+      (agent) => agent.status === 'active',
+    );
+    const totalCalls = enhancedAgents.reduce(
+      (sum, agent) => sum + agent.totalCalls,
+      0,
+    );
+    const totalCampaigns = enhancedAgents.reduce(
       (sum, agent) => sum + agent.campaigns,
       0,
     );
     const avgSuccessRate =
-      agents.reduce((sum, agent) => sum + agent.successRate, 0) / agents.length;
-    const totalCallsToday = agents.reduce(
+      enhancedAgents.reduce((sum, agent) => sum + agent.successRate, 0) /
+      enhancedAgents.length;
+    const totalCallsToday = enhancedAgents.reduce(
       (sum, agent) => sum + (agent.performance?.callsToday || 0),
       0,
     );
 
     return {
-      agents: agents.length,
+      agents: enhancedAgents.length,
       activeAgents: activeAgents.length,
       totalCalls,
       totalCampaigns,
@@ -557,13 +508,13 @@ export function AgentsList() {
   };
 
   const filteredAndSortedAgents = useMemo(() => {
-    const filtered = agents.filter((agent) => {
+    const filtered = enhancedAgents.filter((agent) => {
       const matchesSearch =
         agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.tone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.tags?.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
+        agent.speaking_tone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        false ||
+        agent.voice_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        false;
 
       const matchesStatus =
         statusFilter === 'all' || agent.status === statusFilter;
@@ -609,7 +560,47 @@ export function AgentsList() {
     });
 
     return filtered;
-  }, [agents, searchTerm, statusFilter, sortBy, sortOrder]);
+  }, [enhancedAgents, searchTerm, statusFilter, sortBy, sortOrder]);
+
+  // Show loading state if data is still loading
+  if (agentsLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Loading Stats */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
+                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
+                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+        {/* Loading Agents List */}
+        <Card>
+          <CardHeader>
+            <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div className="bg-muted h-12 w-12 animate-pulse rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+                    <div className="bg-muted h-3 w-24 animate-pulse rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const stats = getTotalStats();
 
@@ -715,7 +706,8 @@ export function AgentsList() {
           {/* Results Count */}
           <div className="mb-4 flex items-center justify-between">
             <p className="text-muted-foreground text-sm">
-              Showing {filteredAndSortedAgents.length} of {agents.length} agents
+              Showing {filteredAndSortedAgents.length} of{' '}
+              {enhancedAgents.length} agents
             </p>
             <Button variant="outline" size="sm">
               <RefreshCw className="mr-2 h-4 w-4" />

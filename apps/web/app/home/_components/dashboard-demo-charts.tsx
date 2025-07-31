@@ -52,9 +52,10 @@ type Conversation = Tables<'conversations'>;
 
 export default function DashboardDemo() {
   // Fetch real data using our hooks
-  const { data: agents = [] } = useAgents();
-  const { data: campaigns = [] } = useCampaigns();
-  const { data: conversations = [] } = useConversations();
+  const { data: agents = [], isLoading: agentsLoading } = useAgents();
+  const { data: campaigns = [], isLoading: campaignsLoading } = useCampaigns();
+  const { data: conversations = [], isLoading: conversationsLoading } =
+    useConversations();
 
   // Calculate metrics from real data
   const callMetrics = useMemo(() => {
@@ -122,6 +123,38 @@ export default function DashboardDemo() {
       })),
     };
   }, [agents, conversations]);
+
+  // Show loading state if any data is still loading
+  if (agentsLoading || campaignsLoading || conversationsLoading) {
+    return (
+      <div className="animate-in fade-in flex flex-col space-y-4 pb-36 duration-500">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
+                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
+                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="bg-muted mb-2 h-5 w-48 animate-pulse rounded" />
+                <div className="bg-muted h-3 w-32 animate-pulse rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted h-64 w-full animate-pulse rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

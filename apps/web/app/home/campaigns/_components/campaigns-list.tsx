@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +19,12 @@ import {
   Users,
 } from 'lucide-react';
 
+// Import our Supabase hooks
+import type { Tables } from '@kit/supabase/database';
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -46,104 +52,115 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-interface Campaign {
-  id: string;
-  name: string;
-  status: 'draft' | 'active' | 'paused' | 'campaign_completed';
-  agent: string;
+type Campaign = Tables<'campaigns'>;
+
+// Enhanced campaign interface with calculated fields
+interface EnhancedCampaign extends Campaign {
   leads: number;
   contacted: number;
   conversions: number;
   revenue: number;
-  startDate: string;
-  endDate?: string;
-  description: string;
+  agentName: string;
 }
-
-const mockCampaigns: Campaign[] = [
-  {
-    id: '1',
-    name: 'Summer Fundraiser 2024',
-    status: 'active',
-    agent: 'Sarah',
-    leads: 500,
-    contacted: 124,
-    conversions: 29,
-    revenue: 2847,
-    startDate: '2024-06-01',
-    description: 'Annual summer fundraising campaign for local charities',
-  },
-  {
-    id: '2',
-    name: 'Emergency Relief Fund',
-    status: 'active',
-    agent: 'Mike',
-    leads: 300,
-    contacted: 89,
-    conversions: 18,
-    revenue: 1650,
-    startDate: '2024-05-15',
-    description: 'Emergency fundraising for disaster relief efforts',
-  },
-  {
-    id: '3',
-    name: 'Annual Campaign 2024',
-    status: 'draft',
-    agent: 'Emma',
-    leads: 1000,
-    contacted: 0,
-    conversions: 0,
-    revenue: 0,
-    startDate: '2024-07-01',
-    description: 'Year-end fundraising campaign',
-  },
-  {
-    id: '4',
-    name: 'Holiday Giving',
-    status: 'paused',
-    agent: 'David',
-    leads: 200,
-    contacted: 45,
-    conversions: 12,
-    revenue: 890,
-    startDate: '2024-12-01',
-    endDate: '2024-12-31',
-    description: 'Holiday season fundraising campaign',
-  },
-  {
-    id: '5',
-    name: 'Q3 2024 Renewals',
-    status: 'campaign_completed',
-    agent: 'Lisa',
-    leads: 750,
-    contacted: 650,
-    conversions: 156,
-    revenue: 12500,
-    startDate: '2024-07-01',
-    endDate: '2024-09-30',
-    description: 'Quarterly renewal campaign for existing donors',
-  },
-];
 
 export function CampaignsList() {
   const router = useRouter();
+
+  // Fetch real data using our hooks
+  const { data: campaigns = [], isLoading: campaignsLoading } = useCampaigns();
+  const { data: leads = [] } = useLeads();
+  const { data: conversations = [] } = useConversations();
+  const { data: agents = [] } = useAgents();
+
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
+  // Enhance campaigns with calculated performance data
+  const enhancedCampaigns = useMemo(() => {
+    return campaigns.map((campaign) => {
+      const campaignLeads = leads.filter(
+        (lead) => lead.campaign_id === campaign.id,
+      );
+      const campaignConversations = conversations.filter(
+        (conv) => conv.campaign_id === campaign.id,
+      );
+      const agent = agents.find((agent) => agent.id === campaign.agent_id);
+
+      const contacted = campaignConversations.length;
+      const conversions = campaignConversations.filter(
+        (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+      ).length;
+
+      const revenue = conversions * 100; // Placeholder calculation - would need actual donation amounts
+
+      return {
+        ...campaign,
+        leads: campaignLeads.length,
+        contacted,
+        conversions,
+        revenue,
+        agentName: agent?.name || 'Unknown Agent',
+      } as EnhancedCampaign;
+    });
+  }, [campaigns, leads, conversations, agents]);
+
+  // Show loading state if data is still loading
+  if (campaignsLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Loading Stats */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
+                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
+                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+        {/* Loading Campaigns List */}
+        <Card>
+          <CardHeader>
+            <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div className="bg-muted h-12 w-12 animate-pulse rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+                    <div className="bg-muted h-3 w-24 animate-pulse rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const getTotalStats = () => {
-    const totalCampaigns = mockCampaigns.length;
-    const activeCampaigns = mockCampaigns.filter(
+    const totalCampaigns = enhancedCampaigns.length;
+    const activeCampaigns = enhancedCampaigns.filter(
       (c) => c.status === 'active',
     ).length;
-    const totalLeads = mockCampaigns.reduce((sum, c) => sum + c.leads, 0);
-    const totalRevenue = mockCampaigns.reduce((sum, c) => sum + c.revenue, 0);
+    const totalLeads = enhancedCampaigns.reduce((sum, c) => sum + c.leads, 0);
+    const totalRevenue = enhancedCampaigns.reduce(
+      (sum, c) => sum + c.revenue,
+      0,
+    );
     return { totalCampaigns, activeCampaigns, totalLeads, totalRevenue };
   };
 
   const getFilteredCampaigns = () => {
-    let filtered = mockCampaigns;
+    let filtered = enhancedCampaigns;
 
     // Filter by tab
     if (selectedTab !== 'all') {
@@ -155,7 +172,8 @@ export function CampaignsList() {
       filtered = filtered.filter(
         (c) =>
           c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.description.toLowerCase().includes(searchTerm.toLowerCase()),
+          c.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.agentName.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -181,8 +199,8 @@ export function CampaignsList() {
           bValue = b.revenue;
           break;
         case 'startDate':
-          aValue = new Date(a.startDate).getTime();
-          bValue = new Date(b.startDate).getTime();
+          aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+          bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
           break;
         default:
           aValue = a.name;
@@ -294,13 +312,14 @@ export function CampaignsList() {
   );
 }
 
-function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
+function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
   const router = useRouter();
   const getConversionRate = (contacted: number, conversions: number) => {
     if (contacted === 0) return 0;
     return Math.round((conversions / contacted) * 100);
   };
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
   return (
@@ -324,14 +343,14 @@ function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
               <div>
                 <div className="font-medium">{campaign.name}</div>
                 <div className="text-muted-foreground text-sm">
-                  {campaign.description}
+                  {campaign.description || 'No description'}
                 </div>
               </div>
             </TableCell>
             <TableCell>
               <StatusBadge status={campaign.status} />
             </TableCell>
-            <TableCell>{formatDate(campaign.startDate)}</TableCell>
+            <TableCell>{formatDate(campaign.start_date)}</TableCell>
             <TableCell>{campaign.leads.toLocaleString()}</TableCell>
             <TableCell>{campaign.contacted.toLocaleString()}</TableCell>
             <TableCell>
