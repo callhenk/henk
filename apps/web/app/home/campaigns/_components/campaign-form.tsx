@@ -11,13 +11,6 @@ import { z } from 'zod';
 
 import { Button } from '@kit/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
-import {
   Form,
   FormControl,
   FormDescription,
@@ -35,6 +28,13 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 import { Textarea } from '@kit/ui/textarea';
+
+import {
+  FormSection,
+  formContainerStyles,
+  formFieldStyles,
+  pageHeaderStyles,
+} from '~/components/form-styles';
 
 import { DatePicker } from './date-picker';
 
@@ -147,226 +147,269 @@ export function CampaignForm({
       : 'Create Campaign';
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className={formContainerStyles.container}>
       {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className={pageHeaderStyles.container}>
+        <div className={`flex items-center ${pageHeaderStyles.backButton}`}>
           <Button variant="ghost" onClick={handleBack} size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {pageTitle}
-            </h1>
-            <p className="text-muted-foreground">
+            <h1 className={pageHeaderStyles.title}>{pageTitle}</h1>
+            <p className={pageHeaderStyles.description}>
               {isEditMode
-                ? 'Update your AI voice fundraising campaign'
-                : 'Set up a new AI voice fundraising campaign'}
+                ? 'Update your AI voice fundraising campaign settings'
+                : 'Set up a new AI voice fundraising campaign for your organization'}
             </p>
           </div>
         </div>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Campaign Information
-              </CardTitle>
-              <CardDescription>
-                Basic details about your fundraising campaign
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={formContainerStyles.form}
+        >
+          {/* Campaign Information */}
+          <FormSection
+            title="Campaign Information"
+            description="Start by defining your fundraising campaign details"
+            icon={<MessageSquare className="h-5 w-5" />}
+            color="blue"
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Campaign Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Summer Fundraiser 2024"
+                      className={formFieldStyles.input}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Choose a memorable name that reflects your campaign&apos;s
+                    purpose
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Description
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the purpose and goals of this campaign..."
+                      className="min-h-[100px] resize-none text-base"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Explain what this campaign is for and what you hope to
+                    achieve
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="name"
+                name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Campaign Name</FormLabel>
+                    <FormLabel className={formFieldStyles.label}>
+                      Start Date
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g., Summer Fundraiser 2024"
-                        {...field}
+                      <DatePicker
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select start date"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the purpose and goals of this campaign..."
-                        className="min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Select start date"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date (Optional)</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Select end date"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="goal"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fundraising Goal</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., $10,000" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Set a target amount for your fundraising campaign
+                      When should your campaign begin?
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={formFieldStyles.label}>
+                      End Date (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select end date"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Set an end date to automatically pause the campaign
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="goal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Fundraising Goal
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., $10,000"
+                      className={formFieldStyles.input}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Set a target amount to track your campaign&apos;s progress
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
 
           {/* Agent Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                AI Agent Selection
-              </CardTitle>
-              <CardDescription>
-                Choose the AI voice agent for this campaign
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="agent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Agent</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose an AI agent" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {mockAgents.map((agent) => (
-                          <SelectItem key={agent.id} value={agent.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{agent.name}</span>
-                              <span className="text-muted-foreground text-sm">
-                                {agent.voice}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <FormSection
+            title="AI Agent Selection"
+            description="Choose the perfect AI voice agent for your campaign"
+            icon={<Users className="h-5 w-5" />}
+            color="purple"
+            infoBox={{
+              title: 'Available Agents',
+              description:
+                'Each agent has a unique voice and communication style optimized for fundraising',
+              badge: 'AI Voice Agents',
+            }}
+          >
+            <FormField
+              control={form.control}
+              name="agent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Select Agent
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={formFieldStyles.select}>
+                        <SelectValue placeholder="Choose an AI agent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {mockAgents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{agent.name}</span>
+                            <span className="text-muted-foreground text-sm">
+                              {agent.voice}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Preview each agent&apos;s voice and style to find the
+                    perfect match
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
 
           {/* Script Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Call Script
-              </CardTitle>
-              <CardDescription>
-                The script your AI agent will use when making calls
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="script"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Script Template</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Hello, this is [Agent Name] calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign..."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Write a natural, conversational script for your AI agent.
-                      The agent will adapt this based on the conversation flow.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <FormSection
+            title="Call Script"
+            description="Create a compelling script for your AI agent"
+            icon={<MessageSquare className="h-5 w-5" />}
+            color="green"
+            infoBox={{
+              title: 'Script Writing Tips',
+              description:
+                "• Start with a warm, personal greeting\n• Clearly state your organization's mission\n• Include specific donation amounts or goals\n• End with a clear call-to-action\n• Keep it conversational and natural",
+            }}
+          >
+            <FormField
+              control={form.control}
+              name="script"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Script Template
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Hello, this is [Agent Name] calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign..."
+                      className={formFieldStyles.textarea}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Write a natural, conversational script. Your AI agent will
+                    adapt this based on the conversation flow.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
 
           {/* Submit Buttons */}
-          <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {submitButtonText}
-            </Button>
-            <Button type="button" variant="outline" onClick={handleBack}>
-              Cancel
-            </Button>
+          <div className={formContainerStyles.buttons}>
+            <div className={formContainerStyles.buttonGroup}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                size="lg"
+                className="px-8"
+              >
+                {submitButtonText}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                size="lg"
+              >
+                Cancel
+              </Button>
+            </div>
             {!isEditMode && (
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" size="lg">
                 Save as Draft
               </Button>
             )}

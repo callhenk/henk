@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { useRouter } from 'next/navigation';
 
 import {
@@ -117,7 +115,8 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
     } as const;
 
     const colors = {
-      active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      active:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
       inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
       training: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     };
@@ -134,9 +133,12 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
 
   const getCampaignStatusBadge = (status: string) => {
     const colors = {
-      active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      active:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      paused:
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      completed:
+        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     };
 
     return (
@@ -185,7 +187,9 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
               Voice Settings
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => router.push(`/home/agents/${mockAgent.id}/scripts`)}
+              onClick={() =>
+                router.push(`/home/agents/${mockAgent.id}/scripts`)
+              }
             >
               <Settings className="mr-2 h-4 w-4" />
               Script Templates
@@ -203,7 +207,7 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
-            <Mic className="h-4 w-4 text-muted-foreground" />
+            <Mic className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -218,7 +222,7 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <BarChart3 className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockAgent.successRate}%</div>
@@ -230,27 +234,27 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Active Campaigns
+            </CardTitle>
+            <User className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockAgent.campaigns}</div>
-            <p className="text-muted-foreground text-xs">
-              Currently running
-            </p>
+            <p className="text-muted-foreground text-xs">Currently running</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Status</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <Settings className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               {getStatusBadge(mockAgent.status)}
             </div>
-            <p className="text-muted-foreground text-xs mt-1">
+            <p className="text-muted-foreground mt-1 text-xs">
               Voice: {mockAgent.voiceName}
             </p>
           </CardContent>
@@ -270,15 +274,21 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium">Language</Label>
-                <p className="text-muted-foreground text-sm">{mockAgent.language}</p>
+                <p className="text-muted-foreground text-sm">
+                  {mockAgent.language}
+                </p>
               </div>
               <div>
                 <Label className="text-sm font-medium">Tone</Label>
-                <p className="text-muted-foreground text-sm">{mockAgent.tone}</p>
+                <p className="text-muted-foreground text-sm">
+                  {mockAgent.tone}
+                </p>
               </div>
               <div>
                 <Label className="text-sm font-medium">Voice ID</Label>
-                <p className="text-muted-foreground text-sm">{mockAgent.voiceId}</p>
+                <p className="text-muted-foreground text-sm">
+                  {mockAgent.voiceId}
+                </p>
               </div>
               <div>
                 <Label className="text-sm font-medium">Created</Label>
@@ -298,7 +308,9 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm">{mockAgent.defaultScript}</p>
+            <p className="text-muted-foreground text-sm">
+              {mockAgent.defaultScript}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -331,10 +343,16 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
               <TableBody>
                 {mockCampaigns.map((campaign) => (
                   <TableRow key={campaign.id}>
-                    <TableCell className="font-medium">{campaign.name}</TableCell>
-                    <TableCell>{getCampaignStatusBadge(campaign.status)}</TableCell>
+                    <TableCell className="font-medium">
+                      {campaign.name}
+                    </TableCell>
+                    <TableCell>
+                      {getCampaignStatusBadge(campaign.status)}
+                    </TableCell>
                     <TableCell>{campaign.calls.toLocaleString()}</TableCell>
-                    <TableCell>{campaign.conversions.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {campaign.conversions.toLocaleString()}
+                    </TableCell>
                     <TableCell>${campaign.revenue.toLocaleString()}</TableCell>
                     <TableCell>
                       {new Date(campaign.startDate).toLocaleDateString()}
@@ -348,4 +366,4 @@ export function AgentDetail({ agentId: _agentId }: AgentDetailProps) {
       </Card>
     </div>
   );
-} 
+}

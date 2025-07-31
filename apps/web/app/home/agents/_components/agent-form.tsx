@@ -5,18 +5,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Mic, Settings, User, Volume2 } from 'lucide-react';
+import { ArrowLeft, Settings, User, Volume2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@kit/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
 import {
   Form,
   FormControl,
@@ -36,13 +29,22 @@ import {
 } from '@kit/ui/select';
 import { Textarea } from '@kit/ui/textarea';
 
+import {
+  FormSection,
+  formContainerStyles,
+  formFieldStyles,
+  pageHeaderStyles,
+} from '~/components/form-styles';
+
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
   language: z.string().min(1, 'Language is required'),
   tone: z.string().min(1, 'Tone is required'),
   voiceId: z.string().min(1, 'Voice ID is required'),
   voiceName: z.string().min(1, 'Voice name is required'),
-  defaultScript: z.string().min(50, 'Default script must be at least 50 characters'),
+  defaultScript: z
+    .string()
+    .min(50, 'Default script must be at least 50 characters'),
 });
 
 type AgentFormData = z.infer<typeof agentSchema>;
@@ -147,148 +149,91 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
       : 'Create Agent';
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className={formContainerStyles.container}>
       {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className={pageHeaderStyles.container}>
+        <div className={`flex items-center ${pageHeaderStyles.backButton}`}>
           <Button variant="ghost" onClick={handleBack} size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {pageTitle}
-            </h1>
-            <p className="text-muted-foreground">
+            <h1 className={pageHeaderStyles.title}>{pageTitle}</h1>
+            <p className={pageHeaderStyles.description}>
               {isEditMode
-                ? 'Update your AI voice agent settings'
-                : 'Set up a new AI voice agent'}
+                ? 'Update your AI voice agent settings and preferences'
+                : 'Set up a new AI voice agent for your fundraising campaigns'}
             </p>
           </div>
         </div>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={formContainerStyles.form}
+        >
           {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Agent Information
-              </CardTitle>
-              <CardDescription>
-                Basic details about your AI voice agent
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <FormSection
+            title="Agent Information"
+            description="Start by giving your AI agent a personality and identity"
+            icon={<User className="h-5 w-5" />}
+            color="blue"
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Agent Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Sarah, Mike, Emma"
+                      className={formFieldStyles.input}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Choose a friendly, memorable name for your AI agent
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="name"
+                name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Agent Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sarah, Mike, Emma" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Language</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {mockLanguages.map((language) => (
-                            <SelectItem key={language.value} value={language.value}>
-                              {language.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="tone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Communication Tone</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select tone" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {mockTones.map((tone) => (
-                            <SelectItem key={tone.value} value={tone.value}>
-                              {tone.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Voice Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Volume2 className="h-5 w-5" />
-                Voice Settings
-              </CardTitle>
-              <CardDescription>
-                Configure the voice for your AI agent
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <FormField
-                control={form.control}
-                name="voiceId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Voice ID</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className={formFieldStyles.label}>
+                      Language
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select voice" />
+                        <SelectTrigger className={formFieldStyles.select}>
+                          <SelectValue placeholder="Select language" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockVoices.map((voice) => (
-                          <SelectItem key={voice.id} value={voice.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{voice.name}</span>
-                              <span className="text-muted-foreground text-sm">
-                                {voice.provider}
-                              </span>
-                            </div>
+                        {mockLanguages.map((language) => (
+                          <SelectItem
+                            key={language.value}
+                            value={language.value}
+                          >
+                            {language.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Choose from available ElevenLabs voices
+                      The primary language your agent will speak
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -297,69 +242,176 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
               <FormField
                 control={form.control}
-                name="voiceName"
+                name="tone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Voice Display Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sarah (ElevenLabs)" {...field} />
-                    </FormControl>
+                    <FormLabel className={formFieldStyles.label}>
+                      Communication Style
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className={formFieldStyles.select}>
+                          <SelectValue placeholder="Select tone" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {mockTones.map((tone) => (
+                          <SelectItem key={tone.value} value={tone.value}>
+                            {tone.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormDescription>
-                      This is how the voice will appear in the interface
+                      How your agent should communicate with donors
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </FormSection>
+
+          {/* Voice Settings */}
+          <FormSection
+            title="Voice Configuration"
+            description="Choose the perfect voice for your AI agent"
+            icon={<Volume2 className="h-5 w-5" />}
+            color="purple"
+            infoBox={{
+              title: 'Premium Voice Provider',
+              description:
+                'High-quality, natural-sounding voices optimized for fundraising calls',
+              badge: 'ElevenLabs',
+            }}
+          >
+            <FormField
+              control={form.control}
+              name="voiceId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Select Voice
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={formFieldStyles.select}>
+                        <SelectValue placeholder="Choose a voice" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {mockVoices.map((voice) => (
+                        <SelectItem key={voice.id} value={voice.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{voice.name}</span>
+                            <span className="text-muted-foreground text-sm">
+                              {voice.provider}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Preview available voices to find the perfect match for your
+                    agent
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="voiceName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Voice Display Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Sarah (ElevenLabs)"
+                      className={formFieldStyles.input}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This is how the voice will appear in your dashboard and
+                    reports
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
 
           {/* Default Script */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Default Script Template
-              </CardTitle>
-              <CardDescription>
-                The default script template for this agent
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="defaultScript"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Default Script</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Hello, this is [Agent Name] calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign..."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      This script will be used as the default template for campaigns using this agent.
-                      You can customize it per campaign.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <FormSection
+            title="Default Script Template"
+            description="Create a compelling default script for your fundraising campaigns"
+            icon={<Settings className="h-5 w-5" />}
+            color="green"
+            infoBox={{
+              title: 'Script Tips',
+              description:
+                "• Start with a warm, personal greeting\n• Clearly state your organization's mission\n• Include specific donation amounts or goals\n• End with a clear call-to-action",
+            }}
+          >
+            <FormField
+              control={form.control}
+              name="defaultScript"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Default Script
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Hello, this is [Agent Name] calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign..."
+                      className={formFieldStyles.textarea}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This script will be used as the default template for
+                    campaigns using this agent. You can customize it per
+                    campaign.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
 
           {/* Submit Buttons */}
-          <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {submitButtonText}
-            </Button>
-            <Button type="button" variant="outline" onClick={handleBack}>
-              Cancel
-            </Button>
+          <div className={formContainerStyles.buttons}>
+            <div className={formContainerStyles.buttonGroup}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                size="lg"
+                className="px-8"
+              >
+                {submitButtonText}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                size="lg"
+              >
+                Cancel
+              </Button>
+            </div>
             {!isEditMode && (
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" size="lg">
                 Save as Draft
               </Button>
             )}
@@ -368,4 +420,4 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
       </Form>
     </div>
   );
-} 
+}
