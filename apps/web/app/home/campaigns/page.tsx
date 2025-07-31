@@ -5,7 +5,10 @@ import { CampaignsList } from './_components/campaigns-list';
 export default function CampaignsPage() {
   return (
     <>
-      <PageHeader description={'Manage your AI voice fundraising campaigns'} />
+      <PageHeader
+        title="Campaigns"
+        description="Manage your AI voice fundraising campaigns"
+      />
 
       <PageBody>
         <CampaignsList />

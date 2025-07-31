@@ -622,8 +622,10 @@ export function AgentsList() {
     }
   };
 
-  const handleView = (id: string) => router.push(`/home/agents/${id}`);
-  const handleEdit = (id: string) => router.push(`/home/agents/${id}/edit`);
+  const handleView = (id: string) =>
+    router.push(`/home/agents/${id}?tab=overview`);
+  const handleEdit = (id: string) =>
+    router.push(`/home/agents/${id}?tab=knowledge`);
   const handleDelete = (id: string) => {
     // TODO: Implement delete functionality
     console.log('Delete agent:', id);

@@ -1,6 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
+
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   ArrowLeft,
@@ -158,19 +160,66 @@ const speakingTones = [
 
 export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get the default tab from URL parameter
+  const defaultTab = searchParams.get('tab') || 'overview';
+
+  // State for knowledge base form
+  const [organizationInfo, setOrganizationInfo] = useState(
+    mockAgent.organizationInfo,
+  );
+  const [donorContext, setDonorContext] = useState(mockAgent.donorContext);
+  const [faqs, setFaqs] = useState(mockAgent.faqs);
+  const [savingField, setSavingField] = useState<string | null>(null);
+
+  // Check if there are unsaved changes for each field
+  const hasOrganizationChanges =
+    organizationInfo !== mockAgent.organizationInfo;
+  const hasDonorContextChanges = donorContext !== mockAgent.donorContext;
+  const hasFaqsChanges = faqs !== mockAgent.faqs;
 
   const handleBack = () => {
     router.push('/home/agents');
   };
 
+  const handleSaveField = useCallback(
+    async (fieldName: string, _value: string) => {
+      setSavingField(fieldName);
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Here you would typically save to your backend
+        console.log(`Saving ${fieldName} changes...`);
+      } catch (error) {
+        console.error(`Failed to save ${fieldName} changes:`, error);
+      } finally {
+        setSavingField(null);
+      }
+    },
+    [],
+  );
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 transition-colors hover:bg-green-200">
+            Active
+          </Badge>
+        );
       case 'paused':
-        return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 transition-colors hover:bg-yellow-200">
+            Paused
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return (
+          <Badge variant="outline" className="hover:bg-muted transition-colors">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -206,11 +255,10 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
           </div>
           {getStatusBadge(mockAgent.status)}
         </div>
-        <Button>+ Create Agent</Button>
       </div>
 
       {/* Tabbed Content */}
-      <Tabs defaultValue="voice" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
@@ -332,7 +380,12 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                         className="flex items-center justify-between rounded-lg border p-3"
                       >
                         <span className="font-medium">{campaign}</span>
-                        <Badge variant="outline">Active</Badge>
+                        <Badge
+                          variant="outline"
+                          className="hover:bg-muted transition-colors"
+                        >
+                          Active
+                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -394,12 +447,28 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                   Give the AI agent useful background to personalize calls
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <Textarea
-                  value={mockAgent.organizationInfo}
+                  value={organizationInfo}
+                  onChange={(e) => setOrganizationInfo(e.target.value)}
                   className="min-h-[200px] resize-none"
                   placeholder="Enter organization information..."
                 />
+                {hasOrganizationChanges && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleSaveField('organization', organizationInfo)
+                      }
+                      disabled={savingField === 'organization'}
+                    >
+                      {savingField === 'organization'
+                        ? 'Saving...'
+                        : 'Save Organization Info'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -410,12 +479,28 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                   What the agent should know about specific donor groups
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <Textarea
-                  value={mockAgent.donorContext}
+                  value={donorContext}
+                  onChange={(e) => setDonorContext(e.target.value)}
                   className="min-h-[200px] resize-none"
                   placeholder="Enter donor context information..."
                 />
+                {hasDonorContextChanges && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleSaveField('donorContext', donorContext)
+                      }
+                      disabled={savingField === 'donorContext'}
+                    >
+                      {savingField === 'donorContext'
+                        ? 'Saving...'
+                        : 'Save Donor Context'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -426,12 +511,24 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                   Expected objections or questions + how to respond
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <Textarea
-                  value={mockAgent.faqs}
+                  value={faqs}
+                  onChange={(e) => setFaqs(e.target.value)}
                   className="min-h-[300px] resize-none"
                   placeholder="Enter FAQs and responses..."
                 />
+                {hasFaqsChanges && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => handleSaveField('faqs', faqs)}
+                      disabled={savingField === 'faqs'}
+                    >
+                      {savingField === 'faqs' ? 'Saving...' : 'Save FAQs'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -507,8 +604,8 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
               </div>
 
               {/* Save Button */}
-              <div className="pt-4">
-                <Button className="w-full">Save Voice Settings</Button>
+              <div className="flex justify-end pt-4">
+                <Button size="sm">Save Voice Settings</Button>
               </div>
             </CardContent>
           </Card>
