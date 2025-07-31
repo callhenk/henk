@@ -10,71 +10,71 @@ export default function ConversationsLoading() {
         ))}
       </div>
 
-      {/* Loading Conversations List */}
+      {/* Loading Filters */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="bg-muted h-6 w-48 animate-pulse rounded" />
-              <div className="bg-muted h-4 w-64 animate-pulse rounded" />
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="bg-muted h-9 w-9 animate-pulse rounded" />
-              <div className="bg-muted h-9 w-32 animate-pulse rounded" />
-            </div>
+          <div className="flex items-center gap-2">
+            <div className="bg-muted h-5 w-5 animate-pulse rounded" />
+            <div className="bg-muted h-6 w-16 animate-pulse rounded" />
           </div>
         </CardHeader>
         <CardContent>
-          {/* Loading Search and Filters */}
-          <div className="mb-6 space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="bg-muted h-4 w-20 animate-pulse rounded" />
-                  <div className="bg-muted h-10 w-full animate-pulse rounded" />
-                </div>
+          {/* Loading Search Filters */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="bg-muted h-4 w-20 animate-pulse rounded" />
+                <div className="bg-muted h-10 w-full animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Loading Additional Filters */}
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="bg-muted h-4 w-16 animate-pulse rounded" />
+                <div className="bg-muted h-10 w-full animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Loading Conversations List */}
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <div className="bg-muted h-6 w-48 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Loading Tabs */}
+          <div className="mb-6">
+            <div className="grid w-full grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-muted h-10 animate-pulse rounded" />
               ))}
             </div>
           </div>
 
-          {/* Loading Results Count */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="bg-muted h-4 w-32 animate-pulse rounded" />
-            <div className="bg-muted h-8 w-20 animate-pulse rounded" />
-          </div>
+          {/* Loading Conversation Table */}
+          <div className="space-y-4">
+            {/* Loading Table Header */}
+            <div className="grid grid-cols-7 gap-4 border-b pb-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="bg-muted h-4 animate-pulse rounded" />
+              ))}
+            </div>
 
-          {/* Loading Conversation Cards */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Loading Table Rows */}
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-muted h-12 w-12 animate-pulse rounded-full" />
-                      <div className="space-y-2">
-                        <div className="bg-muted h-5 w-24 animate-pulse rounded" />
-                        <div className="bg-muted h-4 w-32 animate-pulse rounded" />
-                      </div>
-                    </div>
-                    <div className="bg-muted h-8 w-8 animate-pulse rounded" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="bg-muted h-5 w-16 animate-pulse rounded" />
-                    <div className="bg-muted h-4 w-20 animate-pulse rounded" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="bg-muted h-4 w-full animate-pulse rounded" />
-                    <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
-                    <div className="bg-muted h-4 w-1/2 animate-pulse rounded" />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="bg-muted h-8 flex-1 animate-pulse rounded" />
-                    <div className="bg-muted h-8 flex-1 animate-pulse rounded" />
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={i} className="grid grid-cols-7 gap-4 py-4">
+                {Array.from({ length: 7 }).map((_, j) => (
+                  <div key={j} className="bg-muted h-4 animate-pulse rounded" />
+                ))}
+              </div>
             ))}
           </div>
         </CardContent>
