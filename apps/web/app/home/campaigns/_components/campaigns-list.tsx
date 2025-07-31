@@ -226,7 +226,10 @@ export function CampaignsList() {
                 Manage your AI voice fundraising campaigns
               </CardDescription>
             </div>
-            <Button onClick={() => router.push('/home/campaigns/create')}>
+            <Button
+              onClick={() => router.push('/home/campaigns/create')}
+              className="hover:bg-primary/90 transition-colors"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Campaign
             </Button>

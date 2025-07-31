@@ -129,7 +129,8 @@ export function AgentsList() {
     } as const;
 
     const colors = {
-      active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      active:
+        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
       inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
       training: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     };
@@ -147,7 +148,10 @@ export function AgentsList() {
   const getTotalStats = () => {
     const activeAgents = agents.filter((agent) => agent.status === 'active');
     const totalCalls = agents.reduce((sum, agent) => sum + agent.totalCalls, 0);
-    const totalCampaigns = agents.reduce((sum, agent) => sum + agent.campaigns, 0);
+    const totalCampaigns = agents.reduce(
+      (sum, agent) => sum + agent.campaigns,
+      0,
+    );
     const avgSuccessRate =
       agents.reduce((sum, agent) => sum + agent.successRate, 0) / agents.length;
 
@@ -169,7 +173,7 @@ export function AgentsList() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Agents</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.agents}</div>
@@ -182,52 +186,52 @@ export function AgentsList() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
-            <Mic className="h-4 w-4 text-muted-foreground" />
+            <Mic className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCalls.toLocaleString()}</div>
-            <p className="text-muted-foreground text-xs">
-              Across all agents
-            </p>
+            <div className="text-2xl font-bold">
+              {stats.totalCalls.toLocaleString()}
+            </div>
+            <p className="text-muted-foreground text-xs">Across all agents</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Active Campaigns
+            </CardTitle>
+            <Volume2 className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
-            <p className="text-muted-foreground text-xs">
-              Currently running
-            </p>
+            <p className="text-muted-foreground text-xs">Currently running</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Success Rate</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Avg Success Rate
+            </CardTitle>
+            <Settings className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgSuccessRate}%</div>
-            <p className="text-muted-foreground text-xs">
-              Across all agents
-            </p>
+            <p className="text-muted-foreground text-xs">Across all agents</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voice Providers</CardTitle>
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Voice Providers
+            </CardTitle>
+            <Volume2 className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">ElevenLabs</div>
-            <p className="text-muted-foreground text-xs">
-              Primary provider
-            </p>
+            <p className="text-muted-foreground text-xs">Primary provider</p>
           </CardContent>
         </Card>
       </div>
@@ -242,7 +246,10 @@ export function AgentsList() {
                 Manage your AI voice agents and their settings
               </CardDescription>
             </div>
-            <Button onClick={() => router.push('/home/agents/create')}>
+            <Button
+              onClick={() => router.push('/home/agents/create')}
+              className="hover:bg-primary/90 transition-colors"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Agent
             </Button>
@@ -301,25 +308,33 @@ export function AgentsList() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => router.push(`/home/agents/${agent.id}`)}
+                            onClick={() =>
+                              router.push(`/home/agents/${agent.id}`)
+                            }
                           >
                             <User className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => router.push(`/home/agents/${agent.id}/edit`)}
+                            onClick={() =>
+                              router.push(`/home/agents/${agent.id}/edit`)
+                            }
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Agent
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => router.push(`/home/agents/${agent.id}/voice`)}
+                            onClick={() =>
+                              router.push(`/home/agents/${agent.id}/voice`)
+                            }
                           >
                             <Volume2 className="mr-2 h-4 w-4" />
                             Voice Settings
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => router.push(`/home/agents/${agent.id}/scripts`)}
+                            onClick={() =>
+                              router.push(`/home/agents/${agent.id}/scripts`)
+                            }
                           >
                             <Settings className="mr-2 h-4 w-4" />
                             Script Templates
@@ -340,4 +355,4 @@ export function AgentsList() {
       </Card>
     </div>
   );
-} 
+}

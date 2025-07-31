@@ -395,7 +395,7 @@ export function CampaignForm({
                 type="submit"
                 disabled={isSubmitting}
                 size="lg"
-                className="px-8"
+                className="hover:bg-primary/90 px-8 transition-colors"
               >
                 {submitButtonText}
               </Button>
@@ -404,12 +404,18 @@ export function CampaignForm({
                 variant="outline"
                 onClick={handleBack}
                 size="lg"
+                className="hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 Cancel
               </Button>
             </div>
             {!isEditMode && (
-              <Button type="button" variant="outline" size="lg">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
                 Save as Draft
               </Button>
             )}
