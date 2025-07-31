@@ -43,6 +43,8 @@ import {
   pageHeaderStyles,
 } from '~/components/form-styles';
 
+import { FAQEditor } from '../[id]/_components/faq-editor';
+
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
   description: z.string().optional(),
@@ -57,7 +59,7 @@ const agentSchema = z.object({
 type AgentFormData = z.infer<typeof agentSchema>;
 
 const voiceTypes = [
-  { value: 'elevenlabs', label: 'ElevenLabs' },
+  { value: 'ai_generated', label: 'AI Generated' },
   { value: 'custom', label: 'Custom Voice' },
 ];
 
@@ -70,11 +72,11 @@ const speakingTones = [
 ];
 
 const voiceOptions = [
-  { id: 'voice_sarah_001', name: 'Sarah', provider: 'ElevenLabs' },
-  { id: 'voice_mike_002', name: 'Mike', provider: 'ElevenLabs' },
-  { id: 'voice_emma_003', name: 'Emma', provider: 'ElevenLabs' },
-  { id: 'voice_david_004', name: 'David', provider: 'ElevenLabs' },
-  { id: 'voice_lisa_005', name: 'Lisa', provider: 'ElevenLabs' },
+  { id: 'voice_sarah_001', name: 'Sarah', provider: 'AI Generated' },
+  { id: 'voice_mike_002', name: 'Mike', provider: 'AI Generated' },
+  { id: 'voice_emma_003', name: 'Emma', provider: 'AI Generated' },
+  { id: 'voice_david_004', name: 'David', provider: 'AI Generated' },
+  { id: 'voice_lisa_005', name: 'Lisa', provider: 'AI Generated' },
 ];
 
 interface AgentFormProps {
@@ -183,7 +185,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         await createAgentMutation.mutateAsync({
           name: data.name,
           description: data.description || null,
-          voice_type: data.voice_type as 'elevenlabs' | 'custom',
+          voice_type: data.voice_type as 'ai_generated' | 'custom',
           voice_id: data.voice_id,
           speaking_tone: data.speaking_tone,
           organization_info: data.organization_info || null,
@@ -200,7 +202,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
           id: agentId,
           name: data.name,
           description: data.description || null,
-          voice_type: data.voice_type as 'elevenlabs' | 'custom',
+          voice_type: data.voice_type as 'ai_generated' | 'custom',
           voice_id: data.voice_id,
           speaking_tone: data.speaking_tone,
           organization_info: data.organization_info || null,
@@ -491,16 +493,16 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>FAQs</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="e.g., How can I donate? What are your tax-deductible status? How do I get a receipt?"
-                      className={formFieldStyles.textarea}
-                      {...field}
+                    <FAQEditor
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onSave={() => {}}
+                      isSaving={false}
                     />
                   </FormControl>
                   <FormDescription>
                     Common questions and answers that the agent should be
-                    prepared to address. You can enter plain text or JSON format
-                    for more structured FAQs.
+                    prepared to address.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

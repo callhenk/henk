@@ -77,7 +77,7 @@ export type Database = {
           description: string | null;
           status: 'active' | 'inactive' | 'agent_paused' | 'training';
           account_id: string;
-          voice_type: 'elevenlabs' | 'custom';
+          voice_type: 'ai_generated' | 'custom';
           voice_id: string | null;
           speaking_tone: string;
           organization_info: string | null;
@@ -96,7 +96,7 @@ export type Database = {
           description?: string | null;
           status?: 'active' | 'inactive' | 'agent_paused' | 'training';
           account_id: string;
-          voice_type?: 'elevenlabs' | 'custom';
+          voice_type?: 'ai_generated' | 'custom';
           voice_id?: string | null;
           speaking_tone?: string;
           organization_info?: string | null;
@@ -115,7 +115,7 @@ export type Database = {
           description?: string | null;
           status?: 'active' | 'inactive' | 'agent_paused' | 'training';
           account_id?: string;
-          voice_type?: 'elevenlabs' | 'custom';
+          voice_type?: 'ai_generated' | 'custom';
           voice_id?: string | null;
           speaking_tone?: string;
           organization_info?: string | null;
@@ -458,7 +458,12 @@ export type Database = {
           campaign_id: string;
           agent_id: string;
           lead_id: string;
-          status: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          status:
+            | 'initiated'
+            | 'in_progress'
+            | 'completed'
+            | 'failed'
+            | 'no_answer';
           duration_seconds: number | null;
           call_sid: string | null;
           recording_url: string | null;
@@ -477,7 +482,12 @@ export type Database = {
           campaign_id: string;
           agent_id: string;
           lead_id: string;
-          status?: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          status?:
+            | 'initiated'
+            | 'in_progress'
+            | 'completed'
+            | 'failed'
+            | 'no_answer';
           duration_seconds?: number | null;
           call_sid?: string | null;
           recording_url?: string | null;
@@ -496,7 +506,12 @@ export type Database = {
           campaign_id?: string;
           agent_id?: string;
           lead_id?: string;
-          status?: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          status?:
+            | 'initiated'
+            | 'in_progress'
+            | 'completed'
+            | 'failed'
+            | 'no_answer';
           duration_seconds?: number | null;
           call_sid?: string | null;
           recording_url?: string | null;

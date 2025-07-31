@@ -41,11 +41,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
-import { WorkflowBuilder } from './workflow-builder';
 import { FAQEditor } from './faq-editor';
+import { WorkflowBuilder } from './workflow-builder';
 
 const voiceTypes = [
-  { value: 'elevenlabs', label: 'ElevenLabs' },
+  { value: 'ai_generated', label: 'AI Generated' },
   { value: 'custom', label: 'Custom Voice' },
 ];
 
@@ -103,17 +103,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const hasOrganizationChanges =
     organizationInfo !== (agent?.organization_info || '');
   const hasDonorContextChanges = donorContext !== (agent?.donor_context || '');
-  const hasFaqsChanges =
-    faqs !==
-    (() => {
-      if (!agent?.faqs) return '';
-      if (typeof agent.faqs === 'string') return agent.faqs;
-      try {
-        return JSON.stringify(agent.faqs, null, 2);
-      } catch {
-        return '';
-      }
-    })();
 
   // Calculate agent performance metrics
   const agentConversations = conversations.filter(
@@ -543,7 +532,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <FAQEditor 
+                <FAQEditor
                   value={faqs}
                   onChange={setFaqs}
                   onSave={() => handleSaveField('faqs', faqs)}
@@ -570,7 +559,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               {/* Voice Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Voice Type</label>
-                <Select defaultValue="elevenlabs">
+                <Select defaultValue="ai_generated">
                   <SelectTrigger>
                     <SelectValue placeholder="Select voice type" />
                   </SelectTrigger>
