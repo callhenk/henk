@@ -60,7 +60,7 @@ const mockAgent: Agent = {
   language: 'english',
   tone: 'friendly',
   voiceId: 'voice_sarah_001',
-  voiceName: 'Sarah (ElevenLabs)',
+  voiceName: 'Sarah',
   defaultScript:
     'Hello, this is Sarah calling on behalf of [Organization]. We&apos;re reaching out to discuss our current fundraising campaign...',
   campaigns: ['Summer Fundraiser 2024', 'Holiday Campaign'],

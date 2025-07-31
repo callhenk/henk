@@ -17,7 +17,7 @@ export default async function EditAgentPage({ params }: EditAgentPageProps) {
     language: 'english',
     tone: 'warm-friendly',
     voiceId: 'voice_sarah_001',
-    voiceName: 'Sarah (ElevenLabs)',
+    voiceName: 'Sarah',
     defaultScript:
       "Hello, this is Sarah calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign...",
   };

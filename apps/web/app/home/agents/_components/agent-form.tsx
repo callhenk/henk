@@ -66,11 +66,11 @@ const mockTones = [
 ];
 
 const mockVoices = [
-  { id: 'voice_sarah_001', name: 'Sarah (ElevenLabs)', provider: 'ElevenLabs' },
-  { id: 'voice_mike_002', name: 'Mike (ElevenLabs)', provider: 'ElevenLabs' },
-  { id: 'voice_emma_003', name: 'Emma (ElevenLabs)', provider: 'ElevenLabs' },
-  { id: 'voice_david_004', name: 'David (ElevenLabs)', provider: 'ElevenLabs' },
-  { id: 'voice_lisa_005', name: 'Lisa (ElevenLabs)', provider: 'ElevenLabs' },
+  { id: 'voice_sarah_001', name: 'Sarah', provider: 'AI Voice' },
+  { id: 'voice_mike_002', name: 'Mike', provider: 'AI Voice' },
+  { id: 'voice_emma_003', name: 'Emma', provider: 'AI Voice' },
+  { id: 'voice_david_004', name: 'David', provider: 'AI Voice' },
+  { id: 'voice_lisa_005', name: 'Lisa', provider: 'AI Voice' },
 ];
 
 interface AgentFormProps {
@@ -282,10 +282,10 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
             icon={<Volume2 className="h-5 w-5" />}
             color="purple"
             infoBox={{
-              title: 'Premium Voice Provider',
+              title: 'AI Voice Technology',
               description:
                 'High-quality, natural-sounding voices optimized for fundraising calls',
-              badge: 'ElevenLabs',
+              badge: 'AI Voice',
             }}
           >
             <FormField
@@ -337,7 +337,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Sarah (ElevenLabs)"
+                      placeholder="e.g., Sarah"
                       className={formFieldStyles.input}
                       {...field}
                     />

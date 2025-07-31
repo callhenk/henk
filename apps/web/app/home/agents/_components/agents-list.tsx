@@ -61,7 +61,7 @@ const mockAgents: Agent[] = [
     language: 'English',
     tone: 'Warm and friendly',
     voiceId: 'voice_sarah_001',
-    voiceName: 'Sarah (ElevenLabs)',
+    voiceName: 'Sarah',
     status: 'active',
     campaigns: 3,
     totalCalls: 124,
@@ -76,7 +76,7 @@ const mockAgents: Agent[] = [
     language: 'English',
     tone: 'Professional and confident',
     voiceId: 'voice_mike_002',
-    voiceName: 'Mike (ElevenLabs)',
+    voiceName: 'Mike',
     status: 'active',
     campaigns: 2,
     totalCalls: 89,
@@ -91,7 +91,7 @@ const mockAgents: Agent[] = [
     language: 'English',
     tone: 'Compassionate and caring',
     voiceId: 'voice_emma_003',
-    voiceName: 'Emma (ElevenLabs)',
+    voiceName: 'Emma',
     status: 'active',
     campaigns: 1,
     totalCalls: 45,
@@ -106,7 +106,7 @@ const mockAgents: Agent[] = [
     language: 'English',
     tone: 'Enthusiastic and energetic',
     voiceId: 'voice_david_004',
-    voiceName: 'David (ElevenLabs)',
+    voiceName: 'David',
     status: 'training',
     campaigns: 0,
     totalCalls: 0,
@@ -169,7 +169,7 @@ export function AgentsList() {
   return (
     <div className="space-y-6">
       {/* Performance Stats */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Agents</CardTitle>
@@ -219,19 +219,6 @@ export function AgentsList() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgSuccessRate}%</div>
             <p className="text-muted-foreground text-xs">Across all agents</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Voice Providers
-            </CardTitle>
-            <Volume2 className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">ElevenLabs</div>
-            <p className="text-muted-foreground text-xs">Primary provider</p>
           </CardContent>
         </Card>
       </div>

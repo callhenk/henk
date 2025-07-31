@@ -373,7 +373,7 @@ function NodeEditorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Workflow Node</DialogTitle>
           <DialogDescription>
@@ -480,7 +480,7 @@ function NodeEditorDialog({
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 border-t pt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -723,7 +723,7 @@ export function WorkflowBuilder() {
   const connectionOptions = sourceNode?.data.options || [];
 
   return (
-    <div className="h-[700px] w-full">
+    <div className="flex h-[700px] w-full flex-col">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Workflow Builder</h3>
@@ -818,7 +818,7 @@ export function WorkflowBuilder() {
         </CardContent>
       </Card>
 
-      <Card className="h-full">
+      <Card className="min-h-0 flex-1">
         <CardContent className="h-full p-0">
           <ReactFlow
             nodes={nodes}
@@ -861,7 +861,7 @@ export function WorkflowBuilder() {
         open={isConnectionDialogOpen}
         onOpenChange={setIsConnectionDialogOpen}
       >
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Choose Connection Option</DialogTitle>
             <DialogDescription>
@@ -882,7 +882,7 @@ export function WorkflowBuilder() {
               ))}
             </div>
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 border-t pt-4">
             <Button
               variant="outline"
               onClick={() => {
