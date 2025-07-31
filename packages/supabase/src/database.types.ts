@@ -70,6 +70,526 @@ export type Database = {
         };
         Relationships: [];
       };
+      agents: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          status: 'active' | 'inactive' | 'agent_paused' | 'training';
+          account_id: string;
+          voice_type: 'elevenlabs' | 'custom';
+          voice_id: string | null;
+          speaking_tone: string;
+          organization_info: string | null;
+          donor_context: string | null;
+          faqs: Json;
+          knowledge_base: Json;
+          workflow_config: Json;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: 'active' | 'inactive' | 'agent_paused' | 'training';
+          account_id: string;
+          voice_type?: 'elevenlabs' | 'custom';
+          voice_id?: string | null;
+          speaking_tone?: string;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json;
+          knowledge_base?: Json;
+          workflow_config?: Json;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: 'active' | 'inactive' | 'agent_paused' | 'training';
+          account_id?: string;
+          voice_type?: 'elevenlabs' | 'custom';
+          voice_id?: string | null;
+          speaking_tone?: string;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json;
+          knowledge_base?: Json;
+          workflow_config?: Json;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'agents_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaigns: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
+          account_id: string;
+          agent_id: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          calling_hours: string;
+          max_attempts: number;
+          daily_call_cap: number;
+          script: string;
+          retry_logic: string;
+          budget: number | null;
+          target_amount: number | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
+          account_id: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script: string;
+          retry_logic?: string;
+          budget?: number | null;
+          target_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
+          account_id?: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script?: string;
+          retry_logic?: string;
+          budget?: number | null;
+          target_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaigns_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaigns_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workflows: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          agent_id: string;
+          status: 'draft' | 'active' | 'inactive';
+          version: number;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          agent_id: string;
+          status?: 'draft' | 'active' | 'inactive';
+          version?: number;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          agent_id?: string;
+          status?: 'draft' | 'active' | 'inactive';
+          version?: number;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workflows_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workflow_nodes: {
+        Row: {
+          id: string;
+          workflow_id: string;
+          node_id: string;
+          type: 'start' | 'condition' | 'action' | 'end';
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workflow_id: string;
+          node_id: string;
+          type: 'start' | 'condition' | 'action' | 'end';
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          workflow_id?: string;
+          node_id?: string;
+          type?: 'start' | 'condition' | 'action' | 'end';
+          position_x?: number;
+          position_y?: number;
+          data?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workflow_nodes_workflow_id_fkey';
+            columns: ['workflow_id'];
+            isOneToOne: false;
+            referencedRelation: 'workflows';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workflow_edges: {
+        Row: {
+          id: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle: string | null;
+          target_handle: string | null;
+          label: string | null;
+          condition: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
+          condition?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          workflow_id?: string;
+          edge_id?: string;
+          source_node_id?: string;
+          target_node_id?: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
+          condition?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workflow_edges_workflow_id_fkey';
+            columns: ['workflow_id'];
+            isOneToOne: false;
+            referencedRelation: 'workflows';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      leads: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          name: string;
+          email: string | null;
+          phone: string;
+          company: string | null;
+          status:
+            | 'new'
+            | 'contacted'
+            | 'interested'
+            | 'pledged'
+            | 'donated'
+            | 'not_interested'
+            | 'unreachable'
+            | 'failed';
+          notes: string | null;
+          last_contact_date: string | null;
+          attempts: number;
+          pledged_amount: number | null;
+          donated_amount: number | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          name: string;
+          email?: string | null;
+          phone: string;
+          company?: string | null;
+          status?:
+            | 'new'
+            | 'contacted'
+            | 'interested'
+            | 'pledged'
+            | 'donated'
+            | 'not_interested'
+            | 'unreachable'
+            | 'failed';
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          name?: string;
+          email?: string | null;
+          phone?: string;
+          company?: string | null;
+          status?:
+            | 'new'
+            | 'contacted'
+            | 'interested'
+            | 'pledged'
+            | 'donated'
+            | 'not_interested'
+            | 'unreachable'
+            | 'failed';
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'leads_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
+          status: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          duration_seconds: number | null;
+          call_sid: string | null;
+          recording_url: string | null;
+          transcript: string | null;
+          sentiment_score: number | null;
+          key_points: Json;
+          outcome: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
+          status?: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json;
+          outcome?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          agent_id?: string;
+          lead_id?: string;
+          status?: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'no_answer';
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json;
+          outcome?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversations_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_lead_id_fkey';
+            columns: ['lead_id'];
+            isOneToOne: false;
+            referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      integrations: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          type: 'crm' | 'email' | 'payment' | 'analytics' | 'other';
+          status: 'active' | 'inactive' | 'error' | 'pending';
+          account_id: string;
+          config: Json;
+          credentials: Json;
+          last_sync_at: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          type: 'crm' | 'email' | 'payment' | 'analytics' | 'other';
+          status?: 'active' | 'inactive' | 'error' | 'pending';
+          account_id: string;
+          config?: Json;
+          credentials?: Json;
+          last_sync_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          type?: 'crm' | 'email' | 'payment' | 'analytics' | 'other';
+          status?: 'active' | 'inactive' | 'error' | 'pending';
+          account_id?: string;
+          config?: Json;
+          credentials?: Json;
+          last_sync_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'integrations_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

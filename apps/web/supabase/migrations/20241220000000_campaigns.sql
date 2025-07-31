@@ -8,6 +8,87 @@
 
 /*
  * -------------------------------------------------------
+ * Section: Agents (Created First - Referenced by Campaigns and Workflows)
+ * AI voice agents that handle calls for campaigns
+ * -------------------------------------------------------
+ */
+
+-- Agent status enum
+create type public.agent_status as enum (
+    'active',
+    'inactive',
+    'agent_paused',
+    'training'
+);
+
+-- Voice type enum
+create type public.voice_type as enum (
+    'elevenlabs',
+    'custom'
+);
+
+-- Agents table
+create table if not exists public.agents (
+    id uuid unique not null default gen_random_uuid(),
+    name varchar(255) not null,
+    description text,
+    status public.agent_status not null default 'active',
+    account_id uuid not null references public.accounts(id) on delete cascade,
+    voice_type public.voice_type not null default 'elevenlabs',
+    voice_id varchar(255),
+    speaking_tone varchar(100) not null default 'Professional',
+    organization_info text,
+    donor_context text,
+    faqs jsonb default '[]'::jsonb,
+    knowledge_base jsonb default '{}'::jsonb,
+    workflow_config jsonb default '{}'::jsonb,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    created_by uuid references auth.users(id),
+    updated_by uuid references auth.users(id),
+    primary key (id)
+);
+
+comment on table public.agents is 'AI voice agents for fundraising calls';
+comment on column public.agents.name is 'The name of the agent';
+comment on column public.agents.description is 'The description of the agent';
+comment on column public.agents.status is 'The current status of the agent';
+comment on column public.agents.account_id is 'The account that owns this agent';
+comment on column public.agents.voice_type is 'The type of voice (elevenlabs or custom)';
+comment on column public.agents.voice_id is 'The voice ID from the voice provider';
+comment on column public.agents.speaking_tone is 'The speaking tone of the agent';
+comment on column public.agents.organization_info is 'Information about the organization';
+comment on column public.agents.donor_context is 'Context about donors and fundraising';
+comment on column public.agents.faqs is 'Frequently asked questions for the agent';
+comment on column public.agents.knowledge_base is 'Knowledge base configuration';
+comment on column public.agents.workflow_config is 'Workflow configuration for the agent';
+
+-- Enable RLS on agents table
+alter table public.agents enable row level security;
+
+-- Agents RLS policies
+create policy agents_read on public.agents
+    for select to authenticated
+    using (account_id = auth.uid());
+
+create policy agents_insert on public.agents
+    for insert to authenticated
+    with check (account_id = auth.uid());
+
+create policy agents_update on public.agents
+    for update to authenticated
+    using (account_id = auth.uid())
+    with check (account_id = auth.uid());
+
+create policy agents_delete on public.agents
+    for delete to authenticated
+    using (account_id = auth.uid());
+
+-- Grant permissions
+grant select, insert, update, delete on public.agents to authenticated, service_role;
+
+/*
+ * -------------------------------------------------------
  * Section: Campaigns
  * Campaigns are the main fundraising initiatives that use AI agents to contact leads
  * -------------------------------------------------------
@@ -24,7 +105,7 @@ create type public.campaign_status as enum (
 
 -- Campaigns table
 create table if not exists public.campaigns (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     name varchar(255) not null,
     description text,
     status public.campaign_status not null default 'draft',
@@ -88,87 +169,6 @@ grant select, insert, update, delete on public.campaigns to authenticated, servi
 
 /*
  * -------------------------------------------------------
- * Section: Agents
- * AI voice agents that handle calls for campaigns
- * -------------------------------------------------------
- */
-
--- Agent status enum
-create type public.agent_status as enum (
-    'active',
-    'inactive',
-    'agent_paused',
-    'training'
-);
-
--- Voice type enum
-create type public.voice_type as enum (
-    'elevenlabs',
-    'custom'
-);
-
--- Agents table
-create table if not exists public.agents (
-    id uuid unique not null default extensions.uuid_generate_v4(),
-    name varchar(255) not null,
-    description text,
-    status public.agent_status not null default 'active',
-    account_id uuid not null references public.accounts(id) on delete cascade,
-    voice_type public.voice_type not null default 'elevenlabs',
-    voice_id varchar(255),
-    speaking_tone varchar(100) not null default 'Professional',
-    organization_info text,
-    donor_context text,
-    faqs jsonb default '[]'::jsonb,
-    knowledge_base jsonb default '{}'::jsonb,
-    workflow_config jsonb default '{}'::jsonb,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
-    created_by uuid references auth.users(id),
-    updated_by uuid references auth.users(id),
-    primary key (id)
-);
-
-comment on table public.agents is 'AI voice agents for fundraising calls';
-comment on column public.agents.name is 'The name of the agent';
-comment on column public.agents.description is 'The description of the agent';
-comment on column public.agents.status is 'The current status of the agent';
-comment on column public.agents.account_id is 'The account that owns this agent';
-comment on column public.agents.voice_type is 'The type of voice (elevenlabs or custom)';
-comment on column public.agents.voice_id is 'The voice ID from the voice provider';
-comment on column public.agents.speaking_tone is 'The speaking tone of the agent';
-comment on column public.agents.organization_info is 'Information about the organization';
-comment on column public.agents.donor_context is 'Context about donors and fundraising';
-comment on column public.agents.faqs is 'Frequently asked questions for the agent';
-comment on column public.agents.knowledge_base is 'Knowledge base configuration';
-comment on column public.agents.workflow_config is 'Workflow configuration for the agent';
-
--- Enable RLS on agents table
-alter table public.agents enable row level security;
-
--- Agents RLS policies
-create policy agents_read on public.agents
-    for select to authenticated
-    using (account_id = auth.uid());
-
-create policy agents_insert on public.agents
-    for insert to authenticated
-    with check (account_id = auth.uid());
-
-create policy agents_update on public.agents
-    for update to authenticated
-    using (account_id = auth.uid())
-    with check (account_id = auth.uid());
-
-create policy agents_delete on public.agents
-    for delete to authenticated
-    using (account_id = auth.uid());
-
--- Grant permissions
-grant select, insert, update, delete on public.agents to authenticated, service_role;
-
-/*
- * -------------------------------------------------------
  * Section: Workflows
  * Visual workflow builder for agent call flows
  * -------------------------------------------------------
@@ -207,7 +207,7 @@ create type public.action_type as enum (
 
 -- Workflows table
 create table if not exists public.workflows (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     name varchar(255) not null,
     description text,
     agent_id uuid not null references public.agents(id) on delete cascade,
@@ -231,7 +231,7 @@ comment on column public.workflows.is_default is 'Whether this is the default wo
 
 -- Workflow nodes table
 create table if not exists public.workflow_nodes (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     workflow_id uuid not null references public.workflows(id) on delete cascade,
     node_id varchar(255) not null, -- ReactFlow node ID
     type public.node_type not null,
@@ -254,7 +254,7 @@ comment on column public.workflow_nodes.data is 'Node data (label, description, 
 
 -- Workflow edges table
 create table if not exists public.workflow_edges (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     workflow_id uuid not null references public.workflows(id) on delete cascade,
     edge_id varchar(255) not null, -- ReactFlow edge ID
     source_node_id varchar(255) not null,
@@ -444,7 +444,7 @@ create type public.lead_status as enum (
 
 -- Leads table
 create table if not exists public.leads (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     campaign_id uuid not null references public.campaigns(id) on delete cascade,
     name varchar(255) not null,
     email varchar(320),
@@ -540,7 +540,7 @@ create type public.conversation_status as enum (
 
 -- Conversations table
 create table if not exists public.conversations (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     campaign_id uuid not null references public.campaigns(id) on delete cascade,
     agent_id uuid not null references public.agents(id) on delete cascade,
     lead_id uuid not null references public.leads(id) on delete cascade,
@@ -646,7 +646,7 @@ create type public.integration_type as enum (
 
 -- Integrations table
 create table if not exists public.integrations (
-    id uuid unique not null default extensions.uuid_generate_v4(),
+    id uuid unique not null default gen_random_uuid(),
     name varchar(255) not null,
     description text,
     type public.integration_type not null,
@@ -702,16 +702,16 @@ grant select, insert, update, delete on public.integrations to authenticated, se
  * -------------------------------------------------------
  */
 
+-- Agent indexes
+create index if not exists idx_agents_account_id on public.agents(account_id);
+create index if not exists idx_agents_status on public.agents(status);
+create index if not exists idx_agents_created_at on public.agents(created_at);
+
 -- Campaign indexes
 create index if not exists idx_campaigns_account_id on public.campaigns(account_id);
 create index if not exists idx_campaigns_status on public.campaigns(status);
 create index if not exists idx_campaigns_agent_id on public.campaigns(agent_id);
 create index if not exists idx_campaigns_created_at on public.campaigns(created_at);
-
--- Agent indexes
-create index if not exists idx_agents_account_id on public.agents(account_id);
-create index if not exists idx_agents_status on public.agents(status);
-create index if not exists idx_agents_created_at on public.agents(created_at);
 
 -- Workflow indexes
 create index if not exists idx_workflows_agent_id on public.workflows(agent_id);
@@ -747,55 +747,43 @@ create index if not exists idx_integrations_status on public.integrations(status
  * -------------------------------------------------------
  */
 
--- Function to update updated_at timestamp
-create or replace function kit.update_updated_at_column()
-returns trigger as $$
-begin
-    new.updated_at = now();
-    return new;
-end;
-$$ language plpgsql;
+-- Enable moddatetime extension for automatic updated_at timestamps
+create extension if not exists moddatetime;
 
--- Create triggers for updated_at
-create trigger update_campaigns_updated_at
-    before update on public.campaigns
-    for each row
-    execute function kit.update_updated_at_column();
+-- Add updated_at columns with moddatetime triggers
+alter table public.agents alter column updated_at set default now();
+alter table public.campaigns alter column updated_at set default now();
+alter table public.workflows alter column updated_at set default now();
+alter table public.workflow_nodes alter column updated_at set default now();
+alter table public.workflow_edges alter column updated_at set default now();
+alter table public.leads alter column updated_at set default now();
+alter table public.conversations alter column updated_at set default now();
+alter table public.integrations alter column updated_at set default now();
 
-create trigger update_agents_updated_at
-    before update on public.agents
-    for each row
-    execute function kit.update_updated_at_column();
+-- Create moddatetime triggers for all tables
+create trigger handle_updated_at_agents before update on public.agents
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_workflows_updated_at
-    before update on public.workflows
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_campaigns before update on public.campaigns
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_workflow_nodes_updated_at
-    before update on public.workflow_nodes
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_workflows before update on public.workflows
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_workflow_edges_updated_at
-    before update on public.workflow_edges
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_workflow_nodes before update on public.workflow_nodes
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_leads_updated_at
-    before update on public.leads
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_workflow_edges before update on public.workflow_edges
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_conversations_updated_at
-    before update on public.conversations
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_leads before update on public.leads
+    for each row execute procedure moddatetime(updated_at);
 
-create trigger update_integrations_updated_at
-    before update on public.integrations
-    for each row
-    execute function kit.update_updated_at_column();
+create trigger handle_updated_at_conversations before update on public.conversations
+    for each row execute procedure moddatetime(updated_at);
+
+create trigger handle_updated_at_integrations before update on public.integrations
+    for each row execute procedure moddatetime(updated_at);
 
 /*
  * -------------------------------------------------------
@@ -807,56 +795,56 @@ create trigger update_integrations_updated_at
 insert into storage.buckets (id, name, public)
 values ('campaign_assets', 'campaign_assets', true);
 
--- RLS policies for campaign_assets bucket
-create policy campaign_assets on storage.objects for all using (
-    bucket_id = 'campaign_assets'
-        and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select id from public.campaigns where account_id = auth.uid()
-            )
-        )
-    )
-    with check (
-    bucket_id = 'campaign_assets'
-        and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select id from public.campaigns where account_id = auth.uid()
-            )
-        )
-    );
-
 -- Agent assets bucket
 insert into storage.buckets (id, name, public)
 values ('agent_assets', 'agent_assets', true);
-
--- RLS policies for agent_assets bucket
-create policy agent_assets on storage.objects for all using (
-    bucket_id = 'agent_assets'
-        and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select id from public.agents where account_id = auth.uid()
-            )
-        )
-    )
-    with check (
-    bucket_id = 'agent_assets'
-        and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select id from public.agents where account_id = auth.uid()
-            )
-        )
-    );
 
 -- Workflow assets bucket
 insert into storage.buckets (id, name, public)
 values ('workflow_assets', 'workflow_assets', true);
 
+-- RLS policies for campaign_assets bucket
+create policy campaign_assets on storage.objects for all using (
+    bucket_id = 'campaign_assets'
+        and (
+            (storage.foldername(name))[1] in (
+                select id::text from public.campaigns where account_id = auth.uid()
+            )
+        )
+    )
+    with check (
+    bucket_id = 'campaign_assets'
+        and (
+            (storage.foldername(name))[1] in (
+                select id::text from public.campaigns where account_id = auth.uid()
+            )
+        )
+    );
+
+-- RLS policies for agent_assets bucket
+create policy agent_assets on storage.objects for all using (
+    bucket_id = 'agent_assets'
+        and (
+            (storage.foldername(name))[1] in (
+                select id::text from public.agents where account_id = auth.uid()
+            )
+        )
+    )
+    with check (
+    bucket_id = 'agent_assets'
+        and (
+            (storage.foldername(name))[1] in (
+                select id::text from public.agents where account_id = auth.uid()
+            )
+        )
+    );
+
 -- RLS policies for workflow_assets bucket
 create policy workflow_assets on storage.objects for all using (
     bucket_id = 'workflow_assets'
         and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select w.id from public.workflows w
+            (storage.foldername(name))[1] in (
+                select w.id::text from public.workflows w
                 join public.agents a on w.agent_id = a.id
                 where a.account_id = auth.uid()
             )
@@ -865,8 +853,8 @@ create policy workflow_assets on storage.objects for all using (
     with check (
     bucket_id = 'workflow_assets'
         and (
-            kit.get_storage_filename_as_uuid(name) in (
-                select w.id from public.workflows w
+            (storage.foldername(name))[1] in (
+                select w.id::text from public.workflows w
                 join public.agents a on w.agent_id = a.id
                 where a.account_id = auth.uid()
             )
