@@ -169,6 +169,262 @@ grant select, insert, update, delete on public.agents to authenticated, service_
 
 /*
  * -------------------------------------------------------
+ * Section: Workflows
+ * Visual workflow builder for agent call flows
+ * -------------------------------------------------------
+ */
+
+-- Workflow status enum
+create type public.workflow_status as enum (
+    'draft',
+    'active',
+    'inactive',
+    'archived'
+);
+
+-- Node type enum
+create type public.node_type as enum (
+    'start',
+    'decision',
+    'action',
+    'end',
+    'condition',
+    'loop',
+    'delay'
+);
+
+-- Action type enum
+create type public.action_type as enum (
+    'voicemail',
+    'script',
+    'question',
+    'transfer',
+    'hangup',
+    'callback',
+    'donation_request',
+    'follow_up'
+);
+
+-- Workflows table
+create table if not exists public.workflows (
+    id uuid unique not null default extensions.uuid_generate_v4(),
+    name varchar(255) not null,
+    description text,
+    agent_id uuid not null references public.agents(id) on delete cascade,
+    status public.workflow_status not null default 'draft',
+    version integer not null default 1,
+    is_default boolean not null default false,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    created_by uuid references auth.users(id),
+    updated_by uuid references auth.users(id),
+    primary key (id)
+);
+
+comment on table public.workflows is 'Visual workflow configurations for agents';
+comment on column public.workflows.name is 'The name of the workflow';
+comment on column public.workflows.description is 'The description of the workflow';
+comment on column public.workflows.agent_id is 'The agent this workflow belongs to';
+comment on column public.workflows.status is 'The current status of the workflow';
+comment on column public.workflows.version is 'The version number of the workflow';
+comment on column public.workflows.is_default is 'Whether this is the default workflow for the agent';
+
+-- Workflow nodes table
+create table if not exists public.workflow_nodes (
+    id uuid unique not null default extensions.uuid_generate_v4(),
+    workflow_id uuid not null references public.workflows(id) on delete cascade,
+    node_id varchar(255) not null, -- ReactFlow node ID
+    type public.node_type not null,
+    position_x integer not null,
+    position_y integer not null,
+    data jsonb not null default '{}'::jsonb, -- Node data (label, description, etc.)
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    primary key (id),
+    unique(workflow_id, node_id)
+);
+
+comment on table public.workflow_nodes is 'Nodes in workflow diagrams';
+comment on column public.workflow_nodes.workflow_id is 'The workflow this node belongs to';
+comment on column public.workflow_nodes.node_id is 'The ReactFlow node ID';
+comment on column public.workflow_nodes.type is 'The type of node';
+comment on column public.workflow_nodes.position_x is 'X position of the node';
+comment on column public.workflow_nodes.position_y is 'Y position of the node';
+comment on column public.workflow_nodes.data is 'Node data (label, description, options, etc.)';
+
+-- Workflow edges table
+create table if not exists public.workflow_edges (
+    id uuid unique not null default extensions.uuid_generate_v4(),
+    workflow_id uuid not null references public.workflows(id) on delete cascade,
+    edge_id varchar(255) not null, -- ReactFlow edge ID
+    source_node_id varchar(255) not null,
+    target_node_id varchar(255) not null,
+    source_handle varchar(255),
+    target_handle varchar(255),
+    label varchar(255),
+    condition jsonb default '{}'::jsonb, -- Edge conditions
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    primary key (id),
+    unique(workflow_id, edge_id)
+);
+
+comment on table public.workflow_edges is 'Edges/connections in workflow diagrams';
+comment on column public.workflow_edges.workflow_id is 'The workflow this edge belongs to';
+comment on column public.workflow_edges.edge_id is 'The ReactFlow edge ID';
+comment on column public.workflow_edges.source_node_id is 'The source node ID';
+comment on column public.workflow_edges.target_node_id is 'The target node ID';
+comment on column public.workflow_edges.source_handle is 'The source handle ID';
+comment on column public.workflow_edges.target_handle is 'The target handle ID';
+comment on column public.workflow_edges.label is 'The edge label';
+comment on column public.workflow_edges.condition is 'Edge conditions and logic';
+
+-- Enable RLS on workflow tables
+alter table public.workflows enable row level security;
+alter table public.workflow_nodes enable row level security;
+alter table public.workflow_edges enable row level security;
+
+-- Workflows RLS policies
+create policy workflows_read on public.workflows
+    for select to authenticated
+    using (
+        agent_id in (
+            select id from public.agents where account_id = auth.uid()
+        )
+    );
+
+create policy workflows_insert on public.workflows
+    for insert to authenticated
+    with check (
+        agent_id in (
+            select id from public.agents where account_id = auth.uid()
+        )
+    );
+
+create policy workflows_update on public.workflows
+    for update to authenticated
+    using (
+        agent_id in (
+            select id from public.agents where account_id = auth.uid()
+        )
+    )
+    with check (
+        agent_id in (
+            select id from public.agents where account_id = auth.uid()
+        )
+    );
+
+create policy workflows_delete on public.workflows
+    for delete to authenticated
+    using (
+        agent_id in (
+            select id from public.agents where account_id = auth.uid()
+        )
+    );
+
+-- Workflow nodes RLS policies
+create policy workflow_nodes_read on public.workflow_nodes
+    for select to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_nodes_insert on public.workflow_nodes
+    for insert to authenticated
+    with check (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_nodes_update on public.workflow_nodes
+    for update to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    )
+    with check (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_nodes_delete on public.workflow_nodes
+    for delete to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+-- Workflow edges RLS policies
+create policy workflow_edges_read on public.workflow_edges
+    for select to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_edges_insert on public.workflow_edges
+    for insert to authenticated
+    with check (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_edges_update on public.workflow_edges
+    for update to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    )
+    with check (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+create policy workflow_edges_delete on public.workflow_edges
+    for delete to authenticated
+    using (
+        workflow_id in (
+            select w.id from public.workflows w
+            join public.agents a on w.agent_id = a.id
+            where a.account_id = auth.uid()
+        )
+    );
+
+-- Grant permissions for workflow tables
+grant select, insert, update, delete on public.workflows to authenticated, service_role;
+grant select, insert, update, delete on public.workflow_nodes to authenticated, service_role;
+grant select, insert, update, delete on public.workflow_edges to authenticated, service_role;
+
+/*
+ * -------------------------------------------------------
  * Section: Leads
  * Potential donors/contacts for campaigns
  * -------------------------------------------------------
@@ -457,6 +713,15 @@ create index if not exists idx_agents_account_id on public.agents(account_id);
 create index if not exists idx_agents_status on public.agents(status);
 create index if not exists idx_agents_created_at on public.agents(created_at);
 
+-- Workflow indexes
+create index if not exists idx_workflows_agent_id on public.workflows(agent_id);
+create index if not exists idx_workflows_status on public.workflows(status);
+create index if not exists idx_workflows_is_default on public.workflows(is_default);
+create index if not exists idx_workflow_nodes_workflow_id on public.workflow_nodes(workflow_id);
+create index if not exists idx_workflow_nodes_type on public.workflow_nodes(type);
+create index if not exists idx_workflow_edges_workflow_id on public.workflow_edges(workflow_id);
+create index if not exists idx_workflow_edges_source_target on public.workflow_edges(source_node_id, target_node_id);
+
 -- Lead indexes
 create index if not exists idx_leads_campaign_id on public.leads(campaign_id);
 create index if not exists idx_leads_status on public.leads(status);
@@ -499,6 +764,21 @@ create trigger update_campaigns_updated_at
 
 create trigger update_agents_updated_at
     before update on public.agents
+    for each row
+    execute function kit.update_updated_at_column();
+
+create trigger update_workflows_updated_at
+    before update on public.workflows
+    for each row
+    execute function kit.update_updated_at_column();
+
+create trigger update_workflow_nodes_updated_at
+    before update on public.workflow_nodes
+    for each row
+    execute function kit.update_updated_at_column();
+
+create trigger update_workflow_edges_updated_at
+    before update on public.workflow_edges
     for each row
     execute function kit.update_updated_at_column();
 
@@ -563,6 +843,32 @@ create policy agent_assets on storage.objects for all using (
         and (
             kit.get_storage_filename_as_uuid(name) in (
                 select id from public.agents where account_id = auth.uid()
+            )
+        )
+    );
+
+-- Workflow assets bucket
+insert into storage.buckets (id, name, public)
+values ('workflow_assets', 'workflow_assets', true);
+
+-- RLS policies for workflow_assets bucket
+create policy workflow_assets on storage.objects for all using (
+    bucket_id = 'workflow_assets'
+        and (
+            kit.get_storage_filename_as_uuid(name) in (
+                select w.id from public.workflows w
+                join public.agents a on w.agent_id = a.id
+                where a.account_id = auth.uid()
+            )
+        )
+    )
+    with check (
+    bucket_id = 'workflow_assets'
+        and (
+            kit.get_storage_filename_as_uuid(name) in (
+                select w.id from public.workflows w
+                join public.agents a on w.agent_id = a.id
+                where a.account_id = auth.uid()
             )
         )
     ); 
