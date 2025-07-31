@@ -9,9 +9,9 @@ import {
   Mic,
   Phone,
   Play,
-  Settings,
   TrendingUp,
   Users,
+  Volume2,
   Workflow,
 } from 'lucide-react';
 
@@ -24,7 +24,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-import { Switch } from '@kit/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@kit/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
@@ -54,13 +60,14 @@ interface Agent {
 // Mock agent data
 const mockAgent: Agent = {
   id: 'agent_001',
-  name: 'Renewal Agent',
-  description: 'Persuades donors to upgrade membership',
+  name: 'Update Agent',
+  description:
+    'Calls donors to provide charity updates and donation-specific information.',
   status: 'active',
   language: 'english',
-  tone: 'friendly',
+  tone: 'Warm and Informative',
   voiceId: 'voice_sarah_001',
-  voiceName: 'Sarah',
+  voiceName: 'Professional Female',
   defaultScript:
     'Hello, this is Sarah calling on behalf of [Organization]. We&apos;re reaching out to discuss our current fundraising campaign...',
   campaigns: ['Summer Fundraiser 2024', 'Holiday Campaign'],
@@ -132,6 +139,23 @@ A: "Absolutely! We welcome volunteers and can connect you with opportunities tha
    - Track conversion metrics`,
 };
 
+const voiceTypes = [
+  { value: 'professional-female', label: 'Professional Female' },
+  { value: 'professional-male', label: 'Professional Male' },
+  { value: 'friendly-female', label: 'Friendly Female' },
+  { value: 'friendly-male', label: 'Friendly Male' },
+  { value: 'warm-female', label: 'Warm Female' },
+  { value: 'warm-male', label: 'Warm Male' },
+];
+
+const speakingTones = [
+  { value: 'warm-informative', label: 'Warm and Informative' },
+  { value: 'professional-formal', label: 'Professional and Formal' },
+  { value: 'friendly-casual', label: 'Friendly and Casual' },
+  { value: 'enthusiastic-energetic', label: 'Enthusiastic and Energetic' },
+  { value: 'calm-reassuring', label: 'Calm and Reassuring' },
+];
+
 export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
   const router = useRouter();
 
@@ -162,49 +186,31 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Header with Back Button and Status Toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={handleBack} size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Agents
-          </Button>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Status</span>
-            <Switch defaultChecked={mockAgent.status === 'active'} />
-            {getStatusBadge(mockAgent.status)}
-          </div>
-        </div>
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" onClick={handleBack} size="sm">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Agents
+        </Button>
       </div>
 
       {/* Agent Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-6 w-6" />
             <div>
-              <CardTitle className="text-2xl">{mockAgent.name}</CardTitle>
-              <CardDescription className="mt-2 text-base">
-                {mockAgent.description}
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Play className="mr-2 h-4 w-4" />
-                Test Call
-              </Button>
-              <Button variant="outline" size="sm">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Button>
+              <h1 className="text-2xl font-bold">{mockAgent.name}</h1>
+              <p className="text-muted-foreground">{mockAgent.description}</p>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+          {getStatusBadge(mockAgent.status)}
+        </div>
+        <Button>+ Create Agent</Button>
+      </div>
 
       {/* Tabbed Content */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="voice" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
@@ -433,52 +439,79 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
 
         {/* Voice & Tone Tab */}
         <TabsContent value="voice" className="mt-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mic className="h-5 w-5" />
-                  Voice Settings
-                </CardTitle>
-                <CardDescription>
-                  Configure the agent&apos;s voice and personality
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Voice Selection</label>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    {mockAgent.voiceName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Tone Preset</label>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    {mockAgent.tone}
-                  </p>
-                </div>
-                <Button className="w-full" variant="outline">
-                  <Play className="mr-2 h-4 w-4" />
-                  Preview Voice
-                </Button>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5" />
+                Voice Configuration
+              </CardTitle>
+              <CardDescription>
+                Customize how your agent sounds and speaks
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Voice Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Voice Type</label>
+                <Select defaultValue="professional-female">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select voice type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {voiceTypes.map((voice) => (
+                      <SelectItem key={voice.value} value={voice.value}>
+                        {voice.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Script Guidance</CardTitle>
-                <CardDescription>
-                  Agent personality notes and script guidance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Enter script guidance and personality notes..."
-                  className="min-h-[200px] resize-none"
-                />
-              </CardContent>
-            </Card>
-          </div>
+              {/* Speaking Tone */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Speaking Tone</label>
+                <Select defaultValue="warm-informative">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select speaking tone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {speakingTones.map((tone) => (
+                      <SelectItem key={tone.value} value={tone.value}>
+                        {tone.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Record Custom Voice */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">
+                    Record Custom Voice
+                  </label>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Record a 30-second sample for voice cloning
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline">
+                    <Mic className="mr-2 h-4 w-4" />
+                    Start Recording
+                  </Button>
+                  <Button variant="outline">
+                    <Play className="mr-2 h-4 w-4" />
+                    Preview
+                  </Button>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="pt-4">
+                <Button className="w-full">Save Voice Settings</Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Workflow Tab */}
@@ -486,12 +519,6 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
           <WorkflowBuilder />
         </TabsContent>
       </Tabs>
-
-      {/* Action Buttons */}
-      <div className="flex justify-end gap-4 border-t pt-6">
-        <Button variant="outline">Cancel</Button>
-        <Button>Save Agent Settings</Button>
-      </div>
     </div>
   );
 }
