@@ -11,7 +11,6 @@ import {
   Download,
   Edit,
   Eye,
-  Filter,
   Grid3X3,
   List,
   Mic,
@@ -19,8 +18,6 @@ import {
   Play,
   Plus,
   RefreshCw,
-  Search,
-  SortAsc,
   Star,
   Target,
   Trash2,
@@ -45,15 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
-import { Input } from '@kit/ui/input';
 import { Progress } from '@kit/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
 import {
   Table,
   TableBody,
@@ -62,6 +51,13 @@ import {
   TableHeader,
   TableRow,
 } from '@kit/ui/table';
+
+import {
+  Avatar,
+  SearchFilters,
+  StatsCard,
+  StatusBadge,
+} from '~/components/shared';
 
 // Types
 interface Agent {
@@ -87,18 +83,6 @@ interface Agent {
   tags?: string[];
 }
 
-interface StatsCardProps {
-  title: string;
-  value: string | number;
-  subtitle: string;
-  icon: React.ComponentType<{ className?: string }>;
-  trend?: {
-    icon: React.ComponentType<{ className?: string }>;
-    value: string;
-  };
-  liveIndicator?: boolean;
-}
-
 interface AgentCardProps {
   agent: Agent;
   onView: (id: string) => void;
@@ -113,58 +97,12 @@ interface AgentTableRowProps {
   onDelete: (id: string) => void;
 }
 
-interface SearchFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
-  sortBy: string;
-  onSortByChange: (value: string) => void;
-  sortOrder: 'asc' | 'desc';
-  onSortOrderChange: (value: 'asc' | 'desc') => void;
-}
-
 interface ViewToggleProps {
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }
 
 // Reusable Components
-function StatsCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  liveIndicator,
-}: StatsCardProps) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="text-muted-foreground h-4 w-4" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center space-x-2">
-          <p className="text-muted-foreground text-xs">{subtitle}</p>
-          {liveIndicator && (
-            <div className="h-1 w-1 animate-pulse rounded-full bg-green-500"></div>
-          )}
-          {trend && (
-            <>
-              <trend.icon className="h-3 w-3 text-green-500" />
-              <span className="text-muted-foreground text-xs">
-                {trend.value}
-              </span>
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function AgentAvatar({
   agent,
   size = 'md',
@@ -172,54 +110,12 @@ function AgentAvatar({
   agent: Agent;
   size?: 'sm' | 'md' | 'lg';
 }) {
-  const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-10 w-10',
-    lg: 'h-12 w-12',
-  };
-
-  const iconSizes = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6',
-  };
-
   return (
-    <div className="relative">
-      <div
-        className={`bg-muted flex ${sizeClasses[size]} items-center justify-center rounded-full`}
-      >
-        <User className={`text-muted-foreground ${iconSizes[size]}`} />
-      </div>
-      {agent.status === 'active' && (
-        <div className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
-      )}
-    </div>
-  );
-}
-
-function AgentStatusBadge({ status }: { status: string }) {
-  const variants = {
-    active: 'default',
-    inactive: 'secondary',
-    training: 'outline',
-    paused: 'destructive',
-  } as const;
-
-  const colors = {
-    active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-    training: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    paused: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  };
-
-  return (
-    <Badge
-      variant={variants[status as keyof typeof variants]}
-      className={colors[status as keyof typeof colors]}
-    >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
+    <Avatar
+      name={agent.name}
+      size={size}
+      status={agent.status === 'active' ? 'active' : 'inactive'}
+    />
   );
 }
 
@@ -302,7 +198,7 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
       <CardContent className="space-y-4">
         {/* Status and Performance */}
         <div className="flex items-center justify-between">
-          <AgentStatusBadge status={agent.status} />
+          <StatusBadge status={agent.status} />
           {agent.lastActive && (
             <span className="text-muted-foreground text-xs">
               Last active: {agent.lastActive}
@@ -406,7 +302,7 @@ function AgentTableRow({
         </div>
       </TableCell>
       <TableCell>
-        <AgentStatusBadge status={agent.status} />
+        <StatusBadge status={agent.status} />
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
@@ -480,72 +376,6 @@ function AgentTableRow({
         </DropdownMenu>
       </TableCell>
     </TableRow>
-  );
-}
-
-function SearchFilters({
-  searchTerm,
-  onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-  sortBy,
-  onSortByChange,
-  sortOrder,
-  onSortOrderChange,
-}: SearchFiltersProps) {
-  return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="relative max-w-md flex-1">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
-          placeholder="Search agents by name, tone, or tags..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="w-[180px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="training">Training</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={onSortByChange}>
-          <SelectTrigger className="w-[180px]">
-            <SortAsc className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="status">Status</SelectItem>
-            <SelectItem value="calls">Total Calls</SelectItem>
-            <SelectItem value="success">Success Rate</SelectItem>
-            <SelectItem value="campaigns">Campaigns</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
-          }
-        >
-          {sortOrder === 'asc' ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-    </div>
   );
 }
 
@@ -882,10 +712,25 @@ export function AgentsList() {
             <SearchFilters
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
+              searchPlaceholder="Search agents by name, tone, or tags..."
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
+              statusOptions={[
+                { value: 'all', label: 'All Status' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'training', label: 'Training' },
+                { value: 'paused', label: 'Paused' },
+              ]}
               sortBy={sortBy}
               onSortByChange={setSortBy}
+              sortOptions={[
+                { value: 'name', label: 'Name' },
+                { value: 'status', label: 'Status' },
+                { value: 'calls', label: 'Total Calls' },
+                { value: 'success', label: 'Success Rate' },
+                { value: 'campaigns', label: 'Campaigns' },
+              ]}
               sortOrder={sortOrder}
               onSortOrderChange={setSortOrder}
             />
