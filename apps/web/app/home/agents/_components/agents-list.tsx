@@ -52,12 +52,7 @@ import {
   TableRow,
 } from '@kit/ui/table';
 
-import {
-  Avatar,
-  SearchFilters,
-  StatsCard,
-  StatusBadge,
-} from '~/components/shared';
+import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
 // Types
 interface Agent {
@@ -102,23 +97,6 @@ interface ViewToggleProps {
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }
 
-// Reusable Components
-function AgentAvatar({
-  agent,
-  size = 'md',
-}: {
-  agent: Agent;
-  size?: 'sm' | 'md' | 'lg';
-}) {
-  return (
-    <Avatar
-      name={agent.name}
-      size={size}
-      status={agent.status === 'active' ? 'active' : 'inactive'}
-    />
-  );
-}
-
 function SatisfactionStars({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-1">
@@ -142,7 +120,6 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <AgentAvatar agent={agent} size="lg" />
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <CardDescription className="flex items-center gap-2">
@@ -284,7 +261,6 @@ function AgentTableRow({
     <TableRow className="hover:bg-muted/50">
       <TableCell>
         <div className="flex items-center space-x-3">
-          <AgentAvatar agent={agent} size="md" />
           <div>
             <div className="font-medium">{agent.name}</div>
             <div className="text-muted-foreground text-sm">
@@ -521,29 +497,29 @@ const mockAgents: Agent[] = [
     },
     tags: ['new', 'testing'],
   },
-      {
-      id: 'lisa',
-      name: 'Lisa',
-      language: 'English',
-      tone: 'Calm and reassuring',
-      voiceId: 'voice_lisa_005',
-      voiceName: 'Lisa',
-      status: 'agent_paused',
-      campaigns: 1,
-      totalCalls: 67,
-      successRate: 18.5,
-      defaultScript:
-        "Hello, this is Lisa calling from [Organization]. I hope you're having a wonderful day...",
-      createdAt: '2024-03-20',
-      lastActive: '2 days ago',
-      performance: {
-        callsToday: 0,
-        conversionsToday: 0,
-        avgCallDuration: 4.0,
-        satisfactionScore: 4.7,
-      },
-      tags: ['paused', 'maintenance'],
+  {
+    id: 'lisa',
+    name: 'Lisa',
+    language: 'English',
+    tone: 'Calm and reassuring',
+    voiceId: 'voice_lisa_005',
+    voiceName: 'Lisa',
+    status: 'agent_paused',
+    campaigns: 1,
+    totalCalls: 67,
+    successRate: 18.5,
+    defaultScript:
+      "Hello, this is Lisa calling from [Organization]. I hope you're having a wonderful day...",
+    createdAt: '2024-03-20',
+    lastActive: '2 days ago',
+    performance: {
+      callsToday: 0,
+      conversionsToday: 0,
+      avgCallDuration: 4.0,
+      satisfactionScore: 4.7,
     },
+    tags: ['paused', 'maintenance'],
+  },
 ];
 
 // Main Component
@@ -685,14 +661,12 @@ export function AgentsList() {
         />
       </div>
 
-      {/* Advanced Controls */}
+      {/* Agents List */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                AI Voice Agents
-              </CardTitle>
+              <CardTitle>AI Voice Agents</CardTitle>
               <CardDescription>
                 Manage your AI voice agents and their performance
               </CardDescription>

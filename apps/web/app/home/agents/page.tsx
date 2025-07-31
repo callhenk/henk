@@ -7,9 +7,8 @@ export default function AgentsPage() {
     <>
       <PageHeader
         title="AI Voice Agents"
-        description="Create, manage, and optimize your AI voice agents for fundraising campaigns"
+        description="Manage and configure your automated calling agents"
       />
-
       <PageBody>
         <AgentsList />
       </PageBody>
