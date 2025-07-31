@@ -9,6 +9,13 @@ import { ArrowLeft, Settings, User, Volume2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+// Import our Supabase hooks
+import {
+  useCreateAgent,
+  useUpdateAgent,
+} from '@kit/supabase/hooks/agents/use-agent-mutations';
+import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
+import { useUser } from '@kit/supabase/hooks/use-user';
 import { Button } from '@kit/ui/button';
 import {
   Form,
@@ -38,26 +45,23 @@ import {
 
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
-  language: z.string().min(1, 'Language is required'),
-  tone: z.string().min(1, 'Tone is required'),
-  voiceId: z.string().min(1, 'Voice ID is required'),
-  voiceName: z.string().min(1, 'Voice name is required'),
-  defaultScript: z
-    .string()
-    .min(50, 'Default script must be at least 50 characters'),
+  description: z.string().optional(),
+  voice_type: z.string().min(1, 'Voice type is required'),
+  voice_id: z.string().min(1, 'Voice ID is required'),
+  speaking_tone: z.string().min(1, 'Speaking tone is required'),
+  organization_info: z.string().optional(),
+  donor_context: z.string().optional(),
+  faqs: z.string().optional(),
 });
 
 type AgentFormData = z.infer<typeof agentSchema>;
 
-const mockLanguages = [
-  { value: 'english', label: 'English' },
-  { value: 'spanish', label: 'Spanish' },
-  { value: 'french', label: 'French' },
-  { value: 'german', label: 'German' },
-  { value: 'italian', label: 'Italian' },
+const voiceTypes = [
+  { value: 'elevenlabs', label: 'ElevenLabs' },
+  { value: 'custom', label: 'Custom Voice' },
 ];
 
-const mockTones = [
+const speakingTones = [
   { value: 'warm-friendly', label: 'Warm and friendly' },
   { value: 'professional-confident', label: 'Professional and confident' },
   { value: 'compassionate-caring', label: 'Compassionate and caring' },
@@ -65,12 +69,12 @@ const mockTones = [
   { value: 'calm-reassuring', label: 'Calm and reassuring' },
 ];
 
-const mockVoices = [
-  { id: 'voice_sarah_001', name: 'Sarah', provider: 'AI Voice' },
-  { id: 'voice_mike_002', name: 'Mike', provider: 'AI Voice' },
-  { id: 'voice_emma_003', name: 'Emma', provider: 'AI Voice' },
-  { id: 'voice_david_004', name: 'David', provider: 'AI Voice' },
-  { id: 'voice_lisa_005', name: 'Lisa', provider: 'AI Voice' },
+const voiceOptions = [
+  { id: 'voice_sarah_001', name: 'Sarah', provider: 'ElevenLabs' },
+  { id: 'voice_mike_002', name: 'Mike', provider: 'ElevenLabs' },
+  { id: 'voice_emma_003', name: 'Emma', provider: 'ElevenLabs' },
+  { id: 'voice_david_004', name: 'David', provider: 'ElevenLabs' },
+  { id: 'voice_lisa_005', name: 'Lisa', provider: 'ElevenLabs' },
 ];
 
 interface AgentFormProps {
@@ -83,22 +87,67 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get current user
+  const { data: user } = useUser();
+
+  // Fetch agent data for edit mode
+  const { data: existingAgent, isLoading: loadingAgent } = useAgent(
+    agentId || '',
+  );
+
+  // Mutations
+  const createAgentMutation = useCreateAgent();
+  const updateAgentMutation = useUpdateAgent();
+
   const form = useForm<AgentFormData>({
     resolver: zodResolver(agentSchema),
     defaultValues: {
       name: '',
-      language: '',
-      tone: '',
-      voiceId: '',
-      voiceName: '',
-      defaultScript: '',
+      description: '',
+      voice_type: '',
+      voice_id: '',
+      speaking_tone: '',
+      organization_info: '',
+      donor_context: '',
+      faqs: '',
       ...initialData,
     },
   });
 
-  // Update form when initialData changes (for edit mode)
+  // Update form when existing agent data is loaded (for edit mode)
   useEffect(() => {
-    if (initialData) {
+    if (existingAgent && mode === 'edit') {
+      // Handle FAQs field - convert JSON to readable format
+      let faqsText = '';
+      if (existingAgent.faqs) {
+        if (typeof existingAgent.faqs === 'string') {
+          faqsText = existingAgent.faqs;
+        } else {
+          // If it's already a JSON object, convert to readable format
+          try {
+            faqsText = JSON.stringify(existingAgent.faqs, null, 2);
+          } catch {
+            faqsText = '';
+          }
+        }
+      }
+
+      form.reset({
+        name: existingAgent.name,
+        description: existingAgent.description || '',
+        voice_type: existingAgent.voice_type || '',
+        voice_id: existingAgent.voice_id || '',
+        speaking_tone: existingAgent.speaking_tone || '',
+        organization_info: existingAgent.organization_info || '',
+        donor_context: existingAgent.donor_context || '',
+        faqs: faqsText,
+      });
+    }
+  }, [existingAgent, mode, form]);
+
+  // Update form when initialData changes (for create mode)
+  useEffect(() => {
+    if (initialData && mode === 'create') {
       Object.keys(initialData).forEach((key) => {
         const value = initialData[key as keyof AgentFormData];
         if (value !== undefined) {
@@ -106,21 +155,58 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         }
       });
     }
-  }, [initialData, form]);
+  }, [initialData, mode, form]);
 
   const onSubmit = async (data: AgentFormData) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Handle FAQs field - convert to proper JSON structure
+      let faqsData = {};
+      if (data.faqs) {
+        try {
+          // Try to parse as JSON first
+          faqsData = JSON.parse(data.faqs);
+        } catch {
+          // If parsing fails, treat as plain text and create a simple structure
+          faqsData = {
+            general: data.faqs,
+          };
+        }
+      }
 
       if (mode === 'create') {
-        console.log('Agent created:', data);
-        // Redirect to agents list after creation
+        await createAgentMutation.mutateAsync({
+          name: data.name,
+          description: data.description || null,
+          voice_type: data.voice_type as 'elevenlabs' | 'custom',
+          voice_id: data.voice_id,
+          speaking_tone: data.speaking_tone,
+          organization_info: data.organization_info || null,
+          donor_context: data.donor_context || null,
+          faqs: faqsData,
+          knowledge_base: {},
+          workflow_config: {},
+          status: 'active',
+          account_id: user.id,
+        });
         router.push('/home/agents');
-      } else {
-        console.log('Agent updated:', data);
-        // Redirect to agent detail after update
+      } else if (agentId) {
+        await updateAgentMutation.mutateAsync({
+          id: agentId,
+          name: data.name,
+          description: data.description || null,
+          voice_type: data.voice_type as 'elevenlabs' | 'custom',
+          voice_id: data.voice_id,
+          speaking_tone: data.speaking_tone,
+          organization_info: data.organization_info || null,
+          donor_context: data.donor_context || null,
+          faqs: faqsData,
+        });
         router.push(`/home/agents/${agentId}`);
       }
     } catch (error) {
@@ -137,6 +223,20 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
       router.push('/home/agents');
     }
   };
+
+  // Show loading state while fetching agent data
+  if (mode === 'edit' && loadingAgent) {
+    return (
+      <div className={formContainerStyles.container}>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+            <p className="text-muted-foreground">Loading agent data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isEditMode = mode === 'edit';
   const pageTitle = isEditMode ? 'Edit Agent' : 'Create New Agent';
@@ -206,11 +306,11 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="language"
+                name="voice_type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={formFieldStyles.label}>
-                      Language
+                      Voice Type
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -218,22 +318,19 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                     >
                       <FormControl>
                         <SelectTrigger className={formFieldStyles.select}>
-                          <SelectValue placeholder="Select language" />
+                          <SelectValue placeholder="Select voice type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockLanguages.map((language) => (
-                          <SelectItem
-                            key={language.value}
-                            value={language.value}
-                          >
-                            {language.label}
+                        {voiceTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      The primary language your agent will speak
+                      The technology powering your AI voice
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -242,7 +339,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
               <FormField
                 control={form.control}
-                name="tone"
+                name="speaking_tone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={formFieldStyles.label}>
@@ -258,7 +355,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockTones.map((tone) => (
+                        {speakingTones.map((tone) => (
                           <SelectItem key={tone.value} value={tone.value}>
                             {tone.label}
                           </SelectItem>
@@ -290,7 +387,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
           >
             <FormField
               control={form.control}
-              name="voiceId"
+              name="voice_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
@@ -306,7 +403,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {mockVoices.map((voice) => (
+                      {voiceOptions.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <div className="flex flex-col">
                             <span className="font-medium">{voice.name}</span>
@@ -329,22 +426,22 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
             <FormField
               control={form.control}
-              name="voiceName"
+              name="organization_info"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
-                    Voice Display Name
+                    Organization Info
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Sarah"
+                      placeholder="e.g., Nonprofit Organization, Charity, Foundation"
                       className={formFieldStyles.input}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    This is how the voice will appear in your dashboard and
-                    reports
+                    Information about your organization that the agent should
+                    mention
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -366,23 +463,44 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
           >
             <FormField
               control={form.control}
-              name="defaultScript"
+              name="donor_context"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
-                    Default Script
+                    Donor Context
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Hello, this is [Agent Name] calling on behalf of [Organization]. We're reaching out to discuss our current fundraising campaign..."
+                      placeholder="e.g., a potential donor, a long-time supporter, a new visitor"
                       className={formFieldStyles.textarea}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    This script will be used as the default template for
-                    campaigns using this agent. You can customize it per
-                    campaign.
+                    The context in which the agent is speaking to the donor
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="faqs"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>FAQs</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="e.g., How can I donate? What are your tax-deductible status? How do I get a receipt?"
+                      className={formFieldStyles.textarea}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Common questions and answers that the agent should be
+                    prepared to address. You can enter plain text or JSON format
+                    for more structured FAQs.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

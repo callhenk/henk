@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -17,6 +17,11 @@ import {
   Workflow,
 } from 'lucide-react';
 
+// Import our Supabase hooks
+import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
+import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -38,167 +43,179 @@ import { Textarea } from '@kit/ui/textarea';
 
 import { WorkflowBuilder } from './workflow-builder';
 
-interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  status: 'active' | 'paused';
-  language: string;
-  tone: string;
-  voiceId: string;
-  voiceName: string;
-  defaultScript: string;
-  campaigns: string[];
-  callsHandled: number;
-  conversionRate: number;
-  activeHours: number;
-  lastEdited: Date;
-  organizationInfo: string;
-  donorContext: string;
-  faqs: string;
-  workflowRules: string;
-}
-
-// Mock agent data
-const mockAgent: Agent = {
-  id: 'agent_001',
-  name: 'Update Agent',
-  description:
-    'Calls donors to provide charity updates and donation-specific information.',
-  status: 'active',
-  language: 'english',
-  tone: 'Warm and Informative',
-  voiceId: 'voice_sarah_001',
-  voiceName: 'Professional Female',
-  defaultScript:
-    'Hello, this is Sarah calling on behalf of [Organization]. We&apos;re reaching out to discuss our current fundraising campaign...',
-  campaigns: ['Summer Fundraiser 2024', 'Holiday Campaign'],
-  callsHandled: 245,
-  conversionRate: 68,
-  activeHours: 156,
-  lastEdited: new Date('2024-01-15T10:30:00'),
-  organizationInfo: `Our organization is dedicated to supporting local youth programs through comprehensive summer camps and educational activities. We serve over 200 children annually, providing them with opportunities to learn, grow, and develop new skills in a safe and nurturing environment.
-
-Our mission is to ensure that every child, regardless of their background, has access to quality educational and recreational programs that help them reach their full potential.`,
-  donorContext: `Our donors are typically:
-- Previous supporters who have donated $50-$500 in the past
-- Parents and grandparents who value education and youth development
-- Local community members who want to make a positive impact
-- Business owners who support community initiatives
-
-Key talking points:
-- Emphasize the direct impact of their donation
-- Share specific success stories
-- Highlight the comprehensive nature of our programs
-- Mention the long-term benefits for children`,
-  faqs: `Common Questions and Responses:
-
-Q: "How much of my donation goes directly to the programs?"
-A: "85% of every dollar goes directly to program costs, with only 15% covering administrative expenses."
-
-Q: "What if I can't afford to donate right now?"
-A: "We understand that everyone's situation is different. Even small donations make a big difference, and we also offer monthly giving options starting at just $10."
-
-Q: "How do I know my donation is making an impact?"
-A: "We provide regular updates on our programs and can share specific stories of children who have benefited from our services."
-
-Q: "Can I volunteer instead of donating?"
-A: "Absolutely! We welcome volunteers and can connect you with opportunities that match your interests and schedule."`,
-  workflowRules: `Call Workflow Rules:
-
-1. Initial Contact
-   - Greet donor warmly and introduce yourself
-   - Confirm you're speaking with the right person
-   - Briefly mention your organization and purpose
-
-2. If donor doesn't pick up
-   - Leave a brief voicemail with callback number
-   - Schedule retry for different time (3 attempts total)
-   - Note in CRM for follow-up
-
-3. If donor pledges
-   - Confirm donation amount and payment method
-   - Thank them warmly and explain next steps
-   - Tag as "converted" in CRM
-   - Send immediate confirmation email
-
-4. If donor is confused or has questions
-   - Listen actively and address concerns
-   - Provide clear, helpful information
-   - Offer to send additional materials
-   - Route to fallback script if needed
-
-5. If donor declines
-   - Thank them for their time
-   - Ask if they'd like to stay informed
-   - Note reason for decline in CRM
-   - Respect their decision gracefully
-
-6. Follow-up Actions
-   - Send thank you emails within 24 hours
-   - Schedule follow-up calls for interested donors
-   - Update CRM with call outcomes
-   - Track conversion metrics`,
-};
-
 const voiceTypes = [
-  { value: 'professional-female', label: 'Professional Female' },
-  { value: 'professional-male', label: 'Professional Male' },
-  { value: 'friendly-female', label: 'Friendly Female' },
-  { value: 'friendly-male', label: 'Friendly Male' },
-  { value: 'warm-female', label: 'Warm Female' },
-  { value: 'warm-male', label: 'Warm Male' },
+  { value: 'elevenlabs', label: 'ElevenLabs' },
+  { value: 'custom', label: 'Custom Voice' },
 ];
 
 const speakingTones = [
-  { value: 'warm-informative', label: 'Warm and Informative' },
-  { value: 'professional-formal', label: 'Professional and Formal' },
-  { value: 'friendly-casual', label: 'Friendly and Casual' },
-  { value: 'enthusiastic-energetic', label: 'Enthusiastic and Energetic' },
-  { value: 'calm-reassuring', label: 'Calm and Reassuring' },
+  { value: 'warm-friendly', label: 'Warm and friendly' },
+  { value: 'professional-confident', label: 'Professional and confident' },
+  { value: 'compassionate-caring', label: 'Compassionate and caring' },
+  { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
+  { value: 'calm-reassuring', label: 'Calm and reassuring' },
 ];
 
-export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
+export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Get the default tab from URL parameter
   const defaultTab = searchParams.get('tab') || 'overview';
 
+  // Fetch real data
+  const { data: agent, isLoading: loadingAgent } = useAgent(agentId);
+  const { data: conversations = [] } = useConversations();
+  const { data: campaigns = [] } = useCampaigns();
+
+  // Update mutation
+  const updateAgentMutation = useUpdateAgent();
+
   // State for knowledge base form
-  const [organizationInfo, setOrganizationInfo] = useState(
-    mockAgent.organizationInfo,
-  );
-  const [donorContext, setDonorContext] = useState(mockAgent.donorContext);
-  const [faqs, setFaqs] = useState(mockAgent.faqs);
+  const [organizationInfo, setOrganizationInfo] = useState('');
+  const [donorContext, setDonorContext] = useState('');
+  const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
+
+  // Initialize form data when agent loads
+  useEffect(() => {
+    if (agent) {
+      setOrganizationInfo(agent.organization_info || '');
+      setDonorContext(agent.donor_context || '');
+
+      // Handle FAQs field - convert JSON to readable format
+      if (agent.faqs) {
+        if (typeof agent.faqs === 'string') {
+          setFaqs(agent.faqs);
+        } else {
+          try {
+            setFaqs(JSON.stringify(agent.faqs, null, 2));
+          } catch {
+            setFaqs('');
+          }
+        }
+      }
+    }
+  }, [agent]);
 
   // Check if there are unsaved changes for each field
   const hasOrganizationChanges =
-    organizationInfo !== mockAgent.organizationInfo;
-  const hasDonorContextChanges = donorContext !== mockAgent.donorContext;
-  const hasFaqsChanges = faqs !== mockAgent.faqs;
+    organizationInfo !== (agent?.organization_info || '');
+  const hasDonorContextChanges = donorContext !== (agent?.donor_context || '');
+  const hasFaqsChanges =
+    faqs !==
+    (() => {
+      if (!agent?.faqs) return '';
+      if (typeof agent.faqs === 'string') return agent.faqs;
+      try {
+        return JSON.stringify(agent.faqs, null, 2);
+      } catch {
+        return '';
+      }
+    })();
+
+  // Calculate agent performance metrics
+  const agentConversations = conversations.filter(
+    (conv) => conv.agent_id === agentId,
+  );
+  const agentCampaigns = campaigns.filter(
+    (campaign) => campaign.agent_id === agentId,
+  );
+
+  const callsHandled = agentConversations.length;
+  const successfulCalls = agentConversations.filter(
+    (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+  ).length;
+  const conversionRate =
+    callsHandled > 0 ? Math.round((successfulCalls / callsHandled) * 100) : 0;
+  const activeHours = Math.round(
+    agentConversations.reduce(
+      (sum, conv) => sum + (conv.duration_seconds || 0),
+      0,
+    ) / 3600,
+  );
 
   const handleBack = () => {
     router.push('/home/agents');
   };
 
   const handleSaveField = useCallback(
-    async (fieldName: string, _value: string) => {
+    async (fieldName: string, value: string) => {
+      if (!agent) return;
+
       setSavingField(fieldName);
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Here you would typically save to your backend
-        console.log(`Saving ${fieldName} changes...`);
+        // Handle FAQs field - convert to proper JSON structure
+        let faqsData = {};
+        if (fieldName === 'faqs' && value) {
+          try {
+            // Try to parse as JSON first
+            faqsData = JSON.parse(value);
+          } catch {
+            // If parsing fails, treat as plain text and create a simple structure
+            faqsData = {
+              general: value,
+            };
+          }
+        }
+
+        await updateAgentMutation.mutateAsync({
+          id: agentId,
+          ...(fieldName === 'organization_info' && {
+            organization_info: value,
+          }),
+          ...(fieldName === 'donor_context' && { donor_context: value }),
+          ...(fieldName === 'faqs' && { faqs: faqsData }),
+        });
+
+        console.log(`Saved ${fieldName} changes...`);
       } catch (error) {
         console.error(`Failed to save ${fieldName} changes:`, error);
       } finally {
         setSavingField(null);
       }
     },
-    [],
+    [agent, agentId, updateAgentMutation],
   );
+
+  // Show loading state while fetching agent data
+  if (loadingAgent) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBack} size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Agents
+          </Button>
+        </div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+            <p className="text-muted-foreground">Loading agent data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if agent not found
+  if (!agent) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBack} size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Agents
+          </Button>
+        </div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">Agent not found</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -208,10 +225,22 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
             Active
           </Badge>
         );
-      case 'paused':
+      case 'inactive':
+        return (
+          <Badge className="bg-gray-100 text-gray-800 transition-colors hover:bg-gray-200">
+            Inactive
+          </Badge>
+        );
+      case 'agent_paused':
         return (
           <Badge className="bg-yellow-100 text-yellow-800 transition-colors hover:bg-yellow-200">
             Paused
+          </Badge>
+        );
+      case 'training':
+        return (
+          <Badge className="bg-blue-100 text-blue-800 transition-colors hover:bg-blue-200">
+            Training
           </Badge>
         );
       default:
@@ -223,7 +252,8 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -249,11 +279,11 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
             <div>
-              <h1 className="text-2xl font-bold">{mockAgent.name}</h1>
-              <p className="text-muted-foreground">{mockAgent.description}</p>
+              <h1 className="text-2xl font-bold">{agent.name}</h1>
+              <p className="text-muted-foreground">{agent.description}</p>
             </div>
           </div>
-          {getStatusBadge(mockAgent.status)}
+          {getStatusBadge(agent.status)}
         </div>
       </div>
 
@@ -280,9 +310,7 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                     <Phone className="text-muted-foreground h-4 w-4" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {mockAgent.callsHandled}
-                    </div>
+                    <div className="text-2xl font-bold">{callsHandled}</div>
                     <p className="text-muted-foreground text-xs">
                       Total calls made
                     </p>
@@ -297,9 +325,7 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                     <TrendingUp className="text-muted-foreground h-4 w-4" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {mockAgent.conversionRate}%
-                    </div>
+                    <div className="text-2xl font-bold">{conversionRate}%</div>
                     <p className="text-muted-foreground text-xs">
                       Successful calls
                     </p>
@@ -314,9 +340,7 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                     <Clock className="text-muted-foreground h-4 w-4" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {mockAgent.activeHours}
-                    </div>
+                    <div className="text-2xl font-bold">{activeHours}</div>
                     <p className="text-muted-foreground text-xs">
                       Hours this month
                     </p>
@@ -338,26 +362,30 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                       <label className="text-muted-foreground text-sm font-medium">
                         Language
                       </label>
-                      <p className="text-base">{mockAgent.language}</p>
+                      <p className="text-base">English</p>
                     </div>
                     <div>
                       <label className="text-muted-foreground text-sm font-medium">
                         Tone
                       </label>
-                      <p className="text-base">{mockAgent.tone}</p>
+                      <p className="text-base">
+                        {agent.speaking_tone || 'Default'}
+                      </p>
                     </div>
                     <div>
                       <label className="text-muted-foreground text-sm font-medium">
                         Voice
                       </label>
-                      <p className="text-base">{mockAgent.voiceName}</p>
+                      <p className="text-base">
+                        {agent.voice_type || 'Default'}
+                      </p>
                     </div>
                     <div>
                       <label className="text-muted-foreground text-sm font-medium">
                         Last Edited
                       </label>
                       <p className="text-base">
-                        {formatDate(mockAgent.lastEdited)}
+                        {formatDate(agent.updated_at)}
                       </p>
                     </div>
                   </div>
@@ -374,12 +402,12 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {mockAgent.campaigns.map((campaign, index) => (
+                    {agentCampaigns.map((campaign, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between rounded-lg border p-3"
                       >
-                        <span className="font-medium">{campaign}</span>
+                        <span className="font-medium">{campaign.name}</span>
                         <Badge
                           variant="outline"
                           className="hover:bg-muted transition-colors"
@@ -405,7 +433,9 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                 </CardHeader>
                 <CardContent>
                   <div className="bg-muted rounded-lg p-4">
-                    <p className="text-sm">{mockAgent.defaultScript}</p>
+                    <p className="text-sm">
+                      {agent.description || 'No script available'}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -459,11 +489,11 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                     <Button
                       size="sm"
                       onClick={() =>
-                        handleSaveField('organization', organizationInfo)
+                        handleSaveField('organization_info', organizationInfo)
                       }
-                      disabled={savingField === 'organization'}
+                      disabled={savingField === 'organization_info'}
                     >
-                      {savingField === 'organization'
+                      {savingField === 'organization_info'
                         ? 'Saving...'
                         : 'Save Organization Info'}
                     </Button>
@@ -491,11 +521,11 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
                     <Button
                       size="sm"
                       onClick={() =>
-                        handleSaveField('donorContext', donorContext)
+                        handleSaveField('donor_context', donorContext)
                       }
-                      disabled={savingField === 'donorContext'}
+                      disabled={savingField === 'donor_context'}
                     >
-                      {savingField === 'donorContext'
+                      {savingField === 'donor_context'
                         ? 'Saving...'
                         : 'Save Donor Context'}
                     </Button>
@@ -550,7 +580,7 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
               {/* Voice Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Voice Type</label>
-                <Select defaultValue="professional-female">
+                <Select defaultValue="elevenlabs">
                   <SelectTrigger>
                     <SelectValue placeholder="Select voice type" />
                   </SelectTrigger>
@@ -567,7 +597,7 @@ export function AgentDetail({ agentId: _agentId }: { agentId: string }) {
               {/* Speaking Tone */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Speaking Tone</label>
-                <Select defaultValue="warm-informative">
+                <Select defaultValue="warm-friendly">
                   <SelectTrigger>
                     <SelectValue placeholder="Select speaking tone" />
                   </SelectTrigger>

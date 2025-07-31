@@ -9,6 +9,14 @@ import { ArrowLeft, MessageSquare, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+// Import our Supabase hooks
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import {
+  useCreateCampaign,
+  useUpdateCampaign,
+} from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
+import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useUser } from '@kit/supabase/hooks/use-user';
 import { Button } from '@kit/ui/button';
 import {
   Form,
@@ -41,23 +49,16 @@ import { DatePicker } from './date-picker';
 const campaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
-  agent: z.string().min(1, 'Please select an agent'),
-  startDate: z.date({
+  agent_id: z.string().min(1, 'Please select an agent'),
+  start_date: z.date({
     required_error: 'Start date is required',
   }),
-  endDate: z.date().optional(),
-  goal: z.string().min(1, 'Fundraising goal is required'),
+  end_date: z.date().optional(),
+  target_amount: z.string().min(1, 'Fundraising goal is required'),
   script: z.string().min(50, 'Script must be at least 50 characters'),
 });
 
 type CampaignFormData = z.infer<typeof campaignSchema>;
-
-const mockAgents = [
-  { id: 'sarah', name: 'Sarah', voice: 'Warm and friendly' },
-  { id: 'mike', name: 'Mike', voice: 'Professional and confident' },
-  { id: 'emma', name: 'Emma', voice: 'Compassionate and caring' },
-  { id: 'david', name: 'David', voice: 'Enthusiastic and energetic' },
-];
 
 interface CampaignFormProps {
   mode: 'create' | 'edit';
@@ -73,52 +74,108 @@ export function CampaignForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get current user
+  const { data: user } = useUser();
+
+  // Fetch data
+  const { data: agents = [] } = useAgents();
+  const { data: existingCampaign, isLoading: loadingCampaign } = useCampaign(
+    campaignId || '',
+  );
+
+  // Mutations
+  const createCampaignMutation = useCreateCampaign();
+  const updateCampaignMutation = useUpdateCampaign();
+
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
       name: '',
       description: '',
-      agent: '',
-      startDate: undefined,
-      endDate: undefined,
-      goal: '',
+      agent_id: '',
+      start_date: undefined,
+      end_date: undefined,
+      target_amount: '',
       script: '',
       ...initialData,
     },
   });
 
-  // Update form when initialData changes (for edit mode)
+  // Update form when existing campaign data is loaded (for edit mode)
   useEffect(() => {
-    if (initialData) {
+    if (existingCampaign && mode === 'edit') {
+      form.reset({
+        name: existingCampaign.name,
+        description: existingCampaign.description || '',
+        agent_id: existingCampaign.agent_id || '',
+        start_date: existingCampaign.start_date
+          ? new Date(existingCampaign.start_date)
+          : undefined,
+        end_date: existingCampaign.end_date
+          ? new Date(existingCampaign.end_date)
+          : undefined,
+        target_amount: existingCampaign.target_amount?.toString() || '',
+        script: existingCampaign.script,
+      });
+    }
+  }, [existingCampaign, mode, form]);
+
+  // Update form when initialData changes (for create mode)
+  useEffect(() => {
+    if (initialData && mode === 'create') {
       Object.keys(initialData).forEach((key) => {
         const value = initialData[key as keyof CampaignFormData];
         if (value !== undefined) {
           // Convert string dates to Date objects for date fields
-          if (key === 'startDate' && typeof value === 'string') {
-            form.setValue('startDate', new Date(value));
-          } else if (key === 'endDate' && typeof value === 'string') {
-            form.setValue('endDate', new Date(value));
+          if (key === 'start_date' && typeof value === 'string') {
+            form.setValue('start_date', new Date(value));
+          } else if (key === 'end_date' && typeof value === 'string') {
+            form.setValue('end_date', new Date(value));
           } else {
             form.setValue(key as keyof CampaignFormData, value);
           }
         }
       });
     }
-  }, [initialData, form]);
+  }, [initialData, mode, form]);
 
   const onSubmit = async (data: CampaignFormData) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       if (mode === 'create') {
-        console.log('Campaign created:', data);
-        // Redirect to campaigns list after creation
+        await createCampaignMutation.mutateAsync({
+          name: data.name,
+          description: data.description,
+          agent_id: data.agent_id,
+          start_date: data.start_date.toISOString(),
+          end_date: data.end_date?.toISOString() || null,
+          target_amount: parseFloat(data.target_amount) || 0,
+          script: data.script,
+          status: 'draft',
+          calling_hours: '9:00-17:00',
+          max_attempts: 3,
+          daily_call_cap: 100,
+          retry_logic: 'standard',
+          budget: null,
+          account_id: user.id,
+        });
         router.push('/home/campaigns');
-      } else {
-        console.log('Campaign updated:', data);
-        // Redirect to campaign detail after update
+      } else if (campaignId) {
+        await updateCampaignMutation.mutateAsync({
+          id: campaignId,
+          name: data.name,
+          description: data.description,
+          agent_id: data.agent_id,
+          start_date: data.start_date.toISOString(),
+          end_date: data.end_date?.toISOString() || null,
+          target_amount: parseFloat(data.target_amount) || 0,
+          script: data.script,
+        });
         router.push(`/home/campaigns/${campaignId}`);
       }
     } catch (error) {
@@ -135,6 +192,20 @@ export function CampaignForm({
       router.push('/home/campaigns');
     }
   };
+
+  // Show loading state while fetching campaign data
+  if (mode === 'edit' && loadingCampaign) {
+    return (
+      <div className={formContainerStyles.container}>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+            <p className="text-muted-foreground">Loading campaign data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isEditMode = mode === 'edit';
   const pageTitle = isEditMode ? 'Edit Campaign' : 'Create New Campaign';
@@ -229,7 +300,7 @@ export function CampaignForm({
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="startDate"
+                name="start_date"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={formFieldStyles.label}>
@@ -252,7 +323,7 @@ export function CampaignForm({
 
               <FormField
                 control={form.control}
-                name="endDate"
+                name="end_date"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={formFieldStyles.label}>
@@ -276,7 +347,7 @@ export function CampaignForm({
 
             <FormField
               control={form.control}
-              name="goal"
+              name="target_amount"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
@@ -313,7 +384,7 @@ export function CampaignForm({
           >
             <FormField
               control={form.control}
-              name="agent"
+              name="agent_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
@@ -329,12 +400,12 @@ export function CampaignForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {mockAgents.map((agent) => (
+                      {agents.map((agent) => (
                         <SelectItem key={agent.id} value={agent.id}>
                           <div className="flex flex-col">
                             <span className="font-medium">{agent.name}</span>
                             <span className="text-muted-foreground text-sm">
-                              {agent.voice}
+                              {agent.speaking_tone || 'Default tone'}
                             </span>
                           </div>
                         </SelectItem>
