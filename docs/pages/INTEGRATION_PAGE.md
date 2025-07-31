@@ -34,6 +34,10 @@ The Integrations page allows users to connect third-party tools to streamline th
 
 - **Responsive Grid Layout**
   - Mobile & tablet friendly
+  - Horizontal scrollable category tabs
+  - 1-column mobile, 2-column tablet, 3-column desktop
+  - Card headers stack vertically on small screens
+  - Configure buttons become full-width on mobile
 
 - **Visual Feedback**
   - Success checkmarks when connected
@@ -44,12 +48,12 @@ The Integrations page allows users to connect third-party tools to streamline th
 ## 🔧 Technical Implementation
 
 - **Framework:** Next.js + React
-- **State Management:** Zustand
-- **Styling:** Tailwind CSS + Radix UI
-- **Data Fetching:** Supabase RPC or REST endpoints for integrations
-- **Voice Notification:** Realtime updates for webhook connection status
+- **State Management:** Local React state with useState
+- **Styling:** Tailwind CSS + shadcn/ui components
+- **Data Fetching:** Mock data with future Supabase integration
+- **Responsive Design:** Flexbox tabs with CSS Grid layouts
 - **Toggle Behavior:**
-  - Triggers `connectIntegration()` or `disconnectIntegration()`
+  - Local state updates with immediate UI feedback
   - Handles async loading state and success/fail feedback
 
 - **Modular Config Forms:** Each integration (e.g., Salesforce, Stripe, Twilio) uses a separate form component loaded via dynamic import when “Configure” is clicked
