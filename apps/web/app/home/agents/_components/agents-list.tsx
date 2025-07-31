@@ -28,6 +28,7 @@ import {
 
 // Import our Supabase hooks
 import type { Tables } from '@kit/supabase/database';
+import { useDeleteAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
@@ -319,15 +320,6 @@ function AgentTableRow({
               Test Voice
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Copy className="mr-2 h-4 w-4" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Download className="mr-2 h-4 w-4" />
-              Export Data
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
               onClick={() => onDelete(agent.id)}
@@ -394,137 +386,104 @@ function SortableTableHeader({
 // Main Component
 export function AgentsList() {
   const router = useRouter();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Fetch real data using our hooks
-  const { data: agents = [], isLoading: agentsLoading } = useAgents();
+  // Fetch real data
+  const { data: agents = [], isLoading: loadingAgents } = useAgents();
   const { data: conversations = [] } = useConversations();
   const { data: campaigns = [] } = useCampaigns();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Delete mutation
+  const deleteAgentMutation = useDeleteAgent();
 
-  // Enhance agents with calculated performance data
-  const enhancedAgents = useMemo(() => {
+  // Calculate enhanced agent data
+  const enhancedAgents: EnhancedAgent[] = useMemo(() => {
     return agents.map((agent) => {
+      // Get conversations for this agent
       const agentConversations = conversations.filter(
         (conv) => conv.agent_id === agent.id,
       );
+
+      // Get campaigns for this agent
       const agentCampaigns = campaigns.filter(
         (campaign) => campaign.agent_id === agent.id,
       );
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayConversations = agentConversations.filter((conv) => {
-        const convDate = new Date(conv.created_at);
-        return convDate >= today;
-      });
-
-      const successfulConversations = agentConversations.filter(
+      // Calculate metrics
+      const totalCalls = agentConversations.length;
+      const successfulCalls = agentConversations.filter(
         (conv) => conv.outcome === 'donated' || conv.status === 'completed',
-      );
-
+      ).length;
       const successRate =
-        agentConversations.length > 0
-          ? (successfulConversations.length / agentConversations.length) * 100
-          : 0;
+        totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
-      const lastActive =
-        agentConversations.length > 0
-          ? formatTimeAgo(agentConversations[0]?.created_at || '')
-          : undefined;
+      // Calculate today's metrics
+      const today = new Date().toISOString().split('T')[0];
+      const todayConversations = agentConversations.filter((conv) =>
+        conv.created_at?.startsWith(today),
+      );
+      const callsToday = todayConversations.length;
+      const conversionsToday = todayConversations.filter(
+        (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+      ).length;
 
+      // Calculate average call duration
+      const totalDuration = agentConversations.reduce(
+        (sum, conv) => sum + (conv.duration_seconds || 0),
+        0,
+      );
       const avgCallDuration =
-        agentConversations.length > 0
-          ? agentConversations.reduce(
-              (sum, conv) => sum + (conv.duration_seconds || 0),
-              0,
-            ) / agentConversations.length
-          : 0;
+        totalCalls > 0 ? Math.round(totalDuration / totalCalls) : 0;
 
       return {
         ...agent,
-        totalCalls: agentConversations.length,
-        successRate: Math.round(successRate * 10) / 10,
+        totalCalls,
+        successRate,
         campaigns: agentCampaigns.length,
-        lastActive,
         performance: {
-          callsToday: todayConversations.length,
-          conversionsToday: todayConversations.filter(
-            (conv) => conv.outcome === 'donated' || conv.status === 'completed',
-          ).length,
-          avgCallDuration: Math.round((avgCallDuration / 60) * 10) / 10, // Convert to minutes
-          satisfactionScore: 4.5, // Placeholder - would need to be calculated from actual data
+          callsToday,
+          conversionsToday,
+          avgCallDuration,
+          satisfactionScore: 4.5, // Placeholder
         },
-      } as EnhancedAgent;
+        lastActive:
+          agentConversations.length > 0 &&
+          agentConversations[agentConversations.length - 1]?.created_at
+            ? agentConversations[agentConversations.length - 1]!.created_at
+            : undefined,
+      };
     });
   }, [agents, conversations, campaigns]);
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
-    );
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
-    if (diffInMinutes < 1440)
-      return `${Math.floor(diffInMinutes / 60)} hour ago`;
-    return `${Math.floor(diffInMinutes / 1440)} day ago`;
-  };
-
-  const getTotalStats = () => {
-    const activeAgents = enhancedAgents.filter(
-      (agent) => agent.status === 'active',
-    );
-    const totalCalls = enhancedAgents.reduce(
-      (sum, agent) => sum + agent.totalCalls,
-      0,
-    );
-    const totalCampaigns = enhancedAgents.reduce(
-      (sum, agent) => sum + agent.campaigns,
-      0,
-    );
-    const avgSuccessRate =
-      enhancedAgents.reduce((sum, agent) => sum + agent.successRate, 0) /
-      enhancedAgents.length;
-    const totalCallsToday = enhancedAgents.reduce(
-      (sum, agent) => sum + (agent.performance?.callsToday || 0),
-      0,
-    );
-
-    return {
-      agents: enhancedAgents.length,
-      activeAgents: activeAgents.length,
-      totalCalls,
-      totalCampaigns,
-      avgSuccessRate: avgSuccessRate.toFixed(1),
-      totalCallsToday,
-    };
-  };
-
+  // Filter and sort agents
   const filteredAndSortedAgents = useMemo(() => {
-    const filtered = enhancedAgents.filter((agent) => {
-      const matchesSearch =
-        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.speaking_tone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        false ||
-        agent.voice_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        false;
+    let filtered = enhancedAgents;
 
-      const matchesStatus =
-        statusFilter === 'all' || agent.status === statusFilter;
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (agent) =>
+          agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          agent.speaking_tone
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          agent.voice_type?.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
 
-      return matchesSearch && matchesStatus;
-    });
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((agent) => agent.status === statusFilter);
+    }
 
-    // Sort agents
+    // Apply sorting
     filtered.sort((a, b) => {
-      let aValue: string | number, bValue: string | number;
+      let aValue: string | number;
+      let bValue: string | number;
 
       switch (sortBy) {
         case 'name':
@@ -552,57 +511,98 @@ export function AgentsList() {
           bValue = b.name;
       }
 
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
+      if (sortOrder === 'desc') {
+        [aValue, bValue] = [bValue, aValue];
       }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue);
+      }
+
+      return (aValue as number) - (bValue as number);
     });
 
     return filtered;
   }, [enhancedAgents, searchTerm, statusFilter, sortBy, sortOrder]);
 
-  // Show loading state if data is still loading
-  if (agentsLoading) {
+  // Calculate stats
+  const stats = useMemo(() => {
+    const totalAgents = enhancedAgents.length;
+    const activeAgents = enhancedAgents.filter(
+      (agent) => agent.status === 'active',
+    ).length;
+    const totalCallsToday = enhancedAgents.reduce(
+      (sum, agent) => sum + (agent.performance?.callsToday || 0),
+      0,
+    );
+    const totalCampaigns = campaigns.length;
+    const avgSuccessRate =
+      enhancedAgents.length > 0
+        ? Math.round(
+            enhancedAgents.reduce((sum, agent) => sum + agent.successRate, 0) /
+              enhancedAgents.length,
+          )
+        : 0;
+
+    return {
+      agents: totalAgents,
+      activeAgents,
+      totalCallsToday,
+      totalCampaigns,
+      avgSuccessRate,
+    };
+  }, [enhancedAgents, campaigns]);
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60),
+    );
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
+  const getTotalStats = () => {
+    return {
+      totalAgents: enhancedAgents.length,
+      activeAgents: enhancedAgents.filter((agent) => agent.status === 'active')
+        .length,
+      totalCalls: enhancedAgents.reduce(
+        (sum, agent) => sum + agent.totalCalls,
+        0,
+      ),
+      avgSuccessRate:
+        enhancedAgents.length > 0
+          ? Math.round(
+              enhancedAgents.reduce(
+                (sum, agent) => sum + agent.successRate,
+                0,
+              ) / enhancedAgents.length,
+            )
+          : 0,
+    };
+  };
+
+  // Loading state
+  if (loadingAgents) {
     return (
       <div className="space-y-6">
-        {/* Loading Stats */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
-                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
-                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
-              </CardHeader>
-            </Card>
+            <div
+              key={i}
+              className="bg-muted h-24 animate-pulse rounded-lg"
+            ></div>
           ))}
         </div>
-        {/* Loading Agents List */}
-        <Card>
-          <CardHeader>
-            <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
-            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <div className="bg-muted h-12 w-12 animate-pulse rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <div className="bg-muted h-4 w-32 animate-pulse rounded" />
-                    <div className="bg-muted h-3 w-24 animate-pulse rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-muted h-64 animate-pulse rounded-lg"></div>
       </div>
     );
   }
-
-  const stats = getTotalStats();
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -615,11 +615,17 @@ export function AgentsList() {
 
   const handleView = (id: string) =>
     router.push(`/home/agents/${id}?tab=overview`);
+
   const handleEdit = (id: string) =>
     router.push(`/home/agents/${id}?tab=knowledge`);
-  const handleDelete = (id: string) => {
-    // TODO: Implement delete functionality
-    console.log('Delete agent:', id);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAgentMutation.mutateAsync(id);
+      console.log('Agent deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+    }
   };
 
   return (
