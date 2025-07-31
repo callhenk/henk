@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   CheckCircle,
@@ -10,6 +10,8 @@ import {
   Phone,
   Play,
   Plus,
+  RotateCcw,
+  RotateCw,
   Settings,
   Trash2,
   XCircle,
@@ -51,6 +53,12 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 import { Textarea } from '@kit/ui/textarea';
+
+// History management for undo/redo
+interface HistoryState {
+  nodes: Node[];
+  edges: Edge[];
+}
 
 // Custom node types
 const nodeTypes = {
@@ -346,6 +354,18 @@ function NodeEditorDialog({
     options: [''],
   });
 
+  // Update form data when node changes
+  useEffect(() => {
+    if (node) {
+      setFormData({
+        label: node.data.label || '',
+        description: node.data.description || '',
+        action: node.data.action || '',
+        options: node.data.options || [''],
+      });
+    }
+  }, [node]);
+
   const handleSave = () => {
     onSave(formData);
     onClose();
@@ -477,10 +497,153 @@ export function WorkflowBuilder() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(
+    null,
+  );
+  const [isConnectionDialogOpen, setIsConnectionDialogOpen] = useState(false);
+
+  // Undo/Redo functionality
+  const [history, setHistory] = useState<HistoryState[]>([
+    { nodes: initialNodes, edges: initialEdges },
+  ]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  // Save current state to history
+  const saveToHistory = useCallback(
+    (newNodes: Node[], newEdges: Edge[]) => {
+      const newState = { nodes: newNodes, edges: newEdges };
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(newState);
+        return newHistory;
+      });
+      setHistoryIndex((prev) => prev + 1);
+    },
+    [historyIndex],
+  );
+
+  // Undo function
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      const state = history[newIndex];
+      if (state) {
+        setNodes(state.nodes);
+        setEdges(state.edges);
+        setHistoryIndex(newIndex);
+      }
+    }
+  }, [history, historyIndex, setNodes, setEdges]);
+
+  // Redo function
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      const state = history[newIndex];
+      if (state) {
+        setNodes(state.nodes);
+        setEdges(state.edges);
+        setHistoryIndex(newIndex);
+      }
+    }
+  }, [history, historyIndex, setNodes, setEdges]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
+    (params: Connection) => {
+      // Ensure we have valid source and target
+      if (!params.source || !params.target) return;
+
+      // Find the source node to get its options for labeling
+      const sourceNode = nodes.find((n) => n.id === params.source);
+
+      if (sourceNode?.type === 'decision' && sourceNode.data.options) {
+        // For decision nodes, show dialog to choose option
+        setPendingConnection(params);
+        setIsConnectionDialogOpen(true);
+        return;
+      }
+
+      // For non-decision nodes, proceed with automatic labeling
+      let label = '';
+      const targetNode = nodes.find((n) => n.id === params.target);
+      if (targetNode) {
+        const isPositiveAction = ['donation', 'conversation'].includes(
+          targetNode.data.action,
+        );
+        label = isPositiveAction ? 'Yes' : 'No';
+      }
+
+      const newEdge: Edge = {
+        id: `e${params.source}-${params.target}`,
+        source: params.source,
+        target: params.target,
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+        type: 'smoothstep',
+        animated: true,
+        label: label,
+        style: {
+          stroke:
+            label === 'Yes'
+              ? '#10b981'
+              : label === 'No'
+                ? '#ef4444'
+                : '#3b82f6',
+          strokeWidth: 2,
+        },
+      };
+
+      const newEdges = addEdge(newEdge, edges);
+      setEdges(newEdges);
+      saveToHistory(nodes, newEdges);
+    },
+    [edges, nodes, setEdges, saveToHistory],
+  );
+
+  const handleConnectionConfirm = useCallback(
+    (selectedOption: string) => {
+      if (!pendingConnection) return;
+
+      const newEdge: Edge = {
+        id: `e${pendingConnection.source}-${pendingConnection.target}`,
+        source: pendingConnection.source!,
+        target: pendingConnection.target!,
+        sourceHandle: pendingConnection.sourceHandle,
+        targetHandle: pendingConnection.targetHandle,
+        type: 'smoothstep',
+        animated: true,
+        label: selectedOption,
+        style: {
+          stroke: selectedOption === 'Yes' ? '#10b981' : '#ef4444',
+          strokeWidth: 2,
+        },
+      };
+
+      const newEdges = addEdge(newEdge, edges);
+      setEdges(newEdges);
+      saveToHistory(nodes, newEdges);
+
+      setPendingConnection(null);
+      setIsConnectionDialogOpen(false);
+    },
+    [pendingConnection, edges, nodes, setEdges, saveToHistory],
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -494,10 +657,12 @@ export function WorkflowBuilder() {
 
   const deleteSelectedEdge = useCallback(() => {
     if (selectedEdge) {
-      setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
+      const newEdges = edges.filter((e) => e.id !== selectedEdge.id);
+      setEdges(newEdges);
+      saveToHistory(nodes, newEdges);
       setSelectedEdge(null);
     }
-  }, [selectedEdge, setEdges]);
+  }, [selectedEdge, edges, nodes, setEdges, saveToHistory]);
 
   const handleNodeSave = useCallback(
     (nodeData: {
@@ -506,15 +671,15 @@ export function WorkflowBuilder() {
       action: string;
       options: string[];
     }) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === selectedNode?.id
-            ? { ...node, data: { ...node.data, ...nodeData } }
-            : node,
-        ),
+      const newNodes = nodes.map((node) =>
+        node.id === selectedNode?.id
+          ? { ...node, data: { ...node.data, ...nodeData } }
+          : node,
       );
+      setNodes(newNodes);
+      saveToHistory(newNodes, edges);
     },
-    [selectedNode, setNodes],
+    [selectedNode, nodes, edges, setNodes, saveToHistory],
   );
 
   const addNewNode = useCallback(
@@ -530,23 +695,32 @@ export function WorkflowBuilder() {
           options: ['Yes', 'No'],
         },
       };
-      setNodes((nds) => [...nds, newNode]);
+      const newNodes = [...nodes, newNode];
+      setNodes(newNodes);
+      saveToHistory(newNodes, edges);
     },
-    [setNodes],
+    [nodes, edges, setNodes, saveToHistory],
   );
 
   const deleteSelectedNode = useCallback(() => {
     if (selectedNode) {
-      setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-      setEdges((eds) =>
-        eds.filter(
-          (e) => e.source !== selectedNode.id && e.target !== selectedNode.id,
-        ),
+      const newNodes = nodes.filter((n) => n.id !== selectedNode.id);
+      const newEdges = edges.filter(
+        (e) => e.source !== selectedNode.id && e.target !== selectedNode.id,
       );
+      setNodes(newNodes);
+      setEdges(newEdges);
+      saveToHistory(newNodes, newEdges);
       setSelectedNode(null);
       setIsNodeEditorOpen(false);
     }
-  }, [selectedNode, setNodes, setEdges]);
+  }, [selectedNode, nodes, edges, setNodes, setEdges, saveToHistory]);
+
+  // Get source node options for connection dialog
+  const sourceNode = pendingConnection
+    ? nodes.find((n) => n.id === pendingConnection.source)
+    : null;
+  const connectionOptions = sourceNode?.data.options || [];
 
   return (
     <div className="h-[700px] w-full">
@@ -559,6 +733,26 @@ export function WorkflowBuilder() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={undo}
+            disabled={historyIndex === 0}
+            title="Undo (Ctrl+Z)"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Undo
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={redo}
+            disabled={historyIndex === history.length - 1}
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <RotateCw className="mr-2 h-4 w-4" />
+            Redo
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -616,6 +810,10 @@ export function WorkflowBuilder() {
               <Trash2 className="h-4 w-4" />
               <span>Select and delete connections</span>
             </div>
+            <div className="flex items-center gap-2">
+              <RotateCcw className="h-4 w-4" />
+              <span>Ctrl+Z to undo, Ctrl+Shift+Z to redo</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -657,6 +855,46 @@ export function WorkflowBuilder() {
         onClose={() => setIsNodeEditorOpen(false)}
         onSave={handleNodeSave}
       />
+
+      {/* Connection Dialog for Decision Nodes */}
+      <Dialog
+        open={isConnectionDialogOpen}
+        onOpenChange={setIsConnectionDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Choose Connection Option</DialogTitle>
+            <DialogDescription>
+              Select which decision option this connection represents
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              {connectionOptions.map((option: string, index: number) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  onClick={() => handleConnectionConfirm(option)}
+                  className="justify-start"
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPendingConnection(null);
+                setIsConnectionDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
