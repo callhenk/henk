@@ -358,10 +358,15 @@ function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
       <TableBody>
         {campaigns.map((campaign) => (
           <TableRow key={campaign.id}>
-            <TableCell>
-              <div>
-                <div className="font-medium">{campaign.name}</div>
-                <div className="text-muted-foreground text-sm">
+            <TableCell className="max-w-[300px]">
+              <div className="space-y-1">
+                <div className="truncate font-medium" title={campaign.name}>
+                  {campaign.name}
+                </div>
+                <div
+                  className="text-muted-foreground line-clamp-2 cursor-help text-xs"
+                  title={campaign.description || 'No description'}
+                >
                   {campaign.description || 'No description'}
                 </div>
               </div>

@@ -248,9 +248,14 @@ function AgentTableRow({
     <TableRow className="hover:bg-muted/50">
       <TableCell>
         <div className="flex items-center space-x-3">
-          <div>
-            <div className="font-medium">{agent.name}</div>
-            <div className="text-muted-foreground text-sm">
+          <div className="max-w-[250px]">
+            <div className="truncate font-medium" title={agent.name}>
+              {agent.name}
+            </div>
+            <div
+              className="text-muted-foreground line-clamp-1 text-xs"
+              title={`${agent.voice_type || 'Default voice'} • ${agent.speaking_tone || 'Default tone'}`}
+            >
               {agent.voice_type || 'Default voice'} •{' '}
               {agent.speaking_tone || 'Default tone'}
             </div>
@@ -465,13 +470,14 @@ export function AgentsList() {
 
     // Apply search filter
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (agent) =>
-          agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          agent.speaking_tone
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          agent.voice_type?.toLowerCase().includes(searchTerm.toLowerCase()),
+          agent.name.toLowerCase().includes(searchLower) ||
+          (agent.speaking_tone &&
+            agent.speaking_tone.toLowerCase().includes(searchLower)) ||
+          (agent.voice_type &&
+            agent.voice_type.toLowerCase().includes(searchLower)),
       );
     }
 
@@ -552,40 +558,6 @@ export function AgentsList() {
       avgSuccessRate,
     };
   }, [enhancedAgents, campaigns]);
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
-    );
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
-  };
-
-  const getTotalStats = () => {
-    return {
-      totalAgents: enhancedAgents.length,
-      activeAgents: enhancedAgents.filter((agent) => agent.status === 'active')
-        .length,
-      totalCalls: enhancedAgents.reduce(
-        (sum, agent) => sum + agent.totalCalls,
-        0,
-      ),
-      avgSuccessRate:
-        enhancedAgents.length > 0
-          ? Math.round(
-              enhancedAgents.reduce(
-                (sum, agent) => sum + agent.successRate,
-                0,
-              ) / enhancedAgents.length,
-            )
-          : 0,
-    };
-  };
 
   // Loading state
   if (loadingAgents) {
