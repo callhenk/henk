@@ -97,6 +97,7 @@
     "./switch": "./src/shadcn/switch.tsx",
     "./breadcrumb": "./src/shadcn/breadcrumb.tsx",
     "./chart": "./src/shadcn/chart.tsx",
+    "./progress": "./src/shadcn/progress.tsx",
     "./skeleton": "./src/shadcn/skeleton.tsx",
     "./shadcn-sidebar": "./src/shadcn/sidebar.tsx",
     "./collapsible": "./src/shadcn/collapsible.tsx",

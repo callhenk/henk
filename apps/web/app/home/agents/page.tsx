@@ -5,11 +5,14 @@ import { AgentsList } from './_components/agents-list';
 export default function AgentsPage() {
   return (
     <>
-      <PageHeader description={'Manage your AI voice agents'} />
+      <PageHeader
+        title="AI Voice Agents"
+        description="Create, manage, and optimize your AI voice agents for fundraising campaigns"
+      />
 
       <PageBody>
         <AgentsList />
       </PageBody>
     </>
   );
-} 
+}
