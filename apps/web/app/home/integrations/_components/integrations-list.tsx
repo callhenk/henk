@@ -24,8 +24,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@kit/ui/select';
 import { Switch } from '@kit/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { StatsCard } from '~/components/shared';
 
@@ -190,35 +196,44 @@ export function IntegrationsList() {
         />
       </div>
 
-      {/* Category Tabs */}
+      {/* Integrations List */}
       <Card>
         <CardHeader>
-          <CardTitle>Integrations</CardTitle>
-          <CardDescription>
-            Connect your favorite tools to streamline your fundraising workflow
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Integrations</CardTitle>
+              <CardDescription>
+                Connect your favorite tools to streamline your fundraising
+                workflow
+              </CardDescription>
+            </div>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-8">
-              {categories.map((category) => (
-                <TabsTrigger key={category} value={category}>
-                  {category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <TabsContent value={selectedCategory} className="mt-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                {filteredIntegrations.map((integration) => (
-                  <IntegrationCard
-                    key={integration.id}
-                    integration={integration}
-                    onToggle={handleToggle}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="grid gap-4 md:grid-cols-3">
+            {filteredIntegrations.map((integration) => (
+              <IntegrationCard
+                key={integration.id}
+                integration={integration}
+                onToggle={handleToggle}
+              />
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
