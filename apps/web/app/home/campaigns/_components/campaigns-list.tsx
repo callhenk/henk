@@ -19,7 +19,6 @@ import {
   Users,
 } from 'lucide-react';
 
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -45,10 +44,12 @@ import {
 } from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
+import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
+
 interface Campaign {
   id: string;
   name: string;
-  status: 'draft' | 'active' | 'paused' | 'completed';
+  status: 'draft' | 'active' | 'paused' | 'campaign_completed';
   agent: string;
   leads: number;
   contacted: number;
@@ -112,7 +113,7 @@ const mockCampaigns: Campaign[] = [
   {
     id: '5',
     name: 'Q3 2024 Renewals',
-    status: 'completed',
+    status: 'campaign_completed',
     agent: 'Lisa',
     leads: 750,
     contacted: 650,
@@ -127,6 +128,9 @@ const mockCampaigns: Campaign[] = [
 export function CampaignsList() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const getTotalStats = () => {
     const totalCampaigns = mockCampaigns.length;
@@ -135,28 +139,64 @@ export function CampaignsList() {
     ).length;
     const totalLeads = mockCampaigns.reduce((sum, c) => sum + c.leads, 0);
     const totalRevenue = mockCampaigns.reduce((sum, c) => sum + c.revenue, 0);
-
-    return {
-      totalCampaigns,
-      activeCampaigns,
-      totalLeads,
-      totalRevenue,
-    };
+    return { totalCampaigns, activeCampaigns, totalLeads, totalRevenue };
   };
 
   const getFilteredCampaigns = () => {
-    switch (selectedTab) {
-      case 'active':
-        return mockCampaigns.filter((c) => c.status === 'active');
-      case 'draft':
-        return mockCampaigns.filter((c) => c.status === 'draft');
-      case 'paused':
-        return mockCampaigns.filter((c) => c.status === 'paused');
-      case 'completed':
-        return mockCampaigns.filter((c) => c.status === 'completed');
-      default:
-        return mockCampaigns;
+    let filtered = mockCampaigns;
+
+    // Filter by tab
+    if (selectedTab !== 'all') {
+      filtered = filtered.filter((c) => c.status === selectedTab);
     }
+
+    // Filter by search
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (c) =>
+          c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Sort campaigns
+    filtered.sort((a, b) => {
+      let aValue: string | number, bValue: string | number;
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'leads':
+          aValue = a.leads;
+          bValue = b.leads;
+          break;
+        case 'revenue':
+          aValue = a.revenue;
+          bValue = b.revenue;
+          break;
+        case 'startDate':
+          aValue = new Date(a.startDate).getTime();
+          bValue = new Date(b.startDate).getTime();
+          break;
+        default:
+          aValue = a.name;
+          bValue = b.name;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
   };
 
   const stats = getTotalStats();
@@ -166,61 +206,33 @@ export function CampaignsList() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Campaigns
-            </CardTitle>
-            <TrendingUp className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
-            <p className="text-muted-foreground text-xs">Across all statuses</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Campaigns
-            </CardTitle>
-            <Play className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeCampaigns}</div>
-            <p className="text-muted-foreground text-xs">Currently running</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalLeads.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Across all campaigns
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Generated from campaigns
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Total Campaigns"
+          value={stats.totalCampaigns}
+          subtitle="Across all statuses"
+          icon={TrendingUp}
+        />
+        <StatsCard
+          title="Active Campaigns"
+          value={stats.activeCampaigns}
+          subtitle="Currently running"
+          icon={Play}
+        />
+        <StatsCard
+          title="Total Leads"
+          value={stats.totalLeads.toLocaleString()}
+          subtitle="Across all campaigns"
+          icon={Users}
+        />
+        <StatsCard
+          title="Total Revenue"
+          value={`$${stats.totalRevenue.toLocaleString()}`}
+          subtitle="Generated from campaigns"
+          icon={DollarSign}
+        />
       </div>
 
-      {/* Campaigns Table */}
+      {/* Search & Tabs */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -237,6 +249,33 @@ export function CampaignsList() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-6">
+            <SearchFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Search campaigns by name or description..."
+              statusFilter={selectedTab}
+              onStatusFilterChange={setSelectedTab}
+              statusOptions={[
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'Active' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'paused', label: 'Paused' },
+                { value: 'completed', label: 'Completed' },
+              ]}
+              sortBy={sortBy}
+              onSortByChange={setSortBy}
+              sortOptions={[
+                { value: 'name', label: 'Name' },
+                { value: 'status', label: 'Status' },
+                { value: 'leads', label: 'Leads' },
+                { value: 'revenue', label: 'Revenue' },
+                { value: 'startDate', label: 'Start Date' },
+              ]}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+            />
+          </div>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">All</TabsTrigger>
@@ -257,31 +296,13 @@ export function CampaignsList() {
 
 function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
   const router = useRouter();
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'draft':
-        return <Badge variant="outline">Draft</Badge>;
-      case 'paused':
-        return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
-      case 'completed':
-        return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const getConversionRate = (contacted: number, conversions: number) => {
     if (contacted === 0) return 0;
     return Math.round((conversions / contacted) * 100);
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
-
   return (
     <Table>
       <TableHeader>
@@ -307,7 +328,9 @@ function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
                 </div>
               </div>
             </TableCell>
-            <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+            <TableCell>
+              <StatusBadge status={campaign.status} />
+            </TableCell>
             <TableCell>{formatDate(campaign.startDate)}</TableCell>
             <TableCell>{campaign.leads.toLocaleString()}</TableCell>
             <TableCell>{campaign.contacted.toLocaleString()}</TableCell>

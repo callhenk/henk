@@ -23,7 +23,6 @@ import {
   Users,
 } from 'lucide-react';
 
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -48,6 +47,8 @@ import {
   TableRow,
 } from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
+
+import { StatsCard, StatusBadge } from '~/components/shared';
 
 interface Campaign {
   id: string;
@@ -146,21 +147,6 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('leads');
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'draft':
-        return <Badge variant="outline">Draft</Badge>;
-      case 'paused':
-        return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
-      case 'completed':
-        return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const getConversionRate = () => {
     if (mockCampaign.contacted === 0) return 0;
     return Math.round(
@@ -187,7 +173,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {getStatusBadge(mockCampaign.status)}
+          <StatusBadge status={mockCampaign.status} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -232,58 +218,30 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
       {/* Metrics Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCampaign.leads.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">Donors in campaign</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Contacted</CardTitle>
-            <Phone className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCampaign.contacted.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Successfully reached
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Successful</CardTitle>
-            <CheckCircle className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCampaign.conversions.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {getConversionRate()}% conversion rate
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <DollarSign className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${mockCampaign.revenue.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">Total donations</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Total Leads"
+          value={mockCampaign.leads.toLocaleString()}
+          subtitle="Donors in campaign"
+          icon={Users}
+        />
+        <StatsCard
+          title="Contacted"
+          value={mockCampaign.contacted.toLocaleString()}
+          subtitle="Successfully reached"
+          icon={Phone}
+        />
+        <StatsCard
+          title="Successful"
+          value={mockCampaign.conversions.toLocaleString()}
+          subtitle={`${getConversionRate()}% conversion rate`}
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title="Revenue"
+          value={`$${mockCampaign.revenue.toLocaleString()}`}
+          subtitle="Total donations"
+          icon={DollarSign}
+        />
       </div>
 
       {/* Tabs */}
@@ -346,18 +304,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
 function LeadsTable({ leads }: { leads: Lead[] }) {
   const getLeadStatusBadge = (status: string) => {
-    switch (status) {
-      case 'new':
-        return <Badge variant="outline">New</Badge>;
-      case 'contacted':
-        return <Badge className="bg-blue-100 text-blue-800">Contacted</Badge>;
-      case 'pledged':
-        return <Badge className="bg-green-100 text-green-800">Pledged</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+    return <StatusBadge status={status} />;
   };
 
   const formatDate = (dateString?: string) => {

@@ -12,7 +12,6 @@ import {
   User,
 } from 'lucide-react';
 
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -23,6 +22,8 @@ import {
 } from '@kit/ui/card';
 import { Separator } from '@kit/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
+
+import { StatsCard } from '~/components/shared';
 
 interface Conversation {
   id: string;
@@ -105,7 +106,7 @@ Donor: Thank you, you too!`,
 };
 
 export function ConversationDetail({
-  conversationId,
+  conversationId: _conversationId,
 }: {
   conversationId: string;
 }) {
@@ -113,53 +114,6 @@ export function ConversationDetail({
 
   const handleBack = () => {
     router.push('/home/conversations');
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'in-progress':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      case 'no-answer':
-        return <Badge className="bg-gray-100 text-gray-800">No Answer</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getOutcomeBadge = (outcome: string) => {
-    switch (outcome) {
-      case 'donated':
-        return <Badge className="bg-green-100 text-green-800">Donated</Badge>;
-      case 'callback-requested':
-        return <Badge className="bg-blue-100 text-blue-800">Callback</Badge>;
-      case 'no-interest':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800">No Interest</Badge>
-        );
-      case 'no-answer':
-        return <Badge className="bg-gray-100 text-gray-800">No Answer</Badge>;
-      case 'busy':
-        return <Badge className="bg-orange-100 text-orange-800">Busy</Badge>;
-      default:
-        return <Badge variant="outline">{outcome}</Badge>;
-    }
-  };
-
-  const getSentimentBadge = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive':
-        return <Badge className="bg-green-100 text-green-800">Positive</Badge>;
-      case 'neutral':
-        return <Badge className="bg-gray-100 text-gray-800">Neutral</Badge>;
-      case 'negative':
-        return <Badge className="bg-red-100 text-red-800">Negative</Badge>;
-      default:
-        return <Badge variant="outline">{sentiment}</Badge>;
-    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -191,61 +145,30 @@ export function ConversationDetail({
 
       {/* Conversation Overview */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Call Duration</CardTitle>
-            <Clock className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatDuration(mockConversation.duration)}
-            </div>
-            <p className="text-muted-foreground text-xs">4 minutes 5 seconds</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Donation Amount
-            </CardTitle>
-            <TrendingUp className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${mockConversation.amount}</div>
-            <p className="text-muted-foreground text-xs">
-              Successfully secured
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sentiment</CardTitle>
-            <User className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {getSentimentBadge(mockConversation.sentiment)}
-            </div>
-            <p className="text-muted-foreground text-xs">AI analyzed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Call Status</CardTitle>
-            <Headphones className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {getStatusBadge(mockConversation.status)}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {getOutcomeBadge(mockConversation.outcome)}
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Call Duration"
+          value={formatDuration(mockConversation.duration)}
+          subtitle="4 minutes 5 seconds"
+          icon={Clock}
+        />
+        <StatsCard
+          title="Donation Amount"
+          value={`$${mockConversation.amount}`}
+          subtitle="Successfully secured"
+          icon={TrendingUp}
+        />
+        <StatsCard
+          title="Sentiment"
+          value={mockConversation.sentiment}
+          subtitle="AI analyzed"
+          icon={User}
+        />
+        <StatsCard
+          title="Call Status"
+          value={mockConversation.status}
+          subtitle={mockConversation.outcome}
+          icon={Headphones}
+        />
       </div>
 
       {/* Conversation Details */}

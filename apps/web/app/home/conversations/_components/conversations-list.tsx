@@ -13,12 +13,11 @@ import {
   MessageSquare,
   MoreHorizontal,
   Play,
-  Search,
   TrendingUp,
 } from 'lucide-react';
 
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
+import { StatsCard, StatusBadge, SearchFilters } from '~/components/shared';
 import {
   Card,
   CardContent,
@@ -32,7 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
-import { Input } from '@kit/ui/input';
+
 import {
   Select,
   SelectContent,
@@ -153,13 +152,7 @@ const campaigns = [
 
 const agents = ['All Agents', 'Sarah', 'Mike', 'Emma', 'David'];
 
-const statuses = [
-  'All Statuses',
-  'completed',
-  'in-progress',
-  'failed',
-  'no-answer',
-];
+
 
 const outcomes = [
   'All Outcomes',
@@ -171,12 +164,13 @@ const outcomes = [
 ];
 
 export function ConversationsList() {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState('All Campaigns');
   const [selectedAgent, setSelectedAgent] = useState('All Agents');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
   const [selectedOutcome, setSelectedOutcome] = useState('All Outcomes');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Filter conversations based on selected filters
   const filteredConversations = mockConversations.filter((conv) => {
@@ -202,6 +196,53 @@ export function ConversationsList() {
     );
   });
 
+  // Sort conversations
+  const sortedConversations = [...filteredConversations].sort((a, b) => {
+    let aValue: string | number | Date, bValue: string | number | Date;
+    
+    switch (sortBy) {
+      case 'donor':
+        aValue = a.donorName;
+        bValue = b.donorName;
+        break;
+      case 'campaign':
+        aValue = a.campaign;
+        bValue = b.campaign;
+        break;
+      case 'agent':
+        aValue = a.agent;
+        bValue = b.agent;
+        break;
+      case 'status':
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case 'outcome':
+        aValue = a.outcome;
+        bValue = b.outcome;
+        break;
+      case 'duration':
+        aValue = a.duration;
+        bValue = b.duration;
+        break;
+      case 'amount':
+        aValue = a.amount || 0;
+        bValue = b.amount || 0;
+        break;
+      case 'date':
+      default:
+        aValue = a.callDate;
+        bValue = b.callDate;
+        break;
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
   // Calculate stats
   const totalConversations = mockConversations.length;
   const todayConversations = mockConversations.filter(
@@ -218,53 +259,6 @@ export function ConversationsList() {
     (conv) => conv.sentiment === 'positive',
   ).length;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'in-progress':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      case 'no-answer':
-        return <Badge className="bg-gray-100 text-gray-800">No Answer</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getOutcomeBadge = (outcome: string) => {
-    switch (outcome) {
-      case 'donated':
-        return <Badge className="bg-green-100 text-green-800">Donated</Badge>;
-      case 'callback-requested':
-        return <Badge className="bg-blue-100 text-blue-800">Callback</Badge>;
-      case 'no-interest':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800">No Interest</Badge>
-        );
-      case 'no-answer':
-        return <Badge className="bg-gray-100 text-gray-800">No Answer</Badge>;
-      case 'busy':
-        return <Badge className="bg-orange-100 text-orange-800">Busy</Badge>;
-      default:
-        return <Badge variant="outline">{outcome}</Badge>;
-    }
-  };
-
-  const getSentimentBadge = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive':
-        return <Badge className="bg-green-100 text-green-800">Positive</Badge>;
-      case 'neutral':
-        return <Badge className="bg-gray-100 text-gray-800">Neutral</Badge>;
-      case 'negative':
-        return <Badge className="bg-red-100 text-red-800">Negative</Badge>;
-      default:
-        return <Badge variant="outline">{sentiment}</Badge>;
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -275,80 +269,33 @@ export function ConversationsList() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Conversations
-            </CardTitle>
-            <MessageSquare className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalConversations}</div>
-            <p className="text-muted-foreground text-xs">
-              <Badge variant="outline" className="mr-2">
-                {todayConversations} Today
-              </Badge>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Duration
-            </CardTitle>
-            <Clock className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatDuration(totalDuration)}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Average:{' '}
-              {formatDuration(Math.round(totalDuration / totalConversations))}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Donations
-            </CardTitle>
-            <TrendingUp className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${totalDonations.toLocaleString()}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {
-                mockConversations.filter((conv) => conv.outcome === 'donated')
-                  .length
-              }{' '}
-              successful calls
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Positive Sentiment
-            </CardTitle>
-            <BarChart3 className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{positiveSentiment}</div>
-            <p className="text-muted-foreground text-xs">
-              {Math.round((positiveSentiment / totalConversations) * 100)}% of
-              calls
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Total Conversations"
+          value={totalConversations}
+          subtitle={`${todayConversations} Today`}
+          icon={MessageSquare}
+        />
+        <StatsCard
+          title="Total Duration"
+          value={formatDuration(totalDuration)}
+          subtitle={`Average: ${formatDuration(Math.round(totalDuration / totalConversations))}`}
+          icon={Clock}
+        />
+        <StatsCard
+          title="Total Donations"
+          value={`$${totalDonations.toLocaleString()}`}
+          subtitle={`${mockConversations.filter((conv) => conv.outcome === 'donated').length} successful calls`}
+          icon={TrendingUp}
+        />
+        <StatsCard
+          title="Positive Sentiment"
+          value={positiveSentiment}
+          subtitle={`${Math.round((positiveSentiment / totalConversations) * 100)}% of calls`}
+          icon={BarChart3}
+        />
       </div>
 
-      {/* Filters */}
+      {/* Search & Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -357,26 +304,40 @@ export function ConversationsList() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
-              <div className="relative">
-                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input
-                  placeholder="Search donors..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
+          <SearchFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search donors..."
+            statusFilter={selectedStatus}
+            onStatusFilterChange={setSelectedStatus}
+            statusOptions={[
+              { value: 'All Statuses', label: 'All Statuses' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'in-progress', label: 'In Progress' },
+              { value: 'failed', label: 'Failed' },
+              { value: 'no-answer', label: 'No Answer' },
+            ]}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortOptions={[
+              { value: 'date', label: 'Date' },
+              { value: 'donor', label: 'Donor' },
+              { value: 'campaign', label: 'Campaign' },
+              { value: 'agent', label: 'Agent' },
+              { value: 'status', label: 'Status' },
+              { value: 'outcome', label: 'Outcome' },
+              { value: 'duration', label: 'Duration' },
+              { value: 'amount', label: 'Amount' },
+            ]}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+          />
+          
+          {/* Additional filters */}
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">Campaign</label>
-              <Select
-                value={selectedCampaign}
-                onValueChange={setSelectedCampaign}
-              >
+              <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -407,27 +368,8 @@ export function ConversationsList() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {statuses.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <label className="text-sm font-medium">Outcome</label>
-              <Select
-                value={selectedOutcome}
-                onValueChange={setSelectedOutcome}
-              >
+              <Select value={selectedOutcome} onValueChange={setSelectedOutcome}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -456,7 +398,7 @@ export function ConversationsList() {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all">
-                All ({filteredConversations.length})
+                All ({sortedConversations.length})
               </TabsTrigger>
               <TabsTrigger value="today">
                 Today ({todayConversations})
@@ -481,409 +423,139 @@ export function ConversationsList() {
             </TabsList>
 
             <TabsContent value="all" className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Donor</TableHead>
-                      <TableHead>Campaign</TableHead>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Outcome</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Sentiment</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConversations.map((conversation) => (
-                      <TableRow key={conversation.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {conversation.donorName}
-                            </div>
-                            <div className="text-muted-foreground text-sm">
-                              {conversation.phoneNumber}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{conversation.campaign}</TableCell>
-                        <TableCell>{conversation.agent}</TableCell>
-                        <TableCell>
-                          {getStatusBadge(conversation.status)}
-                        </TableCell>
-                        <TableCell>
-                          {getOutcomeBadge(conversation.outcome)}
-                        </TableCell>
-                        <TableCell>
-                          {conversation.duration > 0
-                            ? formatDuration(conversation.duration)
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {getSentimentBadge(conversation.sentiment)}
-                        </TableCell>
-                        <TableCell>
-                          {conversation.amount
-                            ? `$${conversation.amount}`
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {conversation.callDate.toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  router.push(
-                                    `/home/conversations/${conversation.id}`,
-                                  )
-                                }
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              {conversation.transcript && (
-                                <DropdownMenuItem>
-                                  <MessageSquare className="mr-2 h-4 w-4" />
-                                  View Transcript
-                                </DropdownMenuItem>
-                              )}
-                              {conversation.duration > 0 && (
-                                <DropdownMenuItem>
-                                  <Play className="mr-2 h-4 w-4" />
-                                  Listen to Call
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem>
-                                <Headphones className="mr-2 h-4 w-4" />
-                                AI Summary
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ConversationsTable conversations={sortedConversations} />
             </TabsContent>
 
             <TabsContent value="today" className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Donor</TableHead>
-                      <TableHead>Campaign</TableHead>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Outcome</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Sentiment</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConversations
-                      .filter(
-                        (conv) =>
-                          conv.callDate.toDateString() ===
-                          new Date().toDateString(),
-                      )
-                      .map((conversation) => (
-                        <TableRow key={conversation.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {conversation.donorName}
-                              </div>
-                              <div className="text-muted-foreground text-sm">
-                                {conversation.phoneNumber}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{conversation.campaign}</TableCell>
-                          <TableCell>{conversation.agent}</TableCell>
-                          <TableCell>
-                            {getStatusBadge(conversation.status)}
-                          </TableCell>
-                          <TableCell>
-                            {getOutcomeBadge(conversation.outcome)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.duration > 0
-                              ? formatDuration(conversation.duration)
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {getSentimentBadge(conversation.sentiment)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.amount
-                              ? `$${conversation.amount}`
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.callDate.toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    router.push(
-                                      `/home/conversations/${conversation.id}`,
-                                    )
-                                  }
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                {conversation.transcript && (
-                                  <DropdownMenuItem>
-                                    <MessageSquare className="mr-2 h-4 w-4" />
-                                    View Transcript
-                                  </DropdownMenuItem>
-                                )}
-                                {conversation.duration > 0 && (
-                                  <DropdownMenuItem>
-                                    <Play className="mr-2 h-4 w-4" />
-                                    Listen to Call
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem>
-                                  <Headphones className="mr-2 h-4 w-4" />
-                                  AI Summary
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ConversationsTable 
+                conversations={sortedConversations.filter(
+                  (conv) => conv.callDate.toDateString() === new Date().toDateString()
+                )} 
+              />
             </TabsContent>
 
             <TabsContent value="donations" className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Donor</TableHead>
-                      <TableHead>Campaign</TableHead>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Outcome</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Sentiment</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConversations
-                      .filter((conv) => conv.outcome === 'donated')
-                      .map((conversation) => (
-                        <TableRow key={conversation.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {conversation.donorName}
-                              </div>
-                              <div className="text-muted-foreground text-sm">
-                                {conversation.phoneNumber}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{conversation.campaign}</TableCell>
-                          <TableCell>{conversation.agent}</TableCell>
-                          <TableCell>
-                            {getStatusBadge(conversation.status)}
-                          </TableCell>
-                          <TableCell>
-                            {getOutcomeBadge(conversation.outcome)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.duration > 0
-                              ? formatDuration(conversation.duration)
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {getSentimentBadge(conversation.sentiment)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.amount
-                              ? `$${conversation.amount}`
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.callDate.toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    router.push(
-                                      `/home/conversations/${conversation.id}`,
-                                    )
-                                  }
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                {conversation.transcript && (
-                                  <DropdownMenuItem>
-                                    <MessageSquare className="mr-2 h-4 w-4" />
-                                    View Transcript
-                                  </DropdownMenuItem>
-                                )}
-                                {conversation.duration > 0 && (
-                                  <DropdownMenuItem>
-                                    <Play className="mr-2 h-4 w-4" />
-                                    Listen to Call
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem>
-                                  <Headphones className="mr-2 h-4 w-4" />
-                                  AI Summary
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ConversationsTable 
+                conversations={sortedConversations.filter((conv) => conv.outcome === 'donated')} 
+              />
             </TabsContent>
 
             <TabsContent value="callbacks" className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Donor</TableHead>
-                      <TableHead>Campaign</TableHead>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Outcome</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Sentiment</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConversations
-                      .filter((conv) => conv.outcome === 'callback-requested')
-                      .map((conversation) => (
-                        <TableRow key={conversation.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {conversation.donorName}
-                              </div>
-                              <div className="text-muted-foreground text-sm">
-                                {conversation.phoneNumber}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{conversation.campaign}</TableCell>
-                          <TableCell>{conversation.agent}</TableCell>
-                          <TableCell>
-                            {getStatusBadge(conversation.status)}
-                          </TableCell>
-                          <TableCell>
-                            {getOutcomeBadge(conversation.outcome)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.duration > 0
-                              ? formatDuration(conversation.duration)
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {getSentimentBadge(conversation.sentiment)}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.amount
-                              ? `$${conversation.amount}`
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.callDate.toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    router.push(
-                                      `/home/conversations/${conversation.id}`,
-                                    )
-                                  }
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                {conversation.transcript && (
-                                  <DropdownMenuItem>
-                                    <MessageSquare className="mr-2 h-4 w-4" />
-                                    View Transcript
-                                  </DropdownMenuItem>
-                                )}
-                                {conversation.duration > 0 && (
-                                  <DropdownMenuItem>
-                                    <Play className="mr-2 h-4 w-4" />
-                                    Listen to Call
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem>
-                                  <Headphones className="mr-2 h-4 w-4" />
-                                  AI Summary
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ConversationsTable 
+                conversations={sortedConversations.filter((conv) => conv.outcome === 'callback-requested')} 
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ConversationsTable({ conversations }: { conversations: Conversation[] }) {
+  const router = useRouter();
+  
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Donor</TableHead>
+            <TableHead>Campaign</TableHead>
+            <TableHead>Agent</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Outcome</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Sentiment</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {conversations.map((conversation) => (
+            <TableRow key={conversation.id}>
+              <TableCell>
+                <div>
+                  <div className="font-medium">
+                    {conversation.donorName}
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    {conversation.phoneNumber}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>{conversation.campaign}</TableCell>
+              <TableCell>{conversation.agent}</TableCell>
+              <TableCell>
+                <StatusBadge status={conversation.status} />
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={conversation.outcome} />
+              </TableCell>
+              <TableCell>
+                {conversation.duration > 0
+                  ? formatDuration(conversation.duration)
+                  : '-'}
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={conversation.sentiment} />
+              </TableCell>
+              <TableCell>
+                {conversation.amount
+                  ? `$${conversation.amount}`
+                  : '-'}
+              </TableCell>
+              <TableCell>
+                {conversation.callDate.toLocaleDateString()}
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        router.push(
+                          `/home/conversations/${conversation.id}`,
+                        )
+                      }
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    {conversation.transcript && (
+                      <DropdownMenuItem>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        View Transcript
+                      </DropdownMenuItem>
+                    )}
+                    {conversation.duration > 0 && (
+                      <DropdownMenuItem>
+                        <Play className="mr-2 h-4 w-4" />
+                        Listen to Call
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem>
+                      <Headphones className="mr-2 h-4 w-4" />
+                      AI Summary
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

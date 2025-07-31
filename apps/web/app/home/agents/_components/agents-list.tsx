@@ -67,7 +67,7 @@ interface Agent {
   tone: string;
   voiceId: string;
   voiceName: string;
-  status: 'active' | 'inactive' | 'training' | 'paused';
+  status: 'active' | 'inactive' | 'training' | 'agent_paused';
   campaigns: number;
   totalCalls: number;
   successRate: number;
@@ -521,29 +521,29 @@ const mockAgents: Agent[] = [
     },
     tags: ['new', 'testing'],
   },
-  {
-    id: 'lisa',
-    name: 'Lisa',
-    language: 'English',
-    tone: 'Calm and reassuring',
-    voiceId: 'voice_lisa_005',
-    voiceName: 'Lisa',
-    status: 'paused',
-    campaigns: 1,
-    totalCalls: 67,
-    successRate: 18.5,
-    defaultScript:
-      "Hello, this is Lisa calling from [Organization]. I hope you're having a wonderful day...",
-    createdAt: '2024-03-20',
-    lastActive: '2 days ago',
-    performance: {
-      callsToday: 0,
-      conversionsToday: 0,
-      avgCallDuration: 4.0,
-      satisfactionScore: 4.7,
+      {
+      id: 'lisa',
+      name: 'Lisa',
+      language: 'English',
+      tone: 'Calm and reassuring',
+      voiceId: 'voice_lisa_005',
+      voiceName: 'Lisa',
+      status: 'agent_paused',
+      campaigns: 1,
+      totalCalls: 67,
+      successRate: 18.5,
+      defaultScript:
+        "Hello, this is Lisa calling from [Organization]. I hope you're having a wonderful day...",
+      createdAt: '2024-03-20',
+      lastActive: '2 days ago',
+      performance: {
+        callsToday: 0,
+        conversionsToday: 0,
+        avgCallDuration: 4.0,
+        satisfactionScore: 4.7,
+      },
+      tags: ['paused', 'maintenance'],
     },
-    tags: ['paused', 'maintenance'],
-  },
 ];
 
 // Main Component

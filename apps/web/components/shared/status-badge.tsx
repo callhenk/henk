@@ -20,7 +20,7 @@ const statusConfig = {
     variant: 'outline' as const,
     className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
   },
-  paused: {
+  agent_paused: {
     variant: 'destructive' as const,
     className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   },
@@ -28,6 +28,10 @@ const statusConfig = {
   draft: {
     variant: 'secondary' as const,
     className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  },
+  campaign_paused: {
+    variant: 'outline' as const,
+    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
   },
   campaign_completed: {
     variant: 'default' as const,
@@ -57,12 +61,50 @@ const statusConfig = {
     variant: 'default' as const,
     className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
   },
-  conversation_completed: {
+  'in-progress': {
+    variant: 'default' as const,
+    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  },
+  completed: {
     variant: 'default' as const,
     className:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   },
-  conversation_failed: {
+  failed: {
+    variant: 'destructive' as const,
+    className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  },
+  'no-answer': {
+    variant: 'secondary' as const,
+    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  },
+  // Conversation outcomes
+  donated: {
+    variant: 'default' as const,
+    className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  },
+  'callback-requested': {
+    variant: 'default' as const,
+    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  },
+  'no-interest': {
+    variant: 'outline' as const,
+    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+  },
+  busy: {
+    variant: 'outline' as const,
+    className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+  },
+  // Sentiment
+  positive: {
+    variant: 'default' as const,
+    className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  },
+  neutral: {
+    variant: 'secondary' as const,
+    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  },
+  negative: {
     variant: 'destructive' as const,
     className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   },
