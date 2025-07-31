@@ -5,16 +5,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  Archive,
+  Copy,
   DollarSign,
   Edit,
   Eye,
   MoreHorizontal,
   Pause,
-  Phone,
   Play,
   Plus,
   Trash2,
   TrendingUp,
+  Users,
 } from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
@@ -30,6 +32,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
 import {
@@ -47,7 +50,8 @@ interface Campaign {
   name: string;
   status: 'draft' | 'active' | 'paused' | 'completed';
   agent: string;
-  calls: number;
+  leads: number;
+  contacted: number;
   conversions: number;
   revenue: number;
   startDate: string;
@@ -61,7 +65,8 @@ const mockCampaigns: Campaign[] = [
     name: 'Summer Fundraiser 2024',
     status: 'active',
     agent: 'Sarah',
-    calls: 124,
+    leads: 500,
+    contacted: 124,
     conversions: 29,
     revenue: 2847,
     startDate: '2024-06-01',
@@ -72,7 +77,8 @@ const mockCampaigns: Campaign[] = [
     name: 'Emergency Relief Fund',
     status: 'active',
     agent: 'Mike',
-    calls: 89,
+    leads: 300,
+    contacted: 89,
     conversions: 18,
     revenue: 1650,
     startDate: '2024-05-15',
@@ -83,7 +89,8 @@ const mockCampaigns: Campaign[] = [
     name: 'Annual Campaign 2024',
     status: 'draft',
     agent: 'Emma',
-    calls: 0,
+    leads: 1000,
+    contacted: 0,
     conversions: 0,
     revenue: 0,
     startDate: '2024-07-01',
@@ -94,112 +101,109 @@ const mockCampaigns: Campaign[] = [
     name: 'Holiday Giving',
     status: 'paused',
     agent: 'David',
-    calls: 45,
+    leads: 200,
+    contacted: 45,
     conversions: 12,
     revenue: 890,
     startDate: '2024-12-01',
+    endDate: '2024-12-31',
     description: 'Holiday season fundraising campaign',
   },
   {
     id: '5',
-    name: 'Community Support',
+    name: 'Q3 2024 Renewals',
     status: 'completed',
-    agent: 'Sarah',
-    calls: 200,
-    conversions: 45,
-    revenue: 5200,
-    startDate: '2024-03-01',
-    endDate: '2024-05-31',
-    description: 'Community support and development campaign',
+    agent: 'Lisa',
+    leads: 750,
+    contacted: 650,
+    conversions: 156,
+    revenue: 12500,
+    startDate: '2024-07-01',
+    endDate: '2024-09-30',
+    description: 'Quarterly renewal campaign for existing donors',
   },
 ];
 
 export function CampaignsList() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('all');
-
-  const getConversionRate = (calls: number, conversions: number) => {
-    if (calls === 0) return '0%';
-    return `${((conversions / calls) * 100).toFixed(1)}%`;
-  };
+  const [selectedTab, setSelectedTab] = useState('all');
 
   const getTotalStats = () => {
+    const totalCampaigns = mockCampaigns.length;
     const activeCampaigns = mockCampaigns.filter(
-      (campaign) => campaign.status === 'active',
-    );
-    const totalCalls = activeCampaigns.reduce(
-      (sum, campaign) => sum + campaign.calls,
-      0,
-    );
-    const totalConversions = activeCampaigns.reduce(
-      (sum, campaign) => sum + campaign.conversions,
-      0,
-    );
-    const totalRevenue = activeCampaigns.reduce(
-      (sum, campaign) => sum + campaign.revenue,
-      0,
-    );
+      (c) => c.status === 'active',
+    ).length;
+    const totalLeads = mockCampaigns.reduce((sum, c) => sum + c.leads, 0);
+    const totalRevenue = mockCampaigns.reduce((sum, c) => sum + c.revenue, 0);
 
     return {
-      calls: totalCalls,
-      conversions: totalConversions,
-      revenue: totalRevenue,
-      conversionRate: getConversionRate(totalCalls, totalConversions),
+      totalCampaigns,
+      activeCampaigns,
+      totalLeads,
+      totalRevenue,
     };
   };
 
-  const filteredCampaigns = mockCampaigns.filter((campaign) => {
-    if (activeTab === 'all') return true;
-    return campaign.status === activeTab;
-  });
+  const getFilteredCampaigns = () => {
+    switch (selectedTab) {
+      case 'active':
+        return mockCampaigns.filter((c) => c.status === 'active');
+      case 'draft':
+        return mockCampaigns.filter((c) => c.status === 'draft');
+      case 'paused':
+        return mockCampaigns.filter((c) => c.status === 'paused');
+      case 'completed':
+        return mockCampaigns.filter((c) => c.status === 'completed');
+      default:
+        return mockCampaigns;
+    }
+  };
 
   const stats = getTotalStats();
+  const filteredCampaigns = getFilteredCampaigns();
 
   return (
     <div className="space-y-6">
-      {/* Performance Stats */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
-            <Phone className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.calls}</div>
-            <p className="text-muted-foreground text-xs">
-              Across active campaigns
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-            <TrendingUp className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.conversions}</div>
-            <p className="text-muted-foreground text-xs">
-              Successful donations
-            </p>
-          </CardContent>
-        </Card>
-
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Conversion Rate
+              Total Campaigns
             </CardTitle>
             <TrendingUp className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.conversionRate}</div>
+            <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
+            <p className="text-muted-foreground text-xs">Across all statuses</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Active Campaigns
+            </CardTitle>
+            <Play className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeCampaigns}</div>
+            <p className="text-muted-foreground text-xs">Currently running</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+            <Users className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.totalLeads.toLocaleString()}
+            </div>
             <p className="text-muted-foreground text-xs">
-              Average success rate
+              Across all campaigns
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -207,10 +211,10 @@ export function CampaignsList() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${stats.revenue.toLocaleString()}
+              ${stats.totalRevenue.toLocaleString()}
             </div>
             <p className="text-muted-foreground text-xs">
-              From active campaigns
+              Generated from campaigns
             </p>
           </CardContent>
         </Card>
@@ -223,24 +227,17 @@ export function CampaignsList() {
             <div>
               <CardTitle>Campaigns</CardTitle>
               <CardDescription>
-                Manage your AI voice fundraising campaigns
+                Manage your fundraising campaigns and track performance
               </CardDescription>
             </div>
-            <Button
-              onClick={() => router.push('/home/campaigns/create')}
-              className="hover:bg-primary/90 transition-colors"
-            >
+            <Button onClick={() => router.push('/home/campaigns/create')}>
               <Plus className="mr-2 h-4 w-4" />
               Create Campaign
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
@@ -248,8 +245,7 @@ export function CampaignsList() {
               <TabsTrigger value="paused">Paused</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
-
-            <TabsContent value={activeTab} className="mt-6">
+            <TabsContent value={selectedTab} className="mt-6">
               <CampaignsTable campaigns={filteredCampaigns} />
             </TabsContent>
           </Tabs>
@@ -263,122 +259,117 @@ function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
   const router = useRouter();
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      active: 'default',
-      draft: 'secondary',
-      paused: 'outline',
-      completed: 'default',
-    } as const;
-
-    const colors = {
-      active:
-        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      draft: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-      paused:
-        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      completed:
-        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    };
-
-    return (
-      <Badge
-        variant={variants[status as keyof typeof variants]}
-        className={colors[status as keyof typeof colors]}
-      >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      case 'draft':
+        return <Badge variant="outline">Draft</Badge>;
+      case 'paused':
+        return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
+      case 'completed':
+        return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
-  const getConversionRate = (calls: number, conversions: number) => {
-    if (calls === 0) return '0%';
-    return `${((conversions / calls) * 100).toFixed(1)}%`;
+  const getConversionRate = (contacted: number, conversions: number) => {
+    if (contacted === 0) return 0;
+    return Math.round((conversions / contacted) * 100);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Campaign</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Agent</TableHead>
-            <TableHead>Calls</TableHead>
-            <TableHead>Conversions</TableHead>
-            <TableHead>Revenue</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Start Date</TableHead>
+          <TableHead>Leads</TableHead>
+          <TableHead>Contacted</TableHead>
+          <TableHead>Conversion %</TableHead>
+          <TableHead>Revenue</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {campaigns.map((campaign) => (
+          <TableRow key={campaign.id}>
+            <TableCell>
+              <div>
+                <div className="font-medium">{campaign.name}</div>
+                <div className="text-muted-foreground text-sm">
+                  {campaign.description}
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+            <TableCell>{formatDate(campaign.startDate)}</TableCell>
+            <TableCell>{campaign.leads.toLocaleString()}</TableCell>
+            <TableCell>{campaign.contacted.toLocaleString()}</TableCell>
+            <TableCell>
+              {getConversionRate(campaign.contacted, campaign.conversions)}%
+            </TableCell>
+            <TableCell>${campaign.revenue.toLocaleString()}</TableCell>
+            <TableCell className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(`/home/campaigns/${campaign.id}`)
+                    }
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(`/home/campaigns/${campaign.id}/edit`)
+                    }
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Duplicate
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {campaign.status === 'active' ? (
+                    <DropdownMenuItem>
+                      <Pause className="mr-2 h-4 w-4" />
+                      Pause
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem>
+                      <Play className="mr-2 h-4 w-4" />
+                      Activate
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {campaigns.map((campaign) => (
-            <TableRow key={campaign.id}>
-              <TableCell>
-                <div>
-                  <div className="font-medium">{campaign.name}</div>
-                  <div className="text-muted-foreground text-sm">
-                    {campaign.description}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>{getStatusBadge(campaign.status)}</TableCell>
-              <TableCell>{campaign.agent}</TableCell>
-              <TableCell>{campaign.calls.toLocaleString()}</TableCell>
-              <TableCell>
-                <div>
-                  <div>{campaign.conversions.toLocaleString()}</div>
-                  <div className="text-muted-foreground text-sm">
-                    {getConversionRate(campaign.calls, campaign.conversions)}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>${campaign.revenue.toLocaleString()}</TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(`/home/campaigns/${campaign.id}`)
-                      }
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(`/home/campaigns/${campaign.id}/edit`)
-                      }
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit Campaign
-                    </DropdownMenuItem>
-                    {campaign.status === 'active' && (
-                      <DropdownMenuItem>
-                        <Pause className="mr-2 h-4 w-4" />
-                        Pause Campaign
-                      </DropdownMenuItem>
-                    )}
-                    {campaign.status === 'paused' && (
-                      <DropdownMenuItem>
-                        <Play className="mr-2 h-4 w-4" />
-                        Resume Campaign
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Campaign
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
