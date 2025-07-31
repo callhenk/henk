@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
 import { WorkflowBuilder } from './workflow-builder';
+import { FAQEditor } from './faq-editor';
 
 const voiceTypes = [
   { value: 'elevenlabs', label: 'ElevenLabs' },
@@ -542,23 +543,12 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
+                <FAQEditor 
                   value={faqs}
-                  onChange={(e) => setFaqs(e.target.value)}
-                  className="min-h-[300px] resize-none"
-                  placeholder="Enter FAQs and responses..."
+                  onChange={setFaqs}
+                  onSave={() => handleSaveField('faqs', faqs)}
+                  isSaving={savingField === 'faqs'}
                 />
-                {hasFaqsChanges && (
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveField('faqs', faqs)}
-                      disabled={savingField === 'faqs'}
-                    >
-                      {savingField === 'faqs' ? 'Saving...' : 'Save FAQs'}
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

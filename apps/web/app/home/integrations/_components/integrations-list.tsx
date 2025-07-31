@@ -208,10 +208,10 @@ export function IntegrationsList() {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent align="start">
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
