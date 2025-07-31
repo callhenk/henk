@@ -23,6 +23,17 @@ import {
   Users,
 } from 'lucide-react';
 
+import type { Tables } from '@kit/supabase/database';
+// Import our Supabase hooks
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import {
+  useDeleteCampaign,
+  useUpdateCampaign,
+} from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
+import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -50,109 +61,144 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { StatsCard, StatusBadge } from '~/components/shared';
 
-interface Campaign {
-  id: string;
-  name: string;
-  status: 'draft' | 'active' | 'paused' | 'completed';
-  description: string;
-  agent: string;
-  leads: number;
-  contacted: number;
-  conversions: number;
-  revenue: number;
-  startDate: string;
-  endDate?: string;
-  callingHours: string;
-  maxAttempts: number;
-  dailyCallCap: number;
-  script: string;
-  retryLogic: string;
-}
-
-interface Lead {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  company?: string;
-  status: 'new' | 'contacted' | 'pledged' | 'failed';
-  lastContactDate?: string;
-  attempts: number;
-  notes?: string;
-}
-
-const mockCampaign: Campaign = {
-  id: '1',
-  name: 'Q3 2024 Renewals',
-  status: 'active',
-  description: 'Quarterly renewal campaign for existing donors',
-  agent: 'Lisa',
-  leads: 750,
-  contacted: 650,
-  conversions: 156,
-  revenue: 12500,
-  startDate: '2024-07-01',
-  endDate: '2024-09-30',
-  callingHours: '9:00 AM - 5:00 PM',
-  maxAttempts: 3,
-  dailyCallCap: 50,
-  script: 'Hello, this is Lisa calling from our organization...',
-  retryLogic: 'Retry after 24 hours if no answer',
-};
-
-const mockLeads: Lead[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.smith@email.com',
-    phone: '+1 (555) 123-4567',
-    company: 'Tech Corp',
-    status: 'pledged',
-    lastContactDate: '2024-08-15',
-    attempts: 1,
-    notes: 'Interested in monthly donation',
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.j@email.com',
-    phone: '+1 (555) 234-5678',
-    status: 'contacted',
-    lastContactDate: '2024-08-14',
-    attempts: 2,
-    notes: 'Requested callback next week',
-  },
-  {
-    id: '3',
-    name: 'Mike Davis',
-    email: 'mike.davis@email.com',
-    phone: '+1 (555) 345-6789',
-    company: 'Marketing Inc',
-    status: 'new',
-    attempts: 0,
-  },
-  {
-    id: '4',
-    name: 'Emily Wilson',
-    email: 'emily.w@email.com',
-    phone: '+1 (555) 456-7890',
-    status: 'failed',
-    lastContactDate: '2024-08-13',
-    attempts: 3,
-    notes: 'Not interested at this time',
-  },
-];
-
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('leads');
 
-  const getConversionRate = () => {
-    if (mockCampaign.contacted === 0) return 0;
-    return Math.round(
-      (mockCampaign.conversions / mockCampaign.contacted) * 100,
-    );
+  // Fetch real data
+  const { data: campaign, isLoading: loadingCampaign } =
+    useCampaign(campaignId);
+  const { data: leads = [] } = useLeads();
+  const { data: conversations = [] } = useConversations();
+  const { data: agents = [] } = useAgents();
+
+  // Mutations
+  const deleteCampaignMutation = useDeleteCampaign();
+  const updateCampaignMutation = useUpdateCampaign();
+  const deleteLeadMutation = useDeleteLead();
+
+  // Filter data for this campaign
+  const campaignLeads = leads.filter((lead) => lead.campaign_id === campaignId);
+  const campaignConversations = conversations.filter(
+    (conv) => conv.campaign_id === campaignId,
+  );
+  const assignedAgent = agents.find((agent) => agent.id === campaign?.agent_id);
+
+  // Calculate metrics
+  const contacted = campaignConversations.length;
+  const conversions = campaignConversations.filter(
+    (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+  ).length;
+  const conversionRate =
+    contacted > 0 ? Math.round((conversions / contacted) * 100) : 0;
+  const revenue = campaignLeads.reduce(
+    (sum, lead) => sum + (lead.donated_amount || 0),
+    0,
+  );
+
+  // Delete handlers
+  const handleDeleteCampaign = async () => {
+    if (!campaign) return;
+
+    try {
+      await deleteCampaignMutation.mutateAsync(campaignId);
+      router.push('/home/campaigns');
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+    }
   };
+
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      await deleteLeadMutation.mutateAsync(leadId);
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+    }
+  };
+
+  // Campaign status handlers
+  const handleActivateCampaign = async () => {
+    if (!campaign) return;
+
+    try {
+      await updateCampaignMutation.mutateAsync({
+        id: campaignId,
+        status: 'active',
+      });
+      console.log('Campaign activated successfully');
+    } catch (error) {
+      console.error('Failed to activate campaign:', error);
+    }
+  };
+
+  const handlePauseCampaign = async () => {
+    if (!campaign) return;
+
+    try {
+      await updateCampaignMutation.mutateAsync({
+        id: campaignId,
+        status: 'paused',
+      });
+      console.log('Campaign paused successfully');
+    } catch (error) {
+      console.error('Failed to pause campaign:', error);
+    }
+  };
+
+  // Show loading state while fetching campaign data
+  if (loadingCampaign) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/home/campaigns')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Campaigns
+            </Button>
+            <div className="bg-muted h-8 w-48 animate-pulse rounded"></div>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-muted h-24 animate-pulse rounded-lg"
+            ></div>
+          ))}
+        </div>
+        <div className="bg-muted h-64 animate-pulse rounded-lg"></div>
+      </div>
+    );
+  }
+
+  // Show error state if campaign not found
+  if (!campaign) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/home/campaigns')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Campaigns
+            </Button>
+          </div>
+        </div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">Campaign not found</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -168,12 +214,12 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             Back to Campaigns
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{mockCampaign.name}</h1>
-            <p className="text-muted-foreground">{mockCampaign.description}</p>
+            <h1 className="text-2xl font-bold">{campaign.name}</h1>
+            <p className="text-muted-foreground">{campaign.description}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <StatusBadge status={mockCampaign.status} />
+          <StatusBadge status={campaign.status} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -195,21 +241,42 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 Preview Call Script
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {mockCampaign.status === 'active' ? (
-                <DropdownMenuItem>
+              {campaign.status === 'active' ? (
+                <DropdownMenuItem
+                  onClick={handlePauseCampaign}
+                  disabled={updateCampaignMutation.isPending}
+                >
                   <Pause className="mr-2 h-4 w-4" />
-                  Pause Campaign
+                  {updateCampaignMutation.isPending
+                    ? 'Pausing...'
+                    : 'Pause Campaign'}
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleActivateCampaign}
+                  disabled={updateCampaignMutation.isPending}
+                >
                   <Play className="mr-2 h-4 w-4" />
-                  Activate Campaign
+                  {updateCampaignMutation.isPending
+                    ? 'Activating...'
+                    : 'Activate Campaign'}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Download className="mr-2 h-4 w-4" />
                 Export Results
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={handleDeleteCampaign}
+                disabled={deleteCampaignMutation.isPending}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {deleteCampaignMutation.isPending
+                  ? 'Deleting...'
+                  : 'Delete Campaign'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -220,29 +287,55 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Leads"
-          value={mockCampaign.leads.toLocaleString()}
+          value={campaignLeads.length.toLocaleString()}
           subtitle="Donors in campaign"
           icon={Users}
         />
         <StatsCard
           title="Contacted"
-          value={mockCampaign.contacted.toLocaleString()}
+          value={contacted.toLocaleString()}
           subtitle="Successfully reached"
           icon={Phone}
         />
         <StatsCard
           title="Successful"
-          value={mockCampaign.conversions.toLocaleString()}
-          subtitle={`${getConversionRate()}% conversion rate`}
+          value={conversions.toLocaleString()}
+          subtitle={`${conversionRate}% conversion rate`}
           icon={CheckCircle}
         />
         <StatsCard
           title="Revenue"
-          value={`$${mockCampaign.revenue.toLocaleString()}`}
+          value={`$${revenue.toLocaleString()}`}
           subtitle="Total donations"
           icon={DollarSign}
         />
       </div>
+
+      {/* Empty state for new campaigns */}
+      {campaignLeads.length === 0 && contacted === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <Users className="text-muted-foreground mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">
+              Campaign is ready to start
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              This campaign is set up but doesn&apos;t have any leads yet. Add
+              leads to begin making calls and tracking performance.
+            </p>
+            <div className="flex gap-2">
+              <Button>
+                <Upload className="mr-2 h-4 w-4" />
+                Add Leads
+              </Button>
+              <Button variant="outline">
+                <Link className="mr-2 h-4 w-4" />
+                Connect CRM
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Card>
@@ -271,7 +364,10 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   </Button>
                 </div>
               </div>
-              <LeadsTable leads={mockLeads} />
+              <LeadsTable
+                leads={campaignLeads}
+                onDeleteLead={handleDeleteLead}
+              />
             </TabsContent>
 
             <TabsContent value="agent" className="space-y-4">
@@ -282,7 +378,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   Reassign Agent
                 </Button>
               </div>
-              <AgentCard agent={mockCampaign.agent} />
+              <AgentCard agent={assignedAgent} />
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-4">
@@ -293,7 +389,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   Edit Settings
                 </Button>
               </div>
-              <SettingsCard campaign={mockCampaign} />
+              <SettingsCard campaign={campaign} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -302,15 +398,40 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   );
 }
 
-function LeadsTable({ leads }: { leads: Lead[] }) {
+function LeadsTable({
+  leads,
+  onDeleteLead,
+}: {
+  leads: Tables<'leads'>[];
+  onDeleteLead: (leadId: string) => Promise<void>;
+}) {
   const getLeadStatusBadge = (status: string) => {
     return <StatusBadge status={status} />;
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  };
+  // Empty state
+  if (leads.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Users className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="mb-2 text-lg font-semibold">No leads yet</h3>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          This campaign doesn&apos;t have any leads yet. Add leads to start
+          making calls and track donor interactions.
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Upload className="mr-2 h-4 w-4" />
+            Upload CSV
+          </Button>
+          <Button variant="outline">
+            <Link className="mr-2 h-4 w-4" />
+            Connect CRM
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Table>
@@ -339,8 +460,12 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
             <TableCell>{lead.phone}</TableCell>
             <TableCell>{lead.company || '-'}</TableCell>
             <TableCell>{getLeadStatusBadge(lead.status)}</TableCell>
-            <TableCell>{formatDate(lead.lastContactDate)}</TableCell>
-            <TableCell>{lead.attempts}</TableCell>
+            <TableCell>
+              {lead.last_contact_date
+                ? new Date(lead.last_contact_date).toLocaleDateString()
+                : 'Never'}
+            </TableCell>
+            <TableCell>{lead.attempts || 0}</TableCell>
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -358,7 +483,10 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
                     Retry Call
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => onDeleteLead(lead.id)}
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Remove
                   </DropdownMenuItem>
@@ -372,13 +500,34 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
   );
 }
 
-function AgentCard({ agent }: { agent: string }) {
+function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
+  if (!agent) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <User className="mr-2 h-5 w-5" />
+            No Agent Assigned
+          </CardTitle>
+          <CardDescription>
+            No AI voice agent assigned to this campaign
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm">
+            Please assign an agent to start making calls.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
           <User className="mr-2 h-5 w-5" />
-          {agent}
+          {agent.name}
         </CardTitle>
         <CardDescription>
           AI voice agent assigned to this campaign
@@ -389,13 +538,13 @@ function AgentCard({ agent }: { agent: string }) {
           <div>
             <h4 className="font-medium">Role</h4>
             <p className="text-muted-foreground text-sm">
-              Fundraising specialist with warm, persuasive tone
+              {agent.description || 'Fundraising specialist'}
             </p>
           </div>
           <div>
-            <h4 className="font-medium">Goal</h4>
+            <h4 className="font-medium">Tone</h4>
             <p className="text-muted-foreground text-sm">
-              Convert leads to monthly donors
+              {agent.speaking_tone || 'Default tone'}
             </p>
           </div>
         </div>
@@ -414,12 +563,7 @@ function AgentCard({ agent }: { agent: string }) {
   );
 }
 
-function SettingsCard({ campaign }: { campaign: Campaign }) {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  };
-
+function SettingsCard({ campaign }: { campaign: Tables<'campaigns'> }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
@@ -431,13 +575,17 @@ function SettingsCard({ campaign }: { campaign: Campaign }) {
             <div>
               <h4 className="font-medium">Start Date</h4>
               <p className="text-muted-foreground text-sm">
-                {formatDate(campaign.startDate)}
+                {campaign.start_date
+                  ? new Date(campaign.start_date).toLocaleDateString()
+                  : 'Never'}
               </p>
             </div>
             <div>
               <h4 className="font-medium">End Date</h4>
               <p className="text-muted-foreground text-sm">
-                {formatDate(campaign.endDate)}
+                {campaign.end_date
+                  ? new Date(campaign.end_date).toLocaleDateString()
+                  : 'Never'}
               </p>
             </div>
           </div>
@@ -445,20 +593,20 @@ function SettingsCard({ campaign }: { campaign: Campaign }) {
             <div>
               <h4 className="font-medium">Calling Hours</h4>
               <p className="text-muted-foreground text-sm">
-                {campaign.callingHours}
+                {campaign.calling_hours || '9:00-17:00'}
               </p>
             </div>
             <div>
               <h4 className="font-medium">Max Attempts</h4>
               <p className="text-muted-foreground text-sm">
-                {campaign.maxAttempts} per donor
+                {campaign.max_attempts || 3} per donor
               </p>
             </div>
           </div>
           <div>
             <h4 className="font-medium">Daily Call Cap</h4>
             <p className="text-muted-foreground text-sm">
-              {campaign.dailyCallCap} calls per day
+              {campaign.daily_call_cap || 100} calls per day
             </p>
           </div>
         </CardContent>
@@ -472,13 +620,15 @@ function SettingsCard({ campaign }: { campaign: Campaign }) {
           <div>
             <h4 className="font-medium">Call Script</h4>
             <p className="text-muted-foreground mt-1 text-sm">
-              {campaign.script.substring(0, 100)}...
+              {campaign.script
+                ? campaign.script.substring(0, 100) + '...'
+                : 'No script available'}
             </p>
           </div>
           <div>
             <h4 className="font-medium">Retry Logic</h4>
             <p className="text-muted-foreground mt-1 text-sm">
-              {campaign.retryLogic}
+              {campaign.retry_logic || 'Standard retry logic'}
             </p>
           </div>
         </CardContent>

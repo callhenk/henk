@@ -322,6 +322,25 @@ function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
+
+  // Empty state
+  if (campaigns.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <TrendingUp className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="mb-2 text-lg font-semibold">No campaigns yet</h3>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          You haven&apos;t created any campaigns yet. Create your first campaign
+          to start fundraising and track donor interactions.
+        </p>
+        <Button onClick={() => router.push('/home/campaigns/create')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Your First Campaign
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>
