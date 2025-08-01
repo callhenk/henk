@@ -57,9 +57,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
   useEffect(() => {
     if (value) {
       try {
-        console.log('value', value);
         const parsed = JSON.parse(value);
-        console.log('parsed', parsed);
         if (Array.isArray(parsed)) {
           setFaqs(parsed);
         } else if (typeof parsed === 'object') {

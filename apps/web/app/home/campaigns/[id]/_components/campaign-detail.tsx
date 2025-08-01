@@ -18,7 +18,6 @@ import {
   Play,
   Settings,
   Trash2,
-  Upload,
   User,
   Users,
 } from 'lucide-react';
@@ -60,6 +59,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { StatsCard, StatusBadge } from '~/components/shared';
+
+import { CSVUpload } from './csv-upload';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -311,32 +312,6 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         />
       </div>
 
-      {/* Empty state for new campaigns */}
-      {campaignLeads.length === 0 && contacted === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="text-muted-foreground mb-4 h-12 w-12" />
-            <h3 className="mb-2 text-lg font-semibold">
-              Campaign is ready to start
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              This campaign is set up but doesn&apos;t have any leads yet. Add
-              leads to begin making calls and tracking performance.
-            </p>
-            <div className="flex gap-2">
-              <Button>
-                <Upload className="mr-2 h-4 w-4" />
-                Add Leads
-              </Button>
-              <Button variant="outline">
-                <Link className="mr-2 h-4 w-4" />
-                Connect CRM
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Tabs */}
       <Card>
         <CardHeader>
@@ -354,10 +329,13 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Campaign Leads</h3>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload CSV
-                  </Button>
+                  <CSVUpload
+                    campaignId={campaignId}
+                    onSuccess={() => {
+                      // The mutation will automatically invalidate queries
+                      // No need to reload the page
+                    }}
+                  />
                   <Button variant="outline" size="sm">
                     <Link className="mr-2 h-4 w-4" />
                     Connect CRM
@@ -367,6 +345,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <LeadsTable
                 leads={campaignLeads}
                 onDeleteLead={handleDeleteLead}
+                campaignId={campaignId}
               />
             </TabsContent>
 
@@ -401,9 +380,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 function LeadsTable({
   leads,
   onDeleteLead,
+  campaignId,
 }: {
   leads: Tables<'leads'>[];
   onDeleteLead: (leadId: string) => Promise<void>;
+  campaignId: string;
 }) {
   const getLeadStatusBadge = (status: string) => {
     return <StatusBadge status={status} />;
@@ -420,10 +401,13 @@ function LeadsTable({
           making calls and track donor interactions.
         </p>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Upload CSV
-          </Button>
+          <CSVUpload
+            campaignId={campaignId}
+            onSuccess={() => {
+              // The mutation will automatically invalidate queries
+              // No need to reload the page
+            }}
+          />
           <Button variant="outline">
             <Link className="mr-2 h-4 w-4" />
             Connect CRM

@@ -139,6 +139,28 @@ export function CampaignForm({
     }
   }, [initialData, mode, form]);
 
+  // Handle agent selection and load default script
+  useEffect(() => {
+    const selectedAgentId = form.watch('agent_id');
+
+    if (selectedAgentId && agents.length > 0) {
+      const selectedAgent = agents.find(
+        (agent) => agent.id === selectedAgentId,
+      );
+
+      if (selectedAgent && selectedAgent.donor_context) {
+        // Load the agent's default script (donor_context) into the script field
+        form.setValue('script', selectedAgent.donor_context);
+      } else {
+        // Clear script if agent has no default script
+        form.setValue('script', '');
+      }
+    } else {
+      // Clear script if no agent is selected
+      form.setValue('script', '');
+    }
+  }, [form.watch('agent_id'), agents, form]);
+
   const onSubmit = async (data: CampaignFormData) => {
     if (!user?.id) {
       console.error('User not authenticated');
@@ -391,7 +413,25 @@ export function CampaignForm({
                     Select Agent
                   </FormLabel>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+
+                      // Load the selected agent's default script
+                      if (value && agents.length > 0) {
+                        const selectedAgent = agents.find(
+                          (agent) => agent.id === value,
+                        );
+                        if (selectedAgent && selectedAgent.donor_context) {
+                          form.setValue('script', selectedAgent.donor_context);
+                        } else {
+                          // Clear script if agent has no default script
+                          form.setValue('script', '');
+                        }
+                      } else {
+                        // Clear script if no agent is selected
+                        form.setValue('script', '');
+                      }
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -414,7 +454,8 @@ export function CampaignForm({
                   </Select>
                   <FormDescription>
                     Preview each agent&apos;s voice and style to find the
-                    perfect match
+                    perfect match. The agent&apos;s default script will be
+                    loaded automatically.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -451,7 +492,9 @@ export function CampaignForm({
                   </FormControl>
                   <FormDescription>
                     Write a natural, conversational script. Your AI agent will
-                    adapt this based on the conversation flow.
+                    adapt this based on the conversation flow. This script is
+                    pre-filled with the selected agent&apos;s default prompt but
+                    can be customized for your specific campaign.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
