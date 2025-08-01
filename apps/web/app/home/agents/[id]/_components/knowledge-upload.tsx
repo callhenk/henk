@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 
 import { Download, Eye, File, Trash2, Upload } from 'lucide-react';
+import { FileDrop } from 'react-file-drop';
 
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Badge } from '@kit/ui/badge';
@@ -43,85 +44,102 @@ export function KnowledgeUpload({
 
   const updateAgentMutation = useUpdateAgent();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: KnowledgeFile[] = acceptedFiles.map((file: File) => ({
-      id: `${Date.now()}-${Math.random()}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      uploadedAt: new Date().toISOString(),
-      status: 'uploading',
-      progress: 0,
-    }));
+  const handleFileUpload = useCallback(
+    async (files: File[], knowledgeFiles: KnowledgeFile[]) => {
+      setUploading(true);
 
-    setFiles((prev) => [...prev, ...newFiles]);
-    handleFileUpload(acceptedFiles, newFiles);
-  }, []);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const knowledgeFile = knowledgeFiles[i];
+
+        if (!file || !knowledgeFile) continue;
+
+        try {
+          // Simulate file upload progress
+          for (let progress = 0; progress <= 100; progress += 10) {
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.id === knowledgeFile.id ? { ...f, progress } : f,
+              ),
+            );
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          // Update file status to processing
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === knowledgeFile.id ? { ...f, status: 'processing' } : f,
+            ),
+          );
+
+          // Simulate processing time
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Update file status to completed
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === knowledgeFile.id ? { ...f, status: 'completed' } : f,
+            ),
+          );
+
+          // Save to database (this would be your actual upload logic)
+          await saveKnowledgeToDatabase(file, knowledgeFile);
+        } catch (error) {
+          console.error('Upload failed:', error);
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === knowledgeFile.id
+                ? { ...f, status: 'error', error: 'Upload failed' }
+                : f,
+            ),
+          );
+        }
+      }
+
+      setUploading(false);
+      onSaveSuccess?.();
+    },
+    [onSaveSuccess],
+  );
+
+  const onDrop = useCallback(
+    (files: FileList | null, _event: React.DragEvent<HTMLDivElement>) => {
+      if (!files) return;
+
+      const acceptedFiles = Array.from(files);
+      const newFiles: KnowledgeFile[] = acceptedFiles.map((file: File) => ({
+        id: `${Date.now()}-${Math.random()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString(),
+        status: 'uploading',
+        progress: 0,
+      }));
+
+      setFiles((prev) => [...prev, ...newFiles]);
+      handleFileUpload(acceptedFiles, newFiles);
+    },
+    [],
+  );
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
     if (selectedFiles) {
       const fileArray = Array.from(selectedFiles);
-      onDrop(fileArray);
+      const newFiles: KnowledgeFile[] = fileArray.map((file: File) => ({
+        id: `${Date.now()}-${Math.random()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString(),
+        status: 'uploading',
+        progress: 0,
+      }));
+
+      setFiles((prev) => [...prev, ...newFiles]);
+      handleFileUpload(fileArray, newFiles);
     }
-  };
-
-  const handleFileUpload = async (
-    files: File[],
-    knowledgeFiles: KnowledgeFile[],
-  ) => {
-    setUploading(true);
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const knowledgeFile = knowledgeFiles[i];
-
-      if (!file || !knowledgeFile) continue;
-
-      try {
-        // Simulate file upload progress
-        for (let progress = 0; progress <= 100; progress += 10) {
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.id === knowledgeFile.id ? { ...f, progress } : f,
-            ),
-          );
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
-        // Update file status to processing
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === knowledgeFile.id ? { ...f, status: 'processing' } : f,
-          ),
-        );
-
-        // Simulate processing time
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Update file status to completed
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === knowledgeFile.id ? { ...f, status: 'completed' } : f,
-          ),
-        );
-
-        // Save to database (this would be your actual upload logic)
-        await saveKnowledgeToDatabase(file, knowledgeFile);
-      } catch (error) {
-        console.error('Upload failed:', error);
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === knowledgeFile.id
-              ? { ...f, status: 'error', error: 'Upload failed' }
-              : f,
-          ),
-        );
-      }
-    }
-
-    setUploading(false);
-    onSaveSuccess?.();
   };
 
   const saveKnowledgeToDatabase = async (
@@ -205,29 +223,30 @@ export function KnowledgeUpload({
     <div className="space-y-6">
       {/* Upload Area */}
 
-      <CardContent>
-        <div className="border-muted-foreground/25 hover:border-primary/50 rounded-lg border-2 border-dashed p-8 text-center transition-colors">
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.txt,.csv,.json"
-            onChange={handleFileSelect}
-            className="hidden"
-            id="file-upload"
-          />
-          <label htmlFor="file-upload" className="cursor-pointer">
-            <Upload className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-            <p className="mb-2 text-lg font-medium">Click to browse files</p>
-            <p className="text-muted-foreground mb-4 text-sm">
-              or drag and drop files here
-            </p>
-            <div className="text-muted-foreground space-y-1 text-xs">
-              <p>Supported formats: PDF, DOC, DOCX, TXT, CSV, JSON</p>
-              <p>Maximum file size: 10MB per file</p>
-            </div>
-          </label>
-        </div>
-      </CardContent>
+      <FileDrop
+        onDrop={onDrop}
+        className="border-muted-foreground/25 hover:border-primary/50 cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors"
+      >
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt,.csv,.json"
+          onChange={handleFileSelect}
+          className="hidden"
+          id="file-upload"
+        />
+        <label htmlFor="file-upload" className="cursor-pointer">
+          <Upload className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+          <p className="mb-2 text-lg font-medium">Click to browse files</p>
+          <p className="text-muted-foreground mb-4 text-sm">
+            or drag and drop files here
+          </p>
+          <div className="text-muted-foreground space-y-1 text-xs">
+            <p>Supported formats: PDF, DOC, DOCX, TXT, CSV, JSON</p>
+            <p>Maximum file size: 10MB per file</p>
+          </div>
+        </label>
+      </FileDrop>
 
       {/* File List */}
       {files.length > 0 && (

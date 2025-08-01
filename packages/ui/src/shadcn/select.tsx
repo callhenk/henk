@@ -32,7 +32,9 @@ const SelectTrigger: React.FC<
     )}
     {...props}
   >
-    <div className="flex-1 truncate text-left">{children}</div>
+    <div className="flex flex-1 items-center truncate text-left">
+      {children}
+    </div>
     <SelectPrimitive.Icon asChild>
       <CaretSortIcon className="ml-2 h-4 w-4 flex-shrink-0 opacity-50" />
     </SelectPrimitive.Icon>

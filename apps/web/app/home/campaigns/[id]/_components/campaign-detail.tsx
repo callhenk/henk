@@ -749,6 +749,7 @@ function EditableLeadRow({
     company: lead.company || '',
   });
   const [savingField, setSavingField] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleSaveField = async (fieldName: string, value: string) => {
     setSavingField(fieldName);
@@ -759,6 +760,19 @@ function EditableLeadRow({
       console.error(`Failed to update ${fieldName}:`, error);
       setSavingField(null);
     }
+  };
+
+  const confirmDelete = (id: string) => {
+    setDeletingId(id);
+  };
+
+  const deleteLead = async (id: string) => {
+    await onDelete(id);
+    setDeletingId(null);
+  };
+
+  const cancelDelete = () => {
+    setDeletingId(null);
   };
 
   const getLeadStatusBadge = (status: string) => {
@@ -851,7 +865,7 @@ function EditableLeadRow({
       </TableCell>
       <TableCell>{lead.attempts || 0}</TableCell>
       <TableCell className="text-right">
-        <DropdownMenu>
+        <DropdownMenu open={deletingId === lead.id ? true : undefined}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
               <MoreHorizontal className="h-4 w-4" />
@@ -878,13 +892,35 @@ function EditableLeadRow({
               Retry Call
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => onDelete(lead.id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Remove
-            </DropdownMenuItem>
+            {deletingId === lead.id ? (
+              <div className="flex gap-1 p-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => deleteLead(lead.id)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Delete
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={cancelDelete}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => confirmDelete(lead.id)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>

@@ -69,8 +69,8 @@ export function SearchFilters({
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="w-[200px]">
-            <Filter className="mr-2 h-4 w-4" />
+          <SelectTrigger className="flex w-[200px] items-center">
+            <Filter className="mr-2 h-4 w-4 flex-shrink-0" />
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent align="start">
@@ -82,8 +82,8 @@ export function SearchFilters({
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={onSortByChange}>
-          <SelectTrigger className="w-[200px]">
-            <SortAsc className="mr-2 h-4 w-4" />
+          <SelectTrigger className="flex w-[200px] items-center">
+            <SortAsc className="mr-2 h-4 w-4 flex-shrink-0" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent align="start">
