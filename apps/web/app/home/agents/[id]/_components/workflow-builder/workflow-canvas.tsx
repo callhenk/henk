@@ -75,17 +75,56 @@ export function WorkflowCanvas({
             nodeTypes={nodeTypes}
             fitView
             className="h-full"
-            connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
+            connectionLineStyle={{
+              stroke: '#3b82f6',
+              strokeWidth: 3,
+              strokeDasharray: '5,5',
+            }}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
-              style: { stroke: '#3b82f6', strokeWidth: 2 },
+              style: {
+                stroke: '#3b82f6',
+                strokeWidth: 3,
+                zIndex: 5,
+              },
             }}
             onPaneClick={onPaneClick}
+            snapToGrid={true}
+            snapGrid={[15, 15]}
+            deleteKeyCode="Delete"
+            multiSelectionKeyCode="Shift"
+            panOnDrag={true}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            zoomOnDoubleClick={false}
+            preventScrolling={true}
+            style={{
+              backgroundColor: '#f8fafc',
+            }}
           >
-            <Controls />
-            <MiniMap />
-            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+            <Controls
+              showZoom={true}
+              showFitView={true}
+              showInteractive={true}
+              position="bottom-right"
+            />
+            <MiniMap
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+              }}
+              nodeColor="#3b82f6"
+              nodeStrokeWidth={3}
+              zoomable
+              pannable
+            />
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={20}
+              size={1}
+              color="#cbd5e1"
+            />
           </ReactFlow>
         )}
       </CardContent>

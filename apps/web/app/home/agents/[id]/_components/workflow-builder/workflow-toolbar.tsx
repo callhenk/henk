@@ -1,9 +1,9 @@
 'use client';
 
-import { FileText, Plus, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
+import { FileText, Plus, RotateCcw, RotateCw, Trash2, X } from 'lucide-react';
+import { type Edge, type Node } from 'reactflow';
 
 import { Button } from '@kit/ui/button';
-import { type Node, type Edge } from 'reactflow';
 
 interface WorkflowToolbarProps {
   historyIndex: number;
@@ -32,6 +32,8 @@ export function WorkflowToolbar({
   selectedEdge,
   onOpenTemplateDialog,
 }: WorkflowToolbarProps) {
+  const hasSelection = selectedNode || selectedEdge;
+
   return (
     <div className="mb-4 flex items-center justify-between">
       <div>
@@ -40,6 +42,28 @@ export function WorkflowToolbar({
           Create and edit your agent&apos;s call workflow with visual
           connections
         </p>
+        {hasSelection && (
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs text-blue-700">
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <span>
+                {selectedNode ? `Selected: ${selectedNode.data.label}` : ''}
+                {selectedEdge ? 'Selected: Connection' : ''}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (selectedNode) onDeleteNode();
+                if (selectedEdge) onDeleteEdge();
+              }}
+              className="h-6 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
       </div>
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={onOpenTemplateDialog}>
@@ -74,26 +98,18 @@ export function WorkflowToolbar({
           <Plus className="mr-2 h-4 w-4" />
           Add Action
         </Button>
-        {selectedNode && (
+        {hasSelection && (
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
-            onClick={onDeleteNode}
-            className="text-red-600 hover:text-red-700"
+            onClick={() => {
+              if (selectedNode) onDeleteNode();
+              if (selectedEdge) onDeleteEdge();
+            }}
+            title="Delete selected element (Delete key)"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete Node
-          </Button>
-        )}
-        {selectedEdge && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDeleteEdge}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete Connection
+            Delete
           </Button>
         )}
       </div>

@@ -20,14 +20,25 @@ export const nodeTypes = {
   end: EndNode,
 };
 
-// Enhanced Custom Node Components with Handles
-function StartNode({ data }: { data: { label: string } }) {
+// Enhanced Custom Node Components with better selection visibility and connection handles
+function StartNode({
+  data,
+  selected,
+}: {
+  data: { label: string };
+  selected?: boolean;
+}) {
   return (
-    <div className="flex h-16 w-40 items-center justify-center rounded-lg border-2 border-green-500 bg-green-100 shadow-lg">
+    <div
+      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-green-500 bg-green-100 shadow-lg transition-all ${
+        selected ? 'scale-105 ring-4 ring-green-300 ring-offset-2' : ''
+      }`}
+    >
       <Handle
         type="source"
         position={Position.Bottom}
-        className="h-3 w-3 bg-green-500"
+        className="h-4 w-4 bg-green-500 transition-colors hover:bg-green-600"
+        style={{ zIndex: 10 }}
       />
       <Play className="mr-2 h-5 w-5 text-green-600" />
       <span className="text-sm font-medium text-green-800">{data.label}</span>
@@ -37,30 +48,40 @@ function StartNode({ data }: { data: { label: string } }) {
 
 function DecisionNode({
   data,
+  selected,
 }: {
   data: { label: string; options?: string[] };
+  selected?: boolean;
 }) {
   return (
-    <div className="flex h-24 w-48 flex-col items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-100 shadow-lg">
+    <div
+      className={`flex h-24 w-48 flex-col items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-100 shadow-lg transition-all ${
+        selected ? 'scale-105 ring-4 ring-blue-300 ring-offset-2' : ''
+      }`}
+    >
       <Handle
         type="target"
         position={Position.Top}
-        className="h-3 w-3 bg-blue-500"
+        className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
+        style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="h-3 w-3 bg-blue-500"
+        className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
+        style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Left}
-        className="h-3 w-3 bg-blue-500"
+        className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
+        style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="h-3 w-3 bg-blue-500"
+        className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
+        style={{ zIndex: 10 }}
       />
 
       <div className="mb-2 flex items-center">
@@ -80,8 +101,10 @@ function DecisionNode({
 
 function ActionNode({
   data,
+  selected,
 }: {
   data: { label: string; description: string; action: string };
+  selected?: boolean;
 }) {
   const getActionIcon = (action: string) => {
     switch (action) {
@@ -99,16 +122,22 @@ function ActionNode({
   };
 
   return (
-    <div className="flex h-20 w-44 flex-col items-center justify-center rounded-lg border-2 border-gray-500 bg-gray-100 shadow-lg">
+    <div
+      className={`flex h-20 w-44 flex-col items-center justify-center rounded-lg border-2 border-gray-500 bg-gray-100 shadow-lg transition-all ${
+        selected ? 'scale-105 ring-4 ring-gray-300 ring-offset-2' : ''
+      }`}
+    >
       <Handle
         type="target"
         position={Position.Top}
-        className="h-3 w-3 bg-gray-500"
+        className="h-4 w-4 bg-gray-500 transition-colors hover:bg-gray-600"
+        style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="h-3 w-3 bg-gray-500"
+        className="h-4 w-4 bg-gray-500 transition-colors hover:bg-gray-600"
+        style={{ zIndex: 10 }}
       />
 
       <div className="mb-1 flex items-center">
@@ -124,13 +153,24 @@ function ActionNode({
   );
 }
 
-function EndNode({ data }: { data: { label: string } }) {
+function EndNode({
+  data,
+  selected,
+}: {
+  data: { label: string };
+  selected?: boolean;
+}) {
   return (
-    <div className="flex h-16 w-40 items-center justify-center rounded-lg border-2 border-red-500 bg-red-100 shadow-lg">
+    <div
+      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-red-500 bg-red-100 shadow-lg transition-all ${
+        selected ? 'scale-105 ring-4 ring-red-300 ring-offset-2' : ''
+      }`}
+    >
       <Handle
         type="target"
         position={Position.Top}
-        className="h-3 w-3 bg-red-500"
+        className="h-4 w-4 bg-red-500 transition-colors hover:bg-red-600"
+        style={{ zIndex: 10 }}
       />
       <XCircle className="mr-2 h-5 w-5 text-red-600" />
       <span className="text-sm font-medium text-red-800">{data.label}</span>

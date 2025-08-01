@@ -1,8 +1,3 @@
----
-description: Outlines our development standards and project structure for consistent, maintainable code.
-alwaysApply: true
----
-
 # Development Standards
 
 ## 🏗 Architecture Principles
@@ -12,8 +7,8 @@ alwaysApply: true
 - **apps/web**: Main Next.js application
 - **packages/ui**: Reusable UI components (`@kit/ui`)
 - **packages/features**: Modular feature packages
-- **packages/supabase**: Database utilities
-- **packages/shared**: Shared utilities and hooks
+- **packages/supabase**: Database utilities and hooks
+- **packages/shared**: Shared utilities and types
 
 ### **Component Organization**
 
@@ -27,7 +22,7 @@ import { PageBody, PageHeader } from '@kit/ui/page';
 // packages/ui/src/henk/form-section.tsx
 
 // ❌ Avoid: Creating duplicate components
-// Don’t recreate Button, Card, etc.—use @kit/ui
+// Don't recreate Button, Card, etc.—use @kit/ui
 ```
 
 ## 📝 Code Standards
@@ -47,6 +42,12 @@ interface Campaign {
   startDate: string;
   endDate?: string;
   description: string;
+  agent_id: string;
+  calling_hours: string;
+  max_attempts: number;
+  daily_call_cap: number;
+  script: string;
+  retry_logic: string;
 }
 
 // ✅ Good: Strict typing for props
@@ -74,7 +75,7 @@ export default function CampaignsPage() {
     <>
       <PageHeader
         title="Campaigns"
-        description="Manage your fundraising campaigns"
+        description="Manage your AI voice fundraising campaigns"
       />
       <PageBody>
         <CampaignsList />
@@ -87,10 +88,11 @@ export default function CampaignsPage() {
 export function CampaignsList() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getFilteredCampaigns = useCallback(() => {
     // Filter logic
-  }, [selectedTab]);
+  }, [selectedTab, searchTerm]);
 }
 ```
 
@@ -130,7 +132,7 @@ export function CampaignsList() {
 ### **Page Layout Patterns**
 
 ```typescript
-// ✅ Standard page structure
+// ✅ Standard page structure with proper padding
 export default function ExamplePage() {
   return (
     <>
@@ -138,8 +140,8 @@ export default function ExamplePage() {
         title="Page Title"
         description="Page description"
       />
-      <PageBody className="py-8">
-        {/* Content with proper vertical padding */}
+      <PageBody>
+        {/* Content with automatic padding from layout */}
       </PageBody>
     </>
   );
@@ -199,6 +201,33 @@ export function CampaignForm() {
 </Table>
 ```
 
+### **Empty State Patterns**
+
+```typescript
+// ✅ Good: Proper empty state handling
+export function ConversationsList() {
+  if (conversations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
+        <p className="text-muted-foreground mb-4">
+          Start a campaign to begin generating conversations
+        </p>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/home/campaigns')}>
+            Create Campaign
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/home/analytics')}>
+            View Analytics
+          </Button>
+        </div>
+      </div>
+    );
+  }
+}
+```
+
 ## 🔧 Component Guidelines
 
 ### **Reusable Components**
@@ -214,7 +243,7 @@ export function CampaignForm() {
 // ✅ Good: Proper component structure
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
@@ -229,9 +258,9 @@ export function ComponentName({ prop }: ComponentProps) {
   const [state, setState] = useState();
 
   // Helper functions
-  const handleAction = () => {
+  const handleAction = useCallback(() => {
     // Action logic
-  };
+  }, []);
 
   // Render
   return (
@@ -271,24 +300,38 @@ export function LoadingOverlay() {
 
 ## 📊 Data Management
 
-### **Mock Data Standards**
+### **Supabase Hooks Usage**
 
 ```typescript
-// ✅ Good: Comprehensive mock data
-const mockCampaigns: Campaign[] = [
-  {
-    id: '1',
-    name: 'Summer Fundraiser 2024',
-    status: 'active',
-    leads: 500,
-    contacted: 124,
-    conversions: 29,
-    revenue: 2847,
-    startDate: '2024-06-01',
-    description: 'Annual summer fundraising campaign',
-  },
-  // More realistic data...
-];
+// ✅ Good: Use Supabase hooks for data fetching
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+
+export function CampaignsList() {
+  const { data: campaigns = [], isLoading } = useCampaigns();
+  const { data: agents = [] } = useAgents();
+  const { data: conversations = [] } = useConversations();
+
+  // Enhanced data with calculated fields
+  const enhancedCampaigns = useMemo(() => {
+    return campaigns.map((campaign) => {
+      const agent = agents.find((a) => a.id === campaign.agent_id);
+      const campaignConversations = conversations.filter(
+        (conv) => conv.campaign_id === campaign.id,
+      );
+
+      return {
+        ...campaign,
+        agentName: agent?.name || 'Unknown',
+        contacted: campaignConversations.length,
+        conversions: campaignConversations.filter(
+          (conv) => conv.outcome === 'donated',
+        ).length,
+      };
+    });
+  }, [campaigns, agents, conversations]);
+}
 ```
 
 ### **State Management**
@@ -331,6 +374,26 @@ const WorkflowBuilder = dynamic(() => import('./workflow-builder'), {
 import { Plus, Edit, Trash2 } from 'lucide-react';
 ```
 
+### **Data Optimization**
+
+```typescript
+// ✅ Good: Efficient data filtering and calculations
+const filteredCampaigns = useMemo(() => {
+  return campaigns.filter((campaign) => {
+    if (selectedTab !== 'all' && campaign.status !== selectedTab) {
+      return false;
+    }
+    if (
+      searchTerm &&
+      !campaign.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+}, [campaigns, selectedTab, searchTerm]);
+```
+
 ## 🔍 Code Quality
 
 ### **Linting Standards**
@@ -339,6 +402,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 - **Use proper import/export** statements
 - **Follow ESLint rules** consistently
 - **Remove unused imports** and variables
+- **Use proper dependency arrays** in hooks
 
 ### **Documentation Standards**
 
@@ -373,6 +437,7 @@ interface Campaign {
 NEXT_PUBLIC_SITE_URL=https://app.callhenk.com
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
+ELEVENLABS_API_KEY=your_elevenlabs_key
 ```
 
 ### **Build Optimization**
@@ -382,6 +447,67 @@ SUPABASE_ANON_KEY=your_anon_key
 - **Optimize images and static assets**
 - **Use proper error boundaries**
 
+## 🎨 UI/UX Guidelines
+
+### **Layout Consistency**
+
+```typescript
+// ✅ Good: Consistent page structure
+export default function Page() {
+  return (
+    <>
+      <PageHeader
+        title="Page Title"
+        description="Page description"
+      />
+      <PageBody>
+        {/* Content with automatic responsive padding */}
+      </PageBody>
+    </>
+  );
+}
+```
+
+### **Responsive Design**
+
+```typescript
+// ✅ Good: Mobile-first responsive design
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  {/* Responsive grid */}
+</div>
+
+<div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+  {/* Responsive flex layout */}
+</div>
+```
+
+### **Accessibility**
+
+```typescript
+// ✅ Good: Proper accessibility attributes
+<Button
+  aria-label="Edit campaign"
+  onClick={handleEdit}
+>
+  <Edit className="h-4 w-4" />
+</Button>
+
+// ✅ Good: Proper form labels
+<FormField
+  control={form.control}
+  name="name"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Campaign Name</FormLabel>
+      <FormControl>
+        <Input placeholder="Enter campaign name" {...field} />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
 ## 📋 Checklist for New Features
 
 ### **Before Implementation**
@@ -390,19 +516,49 @@ SUPABASE_ANON_KEY=your_anon_key
 - [ ] Review similar pages for patterns
 - [ ] Plan proper TypeScript interfaces
 - [ ] Design responsive layout
+- [ ] Consider accessibility requirements
 
 ### **During Implementation**
 
 - [ ] Use `PageHeader` + `PageBody` structure
 - [ ] Implement proper loading states
-- [ ] Add comprehensive mock data
+- [ ] Add comprehensive data handling
 - [ ] Follow established styling patterns
 - [ ] Include proper error handling
+- [ ] Use Supabase hooks for data fetching
 
 ### **After Implementation**
 
 - [ ] Update documentation (markdown files)
 - [ ] Test responsive behavior
+- [ ] Verify TypeScript compliance
+- [ ] Check accessibility
+- [ ] Review performance impact
+- [ ] Run linting and fix issues
+
+## 🔧 Development Workflow
+
+### **Code Organization**
+
+1. **Follow the established file structure**
+2. **Use consistent naming conventions**
+3. **Group related components together**
+4. **Keep components focused and single-purpose**
+
+### **Testing Guidelines**
+
+- **Test responsive behavior** on different screen sizes
+- **Verify TypeScript types** are correct
+- **Check for accessibility** issues
+- **Test error states** and edge cases
+
+### **Performance Considerations**
+
+- **Use React.memo** for expensive components
+- **Implement proper loading states**
+- **Optimize data fetching** with proper caching
+- **Lazy load** heavy components when appropriate
+
 - [ ] Verify TypeScript compliance
 - [ ] Check accessibility
 - [ ] Review performance impact

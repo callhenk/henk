@@ -61,19 +61,46 @@ export function WorkflowBuilder() {
           undo();
         }
       }
+
+      // Delete key for selected elements
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        event.preventDefault();
+        if (selectedNode) {
+          deleteSelectedNode(selectedNode);
+          setSelectedNode(null);
+        } else if (selectedEdge) {
+          deleteSelectedEdge(selectedEdge);
+          setSelectedEdge(null);
+        }
+      }
+
+      // Escape key to clear selection
+      if (event.key === 'Escape') {
+        setSelectedNode(null);
+        setSelectedEdge(null);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, [
+    undo,
+    redo,
+    selectedNode,
+    selectedEdge,
+    deleteSelectedNode,
+    deleteSelectedEdge,
+  ]);
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
+    setSelectedEdge(null); // Clear edge selection when node is selected
     setIsNodeEditorOpen(true);
   }, []);
 
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
     setSelectedEdge(edge);
+    setSelectedNode(null); // Clear node selection when edge is selected
   }, []);
 
   const handleNodeSave = useCallback(
@@ -138,8 +165,8 @@ export function WorkflowBuilder() {
         onRedo={redo}
         onAddDecision={() => addNewNode('decision', { x: 100, y: 100 })}
         onAddAction={() => addNewNode('action', { x: 100, y: 100 })}
-        onDeleteNode={() => deleteSelectedNode(selectedNode)}
-        onDeleteEdge={() => deleteSelectedEdge(selectedEdge)}
+        onDeleteNode={() => selectedNode && deleteSelectedNode(selectedNode)}
+        onDeleteEdge={() => selectedEdge && deleteSelectedEdge(selectedEdge)}
         selectedNode={selectedNode}
         selectedEdge={selectedEdge}
         onOpenTemplateDialog={() => setIsTemplateDialogOpen(true)}
