@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -57,6 +57,7 @@ import {
   TableRow,
 } from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
+import { Textarea } from '@kit/ui/textarea';
 
 import { StatsCard, StatusBadge } from '~/components/shared';
 
@@ -65,7 +66,7 @@ import { ReassignAgentDialog } from './reassign-agent-dialog';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('leads');
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Fetch real data
   const { data: campaign, isLoading: loadingCampaign } =
@@ -78,6 +79,107 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const deleteCampaignMutation = useDeleteCampaign();
   const updateCampaignMutation = useUpdateCampaign();
   const deleteLeadMutation = useDeleteLead();
+
+  // State for inline editing
+  const [campaignName, setCampaignName] = useState('');
+  const [campaignDescription, setCampaignDescription] = useState('');
+  const [campaignScript, setCampaignScript] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [callingHours, setCallingHours] = useState('');
+  const [maxAttempts, setMaxAttempts] = useState('');
+  const [dailyCallCap, setDailyCallCap] = useState('');
+  const [retryLogic, setRetryLogic] = useState('');
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // Initialize form data when campaign loads
+  useEffect(() => {
+    if (campaign) {
+      setCampaignName(campaign.name || '');
+      setCampaignDescription(campaign.description || '');
+      setCampaignScript(campaign.script || '');
+      setStartDate(
+        campaign.start_date
+          ? new Date(campaign.start_date).toISOString().split('T')[0]
+          : '',
+      );
+      setEndDate(
+        campaign.end_date
+          ? new Date(campaign.end_date).toISOString().split('T')[0]
+          : '',
+      );
+      setCallingHours(campaign.calling_hours || '');
+      setMaxAttempts(campaign.max_attempts?.toString() || '');
+      setDailyCallCap(campaign.daily_call_cap?.toString() || '');
+      setRetryLogic(campaign.retry_logic || '');
+    }
+  }, [campaign]);
+
+  // Check if there are unsaved changes for each field
+  const hasNameChanges = campaignName !== (campaign?.name || '');
+  const hasDescriptionChanges =
+    campaignDescription !== (campaign?.description || '');
+  const hasScriptChanges = campaignScript !== (campaign?.script || '');
+  const hasStartDateChanges =
+    startDate !==
+    (campaign?.start_date
+      ? new Date(campaign.start_date).toISOString().split('T')[0]
+      : '');
+  const hasEndDateChanges =
+    endDate !==
+    (campaign?.end_date
+      ? new Date(campaign.end_date).toISOString().split('T')[0]
+      : '');
+  const hasCallingHoursChanges =
+    callingHours !== (campaign?.calling_hours || '');
+  const hasMaxAttemptsChanges =
+    maxAttempts !== (campaign?.max_attempts?.toString() || '');
+  const hasDailyCallCapChanges =
+    dailyCallCap !== (campaign?.daily_call_cap?.toString() || '');
+  const hasRetryLogicChanges = retryLogic !== (campaign?.retry_logic || '');
+
+  const handleSaveField = useCallback(
+    async (fieldName: string, value: string) => {
+      if (!campaign) return;
+
+      setSavingField(fieldName);
+      try {
+        const updateData = {
+          id: campaignId,
+          ...(fieldName === 'name' && { name: value }),
+          ...(fieldName === 'description' && { description: value }),
+          ...(fieldName === 'script' && { script: value }),
+          ...(fieldName === 'start_date' && { start_date: value }),
+          ...(fieldName === 'end_date' && { end_date: value }),
+          ...(fieldName === 'calling_hours' && { calling_hours: value }),
+          ...(fieldName === 'max_attempts' && {
+            max_attempts: parseInt(value) || 3,
+          }),
+          ...(fieldName === 'daily_call_cap' && {
+            daily_call_cap: parseInt(value) || 100,
+          }),
+          ...(fieldName === 'retry_logic' && { retry_logic: value }),
+        };
+
+        await updateCampaignMutation.mutateAsync(updateData);
+
+        // Show success message
+        setSaveSuccess(
+          `${fieldName === 'script' ? 'Script' : fieldName} saved successfully!`,
+        );
+        setTimeout(() => setSaveSuccess(null), 3000);
+      } catch (error) {
+        console.error(`Failed to save ${fieldName} changes:`, error);
+        alert(
+          `Failed to save ${fieldName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      } finally {
+        setSavingField(null);
+      }
+    },
+    [campaign, campaignId, updateCampaignMutation],
+  );
 
   // Filter data for this campaign
   const campaignLeads = leads.filter((lead) => lead.campaign_id === campaignId);
@@ -204,6 +306,13 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   return (
     <div className="space-y-6">
+      {/* Success Notification */}
+      {saveSuccess && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+          <p className="text-sm font-medium text-green-800">{saveSuccess}</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -230,11 +339,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() =>
-                  router.push(`/home/campaigns/${campaignId}/edit`)
-                }
-              >
+              <DropdownMenuItem onClick={() => setActiveTab('overview')}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Campaign
               </DropdownMenuItem>
@@ -315,17 +420,115 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
       {/* Tabs */}
       <Card>
-        <CardHeader>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <CardHeader>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="leads">Leads</TabsTrigger>
               <TabsTrigger value="agent">Agent</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          </CardHeader>
+          <CardContent>
+            <TabsContent value="overview" className="space-y-6">
+              <div className="space-y-6">
+                {/* Campaign Name */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Campaign Name</CardTitle>
+                    <CardDescription>
+                      The name of your campaign for easy identification
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      value={campaignName}
+                      onChange={(e) => setCampaignName(e.target.value)}
+                      className="min-h-[60px] resize-none"
+                      placeholder="Enter campaign name..."
+                    />
+                    {hasNameChanges && (
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveField('name', campaignName)}
+                          disabled={savingField === 'name'}
+                        >
+                          {savingField === 'name' ? 'Saving...' : 'Save Name'}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Campaign Description */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Campaign Description</CardTitle>
+                    <CardDescription>
+                      A brief description of your campaign goals and objectives
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      value={campaignDescription}
+                      onChange={(e) => setCampaignDescription(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                      placeholder="Enter campaign description..."
+                    />
+                    {hasDescriptionChanges && (
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleSaveField('description', campaignDescription)
+                          }
+                          disabled={savingField === 'description'}
+                        >
+                          {savingField === 'description'
+                            ? 'Saving...'
+                            : 'Save Description'}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Campaign Script */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Call Script</CardTitle>
+                    <CardDescription>
+                      The script that your AI agent will use during calls
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      value={campaignScript}
+                      onChange={(e) => setCampaignScript(e.target.value)}
+                      className="min-h-[200px] resize-none"
+                      placeholder="Enter call script..."
+                    />
+                    {hasScriptChanges && (
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleSaveField('script', campaignScript)
+                          }
+                          disabled={savingField === 'script'}
+                        >
+                          {savingField === 'script'
+                            ? 'Saving...'
+                            : 'Save Script'}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
             <TabsContent value="leads" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Campaign Leads</h3>
@@ -366,15 +569,41 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <TabsContent value="settings" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Campaign Settings</h3>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveTab('overview')}
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   Edit Settings
                 </Button>
               </div>
-              <SettingsCard campaign={campaign} />
+              <SettingsCard
+                campaign={campaign}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                callingHours={callingHours}
+                setCallingHours={setCallingHours}
+                maxAttempts={maxAttempts}
+                setMaxAttempts={setMaxAttempts}
+                dailyCallCap={dailyCallCap}
+                setDailyCallCap={setDailyCallCap}
+                retryLogic={retryLogic}
+                setRetryLogic={setRetryLogic}
+                hasStartDateChanges={hasStartDateChanges}
+                hasEndDateChanges={hasEndDateChanges}
+                hasCallingHoursChanges={hasCallingHoursChanges}
+                hasMaxAttemptsChanges={hasMaxAttemptsChanges}
+                hasDailyCallCapChanges={hasDailyCallCapChanges}
+                hasRetryLogicChanges={hasRetryLogicChanges}
+                handleSaveField={handleSaveField}
+                savingField={savingField}
+              />
             </TabsContent>
-          </Tabs>
-        </CardContent>
+          </CardContent>
+        </Tabs>
       </Card>
     </div>
   );
@@ -561,7 +790,51 @@ function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
   );
 }
 
-function SettingsCard({ campaign }: { campaign: Tables<'campaigns'> }) {
+function SettingsCard({
+  campaign,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  callingHours,
+  setCallingHours,
+  maxAttempts,
+  setMaxAttempts,
+  dailyCallCap,
+  setDailyCallCap,
+  retryLogic,
+  setRetryLogic,
+  hasStartDateChanges,
+  hasEndDateChanges,
+  hasCallingHoursChanges,
+  hasMaxAttemptsChanges,
+  hasDailyCallCapChanges,
+  hasRetryLogicChanges,
+  handleSaveField,
+  savingField,
+}: {
+  campaign: Tables<'campaigns'>;
+  startDate: string;
+  setStartDate: (value: string) => void;
+  endDate: string;
+  setEndDate: (value: string) => void;
+  callingHours: string;
+  setCallingHours: (value: string) => void;
+  maxAttempts: string;
+  setMaxAttempts: (value: string) => void;
+  dailyCallCap: string;
+  setDailyCallCap: (value: string) => void;
+  retryLogic: string;
+  setRetryLogic: (value: string) => void;
+  hasStartDateChanges: boolean;
+  hasEndDateChanges: boolean;
+  hasCallingHoursChanges: boolean;
+  hasMaxAttemptsChanges: boolean;
+  hasDailyCallCapChanges: boolean;
+  hasRetryLogicChanges: boolean;
+  handleSaveField: (fieldName: string, value: string) => Promise<void>;
+  savingField: string | null;
+}) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
@@ -572,40 +845,113 @@ function SettingsCard({ campaign }: { campaign: Tables<'campaigns'> }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium">Start Date</h4>
-              <p className="text-muted-foreground text-sm">
-                {campaign.start_date
-                  ? new Date(campaign.start_date).toLocaleDateString()
-                  : 'Never'}
-              </p>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+              {hasStartDateChanges && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveField('start_date', startDate)}
+                    disabled={savingField === 'start_date'}
+                  >
+                    {savingField === 'start_date' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <h4 className="font-medium">End Date</h4>
-              <p className="text-muted-foreground text-sm">
-                {campaign.end_date
-                  ? new Date(campaign.end_date).toLocaleDateString()
-                  : 'Never'}
-              </p>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+              {hasEndDateChanges && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveField('end_date', endDate)}
+                    disabled={savingField === 'end_date'}
+                  >
+                    {savingField === 'end_date' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium">Calling Hours</h4>
-              <p className="text-muted-foreground text-sm">
-                {campaign.calling_hours || '9:00-17:00'}
-              </p>
+              <input
+                type="text"
+                value={callingHours}
+                onChange={(e) => setCallingHours(e.target.value)}
+                placeholder="9:00-17:00"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+              {hasCallingHoursChanges && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      handleSaveField('calling_hours', callingHours)
+                    }
+                    disabled={savingField === 'calling_hours'}
+                  >
+                    {savingField === 'calling_hours' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <h4 className="font-medium">Max Attempts</h4>
-              <p className="text-muted-foreground text-sm">
-                {campaign.max_attempts || 3} per donor
-              </p>
+              <input
+                type="number"
+                value={maxAttempts}
+                onChange={(e) => setMaxAttempts(e.target.value)}
+                placeholder="3"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+              {hasMaxAttemptsChanges && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveField('max_attempts', maxAttempts)}
+                    disabled={savingField === 'max_attempts'}
+                  >
+                    {savingField === 'max_attempts' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <div>
             <h4 className="font-medium">Daily Call Cap</h4>
-            <p className="text-muted-foreground text-sm">
-              {campaign.daily_call_cap || 100} calls per day
-            </p>
+            <input
+              type="number"
+              value={dailyCallCap}
+              onChange={(e) => setDailyCallCap(e.target.value)}
+              placeholder="100"
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            />
+            {hasDailyCallCapChanges && (
+              <div className="mt-2 flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    handleSaveField('daily_call_cap', dailyCallCap)
+                  }
+                  disabled={savingField === 'daily_call_cap'}
+                >
+                  {savingField === 'daily_call_cap' ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -622,12 +968,29 @@ function SettingsCard({ campaign }: { campaign: Tables<'campaigns'> }) {
                 ? campaign.script.substring(0, 100) + '...'
                 : 'No script available'}
             </p>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Edit script in the Overview tab
+            </p>
           </div>
           <div>
             <h4 className="font-medium">Retry Logic</h4>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {campaign.retry_logic || 'Standard retry logic'}
-            </p>
+            <Textarea
+              value={retryLogic}
+              onChange={(e) => setRetryLogic(e.target.value)}
+              className="mt-1 min-h-[80px] resize-none"
+              placeholder="Standard retry logic..."
+            />
+            {hasRetryLogicChanges && (
+              <div className="mt-2 flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={() => handleSaveField('retry_logic', retryLogic)}
+                  disabled={savingField === 'retry_logic'}
+                >
+                  {savingField === 'retry_logic' ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

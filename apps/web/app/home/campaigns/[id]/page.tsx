@@ -13,7 +13,10 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
 
   return (
     <>
-      <PageHeader description={'Campaign details and performance'} />
+      <PageHeader
+        title="Campaign Details"
+        description={'Campaign details and performance'}
+      />
 
       <PageBody>
         <CampaignDetail campaignId={id} />

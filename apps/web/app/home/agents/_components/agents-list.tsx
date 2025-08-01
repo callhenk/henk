@@ -18,7 +18,6 @@ import {
   Play,
   Plus,
   RefreshCw,
-  Star,
   Target,
   Trash2,
   TrendingUp,
@@ -93,23 +92,6 @@ interface AgentTableRowProps {
 interface ViewToggleProps {
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
-}
-
-function SatisfactionStars({ score }: { score: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      {[...Array(5)].map((_, i) => (
-        <Star
-          key={i}
-          className={`h-3 w-3 ${
-            i < Math.floor(score)
-              ? 'fill-yellow-400 text-yellow-400'
-              : 'text-gray-300'
-          }`}
-        />
-      ))}
-    </div>
-  );
 }
 
 function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
@@ -197,17 +179,6 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
                 </div>
                 <div className="text-muted-foreground text-xs">Conversions</div>
               </div>
-            </div>
-
-            {/* Satisfaction Score */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Satisfaction</span>
-                <span className="font-medium">
-                  {agent.performance.satisfactionScore}/5
-                </span>
-              </div>
-              <SatisfactionStars score={agent.performance.satisfactionScore} />
             </div>
           </div>
         )}
