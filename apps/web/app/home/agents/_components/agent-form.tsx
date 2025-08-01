@@ -451,17 +451,13 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
             />
           </FormSection>
 
-          {/* Default Script */}
+          {/* Knowledge */}
           <FormSection
-            title="Default Script Template"
-            description="Create a compelling default script for your fundraising campaigns"
+            title="Knowledge"
+            description="Upload or enter knowledge that the agent can use during conversations."
             icon={<Settings className="h-5 w-5" />}
             color="green"
-            infoBox={{
-              title: 'Script Tips',
-              description:
-                "• Start with a warm, personal greeting\n• Clearly state your organization's mission\n• Include specific donation amounts or goals\n• End with a clear call-to-action",
-            }}
+            infoBox={undefined}
           >
             <FormField
               control={form.control}
@@ -469,23 +465,23 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>
-                    Donor Context
+                    Prompt
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., a potential donor, a long-time supporter, a new visitor"
+                      placeholder="Enter the prompt or context for the agent."
                       className={formFieldStyles.textarea}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    The context in which the agent is speaking to the donor
+                    The prompt or context that guides the agent&apos;s
+                    responses.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="faqs"
@@ -507,7 +503,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            />{' '}
           </FormSection>
 
           {/* Submit Buttons */}

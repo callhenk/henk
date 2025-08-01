@@ -571,9 +571,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Donor Context</CardTitle>
+                <CardTitle>Prompt</CardTitle>
                 <CardDescription>
-                  What the agent should know about specific donor groups
+                  The prompt or context that guides the agent&apos;s responses.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -581,7 +581,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   value={donorContext}
                   onChange={(e) => setDonorContext(e.target.value)}
                   className="min-h-[200px] resize-none"
-                  placeholder="Enter donor context information..."
+                  placeholder="Enter the prompt or context for the agent."
                 />
                 {hasDonorContextChanges && (
                   <div className="flex justify-end">
@@ -594,7 +594,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     >
                       {savingField === 'donor_context'
                         ? 'Saving...'
-                        : 'Save Donor Context'}
+                        : 'Save Prompt'}
                     </Button>
                   </div>
                 )}
