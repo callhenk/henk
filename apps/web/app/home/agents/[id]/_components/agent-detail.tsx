@@ -12,6 +12,7 @@ import {
   Phone,
   Play,
   TrendingUp,
+  Upload,
   Users,
   Volume2,
   Workflow,
@@ -42,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
 import { FAQEditor } from './faq-editor';
+import { KnowledgeUpload } from './knowledge-upload';
 import { WorkflowBuilder } from './workflow-builder';
 
 const voiceTypes = [
@@ -149,8 +151,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         };
 
         await updateAgentMutation.mutateAsync(updateData);
-
-        console.log(`Saved ${fieldName} changes...`, value);
 
         // Show success message
         setSaveSuccess(
@@ -480,7 +480,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         const result = await response.json();
 
                         if (result.success) {
-                          console.log('Voice test completed:', result.data);
                           alert(
                             `Voice Test Completed!\n\nAgent: ${result.data.agentName}\nVoice Type: ${result.data.voiceType}\nTone: ${result.data.speakingTone}\n\nTest Script:\n"${result.data.testScript}"\n\nStatus: ${result.data.status}\n\nNote: Audio playback will be available when ElevenLabs integration is complete.`,
                           );
@@ -488,7 +487,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                           throw new Error(result.error || 'Voice test failed');
                         }
                       } catch (error) {
-                        console.error('Voice test failed:', error);
                         alert(
                           `Voice test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
                         );
@@ -618,6 +616,28 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   agentId={agentId}
                   onSaveSuccess={() => {
                     setSaveSuccess('FAQs saved successfully!');
+                    setTimeout(() => setSaveSuccess(null), 3000);
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5" />
+                  Knowledge Documents
+                </CardTitle>
+                <CardDescription>
+                  Upload documents and files to enhance your agent&apos;s
+                  knowledge base
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <KnowledgeUpload
+                  agentId={agentId}
+                  onSaveSuccess={() => {
+                    setSaveSuccess('Knowledge documents saved successfully!');
                     setTimeout(() => setSaveSuccess(null), 3000);
                   }}
                 />

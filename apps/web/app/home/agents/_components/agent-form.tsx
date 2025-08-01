@@ -43,8 +43,6 @@ import {
   pageHeaderStyles,
 } from '~/components/form-styles';
 
-// FAQEditor removed - will be managed in agent detail view
-
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
   description: z.string().optional(),
@@ -161,7 +159,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
   const onSubmit = async (data: AgentFormData) => {
     if (!user?.id) {
-      console.error('User not authenticated');
       return;
     }
 
@@ -212,7 +209,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         router.push(`/home/agents/${agentId}`);
       }
     } catch (error) {
-      console.error('Error saving agent:', error);
+      // Handle error silently or show user-friendly message
     } finally {
       setIsSubmitting(false);
     }
@@ -525,9 +522,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                           size="sm"
                           onClick={() => {
                             // This will be handled after agent creation
-                            console.log(
-                              'FAQs will be managed in agent detail view',
-                            );
                           }}
                         >
                           Manage FAQs Later
