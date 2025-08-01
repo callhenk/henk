@@ -255,12 +255,18 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with Back Button */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={handleBack} size="sm">
+        <Button
+          variant="ghost"
+          onClick={handleBack}
+          size="sm"
+          className="text-sm"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Agents
+          <span className="hidden sm:inline">Back to Agents</span>
+          <span className="sm:hidden">Back</span>
         </Button>
       </div>
 
@@ -272,26 +278,38 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       )}
 
       {/* Agent Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
             <div>
-              <h1 className="text-2xl font-bold">{agent.name}</h1>
-              <p className="text-muted-foreground">{agent.description}</p>
+              <h1 className="text-xl font-bold sm:text-2xl">{agent.name}</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                {agent.description}
+              </p>
             </div>
           </div>
+        </div>
+        <div className="flex justify-start sm:justify-end">
           {getStatusBadge(agent.status)}
         </div>
       </div>
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
-          <TabsTrigger value="voice">Voice & Tone</TabsTrigger>
-          <TabsTrigger value="workflow">Workflow</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="knowledge" className="text-xs sm:text-sm">
+            Knowledge Base
+          </TabsTrigger>
+          <TabsTrigger value="voice" className="text-xs sm:text-sm">
+            Voice & Tone
+          </TabsTrigger>
+          <TabsTrigger value="workflow" className="text-xs sm:text-sm">
+            Workflow
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -299,7 +317,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Stats Cards */}
             <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
@@ -355,7 +373,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="text-muted-foreground text-sm font-medium">
                         Language
@@ -420,7 +438,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6 lg:col-span-1">
               {/* Default Script */}
               <Card>
                 <CardHeader>
@@ -703,12 +721,12 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     Record a 30-second sample for voice cloning
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline">
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button variant="outline" className="flex-1 sm:flex-none">
                     <Mic className="mr-2 h-4 w-4" />
                     Start Recording
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" className="flex-1 sm:flex-none">
                     <Play className="mr-2 h-4 w-4" />
                     Preview
                   </Button>

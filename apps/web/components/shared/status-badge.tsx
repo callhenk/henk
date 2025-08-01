@@ -10,109 +10,119 @@ const statusConfig = {
   active: {
     variant: 'default' as const,
     className:
-      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   },
   inactive: {
     variant: 'secondary' as const,
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+    className:
+      'bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400',
   },
   training: {
     variant: 'outline' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   agent_paused: {
     variant: 'outline' as const,
     className:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400',
   },
   // Campaign statuses
   draft: {
     variant: 'secondary' as const,
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+    className:
+      'bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400',
   },
   campaign_paused: {
     variant: 'outline' as const,
     className:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400',
   },
   campaign_completed: {
     variant: 'default' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   // Lead statuses
   new: {
     variant: 'outline' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   contacted: {
     variant: 'default' as const,
     className:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400',
   },
   pledged: {
     variant: 'default' as const,
     className:
-      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   },
   lead_failed: {
     variant: 'destructive' as const,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    className: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400',
   },
   // Conversation statuses
   ongoing: {
     variant: 'default' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   'in-progress': {
     variant: 'default' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   completed: {
     variant: 'default' as const,
     className:
-      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   },
   failed: {
     variant: 'destructive' as const,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    className: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400',
   },
   'no-answer': {
     variant: 'secondary' as const,
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+    className:
+      'bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400',
   },
   // Conversation outcomes
   donated: {
     variant: 'default' as const,
     className:
-      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   },
   'callback-requested': {
     variant: 'default' as const,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
   'no-interest': {
     variant: 'outline' as const,
     className:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400',
   },
   busy: {
     variant: 'outline' as const,
     className:
-      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400',
   },
   // Sentiment
   positive: {
     variant: 'default' as const,
     className:
-      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400',
   },
   neutral: {
     variant: 'secondary' as const,
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+    className:
+      'bg-gray-50 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400',
   },
   negative: {
     variant: 'destructive' as const,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    className: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400',
   },
 } as const;
 

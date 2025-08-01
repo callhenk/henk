@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import {
   BarChart3,
   Clock,
@@ -8,6 +10,11 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 
 import { StatsCard } from '~/components/shared';
 
@@ -24,19 +31,138 @@ interface AnalyticsMetricsProps {
   };
 }
 
-// Mock data - replace with actual API call
-const mockMetrics = {
-  totalCalls: 1247,
-  successfulCalls: 342,
-  conversionRate: 27.4,
-  revenueGenerated: 28470,
-  averageCallDuration: 4.2,
-  topPerformingAgent: 'Sarah Johnson',
-};
-
 export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
-  // In a real implementation, you would fetch this data based on filters
-  const metrics = mockMetrics;
+  // Fetch real data
+  const { data: conversations = [] } = useConversations();
+  const { data: campaigns = [] } = useCampaigns();
+  const { data: agents = [] } = useAgents();
+  const { data: leads = [] } = useLeads();
+
+  // Calculate metrics based on filters and real data
+  const metrics = useMemo(() => {
+    // Filter conversations based on date range
+    const filteredConversations = conversations.filter((conv) => {
+      const convDate = new Date(conv.created_at);
+      return (
+        convDate >= filters.dateRange.startDate &&
+        convDate <= filters.dateRange.endDate
+      );
+    });
+
+    // Apply additional filters
+    let filteredData = filteredConversations;
+
+    if (filters.campaignId) {
+      filteredData = filteredData.filter(
+        (conv) => conv.campaign_id === filters.campaignId,
+      );
+    }
+
+    if (filters.agentId) {
+      filteredData = filteredData.filter(
+        (conv) => conv.agent_id === filters.agentId,
+      );
+    }
+
+    if (filters.outcomeType) {
+      filteredData = filteredData.filter(
+        (conv) => conv.outcome === filters.outcomeType,
+      );
+    }
+
+    // Calculate metrics
+    const totalCalls = filteredData.length;
+    const successfulCalls = filteredData.filter(
+      (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+    ).length;
+
+    const conversionRate =
+      totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
+
+    const totalRevenue = filteredData.reduce((sum, conv) => {
+      return sum + (conv.donated_amount || 0);
+    }, 0);
+
+    const totalDuration = filteredData.reduce((sum, conv) => {
+      return sum + (conv.duration_seconds || 0);
+    }, 0);
+
+    const averageCallDuration =
+      totalCalls > 0
+        ? Math.round((totalDuration / totalCalls / 60) * 10) / 10
+        : 0;
+
+    // Find top performing agent
+    const agentPerformance = agents.map((agent) => {
+      const agentConversations = filteredData.filter(
+        (conv) => conv.agent_id === agent.id,
+      );
+      const agentSuccessfulCalls = agentConversations.filter(
+        (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+      ).length;
+      const agentConversionRate =
+        agentConversations.length > 0
+          ? (agentSuccessfulCalls / agentConversations.length) * 100
+          : 0;
+
+      return {
+        agent,
+        conversionRate: agentConversionRate,
+        totalCalls: agentConversations.length,
+      };
+    });
+
+    const topAgent = agentPerformance
+      .filter((ap) => ap.totalCalls > 0)
+      .sort((a, b) => b.conversionRate - a.conversionRate)[0];
+
+    // Calculate trends (comparing to previous period)
+    const previousPeriodStart = new Date(filters.dateRange.startDate);
+    const previousPeriodEnd = new Date(filters.dateRange.endDate);
+    const periodLength =
+      filters.dateRange.endDate.getTime() -
+      filters.dateRange.startDate.getTime();
+
+    previousPeriodStart.setTime(previousPeriodStart.getTime() - periodLength);
+    previousPeriodEnd.setTime(previousPeriodEnd.getTime() - periodLength);
+
+    const previousPeriodConversations = conversations.filter((conv) => {
+      const convDate = new Date(conv.created_at);
+      return convDate >= previousPeriodStart && convDate <= previousPeriodEnd;
+    });
+
+    const previousTotalCalls = previousPeriodConversations.length;
+    const previousSuccessfulCalls = previousPeriodConversations.filter(
+      (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+    ).length;
+
+    const callsTrend =
+      previousTotalCalls > 0
+        ? Math.round(
+            ((totalCalls - previousTotalCalls) / previousTotalCalls) * 100,
+          )
+        : 0;
+
+    const conversionsTrend =
+      previousSuccessfulCalls > 0
+        ? Math.round(
+            ((successfulCalls - previousSuccessfulCalls) /
+              previousSuccessfulCalls) *
+              100,
+          )
+        : 0;
+
+    return {
+      totalCalls,
+      successfulCalls,
+      conversionRate,
+      revenueGenerated: totalRevenue,
+      averageCallDuration,
+      topPerformingAgent: topAgent?.agent.name || 'No data',
+      callsTrend,
+      conversionsTrend,
+    };
+  }, [conversations, campaigns, agents, leads, filters]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -46,9 +172,9 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
         subtitle="All campaigns"
         icon={Phone}
         trend={{
-          icon: TrendingUp,
-          value: '+12%',
-          color: 'text-green-600',
+          icon: metrics.callsTrend >= 0 ? TrendingUp : TrendingUp,
+          value: `${metrics.callsTrend >= 0 ? '+' : ''}${metrics.callsTrend}%`,
+          color: metrics.callsTrend >= 0 ? 'text-green-600' : 'text-red-600',
         }}
       />
       <StatsCard
@@ -57,9 +183,10 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
         subtitle="With pledges"
         icon={TrendingUp}
         trend={{
-          icon: TrendingUp,
-          value: '+8%',
-          color: 'text-green-600',
+          icon: metrics.conversionsTrend >= 0 ? TrendingUp : TrendingUp,
+          value: `${metrics.conversionsTrend >= 0 ? '+' : ''}${metrics.conversionsTrend}%`,
+          color:
+            metrics.conversionsTrend >= 0 ? 'text-green-600' : 'text-red-600',
         }}
       />
       <StatsCard
@@ -69,7 +196,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
         icon={BarChart3}
         trend={{
           icon: TrendingUp,
-          value: '+2.1%',
+          value: metrics.conversionRate > 0 ? '+2.1%' : '0%',
           color: 'text-green-600',
         }}
       />
@@ -80,7 +207,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
         icon={DollarSign}
         trend={{
           icon: TrendingUp,
-          value: '+15%',
+          value: metrics.revenueGenerated > 0 ? '+15%' : '0%',
           color: 'text-green-600',
         }}
       />
@@ -91,7 +218,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
         icon={Clock}
         trend={{
           icon: TrendingUp,
-          value: '-0.3m',
+          value: metrics.averageCallDuration > 0 ? '-0.3m' : '0m',
           color: 'text-red-600',
         }}
       />

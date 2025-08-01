@@ -498,6 +498,38 @@ function ConversationsTable({
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Empty state
+  if (conversations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <MessageSquare className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="mb-2 text-lg font-semibold">No conversations yet</h3>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Conversations will appear here once your AI agents start making calls.
+          Check back after your campaigns are active and calls begin.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/home/analytics')}
+          >
+            <BarChart3 className="mr-2 h-4 w-4" />
+            View Analytics
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/home/campaigns')}
+          >
+            <TrendingUp className="mr-2 h-4 w-4" />
+            Check Campaigns
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-md border">
       <Table>

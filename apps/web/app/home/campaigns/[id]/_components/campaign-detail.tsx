@@ -61,6 +61,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { StatsCard, StatusBadge } from '~/components/shared';
 
 import { CSVUpload } from './csv-upload';
+import { ReassignAgentDialog } from './reassign-agent-dialog';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -352,10 +353,14 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <TabsContent value="agent" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Assigned Agent</h3>
-                <Button variant="outline" size="sm">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Reassign Agent
-                </Button>
+                <ReassignAgentDialog
+                  campaignId={campaignId}
+                  currentAgentId={campaign?.agent_id || undefined}
+                  onSuccess={() => {
+                    // The mutation will automatically invalidate queries
+                    // No need to reload the page
+                  }}
+                />
               </div>
               <AgentCard agent={assignedAgent} />
             </TabsContent>
@@ -408,7 +413,7 @@ function LeadsTable({
               // No need to reload the page
             }}
           />
-          <Button variant="outline">
+          <Button variant="outline" size="sm">
             <Link className="mr-2 h-4 w-4" />
             Connect CRM
           </Button>
@@ -485,6 +490,7 @@ function LeadsTable({
 }
 
 function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
+  const router = useRouter();
   if (!agent) {
     return (
       <Card>
@@ -533,11 +539,21 @@ function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/home/agents/${agent.id}?tab=voice`)}
+          >
             <Edit className="mr-2 h-4 w-4" />
             Edit Voice & Tone
           </Button>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              router.push(`/home/agents/${agent.id}?tab=knowledge`)
+            }
+          >
             <FileText className="mr-2 h-4 w-4" />
             Edit Script
           </Button>

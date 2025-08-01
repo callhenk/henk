@@ -1,7 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { Clock } from 'lucide-react';
 
+import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
 interface TimeOfDayChartProps {
@@ -17,28 +20,61 @@ interface TimeOfDayChartProps {
   };
 }
 
-// Mock data - replace with actual API call
-const mockTimeOfDayData = [
-  { hour: 9, calls: 45, conversions: 12, conversionRate: 26.7 },
-  { hour: 10, calls: 67, conversions: 18, conversionRate: 26.9 },
-  { hour: 11, calls: 89, conversions: 25, conversionRate: 28.1 },
-  { hour: 12, calls: 78, conversions: 20, conversionRate: 25.6 },
-  { hour: 13, calls: 92, conversions: 28, conversionRate: 30.4 },
-  { hour: 14, calls: 85, conversions: 24, conversionRate: 28.2 },
-  { hour: 15, calls: 76, conversions: 21, conversionRate: 27.6 },
-  { hour: 16, calls: 68, conversions: 19, conversionRate: 27.9 },
-  { hour: 17, calls: 54, conversions: 15, conversionRate: 27.8 },
-  { hour: 18, calls: 42, conversions: 11, conversionRate: 26.2 },
-  { hour: 19, calls: 38, conversions: 9, conversionRate: 23.7 },
-  { hour: 20, calls: 31, conversions: 7, conversionRate: 22.6 },
-];
+export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
+  const { data: conversations = [] } = useConversations();
 
-export function TimeOfDayChart({ filters: _filters }: TimeOfDayChartProps) {
+  // Calculate time-of-day data based on real conversations
+  const timeOfDayData = useMemo(() => {
+    // Filter conversations based on date range and other filters
+    const filteredConversations = conversations.filter((conv) => {
+      const convDate = new Date(conv.created_at);
+      const inDateRange =
+        convDate >= filters.dateRange.startDate &&
+        convDate <= filters.dateRange.endDate;
+
+      if (!inDateRange) return false;
+
+      if (filters.campaignId && conv.campaign_id !== filters.campaignId)
+        return false;
+      if (filters.agentId && conv.agent_id !== filters.agentId) return false;
+      if (filters.outcomeType && conv.outcome !== filters.outcomeType)
+        return false;
+
+      return true;
+    });
+
+    // Group conversations by hour
+    const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+      const hourConversations = filteredConversations.filter((conv) => {
+        const convHour = new Date(conv.created_at).getHours();
+        return convHour === hour;
+      });
+
+      const totalCalls = hourConversations.length;
+      const conversions = hourConversations.filter(
+        (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+      ).length;
+
+      const conversionRate =
+        totalCalls > 0 ? (conversions / totalCalls) * 100 : 0;
+
+      return {
+        hour,
+        calls: totalCalls,
+        conversions,
+        conversionRate,
+      };
+    });
+
+    return hourlyData;
+  }, [conversations, filters]);
+
   const getConversionColor = (rate: number) => {
     if (rate >= 30) return 'bg-green-600';
     if (rate >= 25) return 'bg-green-500';
     if (rate >= 20) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (rate > 0) return 'bg-red-500';
+    return 'bg-gray-300'; // No data
   };
 
   const formatHour = (hour: number) => {
@@ -47,6 +83,28 @@ export function TimeOfDayChart({ filters: _filters }: TimeOfDayChartProps) {
     if (hour === 12) return '12 PM';
     return `${hour - 12} PM`;
   };
+
+  // Find best and worst hours
+  const bestHour = timeOfDayData.reduce((best, current) =>
+    current.conversionRate > best.conversionRate ? current : best,
+  );
+
+  const worstHour = timeOfDayData
+    .filter((hour) => hour.calls > 0)
+    .reduce(
+      (worst, current) =>
+        current.conversionRate < worst.conversionRate ? current : worst,
+      { hour: 0, calls: 0, conversions: 0, conversionRate: 100 },
+    );
+
+  // Calculate overall insights
+  const totalCalls = timeOfDayData.reduce((sum, hour) => sum + hour.calls, 0);
+  const totalConversions = timeOfDayData.reduce(
+    (sum, hour) => sum + hour.conversions,
+    0,
+  );
+  const overallConversionRate =
+    totalCalls > 0 ? (totalConversions / totalCalls) * 100 : 0;
 
   return (
     <Card>
@@ -57,60 +115,90 @@ export function TimeOfDayChart({ filters: _filters }: TimeOfDayChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {/* Heatmap */}
-          <div className="grid grid-cols-12 gap-1">
-            {mockTimeOfDayData.map((data) => (
-              <div
-                key={data.hour}
-                className={`flex aspect-square items-center justify-center rounded text-xs font-medium text-white ${getConversionColor(
-                  data.conversionRate,
-                )}`}
-                title={`${formatHour(data.hour)}: ${data.conversionRate.toFixed(1)}% conversion rate`}
-              >
-                {data.conversionRate.toFixed(0)}%
-              </div>
-            ))}
-          </div>
-
-          {/* Hour labels */}
-          <div className="text-muted-foreground grid grid-cols-12 gap-1 text-xs">
-            {mockTimeOfDayData.map((data) => (
-              <div key={data.hour} className="text-center">
-                {formatHour(data.hour)}
-              </div>
-            ))}
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center justify-center space-x-4 text-xs">
-            <div className="flex items-center space-x-1">
-              <div className="h-3 w-3 rounded bg-green-600"></div>
-              <span>High (≥30%)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="h-3 w-3 rounded bg-green-500"></div>
-              <span>Good (25-30%)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="h-3 w-3 rounded bg-yellow-500"></div>
-              <span>Fair (20-25%)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="h-3 w-3 rounded bg-red-500"></div>
-              <span>Low (&lt;20%)</span>
-            </div>
-          </div>
-
-          {/* Insights */}
-          <div className="mt-4 rounded-lg bg-blue-50 p-3">
-            <h4 className="mb-1 text-sm font-medium text-blue-900">Insight</h4>
-            <p className="text-xs text-blue-700">
-              Best calling hours: 1-2 PM with 30.4% conversion rate. Avoid late
-              evening calls (7-8 PM) with lower success rates.
+        {totalCalls === 0 ? (
+          <div className="flex h-32 items-center justify-center">
+            <p className="text-muted-foreground text-sm">
+              No data available for the selected filters
             </p>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Heatmap */}
+            <div className="grid grid-cols-12 gap-1">
+              {timeOfDayData.map((data) => (
+                <div
+                  key={data.hour}
+                  className={`flex aspect-square items-center justify-center rounded text-xs font-medium text-white ${getConversionColor(
+                    data.conversionRate,
+                  )}`}
+                  title={`${formatHour(data.hour)}: ${data.conversionRate.toFixed(1)}% conversion rate (${data.calls} calls)`}
+                >
+                  {data.conversionRate > 0
+                    ? `${data.conversionRate.toFixed(0)}%`
+                    : '-'}
+                </div>
+              ))}
+            </div>
+
+            {/* Hour labels */}
+            <div className="text-muted-foreground grid grid-cols-12 gap-1 text-xs">
+              {timeOfDayData.map((data) => (
+                <div key={data.hour} className="text-center">
+                  {formatHour(data.hour)}
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center justify-center space-x-4 text-xs">
+              <div className="flex items-center space-x-1">
+                <div className="h-3 w-3 rounded bg-green-600"></div>
+                <span>High (≥30%)</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="h-3 w-3 rounded bg-green-500"></div>
+                <span>Good (25-30%)</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="h-3 w-3 rounded bg-yellow-500"></div>
+                <span>Fair (20-25%)</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="h-3 w-3 rounded bg-red-500"></div>
+                <span>Low (&lt;20%)</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="h-3 w-3 rounded bg-gray-300"></div>
+                <span>No data</span>
+              </div>
+            </div>
+
+            {/* Insights */}
+            <div className="mt-4 rounded-lg bg-blue-50 p-3">
+              <h4 className="mb-1 text-sm font-medium text-blue-900">
+                Insights
+              </h4>
+              <div className="space-y-1 text-xs text-blue-700">
+                <p>
+                  Overall conversion rate: {overallConversionRate.toFixed(1)}% (
+                  {totalConversions} conversions from {totalCalls} calls)
+                </p>
+                {bestHour.calls > 0 && (
+                  <p>
+                    Best calling hour: {formatHour(bestHour.hour)} with{' '}
+                    {bestHour.conversionRate.toFixed(1)}% conversion rate
+                  </p>
+                )}
+                {worstHour.calls > 0 && worstHour.hour !== bestHour.hour && (
+                  <p>
+                    Avoid calling at: {formatHour(worstHour.hour)} with{' '}
+                    {worstHour.conversionRate.toFixed(1)}% conversion rate
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
