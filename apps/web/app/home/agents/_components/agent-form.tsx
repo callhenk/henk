@@ -208,7 +208,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         });
         router.push(`/home/agents/${agentId}`);
       }
-    } catch (error) {
+    } catch {
       // Handle error silently or show user-friendly message
     } finally {
       setIsSubmitting(false);

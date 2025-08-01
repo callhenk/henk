@@ -48,7 +48,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
       });
 
       onSaveSuccess?.();
-    } catch (error) {
+    } catch {
       alert('Failed to save FAQs. Please try again.');
     }
   };

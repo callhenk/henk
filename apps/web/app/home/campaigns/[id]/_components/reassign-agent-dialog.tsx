@@ -19,19 +19,17 @@ import {
 import { StatusBadge } from '~/components/shared';
 
 interface ReassignAgentDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
   campaignId: string;
   currentAgentId?: string;
-  onSuccess?: () => void;
-  trigger?: React.ReactNode;
 }
 
 export function ReassignAgentDialog({
+  isOpen,
+  onClose,
   campaignId,
-  currentAgentId,
-  onSuccess,
-  trigger,
 }: ReassignAgentDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -48,9 +46,8 @@ export function ReassignAgentDialog({
         agent_id: selectedAgentId,
       });
 
-      setIsOpen(false);
+      onClose();
       setSelectedAgentId(null);
-      onSuccess?.();
     } catch (error) {
       console.error('Failed to reassign agent:', error);
     } finally {
@@ -61,14 +58,12 @@ export function ReassignAgentDialog({
   const availableAgents = agents.filter((agent) => agent.status === 'active');
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm">
-            <Users className="mr-2 h-4 w-4" />
-            Reassign Agent
-          </Button>
-        )}
+        <Button variant="outline" size="sm">
+          <Users className="mr-2 h-4 w-4" />
+          Reassign Agent
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -135,11 +130,7 @@ export function ReassignAgentDialog({
 
           {availableAgents.length > 0 && (
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-                disabled={isUpdating}
-              >
+              <Button variant="outline" onClick={onClose} disabled={isUpdating}>
                 Cancel
               </Button>
               <Button

@@ -356,10 +356,8 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 <ReassignAgentDialog
                   campaignId={campaignId}
                   currentAgentId={campaign?.agent_id || undefined}
-                  onSuccess={() => {
-                    // The mutation will automatically invalidate queries
-                    // No need to reload the page
-                  }}
+                  isOpen={false}
+                  onClose={() => {}}
                 />
               </div>
               <AgentCard agent={assignedAgent} />

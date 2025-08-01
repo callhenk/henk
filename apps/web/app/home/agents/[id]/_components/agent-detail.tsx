@@ -44,7 +44,7 @@ import { Textarea } from '@kit/ui/textarea';
 
 import { FAQEditor } from './faq-editor';
 import { KnowledgeUpload } from './knowledge-upload';
-import { WorkflowBuilder } from './workflow-builder';
+import { WorkflowBuilder } from './workflow-builder/index';
 
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },

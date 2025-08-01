@@ -44,7 +44,7 @@ export function KnowledgeUpload({
   const updateAgentMutation = useUpdateAgent();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: KnowledgeFile[] = acceptedFiles.map((file) => ({
+    const newFiles: KnowledgeFile[] = acceptedFiles.map((file: File) => ({
       id: `${Date.now()}-${Math.random()}`,
       name: file.name,
       size: file.size,
