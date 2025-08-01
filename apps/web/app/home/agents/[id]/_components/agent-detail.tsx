@@ -64,6 +64,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   // Get the default tab from URL parameter
   const defaultTab = searchParams.get('tab') || 'overview';
 
+  // State for managing active tab
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
   // Fetch real data
   const { data: agent, isLoading: loadingAgent } = useAgent(agentId);
   const { data: conversations = [] } = useConversations();
@@ -77,6 +80,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [donorContext, setDonorContext] = useState('');
   const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   // Initialize form data when agent loads
   useEffect(() => {
@@ -84,17 +89,17 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       setOrganizationInfo(agent.organization_info || '');
       setDonorContext(agent.donor_context || '');
 
-      // Handle FAQs field - convert JSON to readable format
+      // Handle FAQs field - Supabase returns JSON, so we stringify for the editor
       if (agent.faqs) {
-        if (typeof agent.faqs === 'string') {
-          setFaqs(agent.faqs);
-        } else {
-          try {
-            setFaqs(JSON.stringify(agent.faqs, null, 2));
-          } catch {
-            setFaqs('');
-          }
+        // Supabase returns JSON object/array, convert to string for the editor
+        try {
+          const faqsString = JSON.stringify(agent.faqs, null, 2);
+          setFaqs(faqsString);
+        } catch {
+          setFaqs('');
         }
+      } else {
+        setFaqs('');
       }
     }
   }, [agent]);
@@ -135,32 +140,28 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
       setSavingField(fieldName);
       try {
-        // Handle FAQs field - convert to proper JSON structure
-        let faqsData = {};
-        if (fieldName === 'faqs' && value) {
-          try {
-            // Try to parse as JSON first
-            faqsData = JSON.parse(value);
-          } catch {
-            // If parsing fails, treat as plain text and create a simple structure
-            faqsData = {
-              general: value,
-            };
-          }
-        }
-
-        await updateAgentMutation.mutateAsync({
+        const updateData = {
           id: agentId,
           ...(fieldName === 'organization_info' && {
             organization_info: value,
           }),
           ...(fieldName === 'donor_context' && { donor_context: value }),
-          ...(fieldName === 'faqs' && { faqs: faqsData }),
-        });
+        };
 
-        console.log(`Saved ${fieldName} changes...`);
+        await updateAgentMutation.mutateAsync(updateData);
+
+        console.log(`Saved ${fieldName} changes...`, value);
+
+        // Show success message
+        setSaveSuccess(
+          `${fieldName === 'faqs' ? 'FAQs' : fieldName.replace('_', ' ')} saved successfully!`,
+        );
+        setTimeout(() => setSaveSuccess(null), 3000);
       } catch (error) {
         console.error(`Failed to save ${fieldName} changes:`, error);
+        alert(
+          `Failed to save ${fieldName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
       } finally {
         setSavingField(null);
       }
@@ -263,6 +264,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </Button>
       </div>
 
+      {/* Success Notification */}
+      {saveSuccess && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+          <p className="text-sm font-medium text-green-800">{saveSuccess}</p>
+        </div>
+      )}
+
       {/* Agent Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -278,7 +286,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       </div>
 
       {/* Tabbed Content */}
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
@@ -436,15 +444,84 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full" variant="outline">
-                    <Play className="mr-2 h-4 w-4" />
-                    Test Voice
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    disabled={isTestingVoice}
+                    onClick={async () => {
+                      setIsTestingVoice(true);
+                      try {
+                        // Create a test script based on agent's description
+                        const testScript =
+                          agent.description ||
+                          "Hello, this is a test call from your AI fundraising agent. I'm calling to thank you for your support and discuss how we can make an even greater impact together.";
+
+                        // Call the voice test API
+                        const response = await fetch('/api/voice/test', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            agentId: agent.id,
+                            agentName: agent.name,
+                            voiceType: agent.voice_type,
+                            speakingTone: agent.speaking_tone,
+                            testScript: testScript,
+                          }),
+                        });
+
+                        if (!response.ok) {
+                          throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                          );
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                          console.log('Voice test completed:', result.data);
+                          alert(
+                            `Voice Test Completed!\n\nAgent: ${result.data.agentName}\nVoice Type: ${result.data.voiceType}\nTone: ${result.data.speakingTone}\n\nTest Script:\n"${result.data.testScript}"\n\nStatus: ${result.data.status}\n\nNote: Audio playback will be available when ElevenLabs integration is complete.`,
+                          );
+                        } else {
+                          throw new Error(result.error || 'Voice test failed');
+                        }
+                      } catch (error) {
+                        console.error('Voice test failed:', error);
+                        alert(
+                          `Voice test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        );
+                      } finally {
+                        setIsTestingVoice(false);
+                      }
+                    }}
+                  >
+                    {isTestingVoice ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-2 h-4 w-4" />
+                        Test Voice
+                      </>
+                    )}
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setActiveTab('knowledge')}
+                  >
                     <BookOpen className="mr-2 h-4 w-4" />
                     View Knowledge Base
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setActiveTab('workflow')}
+                  >
                     <Workflow className="mr-2 h-4 w-4" />
                     Edit Workflow
                   </Button>
@@ -526,17 +603,23 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Frequently Asked Questions
+                </CardTitle>
                 <CardDescription>
-                  Expected objections or questions + how to respond
+                  Add common questions and responses to help your agent handle
+                  objections effectively
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FAQEditor
                   value={faqs}
-                  onChange={setFaqs}
-                  onSave={() => handleSaveField('faqs', faqs)}
-                  isSaving={savingField === 'faqs'}
+                  agentId={agentId}
+                  onSaveSuccess={() => {
+                    setSaveSuccess('FAQs saved successfully!');
+                    setTimeout(() => setSaveSuccess(null), 3000);
+                  }}
                 />
               </CardContent>
             </Card>

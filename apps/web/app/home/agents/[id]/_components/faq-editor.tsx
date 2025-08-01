@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { BookOpen, Edit, Plus, Save, Trash2, X } from 'lucide-react';
+import { BookOpen, Edit, Plus, Trash2 } from 'lucide-react';
 
+import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Button } from '@kit/ui/button';
-import { Card, CardContent } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
 import { Textarea } from '@kit/ui/textarea';
 
@@ -17,17 +17,11 @@ interface FAQ {
 
 interface FAQEditorProps {
   value: string;
-  onChange: (value: string) => void;
-  onSave: () => void;
-  isSaving: boolean;
+  agentId: string;
+  onSaveSuccess?: () => void;
 }
 
-export function FAQEditor({
-  value,
-  onChange,
-  onSave,
-  isSaving,
-}: FAQEditorProps) {
+export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingFAQ, setEditingFAQ] = useState<FAQ>({
@@ -35,13 +29,38 @@ export function FAQEditor({
     question: '',
     answer: '',
   });
-  const isInitialized = useRef(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const updateAgentMutation = useUpdateAgent();
+
+  const saveToDatabase = async (faqsToSave: FAQ[]) => {
+    try {
+      // Filter out empty FAQs and convert to JSON
+      const validFaqs = faqsToSave.filter(
+        (faq) => faq.question.trim() && faq.answer.trim(),
+      );
+      const faqsData = JSON.parse(JSON.stringify(validFaqs));
+
+      // Save to database
+      await updateAgentMutation.mutateAsync({
+        id: agentId,
+        faqs: faqsData,
+      });
+
+      onSaveSuccess?.();
+    } catch (error) {
+      console.error('Failed to save FAQs:', error);
+      alert('Failed to save FAQs. Please try again.');
+    }
+  };
 
   // Parse the value string into FAQ objects
   useEffect(() => {
-    if (value && !isInitialized.current) {
+    if (value) {
       try {
+        console.log('value', value);
         const parsed = JSON.parse(value);
+        console.log('parsed', parsed);
         if (Array.isArray(parsed)) {
           setFaqs(parsed);
         } else if (typeof parsed === 'object') {
@@ -63,20 +82,21 @@ export function FAQEditor({
           setFaqs([]);
         }
       }
-      isInitialized.current = true;
-    } else if (!value && !isInitialized.current) {
+    } else {
       setFaqs([]);
-      isInitialized.current = true;
     }
   }, [value]);
 
-  // Update the parent value when FAQs change (but only after initialization)
-  useEffect(() => {
-    if (isInitialized.current) {
-      const faqString = JSON.stringify(faqs, null, 2);
-      onChange(faqString);
-    }
-  }, [faqs, onChange]);
+  // // Update parent when FAQs change and mark as unsaved
+  // useEffect(() => {
+  //   // Only update parent if there are FAQs with actual content
+  //   const validFaqs = faqs.filter(
+  //     (faq) => faq.question.trim() && faq.answer.trim(),
+  //   );
+  //   const faqString = JSON.stringify(validFaqs, null, 2);
+  //   onChange(faqString);
+  //   setHasUnsavedChanges(true);
+  // }, [faqs, onChange]);
 
   const addFAQ = () => {
     const newFAQ: FAQ = {
@@ -94,11 +114,17 @@ export function FAQEditor({
     setEditingFAQ({ ...faq });
   };
 
-  const saveEditing = () => {
+  const saveEditing = async () => {
     if (editingFAQ.question.trim() && editingFAQ.answer.trim()) {
-      setFaqs(faqs.map((faq) => (faq.id === editingId ? editingFAQ : faq)));
+      const updatedFaqs = faqs.map((faq) =>
+        faq.id === editingId ? editingFAQ : faq,
+      );
+      setFaqs(updatedFaqs);
       setEditingId(null);
       setEditingFAQ({ id: '', question: '', answer: '' });
+
+      // Save immediately when editing is saved
+      await saveToDatabase(updatedFaqs);
     }
   };
 
@@ -107,98 +133,125 @@ export function FAQEditor({
     setEditingFAQ({ id: '', question: '', answer: '' });
   };
 
-  const deleteFAQ = (id: string) => {
-    setFaqs(faqs.filter((faq) => faq.id !== id));
+  const confirmDelete = (id: string) => {
+    setDeletingId(id);
   };
 
-  const handleSave = () => {
-    onSave();
+  const deleteFAQ = async (id: string) => {
+    const updatedFaqs = faqs.filter((faq) => faq.id !== id);
+    setFaqs(updatedFaqs);
+    setDeletingId(null);
+
+    // Save immediately when FAQ is deleted
+    await saveToDatabase(updatedFaqs);
+  };
+
+  const cancelDelete = () => {
+    setDeletingId(null);
   };
 
   return (
     <div className="space-y-4">
-      {/* FAQ List */}
       <div className="space-y-3">
         {faqs.map((faq) => (
-          <Card key={faq.id} className="border-l-4 border-l-blue-500">
-            <CardContent className="p-4">
-              {editingId === faq.id ? (
-                // Editing mode
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <label className="text-muted-foreground text-sm font-medium">
-                      Question
-                    </label>
-                    <Input
-                      value={editingFAQ.question}
-                      onChange={(e) =>
-                        setEditingFAQ({
-                          ...editingFAQ,
-                          question: e.target.value,
-                        })
-                      }
-                      placeholder="Enter the question..."
-                      className="font-medium"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-muted-foreground text-sm font-medium">
-                      Answer
-                    </label>
-                    <Textarea
-                      value={editingFAQ.answer}
-                      onChange={(e) =>
-                        setEditingFAQ({ ...editingFAQ, answer: e.target.value })
-                      }
-                      placeholder="Enter the answer..."
-                      className="min-h-[100px] resize-none"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={saveEditing}>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={cancelEditing}>
-                      <X className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
+          <div key={faq.id} className="bg-card rounded-lg border p-4">
+            {editingId === faq.id ? (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Question
+                  </label>
+                  <Input
+                    value={editingFAQ.question}
+                    onChange={(e) =>
+                      setEditingFAQ({
+                        ...editingFAQ,
+                        question: e.target.value,
+                      })
+                    }
+                    placeholder="Enter the question..."
+                    className="font-medium"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Answer
+                  </label>
+                  <Textarea
+                    value={editingFAQ.answer}
+                    onChange={(e) =>
+                      setEditingFAQ({ ...editingFAQ, answer: e.target.value })
+                    }
+                    placeholder="Enter the answer..."
+                    className="min-h-[100px] resize-none"
+                  />
+                  <div className="text-muted-foreground flex justify-between text-xs">
+                    <span>Keep answers clear and empathetic</span>
+                    <span>{editingFAQ.answer.length} characters</span>
                   </div>
                 </div>
-              ) : (
-                // Display mode
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="text-foreground mb-2 font-medium">
-                        {faq.question}
-                      </h4>
-                      <p className="text-muted-foreground text-sm whitespace-pre-wrap">
-                        {faq.answer}
-                      </p>
-                    </div>
-                    <div className="ml-4 flex gap-1">
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveEditing}>
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={cancelEditing}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Display mode
+              <div className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="text-foreground font-medium">
+                      {faq.question}
+                    </h4>
+                    <p className="text-muted-foreground mt-1 text-sm whitespace-pre-wrap">
+                      {faq.answer}
+                    </p>
+                  </div>
+                  <div className="ml-4 flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => startEditing(faq)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {deletingId === faq.id ? (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteFAQ(faq.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Delete
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={cancelDelete}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => startEditing(faq)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => deleteFAQ(faq.id)}
+                        onClick={() => confirmDelete(faq.id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -209,24 +262,33 @@ export function FAQEditor({
       </Button>
 
       {/* Save Button */}
-      {faqs.length > 0 && (
-        <div className="flex justify-end">
-          <Button size="sm" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save FAQs'}
-          </Button>
-        </div>
-      )}
 
       {/* Empty State */}
       {faqs.length === 0 && (
         <div className="py-8 text-center">
-          <div className="text-muted-foreground mb-4">
+          <div className="text-muted-foreground">
             <BookOpen className="mx-auto mb-2 h-12 w-12" />
             <p className="text-sm">No FAQs added yet</p>
             <p className="text-muted-foreground text-xs">
               Add common questions and responses to help your agent handle
-              objections
+              objections effectively
             </p>
+            <div className="bg-muted mt-4 rounded-lg p-4 text-left">
+              <p className="mb-2 text-xs font-medium">
+                💡 Tips for effective FAQs:
+              </p>
+              <ul className="text-muted-foreground space-y-1 text-xs">
+                <li>
+                  • Address common objections like &quot;I can&apos;t afford it
+                  right now&quot;
+                </li>
+                <li>
+                  • Include questions about your organization&apos;s impact
+                </li>
+                <li>• Provide clear, empathetic responses</li>
+                <li>• Keep answers concise but informative</li>
+              </ul>
+            </div>
           </div>
         </div>
       )}

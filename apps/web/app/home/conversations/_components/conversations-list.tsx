@@ -55,9 +55,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
 type Conversation = Tables<'conversations'>;
-type Campaign = Tables<'campaigns'>;
-type Agent = Tables<'agents'>;
-type Lead = Tables<'leads'>;
+type _Campaign = Tables<'campaigns'>;
+type _Agent = Tables<'agents'>;
+type _Lead = Tables<'leads'>;
 
 // Enhanced conversation interface with calculated fields
 interface EnhancedConversation extends Conversation {
@@ -70,7 +70,7 @@ interface EnhancedConversation extends Conversation {
 }
 
 export function ConversationsList() {
-  const router = useRouter();
+  const _router = useRouter();
 
   // Fetch real data using our hooks
   const { data: conversations = [], isLoading: conversationsLoading } =
@@ -119,6 +119,110 @@ export function ConversationsList() {
     });
   }, [conversations, campaigns, agents, leads]);
 
+  // Get unique campaigns and agents for filters
+  const uniqueCampaigns = useMemo(() => {
+    const campaignNames = enhancedConversations.map(
+      (conv) => conv.campaignName,
+    );
+    return ['All Campaigns', ...Array.from(new Set(campaignNames))];
+  }, [enhancedConversations]);
+
+  const uniqueAgents = useMemo(() => {
+    const agentNames = enhancedConversations.map((conv) => conv.agentName);
+    return ['All Agents', ...Array.from(new Set(agentNames))];
+  }, [enhancedConversations]);
+
+  const outcomes = [
+    'All Outcomes',
+    'donated',
+    'callback-requested',
+    'no-interest',
+    'no-answer',
+    'busy',
+  ];
+
+  // Filter conversations based on selected filters
+  const filteredConversations = useMemo(() => {
+    return enhancedConversations.filter((conv) => {
+      const matchesSearch =
+        conv.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        conv.phoneNumber.includes(searchTerm);
+      const matchesCampaign =
+        selectedCampaign === 'All Campaigns' ||
+        conv.campaignName === selectedCampaign;
+      const matchesAgent =
+        selectedAgent === 'All Agents' || conv.agentName === selectedAgent;
+      const matchesStatus =
+        selectedStatus === 'All Statuses' || conv.status === selectedStatus;
+      const matchesOutcome =
+        selectedOutcome === 'All Outcomes' || conv.outcome === selectedOutcome;
+
+      return (
+        matchesSearch &&
+        matchesCampaign &&
+        matchesAgent &&
+        matchesStatus &&
+        matchesOutcome
+      );
+    });
+  }, [
+    enhancedConversations,
+    searchTerm,
+    selectedCampaign,
+    selectedAgent,
+    selectedStatus,
+    selectedOutcome,
+  ]);
+
+  // Sort conversations
+  const sortedConversations = useMemo(() => {
+    return [...filteredConversations].sort((a, b) => {
+      let aValue: string | number | Date, bValue: string | number | Date;
+
+      switch (sortBy) {
+        case 'donor':
+          aValue = a.donorName;
+          bValue = b.donorName;
+          break;
+        case 'campaign':
+          aValue = a.campaignName;
+          bValue = b.campaignName;
+          break;
+        case 'agent':
+          aValue = a.agentName;
+          bValue = b.agentName;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'outcome':
+          aValue = a.outcome || '';
+          bValue = b.outcome || '';
+          break;
+        case 'duration':
+          aValue = a.duration_seconds || 0;
+          bValue = b.duration_seconds || 0;
+          break;
+        case 'amount':
+          aValue = a.amount || 0;
+          bValue = b.amount || 0;
+          break;
+        case 'date':
+        default:
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  }, [filteredConversations, sortBy, sortOrder]);
+
   // Show loading state if data is still loading
   if (conversationsLoading) {
     return (
@@ -158,99 +262,6 @@ export function ConversationsList() {
       </div>
     );
   }
-
-  // Get unique campaigns and agents for filters
-  const uniqueCampaigns = useMemo(() => {
-    const campaignNames = enhancedConversations.map(
-      (conv) => conv.campaignName,
-    );
-    return ['All Campaigns', ...Array.from(new Set(campaignNames))];
-  }, [enhancedConversations]);
-
-  const uniqueAgents = useMemo(() => {
-    const agentNames = enhancedConversations.map((conv) => conv.agentName);
-    return ['All Agents', ...Array.from(new Set(agentNames))];
-  }, [enhancedConversations]);
-
-  const outcomes = [
-    'All Outcomes',
-    'donated',
-    'callback-requested',
-    'no-interest',
-    'no-answer',
-    'busy',
-  ];
-
-  // Filter conversations based on selected filters
-  const filteredConversations = enhancedConversations.filter((conv) => {
-    const matchesSearch =
-      conv.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.phoneNumber.includes(searchTerm);
-    const matchesCampaign =
-      selectedCampaign === 'All Campaigns' ||
-      conv.campaignName === selectedCampaign;
-    const matchesAgent =
-      selectedAgent === 'All Agents' || conv.agentName === selectedAgent;
-    const matchesStatus =
-      selectedStatus === 'All Statuses' || conv.status === selectedStatus;
-    const matchesOutcome =
-      selectedOutcome === 'All Outcomes' || conv.outcome === selectedOutcome;
-
-    return (
-      matchesSearch &&
-      matchesCampaign &&
-      matchesAgent &&
-      matchesStatus &&
-      matchesOutcome
-    );
-  });
-
-  // Sort conversations
-  const sortedConversations = [...filteredConversations].sort((a, b) => {
-    let aValue: string | number | Date, bValue: string | number | Date;
-
-    switch (sortBy) {
-      case 'donor':
-        aValue = a.donorName;
-        bValue = b.donorName;
-        break;
-      case 'campaign':
-        aValue = a.campaignName;
-        bValue = b.campaignName;
-        break;
-      case 'agent':
-        aValue = a.agentName;
-        bValue = b.agentName;
-        break;
-      case 'status':
-        aValue = a.status;
-        bValue = b.status;
-        break;
-      case 'outcome':
-        aValue = a.outcome || '';
-        bValue = b.outcome || '';
-        break;
-      case 'duration':
-        aValue = a.duration_seconds || 0;
-        bValue = b.duration_seconds || 0;
-        break;
-      case 'amount':
-        aValue = a.amount || 0;
-        bValue = b.amount || 0;
-        break;
-      case 'date':
-      default:
-        aValue = new Date(a.created_at);
-        bValue = new Date(b.created_at);
-        break;
-    }
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
 
   // Calculate stats
   const totalConversations = enhancedConversations.length;

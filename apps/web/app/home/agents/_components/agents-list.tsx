@@ -428,8 +428,8 @@ export function AgentsList() {
 
       // Calculate today's metrics
       const today = new Date().toISOString().split('T')[0];
-      const todayConversations = agentConversations.filter((conv) =>
-        conv.created_at?.startsWith(today),
+      const todayConversations = agentConversations.filter(
+        (conv) => conv.created_at?.startsWith(today) || false,
       );
       const callsToday = todayConversations.length;
       const conversionsToday = todayConversations.filter(
