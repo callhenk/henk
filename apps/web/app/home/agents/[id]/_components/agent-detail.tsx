@@ -255,21 +255,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          size="sm"
-          className="text-sm"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Back to Agents</span>
-          <span className="sm:hidden">Back</span>
-        </Button>
-      </div>
-
+    <div className="space-y-6">
       {/* Success Notification */}
       {saveSuccess && (
         <div className="rounded-lg border border-green-200 bg-green-50 p-3">
@@ -277,23 +263,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </div>
       )}
 
-      {/* Agent Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6" />
-            <div>
-              <h1 className="text-xl font-bold sm:text-2xl">{agent.name}</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                {agent.description}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-start sm:justify-end">
-          {getStatusBadge(agent.status)}
-        </div>
-      </div>
+      {/* Agent Status Badge */}
+      <div className="flex justify-end">{getStatusBadge(agent.status)}</div>
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

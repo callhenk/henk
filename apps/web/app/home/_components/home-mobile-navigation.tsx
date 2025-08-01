@@ -46,7 +46,7 @@ export function HomeMobileNavigation() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Menu className={'h-9'} />
+        <Menu className={'h-7 w-7'} />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent sideOffset={10} className={'w-screen rounded-none'}>
@@ -71,7 +71,7 @@ function DropdownLink(
     <DropdownMenuItem asChild key={props.path}>
       <Link
         href={props.path}
-        className={'flex h-12 w-full items-center space-x-4'}
+        className={'flex h-10 w-full items-center space-x-3'}
       >
         {props.Icon}
 
@@ -90,7 +90,7 @@ function SignOutDropdownItem(
 ) {
   return (
     <DropdownMenuItem
-      className={'flex h-12 w-full items-center space-x-4'}
+      className={'flex h-10 w-full items-center space-x-3'}
       onClick={props.onSignOut}
     >
       <LogOut className={'h-6'} />

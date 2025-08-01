@@ -16,7 +16,7 @@ function LogoImage({
       alt="Henk AI"
       width={width}
       height={width * 0.3} // Assuming aspect ratio of roughly 3:1
-      className={cn('object-contain', className)}
+      className={cn('h-auto object-contain', className)}
       priority
     />
   );
@@ -32,12 +32,12 @@ export function AppLogo({
   label?: string;
 }) {
   if (href === null) {
-    return <LogoImage className={className} />;
+    return <LogoImage className={cn('w-16 sm:w-20 md:w-auto', className)} />;
   }
 
   return (
     <Link aria-label={label ?? 'Home Page'} href={href ?? '/'}>
-      <LogoImage className={className} />
+      <LogoImage className={cn('w-16 sm:w-20 md:w-auto', className)} />
     </Link>
   );
 }

@@ -13,11 +13,14 @@ export default async function AgentPage({ params }: AgentPageProps) {
 
   return (
     <>
-      <PageHeader description={'Agent details and performance'} />
+      <PageHeader
+        title="Agent Details"
+        description={'Agent details and performance'}
+      />
 
       <PageBody>
         <AgentDetail agentId={id} />
       </PageBody>
     </>
   );
-} 
+}

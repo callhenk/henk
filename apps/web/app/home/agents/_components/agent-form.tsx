@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Settings, User, Volume2 } from 'lucide-react';
+import { Settings, User, Volume2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -40,8 +40,8 @@ import {
   FormSection,
   formContainerStyles,
   formFieldStyles,
-  pageHeaderStyles,
 } from '~/components/form-styles';
+import { PageHeader } from '~/components/shared';
 
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
@@ -249,23 +249,19 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
   return (
     <div className={formContainerStyles.container}>
-      {/* Header with Back Button */}
-      <div className={pageHeaderStyles.container}>
-        <div className={`flex items-center ${pageHeaderStyles.backButton}`}>
-          <Button variant="ghost" onClick={handleBack} size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className={pageHeaderStyles.title}>{pageTitle}</h1>
-            <p className={pageHeaderStyles.description}>
-              {isEditMode
-                ? 'Update your AI voice agent settings and preferences'
-                : 'Set up a new AI voice agent for your fundraising campaigns'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={pageTitle}
+        description={
+          isEditMode
+            ? 'Update your AI voice agent settings and preferences'
+            : 'Set up a new AI voice agent for your fundraising campaigns'
+        }
+        onBack={handleBack}
+        breadcrumbs={[
+          { label: 'Agents', href: '/home/agents' },
+          { label: isEditMode ? 'Edit Agent' : 'Create Agent' },
+        ]}
+      />
 
       <Form {...form}>
         <form
@@ -404,12 +400,10 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                     <SelectContent>
                       {voiceOptions.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{voice.name}</span>
-                            <span className="text-muted-foreground text-sm">
-                              {voice.provider}
-                            </span>
-                          </div>
+                          <span className="font-medium">{voice.name}</span>
+                          <span className="text-muted-foreground ml-2 text-sm">
+                            • {voice.provider}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>

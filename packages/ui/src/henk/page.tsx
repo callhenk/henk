@@ -41,18 +41,12 @@ function PageWithSidebar(props: PageProps) {
       <div
         className={
           props.contentContainerClassName ??
-          'mx-auto flex h-screen w-full flex-col overflow-y-auto bg-inherit'
+          'mx-auto flex min-h-screen w-full flex-col overflow-y-auto bg-inherit'
         }
       >
         {MobileNavigation}
 
-        <div
-          className={
-            'bg-background flex flex-1 flex-col overflow-y-auto px-4 lg:px-0'
-          }
-        >
-          {Children}
-        </div>
+        <div className={'bg-background flex flex-1 flex-col'}>{Children}</div>
       </div>
     </div>
   );
@@ -66,7 +60,7 @@ export function PageMobileNavigation(
   return (
     <div
       className={cn(
-        'flex w-full items-center border-b px-4 py-2 lg:hidden lg:px-0',
+        'flex w-full items-center border-b px-2 py-1 lg:hidden lg:px-0',
         props.className,
       )}
     >
@@ -102,7 +96,7 @@ function PageWithHeader(props: PageProps) {
           {MobileNavigation}
         </div>
 
-        <div className={'container flex flex-1 flex-col'}>{Children}</div>
+        <div className={'flex flex-1 flex-col'}>{Children}</div>
       </div>
     </div>
   );
@@ -113,7 +107,10 @@ export function PageBody(
     className?: string;
   }>,
 ) {
-  const className = cn('flex w-full flex-1 flex-col lg:px-4', props.className);
+  const className = cn(
+    'flex w-full flex-1 flex-col px-4 lg:px-6 xl:px-8',
+    props.className,
+  );
 
   return <div className={className}>{props.children}</div>;
 }
@@ -163,7 +160,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between py-5 lg:px-4',
+        'flex items-center justify-between px-4 py-6 lg:px-6 xl:px-8',
         className,
       )}
     >

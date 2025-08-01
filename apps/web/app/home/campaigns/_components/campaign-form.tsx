@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, MessageSquare, Users } from 'lucide-react';
+import { MessageSquare, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -41,8 +41,8 @@ import {
   FormSection,
   formContainerStyles,
   formFieldStyles,
-  pageHeaderStyles,
 } from '~/components/form-styles';
+import { PageHeader } from '~/components/shared';
 
 import { DatePicker } from './date-picker';
 
@@ -241,23 +241,19 @@ export function CampaignForm({
 
   return (
     <div className={formContainerStyles.container}>
-      {/* Header with Back Button */}
-      <div className={pageHeaderStyles.container}>
-        <div className={`flex items-center ${pageHeaderStyles.backButton}`}>
-          <Button variant="ghost" onClick={handleBack} size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className={pageHeaderStyles.title}>{pageTitle}</h1>
-            <p className={pageHeaderStyles.description}>
-              {isEditMode
-                ? 'Update your AI voice fundraising campaign settings'
-                : 'Set up a new AI voice fundraising campaign for your organization'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={pageTitle}
+        description={
+          isEditMode
+            ? 'Update your AI voice fundraising campaign settings and configurations'
+            : 'Set up a new AI voice fundraising campaign for your organization with detailed configurations'
+        }
+        onBack={handleBack}
+        breadcrumbs={[
+          { label: 'Campaigns', href: '/home/campaigns' },
+          { label: isEditMode ? 'Edit Campaign' : 'Create Campaign' },
+        ]}
+      />
 
       <Form {...form}>
         <form
