@@ -20,7 +20,6 @@ import {
   Trash2,
   User,
   Users,
-  X,
 } from 'lucide-react';
 
 import type { Tables } from '@kit/supabase/database';
@@ -751,13 +750,19 @@ function EditableLeadRow({
   const [savingField, setSavingField] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleSaveField = async (fieldName: string, value: string) => {
-    setSavingField(fieldName);
+  const handleSaveAllFields = async () => {
+    setSavingField('all');
     try {
-      await onUpdate(lead.id, { [fieldName]: value });
+      await onUpdate(lead.id, {
+        name: editingLead.name,
+        email: editingLead.email,
+        phone: editingLead.phone,
+        company: editingLead.company,
+      });
       setSavingField(null);
+      setIsEditing(false);
     } catch (error) {
-      console.error(`Failed to update ${fieldName}:`, error);
+      console.error('Failed to update lead:', error);
       setSavingField(null);
     }
   };
@@ -782,52 +787,33 @@ function EditableLeadRow({
   return (
     <TableRow className="hover:bg-muted/50">
       <TableCell>
-        <div>
-          {isEditing ? (
-            <div className="space-y-2">
-              <Input
-                type="text"
-                value={editingLead.name}
-                onChange={(e) =>
-                  setEditingLead((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Name"
-              />
-              <Input
-                type="email"
-                value={editingLead.email}
-                onChange={(e) =>
-                  setEditingLead((prev) => ({ ...prev, email: e.target.value }))
-                }
-                placeholder="Email"
-              />
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    handleSaveField('name', editingLead.name);
-                    handleSaveField('email', editingLead.email);
-                  }}
-                  disabled={savingField === 'name' || savingField === 'email'}
-                >
-                  {savingField ? 'Saving...' : 'Save'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className="font-medium">{lead.name}</div>
-              <div className="text-muted-foreground text-sm">{lead.email}</div>
-            </div>
-          )}
-        </div>
+        {isEditing ? (
+          <div className="space-y-2">
+            <Input
+              type="text"
+              value={editingLead.name}
+              onChange={(e) =>
+                setEditingLead((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="Name"
+              className="w-full"
+            />
+            <Input
+              type="email"
+              value={editingLead.email}
+              onChange={(e) =>
+                setEditingLead((prev) => ({ ...prev, email: e.target.value }))
+              }
+              placeholder="Email"
+              className="w-full"
+            />
+          </div>
+        ) : (
+          <div>
+            <div className="font-medium">{lead.name}</div>
+            <div className="text-muted-foreground text-sm">{lead.email}</div>
+          </div>
+        )}
       </TableCell>
       <TableCell>
         {isEditing ? (
@@ -838,6 +824,7 @@ function EditableLeadRow({
               setEditingLead((prev) => ({ ...prev, phone: e.target.value }))
             }
             placeholder="Phone"
+            className="w-full"
           />
         ) : (
           lead.phone
@@ -852,6 +839,7 @@ function EditableLeadRow({
               setEditingLead((prev) => ({ ...prev, company: e.target.value }))
             }
             placeholder="Company"
+            className="w-full"
           />
         ) : (
           lead.company || '-'
@@ -865,64 +853,80 @@ function EditableLeadRow({
       </TableCell>
       <TableCell>{lead.attempts || 0}</TableCell>
       <TableCell className="text-right">
-        <DropdownMenu open={deletingId === lead.id ? true : undefined}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleSaveAllFields}
+              disabled={savingField === 'all'}
+              className="text-green-600 hover:text-green-700"
+            >
+              {savingField === 'all' ? 'Saving...' : 'Save'}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {!isEditing ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsEditing(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <DropdownMenu open={deletingId === lead.id ? true : undefined}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setIsEditing(true)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Lead
               </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={() => setIsEditing(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel Edit
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                View Donor
               </DropdownMenuItem>
-            )}
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              View Donor
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Phone className="mr-2 h-4 w-4" />
-              Retry Call
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {deletingId === lead.id ? (
-              <div className="flex gap-1 p-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => deleteLead(lead.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Delete
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={cancelDelete}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => confirmDelete(lead.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Remove
+              <DropdownMenuItem>
+                <Phone className="mr-2 h-4 w-4" />
+                Retry Call
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              {deletingId === lead.id ? (
+                <div className="flex gap-1 p-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => deleteLead(lead.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={cancelDelete}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => confirmDelete(lead.id)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remove
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </TableCell>
     </TableRow>
   );
