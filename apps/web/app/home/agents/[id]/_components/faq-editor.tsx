@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { BookOpen, Edit, Plus, Trash2 } from 'lucide-react';
 
@@ -87,18 +87,13 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
     }
   }, [value]);
 
-  // // Update parent when FAQs change and mark as unsaved
-  // useEffect(() => {
-  //   // Only update parent if there are FAQs with actual content
-  //   const validFaqs = faqs.filter(
-  //     (faq) => faq.question.trim() && faq.answer.trim(),
-  //   );
-  //   const faqString = JSON.stringify(validFaqs, null, 2);
-  //   onChange(faqString);
-  //   setHasUnsavedChanges(true);
-  // }, [faqs, onChange]);
+  const addFAQ = (e?: React.MouseEvent) => {
+    // Prevent any potential form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
-  const addFAQ = () => {
     const newFAQ: FAQ = {
       id: Date.now().toString(),
       question: '',
@@ -107,6 +102,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
     setFaqs([...faqs, newFAQ]);
     setEditingId(newFAQ.id);
     setEditingFAQ(newFAQ);
+    // Don't save immediately - wait for user to fill in the FAQ and click Save
   };
 
   const startEditing = (faq: FAQ) => {
@@ -125,6 +121,13 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
 
       // Save immediately when editing is saved
       await saveToDatabase(updatedFaqs);
+    } else {
+      // If the FAQ is empty, just cancel editing without saving
+      setEditingId(null);
+      setEditingFAQ({ id: '', question: '', answer: '' });
+      // Remove the empty FAQ from the list
+      const updatedFaqs = faqs.filter((faq) => faq.id !== editingId);
+      setFaqs(updatedFaqs);
     }
   };
 
@@ -157,6 +160,14 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
           <div key={faq.id} className="bg-card rounded-lg border p-4">
             {editingId === faq.id ? (
               <div className="space-y-3">
+                {!faq.question && !faq.answer && (
+                  <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                    <p className="text-sm text-blue-800">
+                      💡 Fill in both the question and answer to save this FAQ.
+                      Empty FAQs will be discarded.
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <label className="text-muted-foreground text-sm font-medium">
                     Question
@@ -169,7 +180,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                         question: e.target.value,
                       })
                     }
-                    placeholder="Enter the question..."
+                    placeholder="e.g., What is your organization's mission?"
                     className="font-medium"
                   />
                 </div>
@@ -182,7 +193,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                     onChange={(e) =>
                       setEditingFAQ({ ...editingFAQ, answer: e.target.value })
                     }
-                    placeholder="Enter the answer..."
+                    placeholder="Provide a clear, empathetic response that addresses the question..."
                     className="min-h-[100px] resize-none"
                   />
                   <div className="text-muted-foreground flex justify-between text-xs">
@@ -191,10 +202,22 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={saveEditing}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={saveEditing}
+                    disabled={
+                      !editingFAQ.question.trim() || !editingFAQ.answer.trim()
+                    }
+                  >
                     Save
                   </Button>
-                  <Button size="sm" variant="outline" onClick={cancelEditing}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelEditing}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -213,6 +236,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                   </div>
                   <div className="ml-4 flex gap-1">
                     <Button
+                      type="button"
                       size="sm"
                       variant="ghost"
                       onClick={() => startEditing(faq)}
@@ -222,6 +246,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                     {deletingId === faq.id ? (
                       <div className="flex gap-1">
                         <Button
+                          type="button"
                           size="sm"
                           variant="ghost"
                           onClick={() => deleteFAQ(faq.id)}
@@ -230,6 +255,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                           Delete
                         </Button>
                         <Button
+                          type="button"
                           size="sm"
                           variant="ghost"
                           onClick={cancelDelete}
@@ -239,6 +265,7 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
                       </div>
                     ) : (
                       <Button
+                        type="button"
                         size="sm"
                         variant="ghost"
                         onClick={() => confirmDelete(faq.id)}
@@ -256,7 +283,12 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
       </div>
 
       {/* Add FAQ Button */}
-      <Button variant="outline" onClick={addFAQ} className="w-full">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={(e) => addFAQ(e)}
+        className="w-full"
+      >
         <Plus className="mr-2 h-4 w-4" />
         Add FAQ
       </Button>

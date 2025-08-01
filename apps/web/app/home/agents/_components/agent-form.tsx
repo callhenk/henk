@@ -43,7 +43,7 @@ import {
   pageHeaderStyles,
 } from '~/components/form-styles';
 
-import { FAQEditor } from '../[id]/_components/faq-editor';
+// FAQEditor removed - will be managed in agent detail view
 
 const agentSchema = z.object({
   name: z.string().min(1, 'Agent name is required'),
@@ -484,17 +484,56 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
             />
             <FormField
               control={form.control}
-              name="faqs"
+              name="description"
               render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={formFieldStyles.label}>
+                    Agent Description
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your agent's personality, role, and how they should interact with donors..."
+                      className={formFieldStyles.textarea}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    A brief description of your agent&apos;s personality and
+                    approach
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="faqs"
+              render={({ field: _field }) => (
                 <FormItem>
                   <FormLabel className={formFieldStyles.label}>FAQs</FormLabel>
                   <FormControl>
-                    <FAQEditor
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onSave={() => {}}
-                      isSaving={false}
-                    />
+                    <div className="space-y-4">
+                      <div className="bg-muted/50 rounded-lg border p-4">
+                        <p className="text-muted-foreground mb-3 text-sm">
+                          💡 FAQs can be managed after creating the agent. For
+                          now, focus on the basic agent setup.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // This will be handled after agent creation
+                            console.log(
+                              'FAQs will be managed in agent detail view',
+                            );
+                          }}
+                        >
+                          Manage FAQs Later
+                        </Button>
+                      </div>
+                    </div>
                   </FormControl>
                   <FormDescription>
                     Common questions and answers that the agent should be
@@ -503,7 +542,7 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />{' '}
+            />
           </FormSection>
 
           {/* Submit Buttons */}
