@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 
-import { AlertCircle, CheckCircle, FileText, Upload, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle,
+  FileSpreadsheet,
+  FileText,
+  Upload,
+  X,
+} from 'lucide-react';
 import Papa from 'papaparse';
 
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
@@ -17,7 +24,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@kit/ui/dialog';
-import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
 
 interface CSVUploadProps {
@@ -51,6 +57,7 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
     message: string;
     count?: number;
   } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const bulkCreateLeadsMutation = useBulkCreateLeads();
 
@@ -124,6 +131,49 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
     setUploadResult(null);
 
     Papa.parse(selectedFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as CSVLead[];
+        const errors = validateCSVData(data);
+
+        setValidationErrors(errors);
+        setParsedData(data);
+      },
+      error: (error) => {
+        console.error('CSV parsing error:', error);
+        alert('Error parsing CSV file. Please check the file format.');
+      },
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const droppedFile = e.dataTransfer.files[0];
+    if (!droppedFile) return;
+
+    if (droppedFile.type !== 'text/csv' && !droppedFile.name.endsWith('.csv')) {
+      alert('Please select a valid CSV file');
+      return;
+    }
+
+    setFile(droppedFile);
+    setValidationErrors([]);
+    setUploadResult(null);
+
+    Papa.parse(droppedFile, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
@@ -220,6 +270,14 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
     window.URL.revokeObjectURL(url);
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -284,13 +342,75 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
           <div className="space-y-4">
             <div>
               <Label htmlFor="csv-file">Select CSV File</Label>
-              <Input
-                id="csv-file"
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="mt-1"
-              />
+
+              {/* Modern File Upload Area */}
+              <div
+                className={`mt-2 cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                  isDragOver
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-primary/50'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label htmlFor="csv-file" className="cursor-pointer">
+                  {file ? (
+                    <div className="space-y-3">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                        <FileSpreadsheet className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-900">
+                          {file.name}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {formatFileSize(file.size)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setFile(null);
+                          setParsedData([]);
+                          setValidationErrors([]);
+                          setUploadResult(null);
+                        }}
+                        className="mt-2"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Remove File
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Upload className="text-muted-foreground mx-auto h-12 w-12" />
+                      <div>
+                        <p className="text-lg font-medium">
+                          Click to browse files
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          or drag and drop your CSV file here
+                        </p>
+                      </div>
+                      <div className="text-muted-foreground space-y-1 text-xs">
+                        <p>Supported format: CSV only</p>
+                        <p>Maximum file size: 10MB</p>
+                      </div>
+                    </div>
+                  )}
+                </label>
+              </div>
             </div>
 
             {/* Preview */}
