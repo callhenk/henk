@@ -104,7 +104,6 @@ const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
     { value: 'aggressive', label: 'Aggressive Retry Logic' },
     { value: 'conservative', label: 'Conservative Retry Logic' },
     { value: 'smart', label: 'Smart Retry Logic' },
-    { value: 'custom', label: 'Custom Retry Logic' },
   ];
   const logicOption = retryLogics.find((logic) => logic.value === retryLogic);
   return logicOption?.label || retryLogic;
@@ -1187,49 +1186,38 @@ function SettingsCard({
                 <SelectValue placeholder="Select retry logic strategy" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="standard">
-                  <div>
-                    <div className="font-medium">Standard Retry Logic</div>
-                    <div className="text-muted-foreground text-sm">
-                      Retry after 24 hours, max 3 attempts, skip opt-outs
-                    </div>
-                  </div>
-                </SelectItem>
+                <SelectItem value="standard">Standard Retry Logic</SelectItem>
                 <SelectItem value="aggressive">
-                  <div>
-                    <div className="font-medium">Aggressive Retry Logic</div>
-                    <div className="text-muted-foreground text-sm">
-                      Retry after 4-6 hours, max 5 attempts, multiple time slots
-                    </div>
-                  </div>
+                  Aggressive Retry Logic
                 </SelectItem>
                 <SelectItem value="conservative">
-                  <div>
-                    <div className="font-medium">Conservative Retry Logic</div>
-                    <div className="text-muted-foreground text-sm">
-                      Retry after 48-72 hours, max 2 attempts, business hours
-                      only
-                    </div>
-                  </div>
+                  Conservative Retry Logic
                 </SelectItem>
-                <SelectItem value="smart">
-                  <div>
-                    <div className="font-medium">Smart Retry Logic</div>
-                    <div className="text-muted-foreground text-sm">
-                      Adaptive timing, ML optimization, personalized strategies
-                    </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="custom">
-                  <div>
-                    <div className="font-medium">Custom Retry Logic</div>
-                    <div className="text-muted-foreground text-sm">
-                      Define your own retry strategy and timing rules
-                    </div>
-                  </div>
-                </SelectItem>
+                <SelectItem value="smart">Smart Retry Logic</SelectItem>
               </SelectContent>
             </Select>
+            {retryLogic && (
+              <div className="text-muted-foreground mt-2 text-sm">
+                {retryLogic === 'standard' && (
+                  <p>Retry after 24 hours, max 3 attempts, skip opt-outs</p>
+                )}
+                {retryLogic === 'aggressive' && (
+                  <p>
+                    Retry after 4-6 hours, max 5 attempts, multiple time slots
+                  </p>
+                )}
+                {retryLogic === 'conservative' && (
+                  <p>
+                    Retry after 48-72 hours, max 2 attempts, business hours only
+                  </p>
+                )}
+                {retryLogic === 'smart' && (
+                  <p>
+                    Adaptive timing, ML optimization, personalized strategies
+                  </p>
+                )}
+              </div>
+            )}
             {hasRetryLogicChanges && (
               <div className="mt-2 flex justify-end">
                 <Button
