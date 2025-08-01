@@ -9,7 +9,6 @@ import {
   ChevronUp,
   Copy,
   Download,
-  Edit,
   Eye,
   Grid3X3,
   List,
@@ -61,6 +60,32 @@ import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
 type Agent = Tables<'agents'>;
 
+// Helper functions to convert enum values to user-friendly labels
+const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
+  if (!voiceType) return 'Default voice';
+  const voiceTypes = [
+    { value: 'ai_generated', label: 'AI Generated' },
+    { value: 'custom', label: 'Custom Voice' },
+  ];
+  const voiceTypeOption = voiceTypes.find((type) => type.value === voiceType);
+  return voiceTypeOption?.label || voiceType;
+};
+
+const getSpeakingToneLabel = (
+  speakingTone: string | null | undefined,
+): string => {
+  if (!speakingTone) return 'Default tone';
+  const speakingTones = [
+    { value: 'warm-friendly', label: 'Warm and friendly' },
+    { value: 'professional-confident', label: 'Professional and confident' },
+    { value: 'compassionate-caring', label: 'Compassionate and caring' },
+    { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
+    { value: 'calm-reassuring', label: 'Calm and reassuring' },
+  ];
+  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
+  return toneOption?.label || speakingTone;
+};
+
 // Enhanced agent interface with calculated fields
 interface EnhancedAgent extends Agent {
   performance?: {
@@ -78,14 +103,12 @@ interface EnhancedAgent extends Agent {
 interface AgentCardProps {
   agent: EnhancedAgent;
   onView: (id: string) => void;
-  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
 interface AgentTableRowProps {
   agent: EnhancedAgent;
   onView: (id: string) => void;
-  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
@@ -94,7 +117,7 @@ interface ViewToggleProps {
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }
 
-function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
+function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
   return (
     <Card className="group transition-all duration-200 hover:shadow-lg">
       <CardHeader className="pb-3">
@@ -103,9 +126,9 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>{agent.speaking_tone || 'Default tone'}</span>
+                <span>{getSpeakingToneLabel(agent.speaking_tone)}</span>
                 <span>•</span>
-                <span>{agent.voice_type || 'Default voice'}</span>
+                <span>{getVoiceTypeLabel(agent.voice_type)}</span>
               </CardDescription>
             </div>
           </div>
@@ -123,10 +146,7 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(agent.id)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Agent
-              </DropdownMenuItem>
+
               <DropdownMenuItem>
                 <Play className="mr-2 h-4 w-4" />
                 Test Voice
@@ -194,27 +214,13 @@ function AgentCard({ agent, onView, onEdit, onDelete }: AgentCardProps) {
             <Eye className="mr-2 h-4 w-4" />
             View
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onEdit(agent.id)}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function AgentTableRow({
-  agent,
-  onView,
-  onEdit,
-  onDelete,
-}: AgentTableRowProps) {
+function AgentTableRow({ agent, onView, onDelete }: AgentTableRowProps) {
   return (
     <TableRow className="hover:bg-muted/50">
       <TableCell>
@@ -225,17 +231,19 @@ function AgentTableRow({
             </div>
             <div
               className="text-muted-foreground line-clamp-1 text-xs"
-              title={`${agent.voice_type || 'Default voice'} • ${agent.speaking_tone || 'Default tone'}`}
+              title={`${getVoiceTypeLabel(agent.voice_type)} • ${getSpeakingToneLabel(agent.speaking_tone)}`}
             >
-              {agent.voice_type || 'Default voice'} •{' '}
-              {agent.speaking_tone || 'Default tone'}
+              {getVoiceTypeLabel(agent.voice_type)} •{' '}
+              {getSpeakingToneLabel(agent.speaking_tone)}
             </div>
           </div>
         </div>
       </TableCell>
       <TableCell>
         <div>
-          <div className="font-medium">{agent.voice_type || 'Default'}</div>
+          <div className="font-medium">
+            {getVoiceTypeLabel(agent.voice_type)}
+          </div>
           <div className="text-muted-foreground text-sm">
             ID: {agent.voice_id || 'N/A'}
           </div>
@@ -287,10 +295,7 @@ function AgentTableRow({
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(agent.id)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Agent
-            </DropdownMenuItem>
+
             <DropdownMenuItem>
               <Play className="mr-2 h-4 w-4" />
               Test Voice
@@ -398,9 +403,9 @@ export function AgentsList() {
         totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
       // Calculate today's metrics
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0] as string;
       const todayConversations = agentConversations.filter(
-        (conv) => conv.created_at?.startsWith(today) || false,
+        (conv) => conv.created_at && conv.created_at.startsWith(today),
       );
       const callsToday = todayConversations.length;
       const conversionsToday = todayConversations.filter(
@@ -559,9 +564,6 @@ export function AgentsList() {
   const handleView = (id: string) =>
     router.push(`/home/agents/${id}?tab=overview`);
 
-  const handleEdit = (id: string) =>
-    router.push(`/home/agents/${id}?tab=knowledge`);
-
   const handleDelete = async (id: string) => {
     try {
       await deleteAgentMutation.mutateAsync(id);
@@ -672,7 +674,6 @@ export function AgentsList() {
                   key={agent.id}
                   agent={agent}
                   onView={handleView}
-                  onEdit={handleEdit}
                   onDelete={handleDelete}
                 />
               ))}
@@ -728,7 +729,6 @@ export function AgentsList() {
                       key={agent.id}
                       agent={agent}
                       onView={handleView}
-                      onEdit={handleEdit}
                       onDelete={handleDelete}
                     />
                   ))}

@@ -59,6 +59,21 @@ const speakingTones = [
   { value: 'calm-reassuring', label: 'Calm and reassuring' },
 ];
 
+// Helper functions to convert enum values to user-friendly labels
+const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
+  if (!voiceType) return 'Default';
+  const voiceTypeOption = voiceTypes.find((type) => type.value === voiceType);
+  return voiceTypeOption?.label || voiceType;
+};
+
+const getSpeakingToneLabel = (
+  speakingTone: string | null | undefined,
+): string => {
+  if (!speakingTone) return 'Default';
+  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
+  return toneOption?.label || speakingTone;
+};
+
 export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -356,7 +371,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         Tone
                       </label>
                       <p className="text-base">
-                        {agent.speaking_tone || 'Default'}
+                        {getSpeakingToneLabel(agent.speaking_tone)}
                       </p>
                     </div>
                     <div>
@@ -364,7 +379,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         Voice
                       </label>
                       <p className="text-base">
-                        {agent.voice_type || 'Default'}
+                        {getVoiceTypeLabel(agent.voice_type)}
                       </p>
                     </div>
                     <div>

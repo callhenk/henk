@@ -42,9 +42,23 @@ import {
   formContainerStyles,
   formFieldStyles,
 } from '~/components/form-styles';
-import { PageHeader } from '~/components/shared';
+import { DatePicker, PageHeader } from '~/components/shared';
 
-import { DatePicker } from './date-picker';
+// Helper functions to convert enum values to user-friendly labels
+const getSpeakingToneLabel = (
+  speakingTone: string | null | undefined,
+): string => {
+  if (!speakingTone) return 'Default tone';
+  const speakingTones = [
+    { value: 'warm-friendly', label: 'Warm and friendly' },
+    { value: 'professional-confident', label: 'Professional and confident' },
+    { value: 'compassionate-caring', label: 'Compassionate and caring' },
+    { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
+    { value: 'calm-reassuring', label: 'Calm and reassuring' },
+  ];
+  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
+  return toneOption?.label || speakingTone;
+};
 
 const campaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required'),
@@ -441,7 +455,7 @@ export function CampaignForm({
                           <div className="flex flex-col">
                             <span className="font-medium">{agent.name}</span>
                             <span className="text-muted-foreground text-sm">
-                              {agent.speaking_tone || 'Default tone'}
+                              {getSpeakingToneLabel(agent.speaking_tone)}
                             </span>
                           </div>
                         </SelectItem>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import dayjs from 'dayjs';
 import {
   ArrowLeft,
   CheckCircle,
@@ -16,10 +17,10 @@ import {
   Pause,
   Phone,
   Play,
-  Settings,
   Trash2,
   User,
   Users,
+  X,
 } from 'lucide-react';
 
 import type { Tables } from '@kit/supabase/database';
@@ -31,7 +32,10 @@ import {
 } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import {
+  useDeleteLead,
+  useUpdateLead,
+} from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { Button } from '@kit/ui/button';
 import {
@@ -48,6 +52,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
+import { Input } from '@kit/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@kit/ui/select';
 import {
   Table,
   TableBody,
@@ -59,14 +71,49 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
-import { StatsCard, StatusBadge } from '~/components/shared';
+import {
+  DatePicker,
+  StatsCard,
+  StatusBadge,
+  TimePicker,
+} from '~/components/shared';
 
 import { CSVUpload } from './csv-upload';
 import { ReassignAgentDialog } from './reassign-agent-dialog';
 
+// Helper functions to convert enum values to user-friendly labels
+const getSpeakingToneLabel = (
+  speakingTone: string | null | undefined,
+): string => {
+  if (!speakingTone) return 'Default tone';
+  const speakingTones = [
+    { value: 'warm-friendly', label: 'Warm and friendly' },
+    { value: 'professional-confident', label: 'Professional and confident' },
+    { value: 'compassionate-caring', label: 'Compassionate and caring' },
+    { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
+    { value: 'calm-reassuring', label: 'Calm and reassuring' },
+  ];
+  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
+  return toneOption?.label || speakingTone;
+};
+
+const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
+  if (!retryLogic) return 'Standard retry logic';
+  const retryLogics = [
+    { value: 'standard', label: 'Standard Retry Logic' },
+    { value: 'aggressive', label: 'Aggressive Retry Logic' },
+    { value: 'conservative', label: 'Conservative Retry Logic' },
+    { value: 'smart', label: 'Smart Retry Logic' },
+    { value: 'custom', label: 'Custom Retry Logic' },
+  ];
+  const logicOption = retryLogics.find((logic) => logic.value === retryLogic);
+  return logicOption?.label || retryLogic;
+};
+
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
 
   // Fetch real data
   const { data: campaign, isLoading: loadingCampaign } =
@@ -79,6 +126,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const deleteCampaignMutation = useDeleteCampaign();
   const updateCampaignMutation = useUpdateCampaign();
   const deleteLeadMutation = useDeleteLead();
+  const updateLeadMutation = useUpdateLead();
 
   // State for inline editing
   const [campaignName, setCampaignName] = useState('');
@@ -101,13 +149,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       setCampaignScript(campaign.script || '');
       setStartDate(
         campaign.start_date
-          ? new Date(campaign.start_date).toISOString().split('T')[0]
+          ? dayjs(campaign.start_date).format('YYYY-MM-DD')
           : '',
       );
       setEndDate(
-        campaign.end_date
-          ? new Date(campaign.end_date).toISOString().split('T')[0]
-          : '',
+        campaign.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '',
       );
       setCallingHours(campaign.calling_hours || '');
       setMaxAttempts(campaign.max_attempts?.toString() || '');
@@ -124,13 +170,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const hasStartDateChanges =
     startDate !==
     (campaign?.start_date
-      ? new Date(campaign.start_date).toISOString().split('T')[0]
+      ? dayjs(campaign.start_date).format('YYYY-MM-DD')
       : '');
   const hasEndDateChanges =
     endDate !==
-    (campaign?.end_date
-      ? new Date(campaign.end_date).toISOString().split('T')[0]
-      : '');
+    (campaign?.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '');
   const hasCallingHoursChanges =
     callingHours !== (campaign?.calling_hours || '');
   const hasMaxAttemptsChanges =
@@ -217,6 +261,17 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       await deleteLeadMutation.mutateAsync(leadId);
     } catch (error) {
       console.error('Failed to delete lead:', error);
+    }
+  };
+
+  const handleUpdateLead = async (
+    leadId: string,
+    data: Partial<Tables<'leads'>>,
+  ) => {
+    try {
+      await updateLeadMutation.mutateAsync({ id: leadId, ...data });
+    } catch (error) {
+      console.error('Failed to update lead:', error);
     }
   };
 
@@ -549,6 +604,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <LeadsTable
                 leads={campaignLeads}
                 onDeleteLead={handleDeleteLead}
+                onUpdateLead={handleUpdateLead}
                 campaignId={campaignId}
               />
             </TabsContent>
@@ -556,27 +612,27 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <TabsContent value="agent" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Assigned Agent</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsReassignDialogOpen(true)}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Reassign Agent
+                </Button>
                 <ReassignAgentDialog
                   campaignId={campaignId}
                   currentAgentId={campaign?.agent_id || undefined}
-                  isOpen={false}
-                  onClose={() => {}}
+                  isOpen={isReassignDialogOpen}
+                  onClose={() => setIsReassignDialogOpen(false)}
                 />
               </div>
               <AgentCard agent={assignedAgent} />
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div>
                 <h3 className="text-lg font-semibold">Campaign Settings</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveTab('overview')}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Edit Settings
-                </Button>
               </div>
               <SettingsCard
                 campaign={campaign}
@@ -612,16 +668,17 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 function LeadsTable({
   leads,
   onDeleteLead,
+  onUpdateLead,
   campaignId,
 }: {
   leads: Tables<'leads'>[];
   onDeleteLead: (leadId: string) => Promise<void>;
+  onUpdateLead: (
+    leadId: string,
+    data: Partial<Tables<'leads'>>,
+  ) => Promise<void>;
   campaignId: string;
 }) {
-  const getLeadStatusBadge = (status: string) => {
-    return <StatusBadge status={status} />;
-  };
-
   // Empty state
   if (leads.length === 0) {
     return (
@@ -664,55 +721,175 @@ function LeadsTable({
       </TableHeader>
       <TableBody>
         {leads.map((lead) => (
-          <TableRow key={lead.id}>
-            <TableCell>
-              <div>
-                <div className="font-medium">{lead.name}</div>
-                <div className="text-muted-foreground text-sm">
-                  {lead.email}
-                </div>
-              </div>
-            </TableCell>
-            <TableCell>{lead.phone}</TableCell>
-            <TableCell>{lead.company || '-'}</TableCell>
-            <TableCell>{getLeadStatusBadge(lead.status)}</TableCell>
-            <TableCell>
-              {lead.last_contact_date
-                ? new Date(lead.last_contact_date).toLocaleDateString()
-                : 'Never'}
-            </TableCell>
-            <TableCell>{lead.attempts || 0}</TableCell>
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    View Donor
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Phone className="mr-2 h-4 w-4" />
-                    Retry Call
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-red-600"
-                    onClick={() => onDeleteLead(lead.id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Remove
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
+          <EditableLeadRow
+            key={lead.id}
+            lead={lead}
+            onDelete={onDeleteLead}
+            onUpdate={onUpdateLead}
+          />
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+function EditableLeadRow({
+  lead,
+  onDelete,
+  onUpdate,
+}: {
+  lead: Tables<'leads'>;
+  onDelete: (leadId: string) => Promise<void>;
+  onUpdate: (leadId: string, data: Partial<Tables<'leads'>>) => Promise<void>;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingLead, setEditingLead] = useState({
+    name: lead.name || '',
+    email: lead.email || '',
+    phone: lead.phone || '',
+    company: lead.company || '',
+  });
+  const [savingField, setSavingField] = useState<string | null>(null);
+
+  const handleSaveField = async (fieldName: string, value: string) => {
+    setSavingField(fieldName);
+    try {
+      await onUpdate(lead.id, { [fieldName]: value });
+      setSavingField(null);
+    } catch (error) {
+      console.error(`Failed to update ${fieldName}:`, error);
+      setSavingField(null);
+    }
+  };
+
+  const getLeadStatusBadge = (status: string) => {
+    return <StatusBadge status={status} />;
+  };
+
+  return (
+    <TableRow className="hover:bg-muted/50">
+      <TableCell>
+        <div>
+          {isEditing ? (
+            <div className="space-y-2">
+              <Input
+                type="text"
+                value={editingLead.name}
+                onChange={(e) =>
+                  setEditingLead((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="Name"
+              />
+              <Input
+                type="email"
+                value={editingLead.email}
+                onChange={(e) =>
+                  setEditingLead((prev) => ({ ...prev, email: e.target.value }))
+                }
+                placeholder="Email"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    handleSaveField('name', editingLead.name);
+                    handleSaveField('email', editingLead.email);
+                  }}
+                  disabled={savingField === 'name' || savingField === 'email'}
+                >
+                  {savingField ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="font-medium">{lead.name}</div>
+              <div className="text-muted-foreground text-sm">{lead.email}</div>
+            </div>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        {isEditing ? (
+          <Input
+            type="tel"
+            value={editingLead.phone}
+            onChange={(e) =>
+              setEditingLead((prev) => ({ ...prev, phone: e.target.value }))
+            }
+            placeholder="Phone"
+          />
+        ) : (
+          lead.phone
+        )}
+      </TableCell>
+      <TableCell>
+        {isEditing ? (
+          <Input
+            type="text"
+            value={editingLead.company}
+            onChange={(e) =>
+              setEditingLead((prev) => ({ ...prev, company: e.target.value }))
+            }
+            placeholder="Company"
+          />
+        ) : (
+          lead.company || '-'
+        )}
+      </TableCell>
+      <TableCell>{getLeadStatusBadge(lead.status)}</TableCell>
+      <TableCell>
+        {lead.last_contact_date
+          ? new Date(lead.last_contact_date).toLocaleDateString()
+          : 'Never'}
+      </TableCell>
+      <TableCell>{lead.attempts || 0}</TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {!isEditing ? (
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Lead
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => setIsEditing(false)}>
+                <X className="mr-2 h-4 w-4" />
+                Cancel Edit
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              View Donor
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Phone className="mr-2 h-4 w-4" />
+              Retry Call
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={() => onDelete(lead.id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -761,7 +938,7 @@ function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
           <div>
             <h4 className="font-medium">Tone</h4>
             <p className="text-muted-foreground text-sm">
-              {agent.speaking_tone || 'Default tone'}
+              {getSpeakingToneLabel(agent.speaking_tone)}
             </p>
           </div>
         </div>
@@ -845,11 +1022,13 @@ function SettingsCard({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium">Start Date</h4>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              <DatePicker
+                value={startDate ? dayjs(startDate).toDate() : undefined}
+                onValueChange={(date) =>
+                  setStartDate(date ? dayjs(date).format('YYYY-MM-DD') : '')
+                }
+                placeholder="Select start date"
+                className="mt-1"
               />
               {hasStartDateChanges && (
                 <div className="mt-2 flex justify-end">
@@ -865,11 +1044,13 @@ function SettingsCard({
             </div>
             <div>
               <h4 className="font-medium">End Date</h4>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              <DatePicker
+                value={endDate ? dayjs(endDate).toDate() : undefined}
+                onValueChange={(date) =>
+                  setEndDate(date ? dayjs(date).format('YYYY-MM-DD') : '')
+                }
+                placeholder="Select end date"
+                className="mt-1"
               />
               {hasEndDateChanges && (
                 <div className="mt-2 flex justify-end">
@@ -887,13 +1068,33 @@ function SettingsCard({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium">Calling Hours</h4>
-              <input
-                type="text"
-                value={callingHours}
-                onChange={(e) => setCallingHours(e.target.value)}
-                placeholder="9:00-17:00"
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              />
+              <div className="mt-1 flex items-center gap-2">
+                <TimePicker
+                  value={callingHours.split('-')[0] || ''}
+                  onValueChange={(time) => {
+                    const startTime = time;
+                    const endTime = callingHours.split('-')[1] || '';
+                    setCallingHours(
+                      endTime ? `${startTime}-${endTime}` : startTime,
+                    );
+                  }}
+                  placeholder="Start time"
+                  className="flex-1"
+                />
+                <span className="text-muted-foreground text-sm">to</span>
+                <TimePicker
+                  value={callingHours.split('-')[1] || ''}
+                  onValueChange={(time) => {
+                    const startTime = callingHours.split('-')[0] || '';
+                    const endTime = time;
+                    setCallingHours(
+                      startTime ? `${startTime}-${endTime}` : endTime,
+                    );
+                  }}
+                  placeholder="End time"
+                  className="flex-1"
+                />
+              </div>
               {hasCallingHoursChanges && (
                 <div className="mt-2 flex justify-end">
                   <Button
@@ -910,12 +1111,12 @@ function SettingsCard({
             </div>
             <div>
               <h4 className="font-medium">Max Attempts</h4>
-              <input
+              <Input
                 type="number"
                 value={maxAttempts}
                 onChange={(e) => setMaxAttempts(e.target.value)}
                 placeholder="3"
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="mt-1"
               />
               {hasMaxAttemptsChanges && (
                 <div className="mt-2 flex justify-end">
@@ -932,12 +1133,12 @@ function SettingsCard({
           </div>
           <div>
             <h4 className="font-medium">Daily Call Cap</h4>
-            <input
+            <Input
               type="number"
               value={dailyCallCap}
               onChange={(e) => setDailyCallCap(e.target.value)}
               placeholder="100"
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1"
             />
             {hasDailyCallCapChanges && (
               <div className="mt-2 flex justify-end">
@@ -974,12 +1175,61 @@ function SettingsCard({
           </div>
           <div>
             <h4 className="font-medium">Retry Logic</h4>
-            <Textarea
+            <p className="text-muted-foreground mt-1 text-sm">
+              Define how the system handles failed call attempts and follow-up
+              strategies
+            </p>
+            <Select
               value={retryLogic}
-              onChange={(e) => setRetryLogic(e.target.value)}
-              className="mt-1 min-h-[80px] resize-none"
-              placeholder="Standard retry logic..."
-            />
+              onValueChange={(value) => setRetryLogic(value)}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select retry logic strategy" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">
+                  <div>
+                    <div className="font-medium">Standard Retry Logic</div>
+                    <div className="text-muted-foreground text-sm">
+                      Retry after 24 hours, max 3 attempts, skip opt-outs
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="aggressive">
+                  <div>
+                    <div className="font-medium">Aggressive Retry Logic</div>
+                    <div className="text-muted-foreground text-sm">
+                      Retry after 4-6 hours, max 5 attempts, multiple time slots
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="conservative">
+                  <div>
+                    <div className="font-medium">Conservative Retry Logic</div>
+                    <div className="text-muted-foreground text-sm">
+                      Retry after 48-72 hours, max 2 attempts, business hours
+                      only
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="smart">
+                  <div>
+                    <div className="font-medium">Smart Retry Logic</div>
+                    <div className="text-muted-foreground text-sm">
+                      Adaptive timing, ML optimization, personalized strategies
+                    </div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="custom">
+                  <div>
+                    <div className="font-medium">Custom Retry Logic</div>
+                    <div className="text-muted-foreground text-sm">
+                      Define your own retry strategy and timing rules
+                    </div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
             {hasRetryLogicChanges && (
               <div className="mt-2 flex justify-end">
                 <Button

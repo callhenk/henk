@@ -13,7 +13,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@kit/ui/dialog';
 
 import { StatusBadge } from '~/components/shared';
@@ -59,12 +58,6 @@ export function ReassignAgentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Users className="mr-2 h-4 w-4" />
-          Reassign Agent
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Reassign Agent</DialogTitle>

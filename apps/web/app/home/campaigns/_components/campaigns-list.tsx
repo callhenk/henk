@@ -8,7 +8,6 @@ import {
   Archive,
   Copy,
   DollarSign,
-  Edit,
   Eye,
   MoreHorizontal,
   Pause,
@@ -397,14 +396,7 @@ function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
                     <Eye className="mr-2 h-4 w-4" />
                     View
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      router.push(`/home/campaigns/${campaign.id}/edit`)
-                    }
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
+
                   <DropdownMenuItem>
                     <Copy className="mr-2 h-4 w-4" />
                     Duplicate

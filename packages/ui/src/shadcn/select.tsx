@@ -16,21 +16,30 @@ const Select = SelectPrimitive.Root;
 
 const SelectGroup = SelectPrimitive.Group;
 
-const SelectValue = SelectPrimitive.Value;
+const SelectValue: React.FC<
+  React.ComponentPropsWithRef<typeof SelectPrimitive.Value>
+> = ({ className, ...props }) => (
+  <SelectPrimitive.Value
+    className={cn('text-left', className)}
+    {...props}
+  />
+);
 
 const SelectTrigger: React.FC<
   React.ComponentPropsWithRef<typeof SelectPrimitive.Trigger>
 > = ({ className, children, ...props }) => (
   <SelectPrimitive.Trigger
     className={cn(
-      'border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-2xs focus:ring-1 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      'border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-2xs focus:ring-1 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
       className,
     )}
     {...props}
   >
-    {children}
+    <div className="flex-1 text-left truncate">
+      {children}
+    </div>
     <SelectPrimitive.Icon asChild>
-      <CaretSortIcon className="h-4 w-4 opacity-50" />
+      <CaretSortIcon className="h-4 w-4 opacity-50 flex-shrink-0 ml-2" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 );
@@ -122,7 +131,9 @@ const SelectItem: React.FC<
         <CheckIcon className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemText className="flex-1 text-left">
+      {children}
+    </SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 );
 SelectItem.displayName = SelectPrimitive.Item.displayName;
