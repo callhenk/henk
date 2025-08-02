@@ -614,7 +614,7 @@ function AgentStatusCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="max-h-80 space-y-4 overflow-y-auto">
+        <div className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400 max-h-80 space-y-4 overflow-y-auto">
           {agents.map((agent) => {
             const agentConversations = conversations.filter(
               (conv) => conv.agent_id === agent.id,
@@ -679,7 +679,7 @@ function CampaignSummariesCard({
         <CardDescription>Campaign performance overview</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="max-h-80 space-y-4 overflow-y-auto">
+        <div className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400 max-h-80 space-y-4 overflow-y-auto">
           {campaigns.map((campaign) => {
             const campaignConversations = conversations.filter(
               (conv) => conv.campaign_id === campaign.id,
