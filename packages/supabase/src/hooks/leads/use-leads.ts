@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useSupabase } from '../use-supabase';
 import type { Tables } from '../../database.types';
+import { useSupabase } from '../use-supabase';
 
-type Lead = Tables<'leads'>;
+type Lead = Tables<'leads'>['Row'];
 
 export interface LeadsFilters {
   campaign_id?: string;

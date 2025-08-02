@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Tables } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type TeamMember = Tables<'team_members'>;
+type TeamMember = Tables<'team_members'>['Row'];
 
 export interface TeamMembersFilters {
   business_id?: string;

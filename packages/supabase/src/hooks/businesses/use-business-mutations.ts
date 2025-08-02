@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TablesInsert, TablesUpdate } from '../../database.types';
+import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Business = TablesInsert<'businesses'>;
-type CreateBusinessData = TablesInsert<'businesses'>;
+type Business = Tables<'businesses'>['Row'];
+type CreateBusinessData = Omit<TablesInsert<'businesses'>, 'account_id'>;
 type UpdateBusinessData = TablesUpdate<'businesses'> & { id: string };
 
 export function useCreateBusiness() {
@@ -13,9 +13,20 @@ export function useCreateBusiness() {
 
   return useMutation({
     mutationFn: async (data: CreateBusinessData): Promise<Business> => {
+      // Get the current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data: business, error } = await supabase
         .from('businesses')
-        .insert(data)
+        .insert({
+          ...data,
+          account_id: user.id,
+        })
         .select()
         .single();
 

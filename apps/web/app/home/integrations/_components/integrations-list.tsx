@@ -38,7 +38,7 @@ import { Switch } from '@kit/ui/switch';
 
 import { StatsCard } from '~/components/shared';
 
-type Integration = Tables<'integrations'>;
+type Integration = Tables<'integrations'>['Row'];
 
 // Enhanced integration interface with UI-specific fields
 interface EnhancedIntegration extends Integration {

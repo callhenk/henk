@@ -54,10 +54,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-type Conversation = Tables<'conversations'>;
-type _Campaign = Tables<'campaigns'>;
-type _Agent = Tables<'agents'>;
-type _Lead = Tables<'leads'>;
+type Conversation = Tables<'conversations'>['Row'];
+type _Campaign = Tables<'campaigns'>['Row'];
+type _Agent = Tables<'agents'>['Row'];
+type _Lead = Tables<'leads'>['Row'];
 
 // Enhanced conversation interface with calculated fields
 interface EnhancedConversation extends Conversation {
@@ -210,8 +210,8 @@ export function ConversationsList() {
           break;
         case 'date':
         default:
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
+          aValue = new Date(a.created_at || '');
+          bValue = new Date(b.created_at || '');
           break;
       }
 
@@ -267,6 +267,7 @@ export function ConversationsList() {
   const totalConversations = enhancedConversations.length;
   const todayConversations = enhancedConversations.filter(
     (conv) =>
+      conv.created_at &&
       new Date(conv.created_at).toDateString() === new Date().toDateString(),
   ).length;
   const totalDuration = enhancedConversations.reduce(
@@ -457,8 +458,9 @@ export function ConversationsList() {
               <ConversationsTable
                 conversations={sortedConversations.filter(
                   (conv) =>
+                    conv.created_at &&
                     new Date(conv.created_at).toDateString() ===
-                    new Date().toDateString(),
+                      new Date().toDateString(),
                 )}
               />
             </TabsContent>
@@ -579,7 +581,9 @@ function ConversationsTable({
                 {conversation.amount ? `$${conversation.amount}` : '-'}
               </TableCell>
               <TableCell>
-                {new Date(conversation.created_at).toLocaleDateString()}
+                {conversation.created_at
+                  ? new Date(conversation.created_at).toLocaleDateString()
+                  : 'Unknown'}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

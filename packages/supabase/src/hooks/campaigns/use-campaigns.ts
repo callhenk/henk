@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Tables } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Campaign = Tables<'campaigns'>;
+type Campaign = Tables<'campaigns'>['Row'];
 
 export interface CampaignsFilters {
   status?: Campaign['status'];

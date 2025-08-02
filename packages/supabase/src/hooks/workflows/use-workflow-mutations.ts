@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TablesInsert, TablesUpdate } from '../../database.types';
+import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Workflow = TablesInsert<'workflows'>;
-type WorkflowNode = TablesInsert<'workflow_nodes'>;
-type WorkflowEdge = TablesInsert<'workflow_edges'>;
+type Workflow = Tables<'workflows'>['Row'];
+type WorkflowNode = Tables<'workflow_nodes'>['Row'];
+type WorkflowEdge = Tables<'workflow_edges'>['Row'];
 
-type CreateWorkflowData = TablesInsert<'workflows'>;
+type CreateWorkflowData = Omit<TablesInsert<'workflows'>, 'business_id'>;
 type UpdateWorkflowData = TablesUpdate<'workflows'> & { id: string };
 
 export interface SaveWorkflowData {
@@ -105,10 +105,33 @@ export function useSaveWorkflow() {
     mutationFn: async (data: SaveWorkflowData): Promise<Workflow> => {
       const { workflow, nodes, edges } = data;
 
+      // Get the current user's business_id
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get the user's active business
+      const { data: teamMembership } = await supabase
+        .from('team_members')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      if (!teamMembership) {
+        throw new Error('No active business found for user');
+      }
+
       // Create or update workflow
       const { data: savedWorkflow, error: workflowError } = await supabase
         .from('workflows')
-        .upsert(workflow)
+        .upsert({
+          ...workflow,
+          business_id: teamMembership.business_id,
+        })
         .select()
         .single();
 

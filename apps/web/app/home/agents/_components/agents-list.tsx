@@ -68,7 +68,7 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-type Agent = Tables<'agents'>;
+type Agent = Tables<'agents'>['Row'];
 
 const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   if (!voiceType) return 'Default voice';

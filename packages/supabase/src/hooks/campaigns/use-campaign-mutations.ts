@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TablesInsert, TablesUpdate } from '../../database.types';
+import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Campaign = TablesInsert<'campaigns'>;
-type CreateCampaignData = TablesInsert<'campaigns'>;
+type Campaign = Tables<'campaigns'>['Row'];
+type CreateCampaignData = Omit<TablesInsert<'campaigns'>, 'business_id'>;
 type UpdateCampaignData = TablesUpdate<'campaigns'> & { id: string };
 
 export function useCreateCampaign() {

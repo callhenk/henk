@@ -129,7 +129,7 @@ export function CampaignForm({
           ? new Date(existingCampaign.end_date)
           : undefined,
         target_amount: existingCampaign.target_amount?.toString() || '',
-        script: existingCampaign.script,
+        script: existingCampaign.script || '',
       });
     }
   }, [existingCampaign, mode, form]);
@@ -190,15 +190,12 @@ export function CampaignForm({
           agent_id: data.agent_id,
           start_date: data.start_date.toISOString(),
           end_date: data.end_date?.toISOString() || null,
-          target_amount: parseFloat(data.target_amount) || 0,
           script: data.script,
           status: 'draft',
           calling_hours: '9:00-17:00',
           max_attempts: 3,
           daily_call_cap: 100,
           retry_logic: 'standard',
-          budget: null,
-          account_id: user.id,
         });
         router.push(`/home/campaigns/${createdCampaign.id}`);
       } else if (campaignId) {

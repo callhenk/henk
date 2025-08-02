@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TablesInsert, TablesUpdate } from '../../database.types';
+import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Integration = TablesInsert<'integrations'>;
-type CreateIntegrationData = TablesInsert<'integrations'>;
+type Integration = Tables<'integrations'>['Row'];
+type CreateIntegrationData = Omit<TablesInsert<'integrations'>, 'business_id'>;
 type UpdateIntegrationData = TablesUpdate<'integrations'> & { id: string };
 
 export function useCreateIntegration() {

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useSupabase } from '../use-supabase';
 import type { Tables } from '../../database.types';
+import { useSupabase } from '../use-supabase';
 
-type Integration = Tables<'integrations'>;
+type Integration = Tables<'integrations'>['Row'];
 
 export interface IntegrationsFilters {
   type?: Integration['type'];

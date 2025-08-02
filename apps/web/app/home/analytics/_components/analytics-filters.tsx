@@ -83,7 +83,7 @@ export function AnalyticsFilters({
       dateRange: {
         startDate,
         endDate: now,
-        preset: preset as any,
+        preset: preset as '7d' | '30d' | '90d' | 'thisMonth' | 'custom',
       },
     });
   };

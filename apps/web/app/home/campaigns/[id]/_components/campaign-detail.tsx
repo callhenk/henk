@@ -91,22 +91,6 @@ import {
 import { CSVUpload } from './csv-upload';
 import { ReassignAgentDialog } from './reassign-agent-dialog';
 
-// Helper functions to convert enum values to user-friendly labels
-const getSpeakingToneLabel = (
-  speakingTone: string | null | undefined,
-): string => {
-  if (!speakingTone) return 'Default tone';
-  const speakingTones = [
-    { value: 'warm-friendly', label: 'Warm and friendly' },
-    { value: 'professional-confident', label: 'Professional and confident' },
-    { value: 'compassionate-caring', label: 'Compassionate and caring' },
-    { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
-    { value: 'calm-reassuring', label: 'Calm and reassuring' },
-  ];
-  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
-  return toneOption?.label || speakingTone;
-};
-
 const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
   if (!retryLogic) return 'Standard retry logic';
   const retryLogics = [
@@ -149,6 +133,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const [retryLogic, setRetryLogic] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
 
   // Initialize form data when campaign loads
   useEffect(() => {
@@ -248,10 +233,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   ).length;
   const conversionRate =
     contacted > 0 ? Math.round((conversions / contacted) * 100) : 0;
-  const revenue = campaignLeads.reduce(
-    (sum, lead) => sum + (lead.donated_amount || 0),
-    0,
-  );
+  const revenue = 0; // TODO: Add revenue tracking when implemented
 
   // Delete handlers
   const handleDeleteCampaign = async () => {
@@ -275,7 +257,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   const handleUpdateLead = async (
     leadId: string,
-    data: Partial<Tables<'leads'>>,
+    data: Partial<Tables<'leads'>['Row']>,
   ) => {
     try {
       await updateLeadMutation.mutateAsync({ id: leadId, ...data });
@@ -389,8 +371,55 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             Back to Campaigns
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{campaign.name}</h1>
-            <p className="text-muted-foreground">{campaign.description}</p>
+            <div className="flex items-center space-x-2">
+              {editingName ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                    className="h-8 text-2xl font-bold"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveField('name', campaignName);
+                        setEditingName(false);
+                      } else if (e.key === 'Escape') {
+                        setCampaignName(campaign?.name || '');
+                        setEditingName(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      handleSaveField('name', campaignName);
+                      setEditingName(false);
+                    }}
+                    autoFocus
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleSaveField('name', campaignName);
+                      setEditingName(false);
+                    }}
+                    className="h-6 w-6 p-0"
+                  >
+                    ✓
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-2xl font-bold">{campaignName}</h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingName(true)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            <p className="text-muted-foreground">{campaignDescription}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -702,11 +731,11 @@ function LeadsTable({
   onUpdateLead,
   campaignId,
 }: {
-  leads: Tables<'leads'>[];
+  leads: Tables<'leads'>['Row'][];
   onDeleteLead: (leadId: string) => Promise<void>;
   onUpdateLead: (
     leadId: string,
-    data: Partial<Tables<'leads'>>,
+    data: Partial<Tables<'leads'>['Row']>,
   ) => Promise<void>;
   campaignId: string;
 }) {
@@ -769,9 +798,12 @@ function EditableLeadRow({
   onDelete,
   onUpdate,
 }: {
-  lead: Tables<'leads'>;
+  lead: Tables<'leads'>['Row'];
   onDelete: (leadId: string) => Promise<void>;
-  onUpdate: (leadId: string, data: Partial<Tables<'leads'>>) => Promise<void>;
+  onUpdate: (
+    leadId: string,
+    data: Partial<Tables<'leads'>['Row']>,
+  ) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingLead, setEditingLead] = useState({
@@ -879,12 +911,8 @@ function EditableLeadRow({
         )}
       </TableCell>
       <TableCell>{getLeadStatusBadge(lead.status)}</TableCell>
-      <TableCell>
-        {lead.last_contact_date
-          ? new Date(lead.last_contact_date).toLocaleDateString()
-          : 'Never'}
-      </TableCell>
-      <TableCell>{lead.attempts || 0}</TableCell>
+      <TableCell>Never</TableCell>
+      <TableCell>0</TableCell>
       <TableCell className="text-right">
         {isEditing ? (
           <div className="flex gap-2">
@@ -965,7 +993,7 @@ function EditableLeadRow({
   );
 }
 
-function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
+function AgentCard({ agent }: { agent: Tables<'agents'>['Row'] | undefined }) {
   const router = useRouter();
   if (!agent) {
     return (
@@ -1009,9 +1037,7 @@ function AgentCard({ agent }: { agent: Tables<'agents'> | undefined }) {
           </div>
           <div>
             <h4 className="font-medium">Tone</h4>
-            <p className="text-muted-foreground text-sm">
-              {getSpeakingToneLabel(agent.speaking_tone)}
-            </p>
+            <p className="text-muted-foreground text-sm">Default tone</p>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -1062,7 +1088,7 @@ function SettingsCard({
   handleSaveField,
   savingField,
 }: {
-  campaign: Tables<'campaigns'>;
+  campaign: Tables<'campaigns'>['Row'];
   startDate: string;
   setStartDate: (value: string) => void;
   endDate: string;

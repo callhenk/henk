@@ -63,7 +63,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-type Campaign = Tables<'campaigns'>;
+type Campaign = Tables<'campaigns'>['Row'];
 
 // Enhanced campaign interface with calculated fields
 interface EnhancedCampaign extends Campaign {

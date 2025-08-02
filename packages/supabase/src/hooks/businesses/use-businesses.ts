@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Tables } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Business = Tables<'businesses'>;
+type Business = Tables<'businesses'>['Row'];
 
 export interface BusinessesFilters {
   status?: Business['status'];

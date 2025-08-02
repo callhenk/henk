@@ -2,39 +2,19 @@
 
 import { useState } from 'react';
 
+import type { Tables } from '@kit/supabase/database';
+import {
+  useCreateBusiness,
+  useDeleteBusiness,
+  useUpdateBusiness,
+} from '@kit/supabase/hooks/businesses/use-business-mutations';
 import { useUserBusinesses } from '@kit/supabase/hooks/businesses/use-businesses';
-import { useCreateBusiness, useUpdateBusiness, useDeleteBusiness } from '@kit/supabase/hooks/businesses/use-business-mutations';
+import {
+  useCreateTeamMember,
+  useDeleteTeamMember,
+  useUpdateTeamMember,
+} from '@kit/supabase/hooks/team-members/use-team-member-mutations';
 import { useTeamMembersByBusiness } from '@kit/supabase/hooks/team-members/use-team-members';
-import { useCreateTeamMember, useUpdateTeamMember, useDeleteTeamMember } from '@kit/supabase/hooks/team-members/use-team-member-mutations';
-import { Button } from '@kit/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
-import { Input } from '@kit/ui/input';
-import { Label } from '@kit/ui/label';
-import { Textarea } from '@kit/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@kit/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@kit/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,32 +27,143 @@ import {
   AlertDialogTrigger,
 } from '@kit/ui/alert-dialog';
 import { Badge } from '@kit/ui/badge';
+import { Button } from '@kit/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@kit/ui/dialog';
+import { Input } from '@kit/ui/input';
+import { Label } from '@kit/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@kit/ui/select';
 import { Separator } from '@kit/ui/separator';
+import { Skeleton } from '@kit/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@kit/ui/table';
+import { Textarea } from '@kit/ui/textarea';
 
-import type { Tables } from '@kit/supabase/database';
-
-type Business = Tables<'businesses'>;
-type TeamMember = Tables<'team_members'>;
+type Business = Tables<'businesses'>['Row'];
 
 interface BusinessSettingsContainerProps {
-  userId: string;
+  _userId: string;
 }
 
-export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerProps) {
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+function BusinessCardSkeleton() {
+  return (
+    <Card className="cursor-pointer transition-shadow hover:shadow-md">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <Skeleton className="h-4 w-48" />
+      </CardHeader>
+      <CardContent>
+        <div className="flex space-x-2">
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-16" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TeamMembersTableSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Team Members</CardTitle>
+        <CardDescription>
+          <Skeleton className="h-4 w-32" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Member</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div>
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-8 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-8 w-16" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function BusinessSettingsContainer({
+  _userId,
+}: BusinessSettingsContainerProps) {
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+    null,
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   // Hooks
-  const { data: businesses, isLoading: businessesLoading } = useUserBusinesses();
+  const { data: businesses, isLoading: businessesLoading } =
+    useUserBusinesses();
   const createBusinessMutation = useCreateBusiness();
   const updateBusinessMutation = useUpdateBusiness();
   const deleteBusinessMutation = useDeleteBusiness();
 
-  const { data: teamMembers, isLoading: teamMembersLoading } = useTeamMembersByBusiness(
-    selectedBusiness?.id || ''
-  );
+  const { data: teamMembers, isLoading: teamMembersLoading } =
+    useTeamMembersByBusiness(selectedBusiness?.id || '');
   const createTeamMemberMutation = useCreateTeamMember();
   const updateTeamMemberMutation = useUpdateTeamMember();
   const deleteTeamMemberMutation = useDeleteTeamMember();
@@ -85,7 +176,7 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
 
   const [inviteForm, setInviteForm] = useState({
     email: '',
-    role: 'member' as const,
+    role: 'member' as 'owner' | 'admin' | 'member' | 'viewer',
   });
 
   const handleCreateBusiness = async () => {
@@ -93,7 +184,6 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
       await createBusinessMutation.mutateAsync({
         name: businessForm.name,
         description: businessForm.description,
-        account_id: userId,
         status: 'active',
       });
       setBusinessForm({ name: '', description: '' });
@@ -105,7 +195,7 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
 
   const handleUpdateBusiness = async () => {
     if (!selectedBusiness) return;
-    
+
     try {
       await updateBusinessMutation.mutateAsync({
         id: selectedBusiness.id,
@@ -121,7 +211,7 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
 
   const handleDeleteBusiness = async () => {
     if (!selectedBusiness) return;
-    
+
     try {
       await deleteBusinessMutation.mutateAsync(selectedBusiness.id);
       setSelectedBusiness(null);
@@ -132,7 +222,7 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
 
   const handleInviteMember = async () => {
     if (!selectedBusiness) return;
-    
+
     try {
       await createTeamMemberMutation.mutateAsync({
         business_id: selectedBusiness.id,
@@ -151,7 +241,7 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
     try {
       await updateTeamMemberMutation.mutateAsync({
         id: memberId,
-        role: role as any,
+        role: role as 'owner' | 'admin' | 'member' | 'viewer',
       });
     } catch (error) {
       console.error('Failed to update member role:', error);
@@ -176,7 +266,25 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
   };
 
   if (businessesLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="mt-2 h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        {/* Businesses Grid Skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <BusinessCardSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -206,7 +314,9 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                 <Input
                   id="name"
                   value={businessForm.name}
-                  onChange={(e) => setBusinessForm({ ...businessForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setBusinessForm({ ...businessForm, name: e.target.value })
+                  }
                   placeholder="Enter business name"
                 />
               </div>
@@ -215,16 +325,27 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                 <Textarea
                   id="description"
                   value={businessForm.description}
-                  onChange={(e) => setBusinessForm({ ...businessForm, description: e.target.value })}
+                  onChange={(e) =>
+                    setBusinessForm({
+                      ...businessForm,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Enter business description"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleCreateBusiness} disabled={!businessForm.name}>
+              <Button
+                onClick={handleCreateBusiness}
+                disabled={!businessForm.name}
+              >
                 Create Business
               </Button>
             </DialogFooter>
@@ -235,11 +356,18 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
       {/* Businesses List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {businesses?.map((business) => (
-          <Card key={business.id} className="cursor-pointer hover:shadow-md transition-shadow">
+          <Card
+            key={business.id}
+            className="cursor-pointer transition-shadow hover:shadow-md"
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{business.name}</CardTitle>
-                <Badge variant={business.status === 'active' ? 'default' : 'secondary'}>
+                <Badge
+                  variant={
+                    business.status === 'active' ? 'default' : 'secondary'
+                  }
+                >
                   {business.status}
                 </Badge>
               </div>
@@ -276,7 +404,8 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Business</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete "{business.name}"? This action cannot be undone.
+                        Are you sure you want to delete &quot;{business.name}
+                        &quot;? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -304,14 +433,16 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
         <div className="space-y-4">
           <Separator />
           <div>
-            <h2 className="text-xl font-semibold">Team Members - {selectedBusiness.name}</h2>
+            <h2 className="text-xl font-semibold">
+              Team Members - {selectedBusiness.name}
+            </h2>
             <p className="text-muted-foreground">
               Manage team members and their roles
             </p>
           </div>
 
           {teamMembersLoading ? (
-            <div>Loading team members...</div>
+            <TeamMembersTableSkeleton />
           ) : (
             <Card>
               <CardHeader>
@@ -337,7 +468,9 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                         <TableCell>
                           <Select
                             value={member.role}
-                            onValueChange={(value) => handleUpdateMemberRole(member.id, value)}
+                            onValueChange={(value) =>
+                              handleUpdateMemberRole(member.id, value)
+                            }
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />
@@ -351,7 +484,13 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={
+                              member.status === 'active'
+                                ? 'default'
+                                : 'secondary'
+                            }
+                          >
                             {member.status}
                           </Badge>
                         </TableCell>
@@ -364,9 +503,12 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Remove Team Member
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to remove this team member?
+                                  Are you sure you want to remove this team
+                                  member?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -406,7 +548,9 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
               <Input
                 id="edit-name"
                 value={businessForm.name}
-                onChange={(e) => setBusinessForm({ ...businessForm, name: e.target.value })}
+                onChange={(e) =>
+                  setBusinessForm({ ...businessForm, name: e.target.value })
+                }
                 placeholder="Enter business name"
               />
             </div>
@@ -415,16 +559,27 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
               <Textarea
                 id="edit-description"
                 value={businessForm.description}
-                onChange={(e) => setBusinessForm({ ...businessForm, description: e.target.value })}
+                onChange={(e) =>
+                  setBusinessForm({
+                    ...businessForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Enter business description"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdateBusiness} disabled={!businessForm.name}>
+            <Button
+              onClick={handleUpdateBusiness}
+              disabled={!businessForm.name}
+            >
               Update Business
             </Button>
           </DialogFooter>
@@ -447,7 +602,9 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
                 id="invite-email"
                 type="email"
                 value={inviteForm.email}
-                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                onChange={(e) =>
+                  setInviteForm({ ...inviteForm, email: e.target.value })
+                }
                 placeholder="Enter email address"
               />
             </div>
@@ -455,7 +612,12 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
               <Label htmlFor="invite-role">Role</Label>
               <Select
                 value={inviteForm.role}
-                onValueChange={(value) => setInviteForm({ ...inviteForm, role: value as any })}
+                onValueChange={(value) =>
+                  setInviteForm({
+                    ...inviteForm,
+                    role: value as 'owner' | 'admin' | 'member' | 'viewer',
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -470,7 +632,10 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsInviteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleInviteMember} disabled={!inviteForm.email}>
@@ -481,4 +646,4 @@ export function BusinessSettingsContainer({ userId }: BusinessSettingsContainerP
       </Dialog>
     </div>
   );
-} 
+}

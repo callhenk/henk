@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
-import type { TablesInsert, TablesUpdate } from '../../database.types';
 
-type Conversation = TablesInsert<'conversations'>;
+type Conversation = Tables<'conversations'>['Row'];
 type CreateConversationData = TablesInsert<'conversations'>;
 type UpdateConversationData = TablesUpdate<'conversations'> & { id: string };
 

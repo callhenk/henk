@@ -6,6 +6,7 @@ import { Download, Eye, File, Trash2, Upload } from 'lucide-react';
 import { FileDrop } from 'react-file-drop';
 
 import { getSupabaseBrowserClient } from '@kit/supabase/browser-client';
+import type { Json } from '@kit/supabase/database';
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -84,7 +85,49 @@ export function KnowledgeUpload({
           );
 
           // Save to database (this would be your actual upload logic)
-          await saveKnowledgeToDatabase(file, knowledgeFile);
+          const supabase = getSupabaseBrowserClient();
+
+          // Upload file to Supabase storage
+          const { error: uploadError } = await supabase.storage
+            .from('knowledge_base')
+            .upload(`${agentId}/${knowledgeFile.id}/${file.name}`, file);
+
+          if (uploadError) {
+            throw new Error(`Upload failed: ${uploadError.message}`);
+          }
+
+          // Get the public URL for the uploaded file
+          const { data: urlData } = supabase.storage
+            .from('knowledge_base')
+            .getPublicUrl(`${agentId}/${knowledgeFile.id}/${file.name}`);
+
+          // Get existing knowledge base
+          const { data: agent } = await supabase
+            .from('agents')
+            .select('knowledge_base')
+            .eq('id', agentId)
+            .single();
+
+          const existingKnowledge = (agent?.knowledge_base as Record<string, unknown>) || {};
+
+          // Add the new file to knowledge base
+          const updatedKnowledge = {
+            ...existingKnowledge,
+            [knowledgeFile.id]: {
+              name: knowledgeFile.name,
+              type: knowledgeFile.type,
+              size: knowledgeFile.size,
+              url: urlData.publicUrl,
+              path: `${agentId}/${knowledgeFile.id}/${file.name}`,
+              uploadedAt: knowledgeFile.uploadedAt,
+            },
+          };
+
+          // Save to database
+          await updateAgentMutation.mutateAsync({
+            id: agentId,
+            knowledge_base: updatedKnowledge,
+          });
         } catch (error) {
           console.error('Upload failed:', error);
           setFiles((prev) =>
@@ -100,7 +143,7 @@ export function KnowledgeUpload({
       setUploading(false);
       onSaveSuccess?.();
     },
-    [onSaveSuccess],
+    [onSaveSuccess, agentId, updateAgentMutation],
   );
 
   const onDrop = useCallback(
@@ -121,7 +164,7 @@ export function KnowledgeUpload({
       setFiles((prev) => [...prev, ...newFiles]);
       handleFileUpload(acceptedFiles, newFiles);
     },
-    [],
+    [handleFileUpload],
   );
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,61 +183,6 @@ export function KnowledgeUpload({
 
       setFiles((prev) => [...prev, ...newFiles]);
       handleFileUpload(fileArray, newFiles);
-    }
-  };
-
-  const saveKnowledgeToDatabase = async (
-    file: File,
-    knowledgeFile: KnowledgeFile,
-  ) => {
-    try {
-      const supabase = getSupabaseBrowserClient();
-
-      // Upload file to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('knowledge_base')
-        .upload(`${agentId}/${knowledgeFile.id}/${file.name}`, file);
-
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      // Get the public URL for the uploaded file
-      const { data: urlData } = supabase.storage
-        .from('knowledge_base')
-        .getPublicUrl(`${agentId}/${knowledgeFile.id}/${file.name}`);
-
-      // Get existing knowledge base
-      const { data: agent } = await supabase
-        .from('agents')
-        .select('knowledge_base')
-        .eq('id', agentId)
-        .single();
-
-      const existingKnowledge =
-        (agent?.knowledge_base as Record<string, any>) || {};
-
-      // Add the new file to knowledge base
-      const updatedKnowledge = {
-        ...existingKnowledge,
-        [knowledgeFile.id]: {
-          name: knowledgeFile.name,
-          type: knowledgeFile.type,
-          size: knowledgeFile.size,
-          url: urlData.publicUrl,
-          path: `${agentId}/${knowledgeFile.id}/${file.name}`,
-          uploadedAt: knowledgeFile.uploadedAt,
-        },
-      };
-
-      // Save to database
-      await updateAgentMutation.mutateAsync({
-        id: agentId,
-        knowledge_base: updatedKnowledge,
-      });
-    } catch (error) {
-      console.error('Failed to save knowledge file:', error);
-      throw error;
     }
   };
 

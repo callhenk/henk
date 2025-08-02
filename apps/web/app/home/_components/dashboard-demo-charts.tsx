@@ -46,9 +46,9 @@ import {
   TableRow,
 } from '@kit/ui/table';
 
-type Agent = Tables<'agents'>;
-type Campaign = Tables<'campaigns'>;
-type Conversation = Tables<'conversations'>;
+type Agent = Tables<'agents'>['Row'];
+type Campaign = Tables<'campaigns'>['Row'];
+type Conversation = Tables<'conversations'>['Row'];
 
 export default function DashboardDemo() {
   // Fetch real data using our hooks
@@ -63,6 +63,7 @@ export default function DashboardDemo() {
     today.setHours(0, 0, 0, 0);
 
     const todayConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       return convDate >= today;
     });
@@ -76,6 +77,7 @@ export default function DashboardDemo() {
     return {
       today: todayConversations.length,
       thisWeek: conversations.filter((conv) => {
+        if (!conv.created_at) return false;
         const convDate = new Date(conv.created_at);
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
@@ -274,6 +276,7 @@ function CallVolumeChart({ conversations }: { conversations: Conversation[] }) {
       nextDay.setDate(dayDate.getDate() + 1);
 
       const dayConversations = conversations.filter((conv) => {
+        if (!conv.created_at) return false;
         const convDate = new Date(conv.created_at);
         return convDate >= dayDate && convDate < nextDay;
       });
@@ -347,6 +350,7 @@ function ConversionChart({ conversations }: { conversations: Conversation[] }) {
     ];
     return hours.map((hour) => {
       const hourConversations = conversations.filter((conv) => {
+        if (!conv.created_at) return false;
         const convDate = new Date(conv.created_at);
         const convHour = convDate.getHours();
         const hourNum = parseInt(hour.replace('AM', '').replace('PM', ''));
@@ -604,12 +608,14 @@ function ConversationsTable({
     return `${Math.floor(diffInMinutes / 1440)} day ago`;
   };
 
-  const getCampaignName = (campaignId: string) => {
+  const getCampaignName = (campaignId: string | null) => {
+    if (!campaignId) return 'Unknown Campaign';
     const campaign = campaigns.find((c) => c.id === campaignId);
     return campaign?.name || 'Unknown Campaign';
   };
 
-  const getAgentName = (agentId: string) => {
+  const getAgentName = (agentId: string | null) => {
+    if (!agentId) return 'Unknown Agent';
     const agent = agents.find((a) => a.id === agentId);
     return agent?.name || 'Unknown Agent';
   };
@@ -648,7 +654,7 @@ function ConversationsTable({
               {conversation.outcome === 'donated' ? '$100' : '-'}
             </TableCell>
             <TableCell className="text-muted-foreground">
-              {formatTimeAgo(conversation.created_at)}
+              {formatTimeAgo(conversation.created_at || null)}
             </TableCell>
           </TableRow>
         ))}

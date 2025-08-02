@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import type { Tables } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Workflow = Tables<'workflows'>;
-type WorkflowNode = Tables<'workflow_nodes'>;
-type WorkflowEdge = Tables<'workflow_edges'>;
+type Workflow = Tables<'workflows'>['Row'];
+type WorkflowNode = Tables<'workflow_nodes'>['Row'];
+type WorkflowEdge = Tables<'workflow_edges'>['Row'];
 
 export interface WorkflowWithDetails extends Workflow {
   nodes: WorkflowNode[];

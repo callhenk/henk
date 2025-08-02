@@ -184,14 +184,8 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
           description: data.description || null,
           voice_type: data.voice_type as 'ai_generated' | 'custom',
           voice_id: data.voice_id,
-          speaking_tone: data.speaking_tone,
-          organization_info: data.organization_info || null,
-          donor_context: data.donor_context || null,
-          faqs: faqsData,
           knowledge_base: {},
-          workflow_config: {},
           status: 'active',
-          account_id: user.id,
         });
         router.push('/home/agents');
       } else if (agentId) {

@@ -34,9 +34,9 @@ interface AnalyticsMetricsProps {
 export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
   // Fetch real data
   const { data: conversations = [] } = useConversations();
-  const { data: campaigns = [] } = useCampaigns();
+  const { data: _campaigns = [] } = useCampaigns();
   const { data: agents = [] } = useAgents();
-  const { data: leads = [] } = useLeads();
+  const { data: _leads = [] } = useLeads();
 
   // Calculate metrics based on filters and real data
   const metrics = useMemo(() => {
@@ -162,7 +162,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
       callsTrend,
       conversionsTrend,
     };
-  }, [conversations, campaigns, agents, leads, filters]);
+  }, [conversations, agents, filters]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

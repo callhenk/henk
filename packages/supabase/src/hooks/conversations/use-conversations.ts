@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useSupabase } from '../use-supabase';
 import type { Tables } from '../../database.types';
+import { useSupabase } from '../use-supabase';
 
-type Conversation = Tables<'conversations'>;
+type Conversation = Tables<'conversations'>['Row'];
 
 export interface ConversationsFilters {
   campaign_id?: string;
@@ -99,7 +99,9 @@ export function useConversationsByCampaign(campaignId: string) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        throw new Error(`Failed to fetch conversations for campaign: ${error.message}`);
+        throw new Error(
+          `Failed to fetch conversations for campaign: ${error.message}`,
+        );
       }
 
       return data || [];
@@ -121,7 +123,9 @@ export function useConversationsByLead(leadId: string) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        throw new Error(`Failed to fetch conversations for lead: ${error.message}`);
+        throw new Error(
+          `Failed to fetch conversations for lead: ${error.message}`,
+        );
       }
 
       return data || [];

@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   BookOpen,
   Clock,
+  Edit,
   Mic,
   Phone,
   Play,
@@ -278,8 +279,32 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </div>
       )}
 
-      {/* Agent Status Badge */}
-      <div className="flex justify-end">{getStatusBadge(agent.status)}</div>
+      {/* Header with Agent Name */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={handleBack} size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Agents
+          </Button>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-2xl font-bold">{agent.name}</h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditingName(true)}
+                className="h-6 w-6 p-0"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </div>
+            <p className="text-muted-foreground">{agent.description}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          {getStatusBadge(agent.status)}
+        </div>
+      </div>
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
