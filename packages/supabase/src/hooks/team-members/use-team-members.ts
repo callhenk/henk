@@ -106,13 +106,18 @@ export function useUserTeamMemberships() {
   return useQuery({
     queryKey: ['user-team-memberships'],
     queryFn: async (): Promise<TeamMember[]> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
-        .eq(
-          'user_id',
-          supabase.auth.getUser().then((u) => u.data.user?.id),
-        )
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {

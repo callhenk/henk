@@ -61,6 +61,8 @@ export default function DashboardDemo() {
   const callMetrics = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
     const todayConversations = conversations.filter((conv) => {
       if (!conv.created_at) return false;
@@ -68,11 +70,36 @@ export default function DashboardDemo() {
       return convDate >= today;
     });
 
+    const yesterdayConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
+      const convDate = new Date(conv.created_at);
+      return convDate >= yesterday && convDate < today;
+    });
+
     const totalRevenue = todayConversations.reduce((sum, conv) => {
-      // Assuming we store donation amount in conversation data
-      // This would need to be adjusted based on your actual data structure
-      return sum + (conv.outcome === 'donated' ? 100 : 0); // Placeholder calculation
+      return sum + (conv.outcome === 'donated' ? 100 : 0);
     }, 0);
+
+    const yesterdayRevenue = yesterdayConversations.reduce((sum, conv) => {
+      return sum + (conv.outcome === 'donated' ? 100 : 0);
+    }, 0);
+
+    // Calculate trend percentage
+    const callTrend =
+      yesterdayConversations.length > 0
+        ? ((todayConversations.length - yesterdayConversations.length) /
+            yesterdayConversations.length) *
+          100
+        : todayConversations.length > 0
+          ? 100
+          : 0;
+
+    const revenueTrend =
+      yesterdayRevenue > 0
+        ? ((totalRevenue - yesterdayRevenue) / yesterdayRevenue) * 100
+        : totalRevenue > 0
+          ? 100
+          : 0;
 
     return {
       today: todayConversations.length,
@@ -84,7 +111,9 @@ export default function DashboardDemo() {
         return convDate >= weekAgo;
       }).length,
       revenue: totalRevenue,
-      avgDuration: '3m 24s', // Would need to calculate from duration_seconds
+      avgDuration: '3m 24s',
+      callTrend: Math.round(callTrend * 10) / 10,
+      revenueTrend: Math.round(revenueTrend * 10) / 10,
     };
   }, [conversations]);
 
@@ -98,20 +127,102 @@ export default function DashboardDemo() {
         ? (successfulConversations.length / conversations.length) * 100
         : 0;
 
+    // Calculate conversion trend by comparing with previous period
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const todayConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
+      const convDate = new Date(conv.created_at);
+      return convDate >= today;
+    });
+
+    const yesterdayConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
+      const convDate = new Date(conv.created_at);
+      return convDate >= yesterday && convDate < today;
+    });
+
+    const todaySuccessful = todayConversations.filter(
+      (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+    ).length;
+
+    const yesterdaySuccessful = yesterdayConversations.filter(
+      (conv) => conv.outcome === 'donated' || conv.status === 'completed',
+    ).length;
+
+    const todayRate =
+      todayConversations.length > 0
+        ? (todaySuccessful / todayConversations.length) * 100
+        : 0;
+
+    const yesterdayRate =
+      yesterdayConversations.length > 0
+        ? (yesterdaySuccessful / yesterdayConversations.length) * 100
+        : 0;
+
+    const conversionTrend =
+      yesterdayRate > 0
+        ? ((todayRate - yesterdayRate) / yesterdayRate) * 100
+        : todayRate > 0
+          ? 100
+          : 0;
+
     return {
-      rate: Math.round(rate * 10) / 10, // Round to 1 decimal
+      rate: Math.round(rate * 10) / 10,
       successful: successfulConversations.length,
       total: conversations.length,
-      avgDonation: 98.2, // Would need to calculate from actual donation data
+      avgDonation: 98.2,
+      conversionTrend: Math.round(conversionTrend * 10) / 10,
     };
   }, [conversations]);
 
   const agentStatus = useMemo(() => {
     const activeAgents = agents.filter((agent) => agent.status === 'active');
 
+    // Calculate agent trend by comparing with previous period
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const todayActiveAgents = agents.filter((agent) => {
+      const agentConversations = conversations.filter((conv) => {
+        if (!conv.created_at) return false;
+        const convDate = new Date(conv.created_at);
+        return conv.agent_id === agent.id && convDate >= today;
+      });
+      return agent.status === 'active' && agentConversations.length > 0;
+    });
+
+    const yesterdayActiveAgents = agents.filter((agent) => {
+      const agentConversations = conversations.filter((conv) => {
+        if (!conv.created_at) return false;
+        const convDate = new Date(conv.created_at);
+        return (
+          conv.agent_id === agent.id &&
+          convDate >= yesterday &&
+          convDate < today
+        );
+      });
+      return agent.status === 'active' && agentConversations.length > 0;
+    });
+
+    const agentTrend =
+      yesterdayActiveAgents.length > 0
+        ? ((todayActiveAgents.length - yesterdayActiveAgents.length) /
+            yesterdayActiveAgents.length) *
+          100
+        : todayActiveAgents.length > 0
+          ? 100
+          : 0;
+
     return {
       active: activeAgents.length,
       total: agents.length,
+      agentTrend: Math.round(agentTrend * 10) / 10,
       statuses: agents.map((agent) => ({
         name: agent.name,
         status: agent.status,
@@ -167,7 +278,17 @@ export default function DashboardDemo() {
             <CardTitle className={'flex items-center gap-2.5'}>
               <Phone className="h-5 w-5 text-blue-500" />
               <span>Calls Today</span>
-              <Trend trend={'up'}>12%</Trend>
+              <Trend
+                trend={
+                  callMetrics.callTrend > 0
+                    ? 'up'
+                    : callMetrics.callTrend < 0
+                      ? 'down'
+                      : 'stale'
+                }
+              >
+                {callMetrics.callTrend}%
+              </Trend>
             </CardTitle>
             <CardDescription>
               <span>Total calls made today</span>
@@ -183,7 +304,17 @@ export default function DashboardDemo() {
             <CardTitle className={'flex items-center gap-2.5'}>
               <DollarSign className="h-5 w-5 text-green-500" />
               <span>Conversion Rate</span>
-              <Trend trend={'up'}>8%</Trend>
+              <Trend
+                trend={
+                  conversionData.conversionTrend > 0
+                    ? 'up'
+                    : conversionData.conversionTrend < 0
+                      ? 'down'
+                      : 'stale'
+                }
+              >
+                {conversionData.conversionTrend}%
+              </Trend>
             </CardTitle>
             <CardDescription>
               <span>Successful donations rate</span>
@@ -199,7 +330,17 @@ export default function DashboardDemo() {
             <CardTitle className={'flex items-center gap-2.5'}>
               <Users className="h-5 w-5 text-purple-500" />
               <span>Active Agents</span>
-              <Trend trend={'stale'}>0%</Trend>
+              <Trend
+                trend={
+                  agentStatus.agentTrend > 0
+                    ? 'up'
+                    : agentStatus.agentTrend < 0
+                      ? 'down'
+                      : 'stale'
+                }
+              >
+                {agentStatus.agentTrend}%
+              </Trend>
             </CardTitle>
             <CardDescription>
               <span>Currently running agents</span>
@@ -215,7 +356,17 @@ export default function DashboardDemo() {
             <CardTitle className={'flex items-center gap-2.5'}>
               <TrendingUp className="h-5 w-5 text-orange-500" />
               <span>Revenue Today</span>
-              <Trend trend={'up'}>15%</Trend>
+              <Trend
+                trend={
+                  callMetrics.revenueTrend > 0
+                    ? 'up'
+                    : callMetrics.revenueTrend < 0
+                      ? 'down'
+                      : 'stale'
+                }
+              >
+                {callMetrics.revenueTrend}%
+              </Trend>
             </CardTitle>
             <CardDescription>
               <span>Total donations today</span>
@@ -435,7 +586,8 @@ function AgentStatusCard({
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return 'Unknown';
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor(
@@ -470,7 +622,7 @@ function AgentStatusCard({
 
             const lastCall =
               agentConversations.length > 0
-                ? formatTimeAgo(agentConversations[0]?.created_at || '')
+                ? formatTimeAgo(agentConversations[0]?.created_at || null)
                 : 'No calls yet';
 
             return (
@@ -594,7 +746,8 @@ function ConversationsTable({
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return 'Unknown';
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor(

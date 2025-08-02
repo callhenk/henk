@@ -74,6 +74,14 @@ export function useUserBusinesses() {
   return useQuery({
     queryKey: ['user-businesses'],
     queryFn: async (): Promise<Business[]> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('businesses')
         .select(
@@ -82,10 +90,7 @@ export function useUserBusinesses() {
           team_members!inner(user_id)
         `,
         )
-        .eq(
-          'team_members.user_id',
-          supabase.auth.getUser().then((u) => u.data.user?.id),
-        )
+        .eq('team_members.user_id', user.id)
         .eq('team_members.status', 'active')
         .order('created_at', { ascending: false });
 

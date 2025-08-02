@@ -6,7 +6,6 @@ import { Download, Eye, File, Trash2, Upload } from 'lucide-react';
 import { FileDrop } from 'react-file-drop';
 
 import { getSupabaseBrowserClient } from '@kit/supabase/browser-client';
-import type { Json } from '@kit/supabase/database';
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -108,7 +107,8 @@ export function KnowledgeUpload({
             .eq('id', agentId)
             .single();
 
-          const existingKnowledge = (agent?.knowledge_base as Record<string, unknown>) || {};
+          const existingKnowledge =
+            (agent?.knowledge_base as Record<string, unknown>) || {};
 
           // Add the new file to knowledge base
           const updatedKnowledge = {
@@ -126,7 +126,7 @@ export function KnowledgeUpload({
           // Save to database
           await updateAgentMutation.mutateAsync({
             id: agentId,
-            knowledge_base: updatedKnowledge,
+            knowledge_base: updatedKnowledge as Record<string, unknown>,
           });
         } catch (error) {
           console.error('Upload failed:', error);
