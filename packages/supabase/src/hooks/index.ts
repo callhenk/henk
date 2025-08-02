@@ -13,10 +13,15 @@ export * from './use-user';
 export * from './use-user-factors-mutation-key';
 export * from './use-verify-otp';
 
+// Business context hooks
+export * from './use-business-context';
+
 // Table-specific hooks
 export * from './agents';
+export * from './businesses';
 export * from './campaigns';
 export * from './conversations';
 export * from './integrations';
 export * from './leads';
+export * from './team-members';
 export * from './workflows';

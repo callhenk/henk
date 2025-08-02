@@ -13,9 +13,32 @@ export function useCreateCampaign() {
 
   return useMutation({
     mutationFn: async (data: CreateCampaignData): Promise<Campaign> => {
+      // Get the current user's business_id
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get the user's active business
+      const { data: teamMembership } = await supabase
+        .from('team_members')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      if (!teamMembership) {
+        throw new Error('No active business found for user');
+      }
+
       const { data: campaign, error } = await supabase
         .from('campaigns')
-        .insert(data)
+        .insert({
+          ...data,
+          business_id: teamMembership.business_id,
+        })
         .select()
         .single();
 

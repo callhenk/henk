@@ -24,7 +24,6 @@ import {
   Volume2,
 } from 'lucide-react';
 
-// Import our Supabase hooks
 import type { Tables } from '@kit/supabase/database';
 import { useDeleteAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
@@ -71,7 +70,6 @@ import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
 type Agent = Tables<'agents'>;
 
-// Helper functions to convert enum values to user-friendly labels
 const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   if (!voiceType) return 'Default voice';
   const voiceTypes = [
@@ -97,7 +95,6 @@ const getSpeakingToneLabel = (
   return toneOption?.label || speakingTone;
 };
 
-// Enhanced agent interface with calculated fields
 interface EnhancedAgent extends Agent {
   performance?: {
     callsToday: number;
@@ -395,7 +392,6 @@ function SortableTableHeader({
   );
 }
 
-// Main Component
 export function AgentsList() {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -404,28 +400,22 @@ export function AgentsList() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Fetch real data
   const { data: agents = [], isLoading: loadingAgents } = useAgents();
   const { data: conversations = [] } = useConversations();
   const { data: campaigns = [] } = useCampaigns();
 
-  // Delete mutation
   const deleteAgentMutation = useDeleteAgent();
 
-  // Calculate enhanced agent data
   const enhancedAgents: EnhancedAgent[] = useMemo(() => {
     return agents.map((agent) => {
-      // Get conversations for this agent
       const agentConversations = conversations.filter(
         (conv) => conv.agent_id === agent.id,
       );
 
-      // Get campaigns for this agent
       const agentCampaigns = campaigns.filter(
         (campaign) => campaign.agent_id === agent.id,
       );
 
-      // Calculate metrics
       const totalCalls = agentConversations.length;
       const successfulCalls = agentConversations.filter(
         (conv) => conv.outcome === 'donated' || conv.status === 'completed',
@@ -433,7 +423,6 @@ export function AgentsList() {
       const successRate =
         totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
-      // Calculate today's metrics
       const today = new Date().toISOString().split('T')[0] as string;
       const todayConversations = agentConversations.filter(
         (conv) => conv.created_at && conv.created_at.startsWith(today),
@@ -443,7 +432,6 @@ export function AgentsList() {
         (conv) => conv.outcome === 'donated' || conv.status === 'completed',
       ).length;
 
-      // Calculate average call duration
       const totalDuration = agentConversations.reduce(
         (sum, conv) => sum + (conv.duration_seconds || 0),
         0,
@@ -471,11 +459,9 @@ export function AgentsList() {
     });
   }, [agents, conversations, campaigns]);
 
-  // Filter and sort agents
   const filteredAndSortedAgents = useMemo(() => {
     let filtered = enhancedAgents;
 
-    // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -488,12 +474,10 @@ export function AgentsList() {
       );
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter((agent) => agent.status === statusFilter);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       let aValue: string | number;
       let bValue: string | number;
@@ -538,7 +522,6 @@ export function AgentsList() {
     return filtered;
   }, [enhancedAgents, searchTerm, statusFilter, sortBy, sortOrder]);
 
-  // Calculate stats
   const stats = useMemo(() => {
     const totalAgents = enhancedAgents.length;
     const activeAgents = enhancedAgents.filter(
@@ -566,7 +549,6 @@ export function AgentsList() {
     };
   }, [enhancedAgents, campaigns]);
 
-  // Loading state
   if (loadingAgents) {
     return (
       <div className="space-y-6">
@@ -606,7 +588,6 @@ export function AgentsList() {
 
   return (
     <div className="space-y-6">
-      {/* Performance Stats */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Agents"
@@ -656,7 +637,6 @@ export function AgentsList() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search and Filters */}
           <div className="mb-6 space-y-4">
             <SearchFilters
               searchTerm={searchTerm}
@@ -685,7 +665,6 @@ export function AgentsList() {
             />
           </div>
 
-          {/* Results Count */}
           <div className="mb-4 flex items-center justify-between">
             <p className="text-muted-foreground text-sm">
               Showing {filteredAndSortedAgents.length} of{' '}
@@ -697,7 +676,6 @@ export function AgentsList() {
             </Button>
           </div>
 
-          {/* Grid View */}
           {viewMode === 'grid' && (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedAgents.map((agent) => (
@@ -711,7 +689,6 @@ export function AgentsList() {
             </div>
           )}
 
-          {/* List View */}
           {viewMode === 'list' && (
             <div className="rounded-md border">
               <Table>
@@ -768,7 +745,6 @@ export function AgentsList() {
             </div>
           )}
 
-          {/* Empty State */}
           {filteredAndSortedAgents.length === 0 && (
             <div className="py-12 text-center">
               <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">

@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { Download, Eye, File, Trash2, Upload } from 'lucide-react';
 import { FileDrop } from 'react-file-drop';
 
+import { getSupabaseBrowserClient } from '@kit/supabase/browser-client';
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -146,13 +147,32 @@ export function KnowledgeUpload({
     file: File,
     knowledgeFile: KnowledgeFile,
   ) => {
-    // Convert file to base64 for storage (in production, you'd upload to a file service)
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result as string;
+    try {
+      const supabase = getSupabaseBrowserClient();
+
+      // Upload file to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('knowledge_base')
+        .upload(`${agentId}/${knowledgeFile.id}/${file.name}`, file);
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      // Get the public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('knowledge_base')
+        .getPublicUrl(`${agentId}/${knowledgeFile.id}/${file.name}`);
 
       // Get existing knowledge base
-      const existingKnowledge = {}; // This would come from your agent data
+      const { data: agent } = await supabase
+        .from('agents')
+        .select('knowledge_base')
+        .eq('id', agentId)
+        .single();
+
+      const existingKnowledge =
+        (agent?.knowledge_base as Record<string, any>) || {};
 
       // Add the new file to knowledge base
       const updatedKnowledge = {
@@ -161,7 +181,8 @@ export function KnowledgeUpload({
           name: knowledgeFile.name,
           type: knowledgeFile.type,
           size: knowledgeFile.size,
-          data: base64Data,
+          url: urlData.publicUrl,
+          path: `${agentId}/${knowledgeFile.id}/${file.name}`,
           uploadedAt: knowledgeFile.uploadedAt,
         },
       };
@@ -171,8 +192,10 @@ export function KnowledgeUpload({
         id: agentId,
         knowledge_base: updatedKnowledge,
       });
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Failed to save knowledge file:', error);
+      throw error;
+    }
   };
 
   const removeFile = (fileId: string) => {

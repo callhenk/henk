@@ -13,9 +13,32 @@ export function useCreateAgent() {
 
   return useMutation({
     mutationFn: async (data: CreateAgentData): Promise<Agent> => {
+      // Get the current user's business context
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get the user's active business
+      const { data: teamMembership } = await supabase
+        .from('team_members')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      if (!teamMembership) {
+        throw new Error('No active business found for user');
+      }
+
       const { data: agent, error } = await supabase
         .from('agents')
-        .insert(data)
+        .insert({
+          ...data,
+          business_id: teamMembership.business_id,
+        })
         .select()
         .single();
 
