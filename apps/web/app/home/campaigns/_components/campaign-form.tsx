@@ -184,7 +184,7 @@ export function CampaignForm({
     setIsSubmitting(true);
     try {
       if (mode === 'create') {
-        await createCampaignMutation.mutateAsync({
+        const createdCampaign = await createCampaignMutation.mutateAsync({
           name: data.name,
           description: data.description,
           agent_id: data.agent_id,
@@ -200,7 +200,7 @@ export function CampaignForm({
           budget: null,
           account_id: user.id,
         });
-        router.push('/home/campaigns');
+        router.push(`/home/campaigns/${createdCampaign.id}`);
       } else if (campaignId) {
         await updateCampaignMutation.mutateAsync({
           id: campaignId,

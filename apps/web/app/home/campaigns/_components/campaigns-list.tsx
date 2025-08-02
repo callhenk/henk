@@ -21,9 +21,21 @@ import {
 // Import our Supabase hooks
 import type { Tables } from '@kit/supabase/database';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useDeleteCampaign } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@kit/ui/alert-dialog';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -75,6 +87,9 @@ export function CampaignsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Delete mutation
+  const deleteCampaignMutation = useDeleteCampaign();
 
   // Enhance campaigns with calculated performance data
   const enhancedCampaigns = useMemo(() => {
@@ -216,6 +231,15 @@ export function CampaignsList() {
     return filtered;
   };
 
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      await deleteCampaignMutation.mutateAsync(campaignId);
+      console.log('Campaign deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+    }
+  };
+
   const stats = getTotalStats();
   const filteredCampaigns = getFilteredCampaigns();
 
@@ -302,7 +326,10 @@ export function CampaignsList() {
               <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
             <TabsContent value={selectedTab} className="mt-6">
-              <CampaignsTable campaigns={filteredCampaigns} />
+              <CampaignsTable
+                campaigns={filteredCampaigns}
+                onDeleteCampaign={handleDeleteCampaign}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -311,7 +338,13 @@ export function CampaignsList() {
   );
 }
 
-function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
+function CampaignsTable({
+  campaigns,
+  onDeleteCampaign,
+}: {
+  campaigns: EnhancedCampaign[];
+  onDeleteCampaign: (campaignId: string) => Promise<void>;
+}) {
   const router = useRouter();
   const getConversionRate = (contacted: number, conversions: number) => {
     if (contacted === 0) return 0;
@@ -418,10 +451,34 @@ function CampaignsTable({ campaigns }: { campaigns: EnhancedCampaign[] }) {
                     <Archive className="mr-2 h-4 w-4" />
                     Archive
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem className="text-red-600">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete &quot;{campaign.name}
+                          &quot;? This action cannot be undone and will
+                          permanently remove all associated data including leads
+                          and conversations.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => onDeleteCampaign(campaign.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete Campaign
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

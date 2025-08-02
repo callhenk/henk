@@ -36,6 +36,17 @@ import {
   useUpdateLead,
 } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@kit/ui/alert-dialog';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -428,16 +439,38 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 Export Results
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={handleDeleteCampaign}
-                disabled={deleteCampaignMutation.isPending}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {deleteCampaignMutation.isPending
-                  ? 'Deleting...'
-                  : 'Delete Campaign'}
-              </DropdownMenuItem>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    disabled={deleteCampaignMutation.isPending}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {deleteCampaignMutation.isPending
+                      ? 'Deleting...'
+                      : 'Delete Campaign'}
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this campaign? This action
+                      cannot be undone and will permanently remove all
+                      associated data including leads and conversations.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteCampaign}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete Campaign
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
