@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import {
   ArrowDown,
   ArrowUp,
@@ -9,6 +11,7 @@ import {
   Clock,
   DollarSign,
   Menu,
+  MessageSquare,
   Pause,
   Phone,
   TrendingUp,
@@ -24,6 +27,7 @@ import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { Badge } from '@kit/ui/badge';
+import { Button } from '@kit/ui/button';
 import {
   Card,
   CardContent,
@@ -610,7 +614,7 @@ function AgentStatusCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="max-h-80 space-y-4 overflow-y-auto">
           {agents.map((agent) => {
             const agentConversations = conversations.filter(
               (conv) => conv.agent_id === agent.id,
@@ -675,7 +679,7 @@ function CampaignSummariesCard({
         <CardDescription>Campaign performance overview</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="max-h-80 space-y-4 overflow-y-auto">
           {campaigns.map((campaign) => {
             const campaignConversations = conversations.filter(
               (conv) => conv.campaign_id === campaign.id,
@@ -727,6 +731,8 @@ function ConversationsTable({
   campaigns: Campaign[];
   agents: Agent[];
 }) {
+  const router = useRouter();
+
   const getOutcomeBadge = (outcome: string) => {
     switch (outcome) {
       case 'donated':
@@ -772,6 +778,38 @@ function ConversationsTable({
     const agent = agents.find((a) => a.id === agentId);
     return agent?.name || 'Unknown Agent';
   };
+
+  // Empty state
+  if (conversations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <MessageSquare className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="mb-2 text-lg font-semibold">No recent conversations</h3>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Recent conversations will appear here once your AI agents start making
+          calls. Check back after your campaigns are active and calls begin.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/home/conversations')}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            View All Conversations
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/home/campaigns')}
+          >
+            <TrendingUp className="mr-2 h-4 w-4" />
+            Check Campaigns
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Table>
