@@ -72,7 +72,7 @@ function HeaderLayout({ children }: React.PropsWithChildren) {
 function MobileNavigation() {
   return (
     <>
-      <AppLogo />
+      <AppLogo size="small" />
 
       <HomeMobileNavigation />
     </>

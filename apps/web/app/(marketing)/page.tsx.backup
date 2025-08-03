@@ -49,7 +49,7 @@ function Home() {
               width={3558}
               height={2222}
               src={`/images/dashboard.webp`}
-              alt={`Henk AI Dashboard`}
+              alt={`Henk Dashboard`}
             />
           }
         />

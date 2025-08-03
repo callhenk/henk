@@ -1,13 +1,13 @@
 ---
-description: Helpful overview of Henk AI structure and standards
+description: Helpful overview of Henk structure and standards
 alwaysApply: false
 ---
 
-# Henk AI — project overview
+# Henk — project overview
 
 ## 🎯 Project purpose
 
-Henk AI is an AI-powered voice fundraising platform that helps charities engage donors with natural phone conversations at scale. By combining synthetic speech, CRM integration, and compliance controls, it lowers costs and boosts donor experience and conversion rates.
+Henk is an AI-powered voice fundraising platform that helps charities engage donors with natural phone conversations at scale. By combining synthetic speech, CRM integration, and compliance controls, it lowers costs and boosts donor experience and conversion rates.
 
 ## 🏗 Architecture overview
 

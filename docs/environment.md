@@ -1,6 +1,6 @@
 # Environment Configuration
 
-This guide explains how to configure environment variables for the Henk AI project, including local development, staging, and production environments.
+This guide explains how to configure environment variables for the Henk project, including local development, staging, and production environments.
 
 ## 🚀 Environment Setup
 
@@ -8,12 +8,12 @@ This guide explains how to configure environment variables for the Henk AI proje
 
 The project uses different environment files for different contexts:
 
-| File | Purpose | Environment |
-|------|---------|-------------|
-| `.env.example` | Template with all required variables | Development |
-| `.env.local` | Local development overrides | Development |
-| `.env.test` | Testing environment | Testing |
-| `.env.production` | Production environment | Production |
+| File              | Purpose                              | Environment |
+| ----------------- | ------------------------------------ | ----------- |
+| `.env.example`    | Template with all required variables | Development |
+| `.env.local`      | Local development overrides          | Development |
+| `.env.test`       | Testing environment                  | Testing     |
+| `.env.production` | Production environment               | Production  |
 
 ### Creating Your Environment File
 
@@ -29,26 +29,28 @@ nano .env.local
 
 ### Supabase Configuration
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `SUPABASE_URL` | Your Supabase project URL | `https://your-project.supabase.co` | ✅ |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | ✅ |
+| Variable                    | Description               | Example                                   | Required |
+| --------------------------- | ------------------------- | ----------------------------------------- | -------- |
+| `SUPABASE_URL`              | Your Supabase project URL | `https://your-project.supabase.co`        | ✅       |
+| `SUPABASE_ANON_KEY`         | Supabase anonymous key    | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | ✅       |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | ✅       |
 
 **How to get these values**:
+
 1. Go to your Supabase project dashboard
 2. Navigate to Settings → API
 3. Copy the Project URL and API keys
 
 ### Twilio Configuration (Voice Calls)
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `TWILIO_ACCOUNT_SID` | Twilio account SID | `AC1234567890abcdef...` | ✅ |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token | `1234567890abcdef...` | ✅ |
-| `TWILIO_CALLER_ID` | Verified Twilio phone number | `+1234567890` | ✅ |
+| Variable             | Description                  | Example                 | Required |
+| -------------------- | ---------------------------- | ----------------------- | -------- |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID           | `AC1234567890abcdef...` | ✅       |
+| `TWILIO_AUTH_TOKEN`  | Twilio auth token            | `1234567890abcdef...`   | ✅       |
+| `TWILIO_CALLER_ID`   | Verified Twilio phone number | `+1234567890`           | ✅       |
 
 **How to get these values**:
+
 1. Sign up for a Twilio account
 2. Go to Console → Account Info
 3. Copy Account SID and Auth Token
@@ -56,66 +58,67 @@ nano .env.local
 
 ### ElevenLabs Configuration (AI Voice)
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `ELEVENLABS_API_KEY` | ElevenLabs API key | `1234567890abcdef...` | ✅ |
+| Variable             | Description        | Example               | Required |
+| -------------------- | ------------------ | --------------------- | -------- |
+| `ELEVENLABS_API_KEY` | ElevenLabs API key | `1234567890abcdef...` | ✅       |
 
 **How to get this value**:
+
 1. Sign up for ElevenLabs account
 2. Go to Profile → API Key
 3. Copy your API key
 
 ### Application Configuration
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `NEXT_PUBLIC_SITE_URL` | Your site URL | `http://localhost:3000` | ✅ |
-| `NEXT_PUBLIC_PRODUCT_NAME` | Product name | `Henk AI` | ✅ |
-| `NODE_ENV` | Environment mode | `development` | ✅ |
+| Variable                   | Description      | Example                 | Required |
+| -------------------------- | ---------------- | ----------------------- | -------- |
+| `NEXT_PUBLIC_SITE_URL`     | Your site URL    | `http://localhost:3000` | ✅       |
+| `NEXT_PUBLIC_PRODUCT_NAME` | Product name     | `Henk`                  | ✅       |
+| `NODE_ENV`                 | Environment mode | `development`           | ✅       |
 
 ## 🔒 Security Variables
 
 ### Authentication & Security
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `CAPTCHA_SECRET_TOKEN` | Cloudflare Turnstile secret | `0x4AAAAAA...` | Optional |
-| `NEXTAUTH_SECRET` | NextAuth secret | `your-secret-key` | ✅ |
-| `NEXTAUTH_URL` | NextAuth URL | `http://localhost:3000` | ✅ |
+| Variable               | Description                 | Example                 | Required |
+| ---------------------- | --------------------------- | ----------------------- | -------- |
+| `CAPTCHA_SECRET_TOKEN` | Cloudflare Turnstile secret | `0x4AAAAAA...`          | Optional |
+| `NEXTAUTH_SECRET`      | NextAuth secret             | `your-secret-key`       | ✅       |
+| `NEXTAUTH_URL`         | NextAuth URL                | `http://localhost:3000` | ✅       |
 
 ### Database Security
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `SUPABASE_JWT_SECRET` | JWT secret for Supabase | `your-jwt-secret` | ✅ |
-| `DATABASE_URL` | Direct database URL | `postgresql://...` | Optional |
+| Variable              | Description             | Example            | Required |
+| --------------------- | ----------------------- | ------------------ | -------- |
+| `SUPABASE_JWT_SECRET` | JWT secret for Supabase | `your-jwt-secret`  | ✅       |
+| `DATABASE_URL`        | Direct database URL     | `postgresql://...` | Optional |
 
 ## 🌐 Optional Configuration
 
 ### Analytics & Monitoring
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `NEXT_PUBLIC_GA_ID` | Google Analytics ID | `G-XXXXXXXXXX` | Optional |
-| `VERCEL_ANALYTICS_ID` | Vercel Analytics ID | `auto` | Optional |
-| `LOGTAIL_TOKEN` | Logtail token | `src_xxxxxxxx` | Optional |
+| Variable              | Description         | Example        | Required |
+| --------------------- | ------------------- | -------------- | -------- |
+| `NEXT_PUBLIC_GA_ID`   | Google Analytics ID | `G-XXXXXXXXXX` | Optional |
+| `VERCEL_ANALYTICS_ID` | Vercel Analytics ID | `auto`         | Optional |
+| `LOGTAIL_TOKEN`       | Logtail token       | `src_xxxxxxxx` | Optional |
 
 ### Email Configuration
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `SMTP_HOST` | SMTP server host | `smtp.gmail.com` | Optional |
-| `SMTP_PORT` | SMTP server port | `587` | Optional |
-| `SMTP_USER` | SMTP username | `your-email@gmail.com` | Optional |
-| `SMTP_PASS` | SMTP password | `your-app-password` | Optional |
+| Variable    | Description      | Example                | Required |
+| ----------- | ---------------- | ---------------------- | -------- |
+| `SMTP_HOST` | SMTP server host | `smtp.gmail.com`       | Optional |
+| `SMTP_PORT` | SMTP server port | `587`                  | Optional |
+| `SMTP_USER` | SMTP username    | `your-email@gmail.com` | Optional |
+| `SMTP_PASS` | SMTP password    | `your-app-password`    | Optional |
 
 ### Feature Flags
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `NEXT_PUBLIC_ENABLE_MFA` | Enable MFA | `true` | Optional |
-| `NEXT_PUBLIC_ENABLE_SIGNUP` | Enable signup | `true` | Optional |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable analytics | `true` | Optional |
+| Variable                       | Description      | Example | Required |
+| ------------------------------ | ---------------- | ------- | -------- |
+| `NEXT_PUBLIC_ENABLE_MFA`       | Enable MFA       | `true`  | Optional |
+| `NEXT_PUBLIC_ENABLE_SIGNUP`    | Enable signup    | `true`  | Optional |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable analytics | `true`  | Optional |
 
 ## 📝 Complete Environment Example
 
@@ -135,7 +138,7 @@ ELEVENLABS_API_KEY=1234567890abcdef...
 
 # Application Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_PRODUCT_NAME=Henk AI
+NEXT_PUBLIC_PRODUCT_NAME=Henk
 NODE_ENV=development
 
 # Security
@@ -194,7 +197,7 @@ NODE_ENV=test pnpm run test
 # Set production variables
 NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
-NEXT_PUBLIC_PRODUCT_NAME=Henk AI
+NEXT_PUBLIC_PRODUCT_NAME=Henk
 
 # Build for production
 pnpm run build
@@ -217,6 +220,7 @@ pnpm run typecheck
 ### Common Validation Errors
 
 1. **Missing Required Variables**
+
    ```bash
    # Error: SUPABASE_URL is required
    # Solution: Add to .env.local
@@ -224,6 +228,7 @@ pnpm run typecheck
    ```
 
 2. **Invalid API Keys**
+
    ```bash
    # Error: Invalid Supabase key
    # Solution: Check your Supabase dashboard
@@ -240,12 +245,14 @@ pnpm run typecheck
 ### Environment Variable Security
 
 1. **Never commit secrets**:
+
    ```bash
    # .env.local is in .gitignore
    # Never add secrets to version control
    ```
 
 2. **Use strong secrets**:
+
    ```bash
    # Generate strong secrets
    openssl rand -base64 32
@@ -260,12 +267,14 @@ pnpm run typecheck
 ### Production Security
 
 1. **Use environment-specific keys**:
+
    ```bash
    # Different keys for dev/staging/prod
    SUPABASE_URL=https://prod-project.supabase.co
    ```
 
 2. **Enable security features**:
+
    ```bash
    # Enable MFA in production
    NEXT_PUBLIC_ENABLE_MFA=true
@@ -312,15 +321,17 @@ NEXT_PUBLIC_ENABLE_ANALYTICS=true
 ### Common Issues
 
 1. **Environment Variables Not Loading**
+
    ```bash
    # Check file exists
    ls -la .env.local
-   
+
    # Restart development server
    pnpm run dev
    ```
 
 2. **API Key Errors**
+
    ```bash
    # Verify keys are correct
    # Check service dashboards
@@ -351,27 +362,31 @@ pnpm run lint
 ## 🎯 Quick Setup
 
 ### 1. Copy Environment Template
+
 ```bash
 cp .env.example .env.local
 ```
 
 ### 2. Fill Required Variables
+
 ```bash
 # Edit .env.local with your values
 nano .env.local
 ```
 
 ### 3. Validate Configuration
+
 ```bash
 pnpm run typecheck
 pnpm run lint
 ```
 
 ### 4. Start Development
+
 ```bash
 pnpm run dev
 ```
 
 ---
 
-*This environment configuration guide ensures your development environment is properly set up. For deployment configuration, see [Deployment Guide](./deployment.md).* 
+_This environment configuration guide ensures your development environment is properly set up. For deployment configuration, see [Deployment Guide](./deployment.md)._

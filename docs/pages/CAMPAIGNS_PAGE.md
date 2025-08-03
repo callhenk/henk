@@ -211,7 +211,7 @@ interface Campaign {
 
 ## 📚 **Documentation Standards**
 
-This documentation follows the established pattern for all pages in the Henk AI application. Each page should have its own comprehensive markdown file that includes:
+This documentation follows the established pattern for all pages in the Henk application. Each page should have its own comprehensive markdown file that includes:
 
 1. **Overview** - Purpose and functionality
 2. **Features Implemented** - Complete list with checkmarks

@@ -1,15 +1,17 @@
 # Troubleshooting Guide
 
-This guide helps you resolve common issues you might encounter while working with the Henk AI project.
+This guide helps you resolve common issues you might encounter while working with the Henk project.
 
 ## 🚨 Common Issues
 
 ### Development Environment Issues
 
 #### 1. Node.js Version Issues
+
 **Problem**: "Node.js version not supported" or similar errors.
 
 **Solution**:
+
 ```bash
 # Check your Node.js version
 node --version
@@ -23,9 +25,11 @@ nvm use 18.18.0
 ```
 
 #### 2. pnpm Not Found
+
 **Problem**: "pnpm: command not found"
 
 **Solution**:
+
 ```bash
 # Install pnpm globally
 npm install -g pnpm
@@ -36,9 +40,11 @@ pnpm --version
 ```
 
 #### 3. Docker Not Running
+
 **Problem**: Supabase won't start or "Docker not found"
 
 **Solution**:
+
 ```bash
 # Check if Docker is running
 docker --version
@@ -52,9 +58,11 @@ docker ps
 ### Installation Issues
 
 #### 4. Dependencies Installation Fails
+
 **Problem**: `pnpm install` fails with errors
 
 **Solution**:
+
 ```bash
 # Clear cache and reinstall
 pnpm clean
@@ -66,9 +74,11 @@ pnpm install --force
 ```
 
 #### 5. Workspace Issues
+
 **Problem**: "Package not found" or workspace errors
 
 **Solution**:
+
 ```bash
 # Check workspace configuration
 cat pnpm-workspace.yaml
@@ -81,9 +91,11 @@ pnpm run postinstall
 ### Development Server Issues
 
 #### 6. Port Already in Use
+
 **Problem**: "Port 3000 is already in use"
 
 **Solution**:
+
 ```bash
 # Check what's using the port
 lsof -i :3000
@@ -96,9 +108,11 @@ PORT=3001 pnpm run dev
 ```
 
 #### 7. Development Server Won't Start
+
 **Problem**: `pnpm run dev` fails to start
 
 **Solution**:
+
 ```bash
 # Check for TypeScript errors
 pnpm run typecheck
@@ -114,9 +128,11 @@ pnpm run dev
 ### Supabase Issues
 
 #### 8. Supabase Won't Start
+
 **Problem**: `pnpm run supabase:web:start` fails
 
 **Solution**:
+
 ```bash
 # Check Supabase status
 pnpm run supabase:web:status
@@ -132,9 +148,11 @@ docker logs supabase-db
 ```
 
 #### 9. Database Connection Issues
+
 **Problem**: "Cannot connect to database" or 401 errors
 
 **Solution**:
+
 ```bash
 # Check environment variables
 cat .env.local | grep SUPABASE
@@ -149,9 +167,11 @@ pnpm run supabase:typegen
 ```
 
 #### 10. Migration Issues
+
 **Problem**: Database migrations fail
 
 **Solution**:
+
 ```bash
 # Reset database completely
 pnpm run supabase:web:reset
@@ -167,9 +187,11 @@ supabase db push
 ### Build Issues
 
 #### 11. Build Fails
+
 **Problem**: `pnpm run build` fails
 
 **Solution**:
+
 ```bash
 # Check for TypeScript errors
 pnpm run typecheck
@@ -184,9 +206,11 @@ pnpm run build
 ```
 
 #### 12. Package Build Issues
+
 **Problem**: Specific package fails to build
 
 **Solution**:
+
 ```bash
 # Build specific package
 pnpm --filter package-name run build
@@ -201,9 +225,11 @@ pnpm --filter package-name install
 ### TypeScript Issues
 
 #### 13. Type Errors
+
 **Problem**: TypeScript compilation errors
 
 **Solution**:
+
 ```bash
 # Run type checking
 pnpm run typecheck
@@ -216,9 +242,11 @@ pnpm --filter web run typecheck
 ```
 
 #### 14. Missing Type Definitions
+
 **Problem**: "Cannot find module" or missing types
 
 **Solution**:
+
 ```bash
 # Install missing types
 pnpm add -D @types/package-name
@@ -233,9 +261,11 @@ cat tsconfig.json
 ### Testing Issues
 
 #### 15. Tests Fail
+
 **Problem**: `pnpm run test` fails
 
 **Solution**:
+
 ```bash
 # Run tests with verbose output
 pnpm run test --verbose
@@ -248,9 +278,11 @@ cat jest.config.js
 ```
 
 #### 16. E2E Test Issues
+
 **Problem**: Playwright tests fail
 
 **Solution**:
+
 ```bash
 # Install Playwright browsers
 cd apps/e2e
@@ -266,9 +298,11 @@ pnpm run test:debug
 ### Environment Issues
 
 #### 17. Environment Variables Missing
+
 **Problem**: "Environment variable not found"
 
 **Solution**:
+
 ```bash
 # Check if .env.local exists
 ls -la .env.local
@@ -281,9 +315,11 @@ nano .env.local
 ```
 
 #### 18. API Keys Invalid
+
 **Problem**: "Invalid API key" errors
 
 **Solution**:
+
 ```bash
 # Check environment variables
 echo $SUPABASE_URL
@@ -299,9 +335,11 @@ echo $ELEVENLABS_API_KEY
 ### Performance Issues
 
 #### 19. Slow Development Server
+
 **Problem**: `pnpm run dev` is slow
 
 **Solution**:
+
 ```bash
 # Clear cache
 pnpm clean
@@ -316,9 +354,11 @@ NODE_OPTIONS="--max-old-space-size=4096" pnpm run dev
 ```
 
 #### 20. Large Bundle Size
+
 **Problem**: Build produces large bundles
 
 **Solution**:
+
 ```bash
 # Analyze bundle
 pnpm --filter web run analyze
@@ -333,12 +373,14 @@ pnpm run syncpack:fix
 ## 🔧 Debug Tools
 
 ### Development Tools
+
 - **React DevTools**: Browser extension for React debugging
 - **Supabase Studio**: http://localhost:54323 for database debugging
 - **Vercel Analytics**: For performance monitoring
 - **Browser DevTools**: For frontend debugging
 
 ### Logging
+
 ```bash
 # Check application logs
 pnpm run dev | pino-pretty
@@ -351,6 +393,7 @@ docker logs supabase-db
 ```
 
 ### Network Debugging
+
 ```bash
 # Check API endpoints
 curl http://localhost:3000/api/health
@@ -365,13 +408,16 @@ curl -X POST http://localhost:3000/api/twilio/webhook
 ## 🆘 Getting Help
 
 ### Before Asking for Help
+
 1. **Check this guide** for your specific issue
 2. **Search existing issues** on GitHub
 3. **Check the logs** for error messages
 4. **Try the solutions** listed above
 
 ### When Asking for Help
+
 Include the following information:
+
 - **Error message** (full text)
 - **Steps to reproduce** the issue
 - **Environment details** (OS, Node.js version, etc.)
@@ -379,6 +425,7 @@ Include the following information:
 - **Relevant logs** or screenshots
 
 ### Resources
+
 - **[Development Workflow](./development-workflow.md)** - Development process
 - **[Project Structure](./project-structure.md)** - Codebase organization
 - **[Scripts Reference](./scripts.md)** - Available commands
@@ -388,6 +435,7 @@ Include the following information:
 ## 🚀 Prevention Tips
 
 ### Best Practices
+
 1. **Keep dependencies updated**: `pnpm update`
 2. **Run quality checks**: `pnpm run lint && pnpm run typecheck`
 3. **Test regularly**: `pnpm run test`
@@ -395,12 +443,14 @@ Include the following information:
 5. **Commit frequently**: Small, focused commits
 
 ### Environment Setup
+
 1. **Use correct Node.js version**: v18.18.0+
 2. **Use pnpm**: v9.12.0+
 3. **Keep Docker running**: For Supabase
 4. **Set environment variables**: Copy from `.env.example`
 
 ### Development Habits
+
 1. **Pull latest changes**: `git pull origin main`
 2. **Install dependencies**: `pnpm install`
 3. **Start services**: `pnpm run supabase:web:start`
@@ -411,6 +461,7 @@ Include the following information:
 ## 🎯 Quick Fixes
 
 ### Most Common Solutions
+
 ```bash
 # Reset everything
 pnpm clean
@@ -431,4 +482,4 @@ pnpm run lint:fix
 
 ---
 
-*This troubleshooting guide covers the most common issues. If your problem isn't listed, check the [Development Workflow](./development-workflow.md) or ask for help in the team chat.* 
+_This troubleshooting guide covers the most common issues. If your problem isn't listed, check the [Development Workflow](./development-workflow.md) or ask for help in the team chat._

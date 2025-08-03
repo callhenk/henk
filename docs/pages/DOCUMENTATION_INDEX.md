@@ -1,8 +1,8 @@
-# 📚 **Henk AI Documentation Index**
+# 📚 **Henk Documentation Index**
 
 ## 📋 **Overview**
 
-This index provides a comprehensive overview of all pages in the Henk AI application and their documentation status. Each page should have its own detailed markdown file following the established documentation pattern.
+This index provides a comprehensive overview of all pages in the Henk application and their documentation status. Each page should have its own detailed markdown file following the established documentation pattern.
 
 ---
 

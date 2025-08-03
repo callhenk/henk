@@ -1,16 +1,18 @@
 # Development Workflow
 
-This guide explains how to work effectively with the Henk AI codebase, from setting up your development environment to contributing code changes.
+This guide explains how to work effectively with the Henk codebase, from setting up your development environment to contributing code changes.
 
 ## 🚀 Development Environment Setup
 
 ### Prerequisites
+
 - Node.js v18.18.0+
 - pnpm v9.12.0+
 - Docker (for Supabase)
 - Git
 
 ### Initial Setup
+
 ```bash
 # Clone the repository
 git clone git@github.com:callhenk/henk.git
@@ -33,6 +35,7 @@ pnpm run dev
 ## 🔄 Daily Development Workflow
 
 ### 1. Starting Your Day
+
 ```bash
 # Pull latest changes
 git pull origin main
@@ -46,6 +49,7 @@ pnpm run dev
 ```
 
 ### 2. Before Making Changes
+
 ```bash
 # Ensure you're on a feature branch
 git checkout -b feature/your-feature-name
@@ -57,6 +61,7 @@ pnpm run format:fix
 ```
 
 ### 3. During Development
+
 ```bash
 # Start development server (if not already running)
 pnpm run dev
@@ -69,6 +74,7 @@ pnpm run typecheck
 ```
 
 ### 4. Before Committing
+
 ```bash
 # Run all quality checks
 pnpm run lint
@@ -84,6 +90,7 @@ git commit -m "feat: add new feature description"
 ## 📝 Code Contribution Process
 
 ### 1. Creating a Feature Branch
+
 ```bash
 # Create a new branch from main
 git checkout main
@@ -95,6 +102,7 @@ git checkout -b fix/descriptive-bug-name
 ```
 
 ### 2. Making Changes
+
 - **UI Components**: Add to `packages/ui/src/henk/`
 - **Authentication**: Add to `packages/auth/src/`
 - **Account Features**: Add to `packages/accounts/src/`
@@ -102,6 +110,7 @@ git checkout -b fix/descriptive-bug-name
 - **App Features**: Add to `apps/web/app/`
 
 ### 3. Testing Your Changes
+
 ```bash
 # Run unit tests
 pnpm run test
@@ -118,7 +127,9 @@ pnpm run test
 ```
 
 ### 4. Committing Changes
+
 Follow conventional commit format:
+
 ```bash
 git commit -m "type(scope): description"
 
@@ -129,6 +140,7 @@ git commit -m "docs(readme): update installation instructions"
 ```
 
 ### 5. Pushing and Creating PR
+
 ```bash
 # Push your branch
 git push origin feature/your-feature-name
@@ -143,27 +155,32 @@ git push origin feature/your-feature-name
 ## 🧪 Testing Strategy
 
 ### Unit Tests
+
 - **Location**: `__tests__/` folders in each package
 - **Framework**: Jest + React Testing Library
 - **Command**: `pnpm run test`
 
 ### Integration Tests
+
 - **Location**: `apps/web/__tests__/`
 - **Focus**: API routes, database operations
 - **Command**: `pnpm run test:integration`
 
 ### E2E Tests
+
 - **Location**: `apps/e2e/tests/`
 - **Framework**: Playwright
 - **Command**: `cd apps/e2e && pnpm run test`
 
 ### Test Coverage
+
 - **Target**: >90% code coverage
 - **Command**: `pnpm run test:coverage`
 
 ## 🔍 Code Quality Standards
 
 ### Linting
+
 ```bash
 # Run ESLint
 pnpm run lint
@@ -173,12 +190,14 @@ pnpm run lint:fix
 ```
 
 ### Type Checking
+
 ```bash
 # Run TypeScript checks
 pnpm run typecheck
 ```
 
 ### Formatting
+
 ```bash
 # Check formatting
 pnpm run format
@@ -188,7 +207,9 @@ pnpm run format:fix
 ```
 
 ### Pre-commit Hooks
+
 The project uses pre-commit hooks to ensure code quality:
+
 - Automatic formatting
 - Linting checks
 - Type checking
@@ -197,6 +218,7 @@ The project uses pre-commit hooks to ensure code quality:
 ## 📦 Package Development
 
 ### Adding New Packages
+
 ```bash
 # Create new package structure
 mkdir packages/new-package
@@ -210,6 +232,7 @@ pnpm init
 ```
 
 ### Updating Dependencies
+
 ```bash
 # Update all dependencies
 pnpm update
@@ -223,6 +246,7 @@ pnpm run syncpack:fix
 ```
 
 ### Building Packages
+
 ```bash
 # Build all packages
 pnpm run build
@@ -234,6 +258,7 @@ pnpm --filter package-name run build
 ## 🗄️ Database Development
 
 ### Creating Migrations
+
 ```bash
 # Create new migration
 cd apps/web
@@ -245,6 +270,7 @@ supabase db push
 ```
 
 ### Working with Local Database
+
 ```bash
 # Start Supabase
 pnpm run supabase:web:start
@@ -257,6 +283,7 @@ pnpm run supabase:web:reset
 ```
 
 ### Type Generation
+
 ```bash
 # Generate TypeScript types from database
 pnpm run supabase:typegen
@@ -265,6 +292,7 @@ pnpm run supabase:typegen
 ## 🚀 Deployment Workflow
 
 ### Staging Deployment
+
 ```bash
 # Deploy to staging
 git push origin main
@@ -272,6 +300,7 @@ git push origin main
 ```
 
 ### Production Deployment
+
 ```bash
 # Create release branch
 git checkout -b release/v1.2.3
@@ -288,18 +317,20 @@ git push origin main
 ## 🔧 Development Scripts
 
 ### Common Commands
-| Command | Purpose |
-|---------|---------|
-| `pnpm run dev` | Start development server |
-| `pnpm run build` | Build for production |
-| `pnpm run test` | Run all tests |
-| `pnpm run lint` | Run ESLint |
-| `pnpm run typecheck` | Run TypeScript checks |
-| `pnpm run format:fix` | Format code |
-| `pnpm run supabase:web:start` | Start local Supabase |
-| `pnpm run supabase:web:reset` | Reset local database |
+
+| Command                       | Purpose                  |
+| ----------------------------- | ------------------------ |
+| `pnpm run dev`                | Start development server |
+| `pnpm run build`              | Build for production     |
+| `pnpm run test`               | Run all tests            |
+| `pnpm run lint`               | Run ESLint               |
+| `pnpm run typecheck`          | Run TypeScript checks    |
+| `pnpm run format:fix`         | Format code              |
+| `pnpm run supabase:web:start` | Start local Supabase     |
+| `pnpm run supabase:web:reset` | Reset local database     |
 
 ### Package-Specific Commands
+
 ```bash
 # Run commands for specific package
 pnpm --filter ui run build
@@ -310,13 +341,16 @@ pnpm --filter web run dev
 ## 🐛 Debugging
 
 ### Common Issues
+
 1. **Supabase Connection Issues**
+
    ```bash
    pnpm run supabase:web:status
    pnpm run supabase:web:reset
    ```
 
 2. **Type Errors**
+
    ```bash
    pnpm run typecheck
    pnpm run supabase:typegen
@@ -330,6 +364,7 @@ pnpm --filter web run dev
    ```
 
 ### Debug Tools
+
 - **React DevTools**: Browser extension for React debugging
 - **Supabase Studio**: http://localhost:54323 for database debugging
 - **Vercel Analytics**: For performance monitoring
@@ -338,12 +373,14 @@ pnpm --filter web run dev
 ## 📚 Documentation
 
 ### Writing Documentation
+
 - **Code Comments**: Use JSDoc for complex functions
 - **README Files**: Update package READMEs when adding features
 - **API Documentation**: Document new API endpoints
 - **Component Documentation**: Document new UI components
 
 ### Documentation Standards
+
 - Use clear, concise language
 - Include code examples
 - Keep documentation up-to-date
@@ -352,6 +389,7 @@ pnpm --filter web run dev
 ## 🤝 Code Review Process
 
 ### Before Submitting PR
+
 - [ ] Code follows style guidelines
 - [ ] All tests pass
 - [ ] TypeScript checks pass
@@ -359,6 +397,7 @@ pnpm --filter web run dev
 - [ ] No console errors or warnings
 
 ### Review Checklist
+
 - [ ] Code is readable and well-structured
 - [ ] Proper error handling
 - [ ] Security considerations
@@ -375,4 +414,4 @@ pnpm --filter web run dev
 
 ---
 
-*This workflow guide ensures consistent development practices across the team. For specific technical details, see the individual documentation files.* 
+_This workflow guide ensures consistent development practices across the team. For specific technical details, see the individual documentation files._

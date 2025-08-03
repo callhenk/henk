@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Henk AI up and running on your local machine in under 10 minutes! This guide will walk you through the essential setup steps.
+Get Henk up and running on your local machine in under 10 minutes! This guide will walk you through the essential setup steps.
 
 ## 🚀 Prerequisites
 
@@ -66,7 +66,7 @@ ELEVENLABS_API_KEY=your_elevenlabs_api_key
 
 # Optional: Other configurations
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_PRODUCT_NAME=Henk AI
+NEXT_PUBLIC_PRODUCT_NAME=Henk
 ```
 
 ### 4. Start Supabase (Local Database)
@@ -102,6 +102,7 @@ ngrok http 3000
 ```
 
 Copy the HTTPS URL from ngrok and configure it in your Twilio Console:
+
 - Go to Twilio Console → Programmable Voice → Webhook
 - Set the webhook URL to: `https://your-ngrok-url.ngrok.io/api/twilio/webhook`
 
@@ -120,7 +121,7 @@ Now that you're up and running:
 
 1. **Explore the Application**: Visit http://localhost:3000 and explore the interface
 2. **Check the Database**: Visit http://localhost:54323 for Supabase Studio
-3. **Read the Documentation**: 
+3. **Read the Documentation**:
    - [Project Structure](./project-structure.md) - Understand the codebase
    - [Development Workflow](./development-workflow.md) - Learn how to contribute
    - [Architecture Overview](./architecture.md) - Understand the system design
@@ -128,6 +129,7 @@ Now that you're up and running:
 ## 🚨 Common Issues
 
 ### Supabase Won't Start
+
 ```bash
 # Make sure Docker is running
 docker --version
@@ -140,6 +142,7 @@ pnpm run supabase:web:reset
 ```
 
 ### Port Already in Use
+
 ```bash
 # Check what's using port 3000
 lsof -i :3000
@@ -149,6 +152,7 @@ PORT=3001 pnpm run dev
 ```
 
 ### Environment Variables Missing
+
 ```bash
 # Check if .env.local exists
 ls -la .env.local
@@ -158,6 +162,7 @@ cp .env.example .env.local
 ```
 
 ### Dependencies Issues
+
 ```bash
 # Clear cache and reinstall
 pnpm clean
@@ -168,15 +173,15 @@ pnpm install
 
 Here are the most commonly used scripts:
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm run dev` | Start development server |
-| `pnpm run build` | Build for production |
-| `pnpm run lint` | Run ESLint |
-| `pnpm run typecheck` | Run TypeScript checks |
-| `pnpm run format:fix` | Format code with Prettier |
-| `pnpm run supabase:web:start` | Start local Supabase |
-| `pnpm run supabase:web:stop` | Stop local Supabase |
+| Command                       | Purpose                   |
+| ----------------------------- | ------------------------- |
+| `pnpm run dev`                | Start development server  |
+| `pnpm run build`              | Build for production      |
+| `pnpm run lint`               | Run ESLint                |
+| `pnpm run typecheck`          | Run TypeScript checks     |
+| `pnpm run format:fix`         | Format code with Prettier |
+| `pnpm run supabase:web:start` | Start local Supabase      |
+| `pnpm run supabase:web:stop`  | Stop local Supabase       |
 
 ## 📞 Need Help?
 
@@ -186,4 +191,4 @@ Here are the most commonly used scripts:
 
 ---
 
-*This quick start guide gets you up and running fast. For detailed setup instructions, see [Development Setup](./development-setup.md).* 
+_This quick start guide gets you up and running fast. For detailed setup instructions, see [Development Setup](./development-setup.md)._

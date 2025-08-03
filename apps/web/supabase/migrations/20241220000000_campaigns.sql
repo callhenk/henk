@@ -1,6 +1,6 @@
 /*
  * -------------------------------------------------------
- * Henk AI Campaigns Schema
+ * Henk Campaigns Schema
  * This migration creates the necessary tables for campaigns, agents, leads, and conversations.
  * It includes the schema for AI voice fundraising campaigns and related entities.
  * -------------------------------------------------------

@@ -1,10 +1,10 @@
 # Project Structure
 
-This document explains the organization of the Henk AI monorepo, helping you understand where different components live and how they relate to each other.
+This document explains the organization of the Henk monorepo, helping you understand where different components live and how they relate to each other.
 
 ## 🏗️ Monorepo Overview
 
-Henk AI uses a **Turbo monorepo** architecture with the following high-level structure:
+Henk uses a **Turbo monorepo** architecture with the following high-level structure:
 
 ```
 henk/
@@ -29,7 +29,8 @@ henk/
 ### `/apps` - Applications
 
 #### `/apps/web` - Main Web Application
-The primary Next.js application that serves the Henk AI platform.
+
+The primary Next.js application that serves the Henk platform.
 
 ```
 apps/web/
@@ -53,6 +54,7 @@ apps/web/
 ```
 
 #### `/apps/e2e` - End-to-End Testing
+
 Playwright-based testing suite for full application testing.
 
 ```
@@ -68,6 +70,7 @@ apps/e2e/
 ### `/packages` - Shared Packages
 
 #### `/packages/ui` - UI Component Library
+
 Reusable UI components built with Radix UI and Tailwind CSS.
 
 ```
@@ -82,6 +85,7 @@ packages/ui/
 ```
 
 #### `/packages/auth` - Authentication System
+
 Complete authentication system with Supabase integration.
 
 ```
@@ -95,6 +99,7 @@ packages/auth/
 ```
 
 #### `/packages/accounts` - User Account Management
+
 User profile, settings, and account management features.
 
 ```
@@ -108,6 +113,7 @@ packages/accounts/
 ```
 
 #### `/packages/supabase` - Database & Backend Services
+
 Supabase client configuration and database utilities.
 
 ```
@@ -121,6 +127,7 @@ packages/supabase/
 ```
 
 #### `/packages/i18n` - Internationalization
+
 Multi-language support and translation management.
 
 ```
@@ -133,6 +140,7 @@ packages/i18n/
 ```
 
 #### `/packages/next` - Next.js Utilities
+
 Next.js-specific utilities and configurations.
 
 ```
@@ -145,6 +153,7 @@ packages/next/
 ```
 
 #### `/packages/shared` - Shared Utilities
+
 Common utilities, types, and configurations used across packages.
 
 ```
@@ -160,6 +169,7 @@ packages/shared/
 ### `/tooling` - Development Tools
 
 #### `/tooling/eslint` - ESLint Configuration
+
 Shared ESLint configurations for code quality.
 
 ```
@@ -171,6 +181,7 @@ tooling/eslint/
 ```
 
 #### `/tooling/prettier` - Prettier Configuration
+
 Code formatting configuration.
 
 ```
@@ -180,6 +191,7 @@ tooling/prettier/
 ```
 
 #### `/tooling/typescript` - TypeScript Configuration
+
 Shared TypeScript configurations.
 
 ```
@@ -189,6 +201,7 @@ tooling/typescript/
 ```
 
 #### `/tooling/scripts` - Development Scripts
+
 Utility scripts for development and deployment.
 
 ```
@@ -231,22 +244,24 @@ packages/accounts
 ## 📦 Package Management
 
 ### Workspace Configuration
+
 - **Package Manager**: pnpm (v9.12.0)
 - **Workspace**: Configured in `pnpm-workspace.yaml`
 - **Dependencies**: Managed with workspace protocol (`workspace:*`)
 
 ### Key Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `pnpm-workspace.yaml` | Defines workspace packages |
-| `turbo.json` | Turbo build system configuration |
-| `package.json` | Root package configuration |
-| `tsconfig.json` | Root TypeScript configuration |
+| File                  | Purpose                          |
+| --------------------- | -------------------------------- |
+| `pnpm-workspace.yaml` | Defines workspace packages       |
+| `turbo.json`          | Turbo build system configuration |
+| `package.json`        | Root package configuration       |
+| `tsconfig.json`       | Root TypeScript configuration    |
 
 ## 🎯 Development Workflow
 
 ### Adding New Features
+
 1. **UI Components**: Add to `packages/ui/src/henk/`
 2. **Authentication**: Add to `packages/auth/src/`
 3. **Account Features**: Add to `packages/accounts/src/`
@@ -254,6 +269,7 @@ packages/accounts
 5. **App Features**: Add to `apps/web/app/`
 
 ### Package Development
+
 ```bash
 # Install dependencies for all packages
 pnpm install
@@ -271,18 +287,21 @@ pnpm run test
 ## 🔍 Key Files to Know
 
 ### Configuration Files
+
 - `turbo.json` - Build system configuration
 - `pnpm-workspace.yaml` - Workspace definition
 - `apps/web/next.config.mjs` - Next.js configuration
 - `apps/web/supabase/config.toml` - Supabase configuration
 
 ### Entry Points
+
 - `apps/web/app/layout.tsx` - Root application layout
 - `apps/web/app/page.tsx` - Home page
 - `apps/web/middleware.ts` - Request middleware
 - `packages/ui/src/index.ts` - UI component exports
 
 ### Database
+
 - `apps/web/supabase/migrations/` - Database schema changes
 - `apps/web/supabase/seed.sql` - Initial data
 - `packages/supabase/src/database.types.ts` - Generated types
@@ -297,4 +316,4 @@ pnpm run test
 
 ---
 
-*This structure guide helps you navigate the codebase. For specific implementation details, see the individual package documentation.* 
+_This structure guide helps you navigate the codebase. For specific implementation details, see the individual package documentation._

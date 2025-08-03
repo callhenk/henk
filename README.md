@@ -1,8 +1,8 @@
-Here's your updated **README** for Henk AI, integrating the boilerplate behind the scenes but keeping the focus entirely on your product:
+Here's your updated **README** for Henk, integrating the boilerplate behind the scenes but keeping the focus entirely on your product:
 
 ---
 
-# Henk AI
+# Henk
 
 **Henk** is an AI-powered voice fundraising platform that enables charities to engage donors through natural phone conversations at scale. By combining synthetic speech, CRM integration, and compliance-centric design, Henk reduces operational costs while improving donor experience and conversion rates.
 
@@ -88,7 +88,7 @@ Copy the HTTPS forwarding URL and paste it into the Twilio Console → Programma
 | **Observability**        | Pino → Logtail, Vercel Analytics, Twilio Debugger | Slack alerts for error + spend monitoring          |
 | **Dev Tools**            | GitHub Copilot, Cursor AI                         | AI-powered coding + refactoring                    |
 
-> *Why this stack?* It’s fast to build with, serverless by default, and AI-native. Calls are powered by ElevenLabs and Twilio; Supabase handles your data securely and efficiently.
+> _Why this stack?_ It’s fast to build with, serverless by default, and AI-native. Calls are powered by ElevenLabs and Twilio; Supabase handles your data securely and efficiently.
 
 ---
 
@@ -122,6 +122,6 @@ packages/
 
 ## 🛠 Troubleshooting
 
-* **401 Supabase**: Check `SUPABASE_ANON_KEY`
-* **Twilio error 11200**: Restart ngrok and update webhook
-* **No audio on call**: Check ElevenLabs quota or voice config
+- **401 Supabase**: Check `SUPABASE_ANON_KEY`
+- **Twilio error 11200**: Restart ngrok and update webhook
+- **No audio on call**: Check ElevenLabs quota or voice config

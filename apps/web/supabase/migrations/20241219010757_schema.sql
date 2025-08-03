@@ -1,7 +1,7 @@
 /*
  * -------------------------------------------------------
- * Henk AI Database Schema
- * This is the schema for the Henk AI voice fundraising platform.
+ * Henk Database Schema
+ * This is the schema for the Henk voice fundraising platform.
  * It includes the schema for accounts and user management.
  * -------------------------------------------------------
  */
@@ -82,7 +82,7 @@ grant usage on schema public to service_role;
 /*
  * -------------------------------------------------------
  * Section: Accounts
- * We create the schema for the accounts. Accounts are the top level entity in Henk AI. They can be team or personal accounts.
+ * We create the schema for the accounts. Accounts are the top level entity in Henk. They can be team or personal accounts.
  * -------------------------------------------------------
  */
 -- Accounts table
@@ -101,7 +101,7 @@ create table if not exists
     primary key (id)
 );
 
-comment on table public.accounts is 'Accounts are the top level entity in Henk AI';
+comment on table public.accounts is 'Accounts are the top level entity in Henk';
 
 comment on column public.accounts.name is 'The name of the account';
 

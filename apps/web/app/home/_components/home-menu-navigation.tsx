@@ -30,7 +30,7 @@ export function HomeMenuNavigation() {
   return (
     <div className={'flex w-full flex-1 justify-between'}>
       <div className={'flex items-center space-x-8'}>
-        <AppLogo />
+        <AppLogo size="small" />
 
         <BorderedNavigationMenu>
           {routes.map((route) => (

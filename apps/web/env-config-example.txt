@@ -3,9 +3,9 @@
 
 # SITE CONFIGURATION
 NEXT_PUBLIC_SITE_URL=https://app.callhenk.com
-NEXT_PUBLIC_PRODUCT_NAME=Henk AI
-NEXT_PUBLIC_SITE_TITLE="Henk AI - AI-Powered Voice Fundraising Platform"
-NEXT_PUBLIC_SITE_DESCRIPTION="Henk AI enables charities to engage donors through natural phone conversations at scale. Reduce operational costs while improving donor experience and conversion rates."
+NEXT_PUBLIC_PRODUCT_NAME=Henk
+NEXT_PUBLIC_SITE_TITLE="Henk - AI-Powered Voice Fundraising Platform"
+NEXT_PUBLIC_SITE_DESCRIPTION="Henk enables charities to engage donors through natural phone conversations at scale. Reduce operational costs while improving donor experience and conversion rates."
 NEXT_PUBLIC_DEFAULT_LOCALE=en
 NEXT_PUBLIC_DEFAULT_THEME_MODE=light
 NEXT_PUBLIC_THEME_COLOR="#ffffff"
