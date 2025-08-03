@@ -12,7 +12,7 @@ function LogoImage({
 }) {
   return (
     <Image
-      src="/images/logo.png"
+      src="/images/logo-clear.png"
       alt="Henk AI"
       width={width}
       height={width * 0.3} // Assuming aspect ratio of roughly 3:1

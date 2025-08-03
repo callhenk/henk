@@ -33,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
+import { Input } from '@kit/ui/input';
 import {
   Select,
   SelectContent,
@@ -101,9 +102,14 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [isTestingVoice, setIsTestingVoice] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
+  // State for inline editing
+  const [editingName, setEditingName] = useState(false);
+  const [agentName, setAgentName] = useState('');
+
   // Initialize form data when agent loads
   useEffect(() => {
     if (agent) {
+      setAgentName(agent.name || '');
       setOrganizationInfo(agent.organization_info || '');
       setDonorContext(agent.donor_context || '');
 
@@ -160,6 +166,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       try {
         const updateData = {
           id: agentId,
+          ...(fieldName === 'name' && { name: value }),
           ...(fieldName === 'organization_info' && {
             organization_info: value,
           }),
@@ -288,15 +295,52 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           </Button>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold">{agent.name}</h1>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEditingName(true)}
-                className="h-6 w-6 p-0"
-              >
-                <Edit className="h-3 w-3" />
-              </Button>
+              {editingName ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={agentName}
+                    onChange={(e) => setAgentName(e.target.value)}
+                    className="h-8 text-2xl font-bold"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveField('name', agentName);
+                        setEditingName(false);
+                      } else if (e.key === 'Escape') {
+                        setAgentName(agent?.name || '');
+                        setEditingName(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      handleSaveField('name', agentName);
+                      setEditingName(false);
+                    }}
+                    autoFocus
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleSaveField('name', agentName);
+                      setEditingName(false);
+                    }}
+                    className="h-6 w-6 p-0"
+                  >
+                    ✓
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-2xl font-bold">{agentName}</h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingName(true)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
             </div>
             <p className="text-muted-foreground">{agent.description}</p>
           </div>
