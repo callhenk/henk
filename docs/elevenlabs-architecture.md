@@ -14,11 +14,11 @@ graph TB
 
     %% Next.js API Routes
     subgraph "Next.js API Routes"
-        E[/api/voice/test]
-        F[/api/voice/generate]
-        G[/api/voice/voices]
-        H[/api/agents]
-        I[/api/campaigns]
+        E["/api/voice/test"]
+        F["/api/voice/generate"]
+        G["/api/voice/voices"]
+        H["/api/agents"]
+        I["/api/campaigns"]
     end
 
     %% Supabase Edge Functions
@@ -82,7 +82,7 @@ sequenceDiagram
 
     %% Voice Testing Flow
     U->>F: Test Voice
-    F->>N: POST /api/voice/test
+    F->>N: POST "/api/voice/test"
     N->>E: Call Edge Function
     E->>EL: Generate Speech
     EL-->>E: Audio Buffer
@@ -94,7 +94,7 @@ sequenceDiagram
 
     %% Voice Generation Flow
     U->>F: Generate Campaign Audio
-    F->>N: POST /api/voice/generate
+    F->>N: POST "/api/voice/generate"
     N->>E: Call Edge Function
     E->>EL: Generate Speech
     EL-->>E: Audio Buffer
@@ -107,7 +107,7 @@ sequenceDiagram
 
     %% Voice Listing Flow
     U->>F: Load Voice Options
-    F->>N: GET /api/voice/voices
+    F->>N: GET "/api/voice/voices"
     N->>E: Call Edge Function
     E->>EL: Fetch Voices
     EL-->>E: Voice List
@@ -129,9 +129,9 @@ graph LR
     end
 
     subgraph "Next.js API Routes"
-        F[/api/voice/test]
-        G[/api/voice/generate]
-        H[/api/voice/voices]
+        F["/api/voice/test"]
+        G["/api/voice/generate"]
+        H["/api/voice/voices"]
     end
 
     subgraph "Frontend Hooks"
@@ -185,9 +185,9 @@ flowchart TD
     B -->|Generate Speech| D[Voice Generation UI]
     B -->|List Voices| E[Voice Selection UI]
 
-    C --> F[/api/voice/test]
-    D --> G[/api/voice/generate]
-    E --> H[/api/voice/voices]
+    C --> F["/api/voice/test"]
+    D --> G["/api/voice/generate"]
+    E --> H["/api/voice/voices"]
 
     F --> I[Edge Function: test.ts]
     G --> J[Edge Function: generate.ts]

@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 
-import { Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Save, Trash2, X } from 'lucide-react';
 
 import type { Tables } from '@kit/supabase/database';
 import {
-  useCreateBusiness,
   useDeleteBusiness,
   useUpdateBusiness,
 } from '@kit/supabase/hooks/businesses/use-business-mutations';
@@ -31,15 +30,6 @@ import {
   CardTitle,
 } from '@kit/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@kit/ui/dialog';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -47,7 +37,6 @@ import {
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
 import { Input } from '@kit/ui/input';
-import { Label } from '@kit/ui/label';
 import { Skeleton } from '@kit/ui/skeleton';
 import { Textarea } from '@kit/ui/textarea';
 
@@ -83,13 +72,11 @@ export function BusinessSettingsContainer({
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null,
   );
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState<string | null>(null);
 
   // Hooks
   const { data: businesses, isLoading: businessesLoading } =
     useUserBusinesses();
-  const createBusinessMutation = useCreateBusiness();
   const updateBusinessMutation = useUpdateBusiness();
   const deleteBusinessMutation = useDeleteBusiness();
 
@@ -98,22 +85,19 @@ export function BusinessSettingsContainer({
     name: '',
     description: '',
   });
-
-  // Error states
   const [businessFormErrors, setBusinessFormErrors] = useState<{
     name?: string;
     description?: string;
   }>({});
 
-  // Validation functions
   const validateBusinessForm = () => {
     const errors: { name?: string; description?: string } = {};
 
     if (!businessForm.name.trim()) {
       errors.name = 'Business name is required';
-    }
-
-    if (businessForm.name.length > 100) {
+    } else if (businessForm.name.trim().length < 2) {
+      errors.name = 'Business name must be at least 2 characters';
+    } else if (businessForm.name.trim().length > 100) {
       errors.name = 'Business name must be less than 100 characters';
     }
 
@@ -125,45 +109,21 @@ export function BusinessSettingsContainer({
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreateBusiness = async () => {
-    if (!validateBusinessForm()) {
-      return;
-    }
-
-    try {
-      await createBusinessMutation.mutateAsync({
-        name: businessForm.name.trim(),
-        description: businessForm.description.trim() || null,
-        status: 'active',
-      });
-      setBusinessForm({ name: '', description: '' });
-      setBusinessFormErrors({});
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create business:', error);
-      // TODO: Add proper error handling with toast notifications
-    }
-  };
-
-  const handleUpdateBusiness = async () => {
-    if (!selectedBusiness) return;
-
-    if (!validateBusinessForm()) {
-      return;
-    }
+  const handleUpdateBusiness = async (businessId: string) => {
+    if (!validateBusinessForm()) return;
 
     try {
       await updateBusinessMutation.mutateAsync({
-        id: selectedBusiness.id,
+        id: businessId,
         name: businessForm.name.trim(),
         description: businessForm.description.trim() || null,
       });
+
       setBusinessForm({ name: '', description: '' });
       setBusinessFormErrors({});
-      setIsEditDialogOpen(false);
+      setEditingBusiness(null);
     } catch (error) {
       console.error('Failed to update business:', error);
-      // TODO: Add proper error handling with toast notifications
     }
   };
 
@@ -178,24 +138,31 @@ export function BusinessSettingsContainer({
     }
   };
 
-  const openEditDialog = (business: Business) => {
-    setSelectedBusiness(business);
+  const startEditing = (business: Business) => {
+    setEditingBusiness(business.id);
     setBusinessForm({
       name: business.name,
       description: business.description || '',
     });
-    setIsEditDialogOpen(true);
+    setBusinessFormErrors({});
+  };
+
+  const cancelEditing = () => {
+    setEditingBusiness(null);
+    setBusinessForm({ name: '', description: '' });
+    setBusinessFormErrors({});
   };
 
   if (businessesLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-2 h-4 w-64" />
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Business Management
+            </h1>
+            <p className="text-muted-foreground">Manage your businesses</p>
           </div>
-          <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
@@ -214,104 +181,8 @@ export function BusinessSettingsContainer({
           <h1 className="text-2xl font-semibold tracking-tight">
             Business Management
           </h1>
-          <p className="text-muted-foreground">
-            Create and manage your businesses and team members
-          </p>
+          <p className="text-muted-foreground">Manage your businesses</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Business
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Business</DialogTitle>
-              <DialogDescription>
-                Add a new business to organize your campaigns and team.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Business Name</Label>
-                <Input
-                  id="name"
-                  value={businessForm.name}
-                  onChange={(e) => {
-                    setBusinessForm({ ...businessForm, name: e.target.value });
-                    if (businessFormErrors.name) {
-                      setBusinessFormErrors({
-                        ...businessFormErrors,
-                        name: undefined,
-                      });
-                    }
-                  }}
-                  placeholder="Enter business name"
-                  className={
-                    businessFormErrors.name ? 'border-destructive' : ''
-                  }
-                />
-                {businessFormErrors.name && (
-                  <p className="text-destructive mt-1 text-sm">
-                    {businessFormErrors.name}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  value={businessForm.description}
-                  onChange={(e) => {
-                    setBusinessForm({
-                      ...businessForm,
-                      description: e.target.value,
-                    });
-                    if (businessFormErrors.description) {
-                      setBusinessFormErrors({
-                        ...businessFormErrors,
-                        description: undefined,
-                      });
-                    }
-                  }}
-                  placeholder="Brief description of your business"
-                  className={
-                    businessFormErrors.description ? 'border-destructive' : ''
-                  }
-                  rows={3}
-                />
-                {businessFormErrors.description && (
-                  <p className="text-destructive mt-1 text-sm">
-                    {businessFormErrors.description}
-                  </p>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsCreateDialogOpen(false);
-                  setBusinessForm({ name: '', description: '' });
-                  setBusinessFormErrors({});
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateBusiness}
-                disabled={
-                  !businessForm.name || createBusinessMutation.isPending
-                }
-              >
-                {createBusinessMutation.isPending
-                  ? 'Creating...'
-                  : 'Create Business'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Businesses Grid */}
@@ -324,12 +195,77 @@ export function BusinessSettingsContainer({
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="truncate text-lg">
-                    {business.name}
-                  </CardTitle>
-                  <CardDescription className="mt-1 line-clamp-2">
-                    {business.description || 'No description'}
-                  </CardDescription>
+                  {editingBusiness === business.id ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={businessForm.name}
+                        onChange={(e) => {
+                          setBusinessForm({
+                            ...businessForm,
+                            name: e.target.value,
+                          });
+                          if (businessFormErrors.name) {
+                            setBusinessFormErrors({
+                              ...businessFormErrors,
+                              name: undefined,
+                            });
+                          }
+                        }}
+                        className={
+                          businessFormErrors.name ? 'border-destructive' : ''
+                        }
+                      />
+                      {businessFormErrors.name && (
+                        <p className="text-destructive text-sm">
+                          {businessFormErrors.name}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <CardTitle
+                      className="hover:text-primary cursor-pointer truncate text-lg"
+                      onClick={() => startEditing(business)}
+                    >
+                      {business.name}
+                    </CardTitle>
+                  )}
+                  {editingBusiness === business.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={businessForm.description}
+                        onChange={(e) => {
+                          setBusinessForm({
+                            ...businessForm,
+                            description: e.target.value,
+                          });
+                          if (businessFormErrors.description) {
+                            setBusinessFormErrors({
+                              ...businessFormErrors,
+                              description: undefined,
+                            });
+                          }
+                        }}
+                        className={
+                          businessFormErrors.description
+                            ? 'border-destructive'
+                            : ''
+                        }
+                        rows={2}
+                      />
+                      {businessFormErrors.description && (
+                        <p className="text-destructive text-sm">
+                          {businessFormErrors.description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <CardDescription
+                      className="hover:text-primary mt-1 line-clamp-2 cursor-pointer"
+                      onClick={() => startEditing(business)}
+                    >
+                      {business.description || 'No description'}
+                    </CardDescription>
+                  )}
                 </div>
                 <Badge
                   variant={
@@ -342,148 +278,79 @@ export function BusinessSettingsContainer({
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="flex items-center justify-end">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:scale-90"
-                    >
-                      <MoreHorizontal className="h-4 w-4 stroke-2" />
+              <div className="flex items-center justify-end space-x-2">
+                {editingBusiness === business.id ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={cancelEditing}>
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEditDialog(business)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit Business
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => setSelectedBusiness(business)}
-                      className="text-destructive"
+                    <Button
+                      size="sm"
+                      onClick={() => handleUpdateBusiness(business.id)}
+                      disabled={updateBusinessMutation.isPending}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Business
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <Save className="mr-2 h-4 w-4" />
+                      {updateBusinessMutation.isPending ? 'Saving...' : 'Save'}
+                    </Button>
+                  </>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:scale-90"
+                      >
+                        <MoreHorizontal className="h-4 w-4 stroke-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => startEditing(business)}>
+                        <Save className="mr-2 h-4 w-4" />
+                        Edit Business
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setSelectedBusiness(business)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Business
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Edit Business Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Business</DialogTitle>
-            <DialogDescription>
-              Update your business information.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Business Name</Label>
-              <Input
-                id="edit-name"
-                value={businessForm.name}
-                onChange={(e) => {
-                  setBusinessForm({ ...businessForm, name: e.target.value });
-                  if (businessFormErrors.name) {
-                    setBusinessFormErrors({
-                      ...businessFormErrors,
-                      name: undefined,
-                    });
-                  }
-                }}
-                placeholder="Enter business name"
-                className={businessFormErrors.name ? 'border-destructive' : ''}
-              />
-              {businessFormErrors.name && (
-                <p className="text-destructive mt-1 text-sm">
-                  {businessFormErrors.name}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={businessForm.description}
-                onChange={(e) => {
-                  setBusinessForm({
-                    ...businessForm,
-                    description: e.target.value,
-                  });
-                  if (businessFormErrors.description) {
-                    setBusinessFormErrors({
-                      ...businessFormErrors,
-                      description: undefined,
-                    });
-                  }
-                }}
-                placeholder="Enter business description"
-                className={
-                  businessFormErrors.description ? 'border-destructive' : ''
-                }
-                rows={3}
-              />
-              {businessFormErrors.description && (
-                <p className="text-destructive mt-1 text-sm">
-                  {businessFormErrors.description}
-                </p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditDialogOpen(false);
-                setBusinessForm({ name: '', description: '' });
-                setBusinessFormErrors({});
-              }}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!selectedBusiness}
+        onOpenChange={(open) => !open && setSelectedBusiness(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Business</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedBusiness?.name}
+              &quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteBusiness}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdateBusiness}
-              disabled={!businessForm.name || updateBusinessMutation.isPending}
-            >
-              {updateBusinessMutation.isPending
-                ? 'Updating...'
-                : 'Update Business'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Business Confirmation */}
-      {selectedBusiness && (
-        <AlertDialog>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Business</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete &quot;{selectedBusiness.name}
-                &quot;? This action cannot be undone and will remove all
-                associated data.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDeleteBusiness}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete Business
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
