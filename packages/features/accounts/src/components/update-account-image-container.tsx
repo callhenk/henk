@@ -143,10 +143,23 @@ async function uploadUserProfilePhoto(
   const extension = photoFile.name.split('.').pop();
   const fileName = await getAvatarFileName(userId, extension);
 
-  const result = await bucket.upload(fileName, bytes);
+  const result = await bucket.upload(fileName, bytes, {
+    contentType: photoFile.type,
+  });
 
   if (!result.error) {
-    return bucket.getPublicUrl(fileName).data.publicUrl;
+    // Generate a signed URL that expires in 1 hour
+    const { data: signedUrlData, error: signedUrlError } =
+      await bucket.createSignedUrl(
+        fileName,
+        3600, // 1 hour
+      );
+
+    if (signedUrlError) {
+      throw signedUrlError;
+    }
+
+    return signedUrlData.signedUrl;
   }
 
   throw result.error;
@@ -161,6 +174,7 @@ async function getAvatarFileName(
   // we add a version to the URL to ensure
   // the browser always fetches the latest image
   const uniqueId = nanoid(16);
+  const fileName = `${userId}.${extension}?v=${uniqueId}`;
 
-  return `${userId}.${extension}?v=${uniqueId}`;
+  return fileName;
 }
