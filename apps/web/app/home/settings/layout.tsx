@@ -1,3 +1,8 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import {
   Bell,
   Building2,
@@ -11,8 +16,6 @@ import {
 import { AppBreadcrumbs } from '@kit/ui/app-breadcrumbs';
 import { Button } from '@kit/ui/button';
 import { PageHeader } from '@kit/ui/page';
-
-import { withI18n } from '~/lib/i18n/with-i18n';
 
 const settingsNavItems = [
   {
@@ -54,6 +57,8 @@ const settingsNavItems = [
 ];
 
 function UserSettingsLayout(props: React.PropsWithChildren) {
+  const pathname = usePathname();
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar Navigation */}
@@ -66,18 +71,19 @@ function UserSettingsLayout(props: React.PropsWithChildren) {
             <div className="space-y-1">
               {settingsNavItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = pathname === item.href;
                 return (
                   <Button
                     key={item.href}
-                    variant="ghost"
+                    variant={isActive ? 'secondary' : 'ghost'}
                     className="w-full justify-start"
                     asChild
                   >
-                    <a href={item.href}>
+                    <Link href={item.href}>
                       <Icon className="mr-2 h-4 w-4" />
                       {item.title}
                       <ChevronRight className="ml-auto h-4 w-4" />
-                    </a>
+                    </Link>
                   </Button>
                 );
               })}
@@ -95,4 +101,4 @@ function UserSettingsLayout(props: React.PropsWithChildren) {
   );
 }
 
-export default withI18n(UserSettingsLayout);
+export default UserSettingsLayout;

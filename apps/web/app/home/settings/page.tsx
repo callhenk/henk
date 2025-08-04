@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@kit/ui/card';
 import { Separator } from '@kit/ui/separator';
-import { Skeleton } from '@kit/ui/skeleton';
 
 import authConfig from '~/config/auth.config';
 import pathsConfig from '~/config/paths.config';
@@ -38,83 +37,8 @@ export const generateMetadata = async () => {
   };
 };
 
-function _AccountSettingsSkeleton() {
-  return (
-    <div className="space-y-6">
-      {/* Header Skeleton */}
-      <div>
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="mt-2 h-4 w-64" />
-      </div>
-
-      <div className="max-w-2xl space-y-6">
-        {/* Personal Information Card Skeleton */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
-              Update your account details and profile information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="flex space-x-2">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Account Overview Card Skeleton */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Overview</CardTitle>
-            <CardDescription>
-              Quick overview of your account status and settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="mt-1 h-5 w-16" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="mt-1 h-4 w-32" />
-              </div>
-            </div>
-            <Separator />
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="mt-1 h-5 w-20" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="mt-1 h-5 w-24" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function AccountSettingsPage() {
-  const userId = use(requireUserInServerComponent()).id;
+function AccountSettingsPageContent() {
+  const user = use(requireUserInServerComponent());
 
   return (
     <div className="space-y-6">
@@ -135,7 +59,7 @@ function AccountSettingsPage() {
           </CardHeader>
           <CardContent>
             <PersonalAccountSettingsContainer
-              userId={userId}
+              userId={user.id}
               paths={paths}
               features={features}
             />
@@ -163,7 +87,15 @@ function AccountSettingsPage() {
                 <p className="text-muted-foreground text-sm font-medium">
                   Member Since
                 </p>
-                <p className="text-sm">December 2024</p>
+                <p className="text-sm">
+                  {new Date(user.created_at || Date.now()).toLocaleDateString(
+                    'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'long',
+                    },
+                  )}
+                </p>
               </div>
             </div>
             <Separator />
@@ -192,4 +124,4 @@ function AccountSettingsPage() {
   );
 }
 
-export default withI18n(AccountSettingsPage);
+export default withI18n(AccountSettingsPageContent);
