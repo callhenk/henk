@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-import { MoreHorizontal, Save, Trash2, X } from 'lucide-react';
+import { Save, Trash2 } from 'lucide-react';
 
 import type { Tables } from '@kit/supabase/database';
 import {
@@ -22,21 +22,9 @@ import {
 } from '@kit/ui/alert-dialog';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@kit/ui/dropdown-menu';
 import { Input } from '@kit/ui/input';
+import { Label } from '@kit/ui/label';
+import { Separator } from '@kit/ui/separator';
 import { Skeleton } from '@kit/ui/skeleton';
 import { Textarea } from '@kit/ui/textarea';
 
@@ -46,23 +34,22 @@ interface BusinessSettingsContainerProps {
   userId: string;
 }
 
-function BusinessCardSkeleton() {
+function BusinessFormSkeleton() {
   return (
-    <Card className="group relative overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-5 w-16" />
-        </div>
-        <Skeleton className="h-4 w-48" />
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex justify-end space-x-2">
-          <Skeleton className="h-8 w-20" />
-          <Skeleton className="h-8 w-16" />
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <Skeleton className="h-9 w-16" />
+        <Skeleton className="h-9 w-20" />
+      </div>
+    </div>
   );
 }
 
@@ -72,101 +59,132 @@ export function BusinessSettingsContainer({
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null,
   );
-  const [editingBusiness, setEditingBusiness] = useState<string | null>(null);
-
-  // Hooks
   const { data: businesses, isLoading: businessesLoading } =
     useUserBusinesses();
   const updateBusinessMutation = useUpdateBusiness();
   const deleteBusinessMutation = useDeleteBusiness();
+  type FormState = {
+    name: string;
+    description: string;
+    errors?: { name?: string; description?: string };
+  };
 
-  // Form states
-  const [businessForm, setBusinessForm] = useState({
-    name: '',
-    description: '',
-  });
-  const [businessFormErrors, setBusinessFormErrors] = useState<{
-    name?: string;
-    description?: string;
-  }>({});
+  const [formStates, setFormStates] = useState<Record<string, FormState>>({});
 
-  const validateBusinessForm = () => {
+  // Initialize form state for each business
+  React.useEffect(() => {
+    if (businesses) {
+      const newStates: typeof formStates = {};
+      businesses.forEach((b) => {
+        newStates[b.id] = {
+          name: b.name,
+          description: b.description || '',
+          errors: {},
+        };
+      });
+      setFormStates(newStates);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businesses?.map((b) => b.id).join(',')]);
+
+  const validate = (name: string, description: string) => {
     const errors: { name?: string; description?: string } = {};
-
-    if (!businessForm.name.trim()) {
+    if (!name.trim()) {
       errors.name = 'Business name is required';
-    } else if (businessForm.name.trim().length < 2) {
+    } else if (name.trim().length < 2) {
       errors.name = 'Business name must be at least 2 characters';
-    } else if (businessForm.name.trim().length > 100) {
+    } else if (name.trim().length > 100) {
       errors.name = 'Business name must be less than 100 characters';
     }
-
-    if (businessForm.description && businessForm.description.length > 500) {
+    if (description && description.length > 500) {
       errors.description = 'Description must be less than 500 characters';
     }
-
-    setBusinessFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    return errors;
   };
 
-  const handleUpdateBusiness = async (businessId: string) => {
-    if (!validateBusinessForm()) return;
+  const handleChange = (
+    id: string,
+    field: 'name' | 'description',
+    value: string,
+  ) => {
+    setFormStates((prev) => {
+      const current = prev[id];
+      if (!current) return prev;
 
+      return {
+        ...prev,
+        [id]: {
+          ...current,
+          [field]: value,
+          errors: {
+            ...current.errors,
+            [field]: undefined,
+          },
+        },
+      };
+    });
+  };
+
+  const handleSave = async (business: Business) => {
+    const formState = formStates[business.id];
+    if (!formState) return;
+
+    const { name, description } = formState;
+    const errors = validate(name, description);
+    if (Object.keys(errors).length > 0) {
+      setFormStates((prev) => {
+        const current = prev[business.id];
+        if (!current) return prev;
+
+        return {
+          ...prev,
+          [business.id]: {
+            ...current,
+            errors,
+          },
+        };
+      });
+      return;
+    }
     try {
       await updateBusinessMutation.mutateAsync({
-        id: businessId,
-        name: businessForm.name.trim(),
-        description: businessForm.description.trim() || null,
+        id: business.id,
+        name: name.trim(),
+        description: description.trim() || null,
       });
-
-      setBusinessForm({ name: '', description: '' });
-      setBusinessFormErrors({});
-      setEditingBusiness(null);
-    } catch (error) {
-      console.error('Failed to update business:', error);
+    } catch {
+      // Optionally show a toast
     }
   };
 
-  const handleDeleteBusiness = async () => {
+  const handleDelete = async () => {
     if (!selectedBusiness) return;
-
     try {
       await deleteBusinessMutation.mutateAsync(selectedBusiness.id);
       setSelectedBusiness(null);
-    } catch (error) {
-      console.error('Failed to delete business:', error);
+    } catch {
+      // Handle error
     }
-  };
-
-  const startEditing = (business: Business) => {
-    setEditingBusiness(business.id);
-    setBusinessForm({
-      name: business.name,
-      description: business.description || '',
-    });
-    setBusinessFormErrors({});
-  };
-
-  const cancelEditing = () => {
-    setEditingBusiness(null);
-    setBusinessForm({ name: '', description: '' });
-    setBusinessFormErrors({});
   };
 
   if (businessesLoading) {
     return (
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Business Management
-            </h1>
-            <p className="text-muted-foreground">Manage your businesses</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Business Management
+          </h1>
+          <p className="text-muted-foreground">Manage your businesses</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <BusinessCardSkeleton key={index} />
+        <div className="space-y-8">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index}>
+              <div className="mb-4 flex items-center justify-between">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-5 w-16" />
+              </div>
+              <BusinessFormSkeleton />
+            </div>
           ))}
         </div>
       </div>
@@ -175,155 +193,94 @@ export function BusinessSettingsContainer({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Business Management
-          </h1>
-          <p className="text-muted-foreground">Manage your businesses</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Business Management
+        </h1>
+        <p className="text-muted-foreground">Manage your businesses</p>
       </div>
 
-      {/* Businesses Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {businesses?.map((business) => (
-          <Card
-            key={business.id}
-            className="group relative overflow-hidden transition-all hover:shadow-md"
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
-                  {editingBusiness === business.id ? (
-                    <div className="space-y-2">
-                      <Input
-                        value={businessForm.name}
-                        onChange={(e) => {
-                          setBusinessForm({
-                            ...businessForm,
-                            name: e.target.value,
-                          });
-                          if (businessFormErrors.name) {
-                            setBusinessFormErrors({
-                              ...businessFormErrors,
-                              name: undefined,
-                            });
-                          }
-                        }}
-                        className={
-                          businessFormErrors.name ? 'border-destructive' : ''
-                        }
-                      />
-                      {businessFormErrors.name && (
-                        <p className="text-destructive text-sm">
-                          {businessFormErrors.name}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <CardTitle
-                      className="hover:text-primary cursor-pointer truncate text-lg"
-                      onClick={() => startEditing(business)}
-                    >
-                      {business.name}
-                    </CardTitle>
-                  )}
-                  {editingBusiness === business.id ? (
-                    <div className="space-y-2">
-                      <Textarea
-                        value={businessForm.description}
-                        onChange={(e) => {
-                          setBusinessForm({
-                            ...businessForm,
-                            description: e.target.value,
-                          });
-                          if (businessFormErrors.description) {
-                            setBusinessFormErrors({
-                              ...businessFormErrors,
-                              description: undefined,
-                            });
-                          }
-                        }}
-                        className={
-                          businessFormErrors.description
-                            ? 'border-destructive'
-                            : ''
-                        }
-                        rows={2}
-                      />
-                      {businessFormErrors.description && (
-                        <p className="text-destructive text-sm">
-                          {businessFormErrors.description}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <CardDescription
-                      className="hover:text-primary mt-1 line-clamp-2 cursor-pointer"
-                      onClick={() => startEditing(business)}
-                    >
-                      {business.description || 'No description'}
-                    </CardDescription>
-                  )}
-                </div>
-                <Badge
-                  variant={
-                    business.status === 'active' ? 'default' : 'secondary'
+      <div className="space-y-8">
+        {businesses?.map((business, index) => (
+          <div key={business.id}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-medium">Business {index + 1}</h2>
+              <Badge
+                variant={business.status === 'active' ? 'default' : 'secondary'}
+              >
+                {business.status}
+              </Badge>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor={`name-${business.id}`}>Business Name</Label>
+                <Input
+                  id={`name-${business.id}`}
+                  value={formStates[business.id]?.name || ''}
+                  onChange={(e) =>
+                    handleChange(business.id, 'name', e.target.value)
                   }
-                  className="ml-2 flex-shrink-0"
-                >
-                  {business.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-end space-x-2">
-                {editingBusiness === business.id ? (
-                  <>
-                    <Button variant="outline" size="sm" onClick={cancelEditing}>
-                      <X className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleUpdateBusiness(business.id)}
-                      disabled={updateBusinessMutation.isPending}
-                    >
-                      <Save className="mr-2 h-4 w-4" />
-                      {updateBusinessMutation.isPending ? 'Saving...' : 'Save'}
-                    </Button>
-                  </>
-                ) : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:scale-90"
-                      >
-                        <MoreHorizontal className="h-4 w-4 stroke-2" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => startEditing(business)}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Edit Business
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => setSelectedBusiness(business)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Business
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  className={
+                    formStates[business.id]?.errors?.name
+                      ? 'border-destructive'
+                      : ''
+                  }
+                  placeholder="Enter business name"
+                />
+                {formStates[business.id]?.errors?.name && (
+                  <p className="text-destructive text-sm">
+                    {formStates[business.id]?.errors?.name}
+                  </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor={`description-${business.id}`}>
+                  Description (Optional)
+                </Label>
+                <Textarea
+                  id={`description-${business.id}`}
+                  value={formStates[business.id]?.description || ''}
+                  onChange={(e) =>
+                    handleChange(business.id, 'description', e.target.value)
+                  }
+                  className={
+                    formStates[business.id]?.errors?.description
+                      ? 'border-destructive'
+                      : ''
+                  }
+                  placeholder="Brief description of your business"
+                  rows={4}
+                />
+                {formStates[business.id]?.errors?.description && (
+                  <p className="text-destructive text-sm">
+                    {formStates[business.id]?.errors?.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  onClick={() => handleSave(business)}
+                  disabled={updateBusinessMutation.isPending}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {updateBusinessMutation.isPending ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setSelectedBusiness(business)}
+                  disabled={deleteBusinessMutation.isPending}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+
+            {index < businesses.length - 1 && <Separator className="my-8" />}
+          </div>
         ))}
       </div>
 
@@ -343,7 +300,7 @@ export function BusinessSettingsContainer({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteBusiness}
+              onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
