@@ -1,115 +1,80 @@
 # ElevenLabs Integration Architecture
 
-## 🏗 Hybrid System Architecture Overview
+## 🏗 Simplified Outbound Campaign Architecture
 
-> **Architecture Decision**: This implementation uses a **hybrid approach** combining Supabase Edge Functions for voice generation with a persistent Campaign Orchestrator service for complex campaign management.
+> **Architecture Decision**: This implementation uses **Supabase Scheduled Functions** with the **ElevenLabs Outbound Call API** for maximum simplicity and cost-effectiveness. No persistent servers or WebSocket management required.
 
 ```mermaid
 graph TB
     %% Frontend Components
     subgraph "Frontend (React/Next.js)"
-        A[Voice Test Component]
-        B[Agent Form]
-        C[Campaign Manager]
-        D[Voice Selection UI]
-        E[Campaign Detail]
-        F[Real-time Dashboard]
+        A[Campaign Manager]
+        B[Campaign Detail]
+        C[Real-time Dashboard]
+        D[Agent Configuration]
     end
 
     %% Next.js API Routes
     subgraph "Next.js API Routes"
-        G["/api/voice/test"]
-        H["/api/voice/generate"]
-        I["/api/voice/voices"]
-        J["/api/agents"]
-        K["/api/campaigns"]
-        L["/api/campaigns/[id]/start"]
-        M["/api/campaigns/[id]/status"]
-        N["/api/twilio/webhook"]
+        E["/api/campaigns"]
+        F["/api/campaigns/[id]/start"]
+        G["/api/campaigns/[id]/status"]
+        H["/api/agents"]
     end
 
-    %% Supabase Edge Functions
-    subgraph "Supabase Edge Functions"
-        O[elevenlabs/voices/index.ts]
-        P[elevenlabs/generate/index.ts]
-        Q[elevenlabs/voices/test.ts]
-        R[audio/process/index.ts]
-    end
-
-    %% Campaign Orchestrator Service (EC2/Docker)
-    subgraph "Campaign Orchestrator Service"
-        S[Campaign Manager]
-        T[Call Queue]
-        U[Retry Logic Engine]
-        V[Schedule Manager]
-        W[Status Monitor]
-        X[WebSocket Server]
+    %% Supabase Scheduled Functions
+    subgraph "Supabase Scheduled Functions"
+        I[campaign-processor<br/>Every 5 min]
+        J[conversation-processor<br/>Every 10 min]
+        K[elevenlabs/voices<br/>On-demand]
     end
 
     %% External Services
     subgraph "External Services"
-        Y[ElevenLabs API]
-        Z[Twilio API]
-        AA[Supabase Storage]
-        BB[Supabase Database]
-        CC[Redis Cache]
+        L[ElevenLabs Outbound API]
+        M[ElevenLabs Conversations API]
+        N[Twilio (via ElevenLabs)]
+        O[Supabase Database]
     end
 
     %% Data Flow - Frontend
-    A --> G
-    B --> J
-    C --> K
-    D --> I
-    E --> M
-    F --> X
+    A --> E
+    B --> G
+    C --> G
+    D --> H
 
     %% Data Flow - API Routes
-    G --> Q
-    H --> P
+    F --> I
+    E --> O
+    G --> O
+    H --> O
+
+    %% Data Flow - Scheduled Functions
+    I --> L
     I --> O
-    L --> S
-    M --> W
-    N --> W
-
-    %% Data Flow - Edge Functions
-    Q --> Y
-    P --> Y
-    O --> Y
-    P --> AA
-    Q --> AA
-
-    %% Data Flow - Campaign Orchestrator
-    S --> T
-    T --> U
-    U --> V
-    V --> Z
-    T --> P
-    W --> BB
-    X --> F
+    J --> M
+    J --> O
+    K --> L
 
     %% Data Flow - External
-    Z --> N
-    S --> BB
-    T --> CC
-    W --> CC
+    L --> N
+    M --> O
 
     %% Styling
     classDef frontend fill:#e3f2fd
     classDef api fill:#f3e5f5
-    classDef edge fill:#fff3e0
-    classDef orchestrator fill:#e8f5e8
+    classDef scheduled fill:#e8f5e8
     classDef external fill:#ffebee
 
-    class A,B,C,D,E,F frontend
-    class G,H,I,J,K,L,M,N api
-    class O,P,Q,R edge
-    class S,T,U,V,W,X orchestrator
-    class Y,Z,AA,BB,CC external
+    class A,B,C,D frontend
+    class E,F,G,H api
+    class I,J,K scheduled
+    class L,M,N,O external
 ```
 
 ## 🔄 Detailed Flow Diagrams
 
-### **Voice Testing Flow**
+### **Agent Voice Testing Flow**
 
 ```mermaid
 sequenceDiagram
@@ -117,19 +82,18 @@ sequenceDiagram
     participant F as Frontend
     participant N as Next.js API
     participant E as Edge Function
-    participant EL as ElevenLabs
-    participant S as Supabase Storage
+    participant EL as ElevenLabs API
 
-    U->>F: Test Voice
-    F->>N: POST "/api/voice/test"
-    N->>E: Call "elevenlabs/voices/test"
-    E->>EL: Generate Speech
+    U->>F: Test Agent Voice
+    F->>N: POST "/api/agents/test-voice"
+    N->>E: Call elevenlabs/voices function
+    E->>EL: GET /v1/voices (list available voices)
+    EL-->>E: Voice List
+    E->>EL: POST /v1/text-to-speech (test sample)
     EL-->>E: Audio Buffer
-    E->>S: Store Audio File
-    S-->>E: Audio URL
-    E-->>N: Response with URL
-    N-->>F: Audio URL + Metadata
-    F-->>U: Play Audio
+    E-->>N: Audio URL + Voice Options
+    N-->>F: Voice Test Results
+    F-->>U: Play Test Audio
 ```
 
 ### **Campaign Start Flow**
@@ -139,179 +103,182 @@ sequenceDiagram
     participant U as User
     participant F as Frontend
     participant N as Next.js API
-    participant O as Campaign Orchestrator
-    participant Q as Call Queue
-    participant E as Edge Function
-    participant T as Twilio
-    participant EL as ElevenLabs
-    participant DB as Database
-    participant WS as WebSocket
+    participant SF as Scheduled Function
+    participant DB as Supabase Database
 
     U->>F: Start Campaign
     F->>N: POST "/api/campaigns/[id]/start"
-    N->>O: Start Campaign Request
-    O->>DB: Get Campaign & Leads
-    DB-->>O: Campaign Data + Lead List
-    O->>Q: Initialize Call Queue
-    Q-->>O: Queue Ready
-    O->>N: Campaign Started
-    N-->>F: Success Response
+    N->>DB: Update Campaign Status = 'active'
+    N->>DB: Queue Leads for Calling
+    DB-->>N: Campaign & Leads Updated
+    N-->>F: Campaign Started
+    F-->>U: Success Message
 
-    loop For Each Lead
-        O->>E: Generate Speech
-        E->>EL: Create Audio
-        EL-->>E: Audio Buffer
-        E-->>O: Audio URL
-        O->>T: Make Call
-        T-->>O: Call SID
-        O->>DB: Log Call Attempt
-        O->>WS: Send Status Update
-        WS-->>F: Real-time Update
-    end
+    Note over SF,DB: campaign-processor runs every 5 minutes
+    SF->>DB: Get Active Campaigns
+    DB-->>SF: Campaign List
+    SF->>DB: Get Queued Calls (respects calling hours)
+    DB-->>SF: Ready-to-call Lead Queue
 ```
 
-### **Call Execution Flow**
+### **Outbound Call Processing Flow**
 
 ```mermaid
 sequenceDiagram
-    participant O as Campaign Orchestrator
-    participant E as Edge Function
-    participant T as Twilio
-    participant P as Phone
-    participant W as Webhook
-    participant DB as Database
+    participant SF as campaign-processor
+    participant EL as ElevenLabs API
+    participant T as Twilio (via ElevenLabs)
+    participant P as Prospect Phone
+    participant DB as Supabase Database
 
-    O->>E: Generate Speech for Lead
-    E-->>O: Audio URL
-    O->>T: Initiate Call
-    T->>P: Ring Phone
+    loop For Each Queued Call
+        SF->>EL: POST /v1/convai/twilio/outbound-call
+        Note over SF,EL: {agent_id, phone_number_id, to_number}
+        EL-->>SF: {callSid, conversation_id, success}
+        SF->>DB: Log Call Initiated
 
-    alt Call Answered
-        P-->>T: Answer
-        T->>W: POST "/api/twilio/webhook"
-        W->>O: Call Answered
-        T->>P: Play Generated Audio
-        P-->>T: Response/DTMF
-        T->>W: Gather Response
-        W->>DB: Log Conversation
-        W->>O: Update Call Status
-    else Call Not Answered
-        T->>W: No Answer Event
-        W->>O: Schedule Retry
-        O->>DB: Log Failed Attempt
+        EL->>T: Initiate Call via Twilio
+        T->>P: Ring Prospect
+
+        alt Call Answered
+            P-->>T: Answer
+            T-->>EL: Audio Stream Started
+            EL->>P: AI Conversation
+            P-->>EL: Natural Responses
+            Note over EL,P: Real-time conversational AI
+            EL->>DB: Conversation Complete (webhook)
+        else Call Not Answered
+            T-->>EL: No Answer
+            EL->>DB: Call Failed (webhook)
+        end
     end
+```
+
+### **Conversation Results Processing Flow**
+
+```mermaid
+sequenceDiagram
+    participant CF as conversation-processor
+    participant EL as ElevenLabs API
+    participant DB as Supabase Database
+    participant F as Frontend Dashboard
+
+    Note over CF: Runs every 10 minutes
+    CF->>DB: Get Completed Calls
+    DB-->>CF: Call List with conversation_ids
+
+    loop For Each Completed Call
+        CF->>EL: GET /v1/convai/conversations/{id}
+        EL-->>CF: Conversation Details
+        Note over CF,EL: transcript, outcome, sentiment, duration
+
+        CF->>DB: Update Call Results
+        CF->>DB: Update Lead Status
+        CF->>DB: Update Campaign Stats
+    end
+
+    DB->>F: Real-time Subscription Updates
+    F-->>F: Update Dashboard
 ```
 
 ## 🏗 Component Architecture
 
-### **Edge Functions Layer**
+### **Scheduled Functions Layer**
 
 ```mermaid
 graph LR
-    subgraph "Supabase Edge Functions"
-        A[elevenlabs/voices/index.ts]
-        B[elevenlabs/generate/index.ts]
-        C[elevenlabs/voices/test.ts]
+    subgraph "Supabase Scheduled Functions"
+        A[campaign-processor<br/>Cron: */5 9-17 * * 1-5]
+        B[conversation-processor<br/>Cron: */10 * * * *]
+        C[elevenlabs/voices<br/>On-demand]
         D[shared/elevenlabs-client.ts]
-        E[shared/storage.ts]
-        F[shared/twilio-helper.ts]
+        E[shared/database-utils.ts]
     end
 
     A --> D
     B --> D
     C --> D
+    A --> E
     B --> E
-    C --> E
-    B --> F
-    C --> F
 
-    classDef edge fill:#fff3e0
-    class A,B,C,D,E,F edge
+    classDef scheduled fill:#e8f5e8
+    classDef shared fill:#fff3e0
+
+    class A,B,C scheduled
+    class D,E shared
 ```
 
-### **Campaign Orchestrator Layer**
-
-```mermaid
-graph LR
-    subgraph "Campaign Orchestrator Service"
-        A[CampaignManager]
-        B[CallQueue]
-        C[RetryEngine]
-        D[ScheduleManager]
-        E[StatusMonitor]
-        F[WebSocketServer]
-        G[TwilioClient]
-        H[AudioGenerator]
-    end
-
-    A --> B
-    A --> C
-    A --> D
-    B --> E
-    C --> B
-    D --> B
-    F --> E
-    G --> A
-    H --> A
-
-    classDef orchestrator fill:#e8f5e8
-    class A,B,C,D,E,F,G,H orchestrator
-```
-
-### **Frontend Layer**
+### **API Routes Layer**
 
 ```mermaid
 graph LR
     subgraph "Next.js API Routes"
-        A["/api/voice/test"]
-        B["/api/voice/generate"]
-        C["/api/voice/voices"]
-        D["/api/campaigns/[id]/start"]
-        E["/api/campaigns/[id]/status"]
-        F["/api/twilio/webhook"]
+        A["/api/campaigns"]
+        B["/api/campaigns/[id]/start"]
+        C["/api/campaigns/[id]/status"]
+        D["/api/agents"]
+        E["/api/agents/test-voice"]
     end
 
     subgraph "Frontend Hooks"
-        G[useVoices]
-        H[useGenerateSpeech]
+        F[useCampaigns]
+        G[useCampaignStatus]
+        H[useAgents]
         I[useVoiceTest]
-        J[useCampaignStatus]
-        K[useRealTimeUpdates]
+        J[useRealTimeUpdates]
     end
 
-    subgraph "UI Components"
-        L[VoiceTestComponent]
-        M[VoiceSelection]
-        N[AgentForm]
-        O[CampaignManager]
-        P[CampaignDetail]
-        Q[RealTimeDashboard]
-    end
-
-    A --> I
-    B --> H
+    A --> F
+    B --> F
     C --> G
-    D --> O
-    E --> J
-    F --> K
-
-    I --> L
-    G --> M
-    H --> N
-    J --> P
-    K --> Q
-    O --> P
+    D --> H
+    E --> I
 
     classDef api fill:#f3e5f5
     classDef hook fill:#e8f5e8
-    classDef ui fill:#e1f5fe
 
-    class A,B,C,D,E,F api
-    class G,H,I,J,K hook
-    class L,M,N,O,P,Q ui
+    class A,B,C,D,E api
+    class F,G,H,I,J hook
 ```
 
-## 📊 Data Flow Architecture
+### **Frontend Components Layer**
+
+```mermaid
+graph LR
+    subgraph "UI Components"
+        A[CampaignManager]
+        B[CampaignDetail]
+        C[RealTimeDashboard]
+        D[AgentConfiguration]
+        E[VoiceTestComponent]
+        F[LeadManagement]
+        G[CallResultsView]
+    end
+
+    subgraph "Frontend Hooks"
+        H[useCampaigns]
+        I[useCampaignStatus]
+        J[useAgents]
+        K[useVoiceTest]
+        L[useRealTimeUpdates]
+    end
+
+    H --> A
+    I --> B
+    L --> C
+    J --> D
+    K --> E
+    H --> F
+    I --> G
+
+    classDef ui fill:#e1f5fe
+    classDef hook fill:#e8f5e8
+
+    class A,B,C,D,E,F,G ui
+    class H,I,J,K,L hook
+```
+
+## 📊 Simplified Data Flow Architecture
 
 ### **Voice Testing Flow**
 
@@ -423,43 +390,30 @@ flowchart TD
 
 ```mermaid
 gantt
-    title Hybrid ElevenLabs + Campaign System Timeline
+    title Simplified ElevenLabs Outbound Campaign System
     dateFormat  YYYY-MM-DD
 
-    section Phase 1: ElevenLabs Edge Functions
-    Create Edge Functions Directory    :done, p1, 2024-01-01, 1d
-    Implement ElevenLabs Client       :active, p2, 2024-01-02, 2d
-    Create Voice Generation Functions :p3, 2024-01-04, 3d
-    Test Edge Functions              :p4, 2024-01-07, 2d
+    section Phase 1: Scheduled Functions
+    Setup ElevenLabs API Integration    :done, p1, 2024-01-01, 1d
+    Create campaign-processor Function  :active, p2, 2024-01-02, 2d
+    Create conversation-processor       :p3, 2024-01-04, 2d
+    Test Basic Outbound Calls          :p4, 2024-01-06, 1d
 
-    section Phase 2: Campaign Orchestrator
-    Setup Docker Environment         :p5, 2024-01-09, 1d
-    Build Campaign Manager Core      :p6, 2024-01-10, 3d
-    Implement Call Queue System      :p7, 2024-01-13, 2d
-    Create Retry Logic Engine        :p8, 2024-01-15, 2d
-    Add Schedule Manager             :p9, 2024-01-17, 2d
+    section Phase 2: Database Integration
+    Update Migration for Call Tracking :p5, 2024-01-07, 1d
+    Implement Database Helper Functions :p6, 2024-01-08, 1d
+    Add Call Results Processing        :p7, 2024-01-09, 1d
 
-    section Phase 3: Twilio Integration
-    Setup Twilio Client             :p10, 2024-01-19, 1d
-    Implement Call Logic            :p11, 2024-01-20, 2d
-    Create Webhook Handlers         :p12, 2024-01-22, 2d
-    Test Call Flow                  :p13, 2024-01-24, 2d
+    section Phase 3: Frontend Integration
+    Update Campaign Start Logic        :p8, 2024-01-10, 1d
+    Real-time Dashboard Updates        :p9, 2024-01-11, 2d
+    Call Results Display               :p10, 2024-01-13, 1d
 
-    section Phase 4: Next.js API Routes
-    Campaign Start/Stop Routes      :p14, 2024-01-26, 2d
-    Status & Monitoring Routes      :p15, 2024-01-28, 1d
-    WebSocket Real-time Updates     :p16, 2024-01-29, 2d
-
-    section Phase 5: Frontend Integration
-    Update Campaign Components      :p17, 2024-01-31, 3d
-    Real-time Dashboard            :p18, 2024-02-03, 2d
-    Integration Testing            :p19, 2024-02-05, 3d
-
-    section Phase 6: Deployment & Monitoring
-    Deploy Campaign Orchestrator    :p20, 2024-02-08, 1d
-    Setup Production Monitoring     :p21, 2024-02-09, 1d
-    Load Testing                    :p22, 2024-02-10, 2d
-    Go Live                        :p23, 2024-02-12, 1d
+    section Phase 4: Production Deploy
+    Deploy Scheduled Functions         :p11, 2024-01-14, 1d
+    Setup Environment Variables        :p12, 2024-01-15, 1d
+    Production Testing                 :p13, 2024-01-16, 2d
+    Go Live                           :p14, 2024-01-18, 1d
 ```
 
 ## 🎯 Key Benefits
@@ -605,20 +559,67 @@ graph TB
 
 **Capabilities:**
 
-- ✅ Persistent campaign state management
-- ✅ Complex scheduling and retry logic
-- ✅ Real-time monitoring and updates
-- ✅ Cost-efficient call processing
-- ✅ Scalable call queue management
-- ✅ Full telephony integration
-- ✅ Production-ready monitoring
+- ✅ Outbound conversational AI campaigns
+- ✅ Real-time call processing via ElevenLabs
+- ✅ Scheduled batch processing (5-minute intervals)
+- ✅ Automatic conversation analysis and results processing
+- ✅ Cost-effective scaling with zero infrastructure management
+- ✅ Built-in retry logic and error handling
+- ✅ Real-time dashboard updates via database subscriptions
+
+## 🚀 Implementation Details
+
+### **Required Components:**
+
+```yaml
+# Supabase Scheduled Functions
+functions/campaign-processor:
+  schedule: '*/5 9-17 * * 1-5' # Every 5 min during business hours
+  purpose: Process queued calls via ElevenLabs API
+
+functions/conversation-processor:
+  schedule: '*/10 * * * *' # Every 10 minutes
+  purpose: Fetch completed conversation results
+
+functions/elevenlabs/voices:
+  trigger: 'on-demand' # For agent voice testing
+  purpose: List and test available voices
+```
+
+### **Environment Variables:**
+
+```bash
+# ElevenLabs Integration
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+ELEVENLABS_AGENT_ID=your_default_agent_id
+
+# Supabase Integration
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Optional: Webhook endpoint for real-time updates
+WEBHOOK_BASE_URL=https://your-app.vercel.app
+```
+
+### **Deployment Commands:**
+
+```bash
+# Deploy scheduled functions
+supabase functions deploy campaign-processor --schedule "*/5 9-17 * * 1-5"
+supabase functions deploy conversation-processor --schedule "*/10 * * * *"
+supabase functions deploy elevenlabs/voices
+
+# Set secrets
+supabase secrets set ELEVENLABS_API_KEY=your_key
+supabase secrets set ELEVENLABS_AGENT_ID=your_agent_id
+```
 
 ## 🎯 Next Steps
 
-1. **Start with Edge Functions**: Implement voice generation first
-2. **Build Campaign Orchestrator**: Create the EC2 service for campaign management
-3. **Integrate Twilio**: Add calling capabilities
-4. **Frontend Updates**: Build real-time dashboard
-5. **Production Deployment**: Deploy and monitor the complete system
+1. **Deploy Database Migration**: Apply the campaign orchestrator schema
+2. **Create Scheduled Functions**: Implement campaign and conversation processors
+3. **Update Frontend**: Add campaign start/stop functionality
+4. **Test with ElevenLabs**: Configure agents and test outbound calls
+5. **Production Launch**: Deploy and monitor live campaigns
 
-This updated architecture addresses all the limitations identified in the original Edge Functions-only approach while maintaining the benefits of serverless voice generation.
+This simplified architecture leverages ElevenLabs' powerful outbound calling capabilities while maintaining the benefits of serverless functions - dramatically reducing complexity while providing enterprise-grade conversational AI for fundraising campaigns.
