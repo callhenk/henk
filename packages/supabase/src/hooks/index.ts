@@ -25,3 +25,6 @@ export * from './integrations';
 export * from './leads';
 export * from './team-members';
 export * from './workflows';
+
+// Voice management hooks
+export * from './voices';

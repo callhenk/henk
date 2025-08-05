@@ -88,6 +88,7 @@ import {
   TimePicker,
 } from '~/components/shared';
 
+import { CampaignControls } from '../_components/campaign-controls';
 import { CSVUpload } from './csv-upload';
 import { ReassignAgentDialog } from './reassign-agent-dialog';
 
@@ -641,6 +642,18 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Campaign Controls */}
+                <CampaignControls
+                  campaignId={campaignId}
+                  campaignStatus={campaign.status}
+                  onStatusChange={(newStatus) => {
+                    // Update the local campaign state
+                    if (campaign) {
+                      campaign.status = newStatus as any;
+                    }
+                  }}
+                />
               </div>
             </TabsContent>
 

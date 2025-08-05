@@ -68,6 +68,8 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
+import { VoiceTestComponent } from './voice-test-component';
+
 type Agent = Tables<'agents'>['Row'];
 
 const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
@@ -453,7 +455,8 @@ export function AgentsList() {
         lastActive:
           agentConversations.length > 0 &&
           agentConversations[agentConversations.length - 1]?.created_at
-            ? agentConversations[agentConversations.length - 1]!.created_at
+            ? agentConversations[agentConversations.length - 1]!.created_at ||
+              undefined
             : undefined,
       };
     });
@@ -762,6 +765,24 @@ export function AgentsList() {
               </Button>
             </div>
           )}
+
+          {/* Voice Testing Section */}
+          <div className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Volume2 className="h-5 w-5" />
+                  Voice Testing
+                </CardTitle>
+                <CardDescription>
+                  Test AI voice generation with your agents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <VoiceTestComponent />
+              </CardContent>
+            </Card>
+          </div>
         </CardContent>
       </Card>
     </div>

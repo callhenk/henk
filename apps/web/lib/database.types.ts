@@ -4,577 +4,990 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
       accounts: {
         Row: {
-          created_at: string | null
-          created_by: string | null
-          email: string | null
-          id: string
-          name: string
-          picture_url: string | null
-          public_data: Json
-          updated_at: string | null
-          updated_by: string | null
-        }
+          created_at: string | null;
+          created_by: string | null;
+          email: string | null;
+          id: string;
+          name: string;
+          picture_url: string | null;
+          public_data: Json;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
         Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          email?: string | null
-          id: string
-          name: string
-          picture_url?: string | null
-          public_data?: Json
-          updated_at?: string | null
-          updated_by?: string | null
-        }
+          created_at?: string | null;
+          created_by?: string | null;
+          email?: string | null;
+          id: string;
+          name: string;
+          picture_url?: string | null;
+          public_data?: Json;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
         Update: {
-          created_at?: string | null
-          created_by?: string | null
-          email?: string | null
-          id?: string
-          name?: string
-          picture_url?: string | null
-          public_data?: Json
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
+          created_at?: string | null;
+          created_by?: string | null;
+          email?: string | null;
+          id?: string;
+          name?: string;
+          picture_url?: string | null;
+          public_data?: Json;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       agents: {
         Row: {
-          business_id: string
-          created_at: string | null
-          description: string | null
-          id: string
-          knowledge_base: Json | null
-          name: string
-          status: string
-          updated_at: string | null
-          voice_id: string | null
-          voice_type: string | null
-        }
+          id: string;
+          name: string;
+          description: string | null;
+          status: string;
+          voice_type: string;
+          voice_id: string | null;
+          speaking_tone: string;
+          voice_settings: Json | null;
+          personality: string | null;
+          script_template: string | null;
+          organization_info: string | null;
+          donor_context: string | null;
+          faqs: Json | null;
+          knowledge_base: Json | null;
+          workflow_config: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          business_id: string;
+        };
         Insert: {
-          business_id: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          knowledge_base?: Json | null
-          name: string
-          status?: string
-          updated_at?: string | null
-          voice_id?: string | null
-          voice_type?: string | null
-        }
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: string;
+          voice_type?: string;
+          voice_id?: string | null;
+          speaking_tone?: string;
+          voice_settings?: Json | null;
+          personality?: string | null;
+          script_template?: string | null;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json | null;
+          knowledge_base?: Json | null;
+          workflow_config?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id: string;
+        };
         Update: {
-          business_id?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          knowledge_base?: Json | null
-          name?: string
-          status?: string
-          updated_at?: string | null
-          voice_id?: string | null
-          voice_type?: string | null
-        }
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: string;
+          voice_type?: string;
+          voice_id?: string | null;
+          speaking_tone?: string;
+          voice_settings?: Json | null;
+          personality?: string | null;
+          script_template?: string | null;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json | null;
+          knowledge_base?: Json | null;
+          workflow_config?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "agents_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'agents_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'agents_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'agents_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      audio_generations: {
+        Row: {
+          id: string;
+          campaign_id: string | null;
+          agent_id: string | null;
+          lead_id: string | null;
+          text_content: string;
+          voice_id: string;
+          voice_settings: Json | null;
+          status: string;
+          audio_url: string | null;
+          file_size_bytes: number | null;
+          duration_seconds: number | null;
+          elevenlabs_request_id: string | null;
+          elevenlabs_voice_name: string | null;
+          model_id: string;
+          generation_time_ms: number | null;
+          cost_cents: number | null;
+          cache_hit: boolean;
+          cache_key: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          retry_count: number;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id?: string | null;
+          agent_id?: string | null;
+          lead_id?: string | null;
+          text_content: string;
+          voice_id: string;
+          voice_settings?: Json | null;
+          status?: string;
+          audio_url?: string | null;
+          file_size_bytes?: number | null;
+          duration_seconds?: number | null;
+          elevenlabs_request_id?: string | null;
+          elevenlabs_voice_name?: string | null;
+          model_id?: string;
+          generation_time_ms?: number | null;
+          cost_cents?: number | null;
+          cache_hit?: boolean;
+          cache_key?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          retry_count?: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string | null;
+          agent_id?: string | null;
+          lead_id?: string | null;
+          text_content?: string;
+          voice_id?: string;
+          voice_settings?: Json | null;
+          status?: string;
+          audio_url?: string | null;
+          file_size_bytes?: number | null;
+          duration_seconds?: number | null;
+          elevenlabs_request_id?: string | null;
+          elevenlabs_voice_name?: string | null;
+          model_id?: string;
+          generation_time_ms?: number | null;
+          cost_cents?: number | null;
+          cache_hit?: boolean;
+          cache_key?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          retry_count?: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audio_generations_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_lead_id_fkey';
+            columns: ['lead_id'];
+            isOneToOne: false;
+            referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       businesses: {
         Row: {
-          account_id: string
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          status: string
-          updated_at: string | null
-        }
+          id: string;
+          name: string;
+          description: string | null;
+          status: string;
+          account_id: string;
+          industry: string | null;
+          website: string | null;
+          phone: string | null;
+          address: string | null;
+          logo_url: string | null;
+          settings: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
         Insert: {
-          account_id: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: string;
+          account_id: string;
+          industry?: string | null;
+          website?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          logo_url?: string | null;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Update: {
-          account_id?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: string;
+          account_id?: string;
+          industry?: string | null;
+          website?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          logo_url?: string | null;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'businesses_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'businesses_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'businesses_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaigns: {
         Row: {
-          agent_id: string | null
-          business_id: string
-          calling_hours: string | null
-          created_at: string | null
-          daily_call_cap: number | null
-          description: string | null
-          end_date: string | null
-          id: string
-          max_attempts: number | null
-          name: string
-          retry_logic: string | null
-          script: string | null
-          start_date: string | null
-          status: string
-          updated_at: string | null
-        }
+          id: string;
+          name: string;
+          description: string | null;
+          status: string;
+          agent_id: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          calling_hours: string;
+          max_attempts: number;
+          daily_call_cap: number;
+          script: string;
+          retry_logic: string;
+          budget: number | null;
+          target_amount: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          business_id: string;
+        };
         Insert: {
-          agent_id?: string | null
-          business_id: string
-          calling_hours?: string | null
-          created_at?: string | null
-          daily_call_cap?: number | null
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          max_attempts?: number | null
-          name: string
-          retry_logic?: string | null
-          script?: string | null
-          start_date?: string | null
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script: string;
+          retry_logic?: string;
+          budget?: number | null;
+          target_amount?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id: string;
+        };
         Update: {
-          agent_id?: string | null
-          business_id?: string
-          calling_hours?: string | null
-          created_at?: string | null
-          daily_call_cap?: number | null
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          max_attempts?: number | null
-          name?: string
-          retry_logic?: string | null
-          script?: string | null
-          start_date?: string | null
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script?: string;
+          retry_logic?: string;
+          budget?: number | null;
+          target_amount?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "campaigns_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
+            foreignKeyName: 'campaigns_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "campaigns_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'campaigns_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaigns_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaigns_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       conversations: {
         Row: {
-          agent_id: string | null
-          campaign_id: string | null
-          created_at: string | null
-          duration: number | null
-          id: string
-          lead_id: string | null
-          notes: string | null
-          outcome: string | null
-          recording_url: string | null
-          status: string
-          transcript: Json | null
-          updated_at: string | null
-        }
+          id: string;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
+          status: string;
+          duration_seconds: number | null;
+          call_sid: string | null;
+          recording_url: string | null;
+          transcript: string | null;
+          sentiment_score: number | null;
+          key_points: Json | null;
+          outcome: string | null;
+          notes: string | null;
+          started_at: string | null;
+          ended_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
         Insert: {
-          agent_id?: string | null
-          campaign_id?: string | null
-          created_at?: string | null
-          duration?: number | null
-          id?: string
-          lead_id?: string | null
-          notes?: string | null
-          outcome?: string | null
-          recording_url?: string | null
-          status?: string
-          transcript?: Json | null
-          updated_at?: string | null
-        }
+          id?: string;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
+          status?: string;
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json | null;
+          outcome?: string | null;
+          notes?: string | null;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Update: {
-          agent_id?: string | null
-          campaign_id?: string | null
-          created_at?: string | null
-          duration?: number | null
-          id?: string
-          lead_id?: string | null
-          notes?: string | null
-          outcome?: string | null
-          recording_url?: string | null
-          status?: string
-          transcript?: Json | null
-          updated_at?: string | null
-        }
+          id?: string;
+          campaign_id?: string;
+          agent_id?: string;
+          lead_id?: string;
+          status?: string;
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json | null;
+          outcome?: string | null;
+          notes?: string | null;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "conversations_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
+            foreignKeyName: 'conversations_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "conversations_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
+            foreignKeyName: 'conversations_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "conversations_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'conversations_lead_id_fkey';
+            columns: ['lead_id'];
+            isOneToOne: false;
+            referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       integrations: {
         Row: {
-          business_id: string
-          config: Json | null
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          status: string
-          type: string
-          updated_at: string | null
-        }
+          id: string;
+          name: string;
+          description: string | null;
+          type: string;
+          status: string;
+          config: Json | null;
+          credentials: Json | null;
+          last_sync_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          business_id: string;
+        };
         Insert: {
-          business_id: string
-          config?: Json | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          status?: string
-          type: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name: string;
+          description?: string | null;
+          type: string;
+          status?: string;
+          config?: Json | null;
+          credentials?: Json | null;
+          last_sync_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id: string;
+        };
         Update: {
-          business_id?: string
-          config?: Json | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          status?: string
-          type?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name?: string;
+          description?: string | null;
+          type?: string;
+          status?: string;
+          config?: Json | null;
+          credentials?: Json | null;
+          last_sync_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "integrations_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'integrations_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'integrations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'integrations_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       leads: {
         Row: {
-          campaign_id: string | null
-          company: string | null
-          created_at: string | null
-          email: string | null
-          id: string
-          name: string
-          notes: string | null
-          phone: string | null
-          status: string
-          updated_at: string | null
-        }
+          id: string;
+          campaign_id: string;
+          name: string;
+          email: string | null;
+          phone: string;
+          company: string | null;
+          status: string;
+          notes: string | null;
+          last_contact_date: string | null;
+          attempts: number;
+          pledged_amount: number | null;
+          donated_amount: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
         Insert: {
-          campaign_id?: string | null
-          company?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          phone?: string | null
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          campaign_id: string;
+          name: string;
+          email?: string | null;
+          phone: string;
+          company?: string | null;
+          status?: string;
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Update: {
-          campaign_id?: string | null
-          company?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          phone?: string | null
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          campaign_id?: string;
+          name?: string;
+          email?: string | null;
+          phone?: string;
+          company?: string | null;
+          status?: string;
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "leads_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'leads_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'leads_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'leads_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       team_members: {
         Row: {
-          business_id: string
-          created_at: string | null
-          id: string
-          role: string
-          status: string
-          updated_at: string | null
-          user_id: string
-        }
+          id: string;
+          business_id: string;
+          user_id: string;
+          role: string;
+          status: string;
+          permissions: Json | null;
+          invited_by: string | null;
+          invited_at: string | null;
+          accepted_at: string | null;
+          last_active_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          business_id: string
-          created_at?: string | null
-          id?: string
-          role?: string
-          status?: string
-          updated_at?: string | null
-          user_id: string
-        }
+          id?: string;
+          business_id: string;
+          user_id: string;
+          role?: string;
+          status?: string;
+          permissions?: Json | null;
+          invited_by?: string | null;
+          invited_at?: string | null;
+          accepted_at?: string | null;
+          last_active_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          business_id?: string
-          created_at?: string | null
-          id?: string
-          role?: string
-          status?: string
-          updated_at?: string | null
-          user_id?: string
-        }
+          id?: string;
+          business_id?: string;
+          user_id?: string;
+          role?: string;
+          status?: string;
+          permissions?: Json | null;
+          invited_by?: string | null;
+          invited_at?: string | null;
+          accepted_at?: string | null;
+          last_active_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "team_members_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'team_members_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'team_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'team_members_invited_by_fkey';
+            columns: ['invited_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       workflows: {
         Row: {
-          agent_id: string | null
-          business_id: string
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          status: string
-          updated_at: string | null
-        }
+          id: string;
+          name: string;
+          description: string | null;
+          agent_id: string;
+          status: string;
+          version: number;
+          is_default: boolean;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
         Insert: {
-          agent_id?: string | null
-          business_id: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name: string;
+          description?: string | null;
+          agent_id: string;
+          status?: string;
+          version?: number;
+          is_default?: boolean;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Update: {
-          agent_id?: string | null
-          business_id?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          status?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          name?: string;
+          description?: string | null;
+          agent_id?: string;
+          status?: string;
+          version?: number;
+          is_default?: boolean;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "workflows_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
+            foreignKeyName: 'workflows_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "workflows_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: 'workflows_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workflows_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       workflow_edges: {
         Row: {
-          created_at: string | null
-          id: string
-          source_node_id: string | null
-          target_node_id: string | null
-          workflow_id: string | null
-        }
+          id: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle: string | null;
+          target_handle: string | null;
+          label: string | null;
+          condition: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          created_at?: string | null
-          id?: string
-          source_node_id?: string | null
-          target_node_id?: string | null
-          workflow_id?: string | null
-        }
+          id?: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
+          condition?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          created_at?: string | null
-          id?: string
-          source_node_id?: string | null
-          target_node_id?: string | null
-          workflow_id?: string | null
-        }
+          id?: string;
+          workflow_id?: string;
+          edge_id?: string;
+          source_node_id?: string;
+          target_node_id?: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
+          condition?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "workflow_edges_source_node_id_fkey"
-            columns: ["source_node_id"]
-            isOneToOne: false
-            referencedRelation: "workflow_nodes"
-            referencedColumns: ["id"]
+            foreignKeyName: 'workflow_edges_workflow_id_fkey';
+            columns: ['workflow_id'];
+            isOneToOne: false;
+            referencedRelation: 'workflows';
+            referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: "workflow_edges_target_node_id_fkey"
-            columns: ["target_node_id"]
-            isOneToOne: false
-            referencedRelation: "workflow_nodes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_edges_workflow_id_fkey"
-            columns: ["workflow_id"]
-            isOneToOne: false
-            referencedRelation: "workflows"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+        ];
+      };
       workflow_nodes: {
         Row: {
-          config: Json | null
-          created_at: string | null
-          id: string
-          name: string
-          type: string
-          workflow_id: string | null
-          x_position: number | null
-          y_position: number | null
-        }
+          id: string;
+          workflow_id: string;
+          node_id: string;
+          type: string;
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          config?: Json | null
-          created_at?: string | null
-          id?: string
-          name: string
-          type: string
-          workflow_id?: string | null
-          x_position?: number | null
-          y_position?: number | null
-        }
+          id?: string;
+          workflow_id: string;
+          node_id: string;
+          type: string;
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          config?: Json | null
-          created_at?: string | null
-          id?: string
-          name?: string
-          type?: string
-          workflow_id?: string | null
-          x_position?: number | null
-          y_position?: number | null
-        }
+          id?: string;
+          workflow_id?: string;
+          node_id?: string;
+          type?: string;
+          position_x?: number;
+          position_y?: number;
+          data?: Json;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "workflow_nodes_workflow_id_fkey"
-            columns: ["workflow_id"]
-            isOneToOne: false
-            referencedRelation: "workflows"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-    }
+            foreignKeyName: 'workflow_nodes_workflow_id_fkey';
+            columns: ['workflow_id'];
+            isOneToOne: false;
+            referencedRelation: 'workflows';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      business_status: "active" | "inactive" | "suspended"
-      team_member_status: "active" | "invited" | "suspended" | "left"
-      team_role: "owner" | "admin" | "member" | "viewer"
-    }
+      business_status: 'active' | 'inactive' | 'suspended';
+      team_member_status: 'active' | 'invited' | 'suspended' | 'left';
+      team_role: 'owner' | 'admin' | 'member' | 'viewer';
+      agent_status: 'active' | 'inactive' | 'draft';
+      voice_type: 'ai_generated' | 'human' | 'custom';
+      audio_generation_status:
+        | 'pending'
+        | 'processing'
+        | 'completed'
+        | 'failed';
+      campaign_status: 'draft' | 'active' | 'paused' | 'completed';
+      call_status: 'queued' | 'initiated' | 'answered' | 'ended' | 'failed';
+      campaign_execution_status:
+        | 'pending'
+        | 'running'
+        | 'paused'
+        | 'completed'
+        | 'failed';
+      queue_status: 'pending' | 'processing' | 'completed' | 'failed';
+      conversation_status: 'initiated' | 'active' | 'ended' | 'failed';
+      integration_status: 'active' | 'inactive' | 'error';
+      lead_status: 'new' | 'contacted' | 'pledged' | 'failed';
+      workflow_status: 'draft' | 'active' | 'archived';
+      update_type: 'info' | 'warning' | 'error' | 'success';
+      event_type:
+        | 'call_started'
+        | 'call_ended'
+        | 'conversation_event'
+        | 'system_event';
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"])
+    | keyof Database['public']['Tables']
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"])
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"])[TableName]
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"])
-    ? (Database["public"]["Tables"])[PublicTableNameOrOptions]
-    : never
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]
+  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
+    ? Database['public']['Tables'][PublicTableNameOrOptions]
+    : never;
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"])
+    | keyof Database['public']['Tables']
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"])
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"])[TableName]["Insert"]
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"])
-    ? (Database["public"]["Tables"])[PublicTableNameOrOptions]["Insert"]
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: any;
+    }
+    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Insert']
     : never
+  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
+    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+        Insert: any;
+      }
+      ? Database['public']['Tables'][PublicTableNameOrOptions]['Insert']
+      : never
+    : never;
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"])
+    | keyof Database['public']['Tables']
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"])
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"])[TableName]["Update"]
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"])
-    ? (Database["public"]["Tables"])[PublicTableNameOrOptions]["Update"]
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: any;
+    }
+    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Update']
     : never
+  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
+    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+        Update: any;
+      }
+      ? Database['public']['Tables'][PublicTableNameOrOptions]['Update']
+      : never
+    : never;

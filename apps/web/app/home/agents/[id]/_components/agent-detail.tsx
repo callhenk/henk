@@ -554,7 +554,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
                         if (result.success) {
                           alert(
-                            `Voice Test Completed!\n\nAgent: ${result.data.agentName}\nVoice Type: ${result.data.voiceType}\nTone: ${result.data.speakingTone}\n\nTest Script:\n"${result.data.testScript}"\n\nStatus: ${result.data.status}\n\nNote: Audio playback will be available when ElevenLabs integration is complete.`,
+                            `Voice Test Completed!\n\nAgent: ${result.data.agentName}\nVoice Type: ${result.data.voiceType}\nTone: ${result.data.speakingTone}\n\nTest Script:\n"${result.data.testScript}"\n\nStatus: ${result.data.status}\n\nNote: Audio playback will be available when AI voice integration is complete.`,
                           );
                         } else {
                           throw new Error(result.error || 'Voice test failed');
