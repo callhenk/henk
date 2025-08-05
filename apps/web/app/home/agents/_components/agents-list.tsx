@@ -68,7 +68,7 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-import { VoiceTestComponent } from './voice-test-component';
+
 
 type Agent = Tables<'agents'>['Row'];
 
