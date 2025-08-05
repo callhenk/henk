@@ -82,21 +82,6 @@ const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   return voiceTypeOption?.label || voiceType;
 };
 
-const getSpeakingToneLabel = (
-  speakingTone: string | null | undefined,
-): string => {
-  if (!speakingTone) return 'Default tone';
-  const speakingTones = [
-    { value: 'warm-friendly', label: 'Warm and friendly' },
-    { value: 'professional-confident', label: 'Professional and confident' },
-    { value: 'compassionate-caring', label: 'Compassionate and caring' },
-    { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
-    { value: 'calm-reassuring', label: 'Calm and reassuring' },
-  ];
-  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
-  return toneOption?.label || speakingTone;
-};
-
 interface EnhancedAgent extends Agent {
   performance?: {
     callsToday: number;
@@ -136,7 +121,11 @@ function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>{getSpeakingToneLabel(agent.speaking_tone)}</span>
+                <span>
+                  {(agent as any).voice_settings?.voice_id
+                    ? 'AI Voice'
+                    : 'No voice selected'}
+                </span>
                 <span>•</span>
                 <span>{getVoiceTypeLabel(agent.voice_type)}</span>
               </CardDescription>
@@ -241,10 +230,12 @@ function AgentTableRow({ agent, onView, onDelete }: AgentTableRowProps) {
             </div>
             <div
               className="text-muted-foreground line-clamp-1 text-xs"
-              title={`${getVoiceTypeLabel(agent.voice_type)} • ${getSpeakingToneLabel(agent.speaking_tone)}`}
+              title={`${getVoiceTypeLabel(agent.voice_type)} • ${agent.voice_settings?.voice_id ? 'AI Voice' : 'No voice selected'}`}
             >
               {getVoiceTypeLabel(agent.voice_type)} •{' '}
-              {getSpeakingToneLabel(agent.speaking_tone)}
+              {(agent as any).voice_settings?.voice_id
+                ? 'AI Voice'
+                : 'No voice selected'}
             </div>
           </div>
         </div>
@@ -470,8 +461,10 @@ export function AgentsList() {
       filtered = filtered.filter(
         (agent) =>
           agent.name.toLowerCase().includes(searchLower) ||
-          (agent.speaking_tone &&
-            agent.speaking_tone.toLowerCase().includes(searchLower)) ||
+          ((agent as any).voice_settings?.voice_id &&
+            (agent as any).voice_settings.voice_id
+              .toLowerCase()
+              .includes(searchLower)) ||
           (agent.voice_type &&
             agent.voice_type.toLowerCase().includes(searchLower)),
       );

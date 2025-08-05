@@ -18,12 +18,16 @@ import {
   Volume2,
   Workflow,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Import our Supabase hooks
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+import { useSupabase } from '@kit/supabase/hooks/use-supabase';
+import { useVoiceTestMutation } from '@kit/supabase/hooks/voices/use-voice-mutations';
+import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -48,17 +52,16 @@ import { FAQEditor } from './faq-editor';
 import { KnowledgeUpload } from './knowledge-upload';
 import { WorkflowBuilder } from './workflow-builder/index';
 
+// Type for voice settings
+interface VoiceSettings {
+  voice_id: string;
+  stability?: number;
+  similarity_boost?: number;
+}
+
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },
   { value: 'custom', label: 'Custom Voice' },
-];
-
-const speakingTones = [
-  { value: 'warm-friendly', label: 'Warm and friendly' },
-  { value: 'professional-confident', label: 'Professional and confident' },
-  { value: 'compassionate-caring', label: 'Compassionate and caring' },
-  { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
-  { value: 'calm-reassuring', label: 'Calm and reassuring' },
 ];
 
 // Helper functions to convert enum values to user-friendly labels
@@ -66,14 +69,6 @@ const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   if (!voiceType) return 'Default';
   const voiceTypeOption = voiceTypes.find((type) => type.value === voiceType);
   return voiceTypeOption?.label || voiceType;
-};
-
-const getSpeakingToneLabel = (
-  speakingTone: string | null | undefined,
-): string => {
-  if (!speakingTone) return 'Default';
-  const toneOption = speakingTones.find((tone) => tone.value === speakingTone);
-  return toneOption?.label || speakingTone;
 };
 
 export function AgentDetail({ agentId }: { agentId: string }) {
@@ -90,17 +85,30 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const { data: agent, isLoading: loadingAgent } = useAgent(agentId);
   const { data: conversations = [] } = useConversations();
   const { data: campaigns = [] } = useCampaigns();
+  const { data: voices = [] } = useVoices();
 
   // Update mutation
   const updateAgentMutation = useUpdateAgent();
+  const voiceTestMutation = useVoiceTestMutation();
+  const supabase = useSupabase();
 
   // State for knowledge base form
   const [organizationInfo, setOrganizationInfo] = useState('');
   const [donorContext, setDonorContext] = useState('');
   const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
-  const [isTestingVoice, setIsTestingVoice] = useState(false);
+  const [isTestingVoice, _setIsTestingVoice] = useState(false);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // State for custom voice recording
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null,
+  );
+  const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
+  const [isPlayingRecording, setIsPlayingRecording] = useState(false);
 
   // State for inline editing
   const [editingName, setEditingName] = useState(false);
@@ -153,6 +161,103 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       0,
     ) / 3600,
   );
+
+  // Function to get cached voice sample URL
+  const getCachedVoiceSample = async (voiceId: string) => {
+    try {
+      // Try to get a cached sample from the audio bucket
+      const { data: signedUrl, error } = await supabase.storage
+        .from('audio')
+        .createSignedUrl(`samples/${voiceId}_sample.mp3`, 3600);
+
+      if (signedUrl && !error) {
+        return signedUrl.signedUrl;
+      }
+
+      // If no cached sample exists, return null (don't log error for missing files)
+      return null;
+    } catch (error) {
+      // If there's an actual error (not just missing file), log it
+      console.error('Error getting cached sample:', error);
+      return null;
+    }
+  };
+
+  // Custom voice recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/wav' });
+        setRecordedAudio(blob);
+        stream.getTracks().forEach((track) => track.stop());
+        toast.success('Recording completed!');
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Start timer
+      const timer = setInterval(() => {
+        setRecordingTime((prev) => {
+          if (prev >= 30) {
+            stopRecording();
+            clearInterval(timer);
+            return 30;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+
+      toast.info('Recording started... Speak clearly for 30 seconds');
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast.error(
+        'Failed to start recording. Please check microphone permissions.',
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    setIsRecording(false);
+    setRecordingTime(0);
+  };
+
+  const playRecording = () => {
+    if (!recordedAudio) {
+      toast.error('No recording available to play');
+      return;
+    }
+
+    const audio = new Audio(URL.createObjectURL(recordedAudio));
+    setIsPlayingRecording(true);
+
+    audio.onended = () => setIsPlayingRecording(false);
+    audio.onerror = () => {
+      setIsPlayingRecording(false);
+      toast.error('Failed to play recording.');
+    };
+
+    audio.play().catch((error) => {
+      console.error('Failed to play recording:', error);
+      setIsPlayingRecording(false);
+      toast.error('Failed to play recording.');
+    });
+  };
 
   const handleBack = () => {
     router.push('/home/agents');
@@ -437,15 +542,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     </div>
                     <div>
                       <label className="text-muted-foreground text-sm font-medium">
-                        Tone
-                      </label>
-                      <p className="text-base">
-                        {getSpeakingToneLabel(agent.speaking_tone)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-muted-foreground text-sm font-medium">
-                        Voice
+                        Voice Type
                       </label>
                       <p className="text-base">
                         {getVoiceTypeLabel(agent.voice_type)}
@@ -456,7 +553,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         Last Edited
                       </label>
                       <p className="text-base">
-                        {formatDate(agent.updated_at)}
+                        {agent.updated_at
+                          ? formatDate(agent.updated_at)
+                          : 'Never'}
                       </p>
                     </div>
                   </div>
@@ -517,69 +616,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    disabled={isTestingVoice}
-                    onClick={async () => {
-                      setIsTestingVoice(true);
-                      try {
-                        // Create a test script based on agent's description
-                        const testScript =
-                          agent.description ||
-                          "Hello, this is a test call from your AI fundraising agent. I'm calling to thank you for your support and discuss how we can make an even greater impact together.";
-
-                        // Call the voice test API
-                        const response = await fetch('/api/voice/test', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            agentId: agent.id,
-                            agentName: agent.name,
-                            voiceType: agent.voice_type,
-                            speakingTone: agent.speaking_tone,
-                            testScript: testScript,
-                          }),
-                        });
-
-                        if (!response.ok) {
-                          throw new Error(
-                            `HTTP error! status: ${response.status}`,
-                          );
-                        }
-
-                        const result = await response.json();
-
-                        if (result.success) {
-                          alert(
-                            `Voice Test Completed!\n\nAgent: ${result.data.agentName}\nVoice Type: ${result.data.voiceType}\nTone: ${result.data.speakingTone}\n\nTest Script:\n"${result.data.testScript}"\n\nStatus: ${result.data.status}\n\nNote: Audio playback will be available when AI voice integration is complete.`,
-                          );
-                        } else {
-                          throw new Error(result.error || 'Voice test failed');
-                        }
-                      } catch (error) {
-                        alert(
-                          `Voice test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                        );
-                      } finally {
-                        setIsTestingVoice(false);
-                      }
-                    }}
-                  >
-                    {isTestingVoice ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
-                        Testing...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="mr-2 h-4 w-4" />
-                        Test Voice
-                      </>
-                    )}
-                  </Button>
                   <Button
                     className="w-full"
                     variant="outline"
@@ -732,10 +768,236 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Voice Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">AI Voice</label>
+                <Select
+                  value={
+                    (agent.voice_settings as unknown as VoiceSettings)
+                      ?.voice_id || ''
+                  }
+                  onValueChange={async (voiceId) => {
+                    try {
+                      await updateAgentMutation.mutateAsync({
+                        id: agentId,
+                        voice_settings: { voice_id: voiceId },
+                      });
+                      toast.success('Voice updated successfully');
+                    } catch (error) {
+                      toast.error('Failed to update voice');
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a voice" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {voices.map((voice) => (
+                      <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                        {voice.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-xs">
+                  Choose from available AI voices for your agent
+                </p>
+              </div>
+
+              {/* Voice Preview */}
+              {(agent.voice_settings as unknown as VoiceSettings)?.voice_id && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Voice Preview</label>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      <span className="text-muted-foreground text-xs">
+                        Ready
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 shadow-sm">
+                          <Volume2 className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            Sample Audio
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            &ldquo;Hello, this is a voice preview.&rdquo;
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isPlayingPreview}
+                        onClick={async () => {
+                          try {
+                            // First try to get a cached sample
+                            const cachedUrl = await getCachedVoiceSample(
+                              (agent.voice_settings as unknown as VoiceSettings)
+                                ?.voice_id,
+                            );
+
+                            if (cachedUrl) {
+                              // Play cached sample
+                              const audio = new Audio(cachedUrl);
+                              setIsPlayingPreview(true);
+
+                              audio.onended = () => setIsPlayingPreview(false);
+                              audio.onerror = () => {
+                                setIsPlayingPreview(false);
+                                toast.error('Failed to play voice preview.');
+                              };
+
+                              await audio.play();
+                              toast.success('Playing cached voice preview...');
+                              return;
+                            }
+
+                            // If no cached sample, generate one
+                            toast.info(
+                              'Generating voice sample (this may take a moment)...',
+                            );
+
+                            const result = await voiceTestMutation.mutateAsync({
+                              voice_id: (
+                                agent.voice_settings as unknown as VoiceSettings
+                              )?.voice_id,
+                              sample_text: 'Hello, this is a voice preview.',
+                            });
+
+                            // Extract the file path from the public URL
+                            const url = new URL(result.audio_url);
+                            const pathMatch = url.pathname.match(
+                              /\/storage\/v1\/object\/public\/audio\/(.+)/,
+                            );
+
+                            if (pathMatch && pathMatch[1]) {
+                              const originalFilePath = pathMatch[1];
+
+                              // Try to cache the file for future use
+                              try {
+                                const { data: fileData } =
+                                  await supabase.storage
+                                    .from('audio')
+                                    .download(originalFilePath);
+
+                                if (fileData) {
+                                  const sampleFileName = `samples/${(agent.voice_settings as unknown as VoiceSettings)?.voice_id}_sample.mp3`;
+                                  await supabase.storage
+                                    .from('audio')
+                                    .upload(sampleFileName, fileData, {
+                                      contentType: 'audio/mpeg',
+                                      upsert: true,
+                                    });
+                                  console.log(
+                                    'Voice sample cached successfully',
+                                  );
+                                }
+                              } catch (cacheError) {
+                                console.error(
+                                  'Failed to cache sample:',
+                                  cacheError,
+                                );
+                                // Continue anyway - we can still play the original
+                              }
+
+                              // Get authenticated URL for the original file
+                              const { data: signedUrl, error: signedUrlError } =
+                                await supabase.storage
+                                  .from('audio')
+                                  .createSignedUrl(originalFilePath, 3600);
+
+                              if (signedUrlError) {
+                                console.error(
+                                  'Signed URL error:',
+                                  signedUrlError,
+                                );
+                                toast.error(
+                                  'Failed to generate authenticated audio URL',
+                                );
+                                return;
+                              }
+
+                              if (signedUrl) {
+                                // Play the audio with authenticated URL
+                                const audio = new Audio(signedUrl.signedUrl);
+                                setIsPlayingPreview(true);
+
+                                audio.onended = () =>
+                                  setIsPlayingPreview(false);
+                                audio.onerror = () => {
+                                  setIsPlayingPreview(false);
+                                  toast.error('Failed to play voice preview.');
+                                };
+
+                                await audio.play();
+                                toast.success('Playing voice preview...');
+                              } else {
+                                toast.error(
+                                  'Failed to generate authenticated audio URL',
+                                );
+                              }
+                            } else {
+                              toast.error('Invalid audio URL format');
+                            }
+                          } catch (error) {
+                            console.error('Voice preview error:', error);
+                            toast.error('Failed to generate voice preview.');
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4"
+                      >
+                        {isPlayingPreview ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                            <span>Playing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4" />
+                            <span>Play Sample</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div>
+                        <span>Cached sample available</span>
+                      </div>
+                      <span>•</span>
+                      <span>High quality audio</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Voice Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Voice Type</label>
-                <Select defaultValue="ai_generated">
+                <Select
+                  value={agent.voice_type || 'ai_generated'}
+                  onValueChange={async (voiceType) => {
+                    try {
+                      await updateAgentMutation.mutateAsync({
+                        id: agentId,
+                        voice_type: voiceType,
+                      });
+                      toast.success('Voice type updated successfully');
+                    } catch (error) {
+                      toast.error('Failed to update voice type');
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select voice type" />
                   </SelectTrigger>
@@ -743,23 +1005,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     {voiceTypes.map((voice) => (
                       <SelectItem key={voice.value} value={voice.value}>
                         {voice.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Speaking Tone */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Speaking Tone</label>
-                <Select defaultValue="warm-friendly">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select speaking tone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {speakingTones.map((tone) => (
-                      <SelectItem key={tone.value} value={tone.value}>
-                        {tone.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -777,20 +1022,50 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="outline" className="flex-1 sm:flex-none">
-                    <Mic className="mr-2 h-4 w-4" />
-                    Start Recording
+                  <Button
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={isPlayingRecording}
+                  >
+                    {isRecording ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                        Recording... ({30 - recordingTime}s)
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="mr-2 h-4 w-4" />
+                        {recordedAudio ? 'Record Again' : 'Start Recording'}
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" className="flex-1 sm:flex-none">
-                    <Play className="mr-2 h-4 w-4" />
-                    Preview
+                  <Button
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={playRecording}
+                    disabled={
+                      !recordedAudio || isPlayingRecording || isRecording
+                    }
+                  >
+                    {isPlayingRecording ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                        Playing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-2 h-4 w-4" />
+                        Preview
+                      </>
+                    )}
                   </Button>
                 </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="flex justify-end pt-4">
-                <Button size="sm">Save Voice Settings</Button>
+                {recordedAudio && (
+                  <div className="mt-2 text-xs text-green-600">
+                    ✓ Recording saved. You can preview or record again.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
