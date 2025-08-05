@@ -61,68 +61,21 @@ export function VoiceTestComponent() {
 
       // Extract the file path from the public URL
       const url = new URL(result.audio_url);
-      console.log('URL pathname:', url.pathname);
-
-      // Try different path extraction patterns
-      let filePath: string | null = null;
-
-      // Pattern 1: /storage/v1/object/public/audio/path
-      const pathMatch1 = url.pathname.match(
+      const pathMatch = url.pathname.match(
         /\/storage\/v1\/object\/public\/audio\/(.+)/,
       );
 
-      // Pattern 2: /storage/v1/object/public/audio_generations/path
-      const pathMatch2 = url.pathname.match(
-        /\/storage\/v1\/object\/public\/audio_generations\/(.+)/,
-      );
+      if (pathMatch && pathMatch[1]) {
+        const filePath = pathMatch[1];
+        console.log('Extracted file path:', filePath);
 
-      if (pathMatch1 && pathMatch1[1]) {
-        filePath = pathMatch1[1];
-        console.log('Extracted file path (pattern 1):', filePath);
-      } else if (pathMatch2 && pathMatch2[1]) {
-        filePath = pathMatch2[1];
-        console.log('Extracted file path (pattern 2):', filePath);
-      } else {
-        // Try to extract from the full pathname
-        const pathParts = url.pathname.split('/');
-        const audioIndex = pathParts.findIndex(
-          (part) => part === 'audio' || part === 'audio_generations',
-        );
-        if (audioIndex !== -1 && audioIndex + 1 < pathParts.length) {
-          filePath = pathParts.slice(audioIndex + 1).join('/');
-          console.log('Extracted file path (fallback):', filePath);
-        }
-      }
-
-      if (filePath) {
-        // Try to get authenticated URL
+        // Get authenticated URL - the file should be accessible since it's in the user's folder
         const { data: signedUrl, error: signedUrlError } =
           await supabase.storage.from('audio').createSignedUrl(filePath, 3600); // 1 hour expiry
 
         if (signedUrlError) {
           console.error('Signed URL error:', signedUrlError);
-
-          // Try with audio_generations bucket as fallback
-          const { data: signedUrl2, error: signedUrlError2 } =
-            await supabase.storage
-              .from('audio_generations')
-              .createSignedUrl(filePath, 3600);
-
-          if (signedUrl2) {
-            console.log(
-              'Authenticated URL (fallback bucket):',
-              signedUrl2.signedUrl,
-            );
-            setAudioUrl(signedUrl2.signedUrl);
-            toast.success(`Generated audio for voice: ${result.voice_name}`);
-          } else {
-            console.error('Fallback signed URL error:', signedUrlError2);
-
-            // Final fallback: use the public URL directly
-            console.log('Using public URL as fallback:', result.audio_url);
-            setAudioUrl(result.audio_url);
-            toast.success(`Generated audio for voice: ${result.voice_name}`);
-          }
+          toast.error('Failed to generate authenticated audio URL');
         } else if (signedUrl) {
           console.log('Authenticated URL:', signedUrl.signedUrl);
           setAudioUrl(signedUrl.signedUrl);

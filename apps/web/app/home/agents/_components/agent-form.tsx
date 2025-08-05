@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Settings, User, Volume2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 // Import our Supabase hooks
@@ -15,7 +16,10 @@ import {
   useUpdateAgent,
 } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
+import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 import { useUser } from '@kit/supabase/hooks/use-user';
+import { useVoiceTestMutation } from '@kit/supabase/hooks/voices/use-voice-mutations';
+import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Button } from '@kit/ui/button';
 import {
   Form,
@@ -48,7 +52,6 @@ const agentSchema = z.object({
   description: z.string().optional(),
   voice_type: z.string().min(1, 'Voice type is required'),
   voice_id: z.string().min(1, 'Voice ID is required'),
-  speaking_tone: z.string().min(1, 'Speaking tone is required'),
   organization_info: z.string().optional(),
   donor_context: z.string().optional(),
   faqs: z.string().optional(),
@@ -59,22 +62,6 @@ type AgentFormData = z.infer<typeof agentSchema>;
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },
   { value: 'custom', label: 'Custom Voice' },
-];
-
-const speakingTones = [
-  { value: 'warm-friendly', label: 'Warm and friendly' },
-  { value: 'professional-confident', label: 'Professional and confident' },
-  { value: 'compassionate-caring', label: 'Compassionate and caring' },
-  { value: 'enthusiastic-energetic', label: 'Enthusiastic and energetic' },
-  { value: 'calm-reassuring', label: 'Calm and reassuring' },
-];
-
-const voiceOptions = [
-  { id: 'voice_sarah_001', name: 'Sarah', provider: 'AI Generated' },
-  { id: 'voice_mike_002', name: 'Mike', provider: 'AI Generated' },
-  { id: 'voice_emma_003', name: 'Emma', provider: 'AI Generated' },
-  { id: 'voice_david_004', name: 'David', provider: 'AI Generated' },
-  { id: 'voice_lisa_005', name: 'Lisa', provider: 'AI Generated' },
 ];
 
 interface AgentFormProps {
@@ -89,6 +76,39 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
   // Get current user
   const { data: user } = useUser();
+
+  // Get available voices from AI voice synthesis service
+  const {
+    data: voices,
+    isLoading: voicesLoading,
+    error: voicesError,
+  } = useVoices();
+
+  // Voice preview functionality
+  const supabase = useSupabase();
+  const voiceTestMutation = useVoiceTestMutation();
+  const [isPlayingPreview, setIsPlayingPreview] = useState<boolean>(false);
+
+  // Function to get cached voice sample URL
+  const getCachedVoiceSample = async (voiceId: string) => {
+    try {
+      // Try to get a cached sample from the audio bucket
+      const { data: signedUrl, error } = await supabase.storage
+        .from('audio')
+        .createSignedUrl(`samples/${voiceId}_sample.mp3`, 3600);
+
+      if (signedUrl && !error) {
+        return signedUrl.signedUrl;
+      }
+
+      // If no cached sample exists, return null (don't log error for missing files)
+      return null;
+    } catch (error) {
+      // If there's an actual error (not just missing file), log it
+      console.error('Error getting cached sample:', error);
+      return null;
+    }
+  };
 
   // Fetch agent data for edit mode
   const { data: existingAgent, isLoading: loadingAgent } = useAgent(
@@ -106,7 +126,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
       description: '',
       voice_type: '',
       voice_id: '',
-      speaking_tone: '',
       organization_info: '',
       donor_context: '',
       faqs: '',
@@ -137,7 +156,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         description: existingAgent.description || '',
         voice_type: existingAgent.voice_type || '',
         voice_id: existingAgent.voice_id || '',
-        speaking_tone: existingAgent.speaking_tone || '',
         organization_info: existingAgent.organization_info || '',
         donor_context: existingAgent.donor_context || '',
         faqs: faqsText,
@@ -195,7 +213,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
           description: data.description || null,
           voice_type: data.voice_type as 'ai_generated' | 'custom',
           voice_id: data.voice_id,
-          speaking_tone: data.speaking_tone,
           organization_info: data.organization_info || null,
           donor_context: data.donor_context || null,
           faqs: faqsData,
@@ -328,31 +345,195 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
 
               <FormField
                 control={form.control}
-                name="speaking_tone"
+                name="voice_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={formFieldStyles.label}>
-                      Communication Style
+                      Select Voice
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className={formFieldStyles.select}>
-                          <SelectValue placeholder="Select tone" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {speakingTones.map((tone) => (
-                          <SelectItem key={tone.value} value={tone.value}>
-                            {tone.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className={formFieldStyles.select}>
+                            <SelectValue placeholder="Choose a voice" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {voicesLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Loading voices...
+                            </SelectItem>
+                          ) : voicesError ? (
+                            <SelectItem value="error" disabled>
+                              Error loading voices
+                            </SelectItem>
+                          ) : voices && voices.length > 0 ? (
+                            voices.map((voice) => (
+                              <SelectItem
+                                key={voice.voice_id}
+                                value={voice.voice_id}
+                              >
+                                <span className="font-medium">
+                                  {voice.name}
+                                </span>
+                                <span className="text-muted-foreground ml-2 text-sm">
+                                  • {voice.description}
+                                </span>
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-voices" disabled>
+                              No voices available
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {field.value && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              // First try to get a cached sample
+                              const cachedUrl = await getCachedVoiceSample(
+                                field.value,
+                              );
+
+                              if (cachedUrl) {
+                                // Play cached sample
+                                const audio = new Audio(cachedUrl);
+                                setIsPlayingPreview(true);
+
+                                audio.onended = () =>
+                                  setIsPlayingPreview(false);
+                                audio.onerror = () => {
+                                  setIsPlayingPreview(false);
+                                  toast.error('Failed to play voice preview.');
+                                };
+
+                                await audio.play();
+                                toast.success(
+                                  'Playing cached voice preview...',
+                                );
+                                return;
+                              }
+
+                              // If no cached sample, generate one
+                              toast.info(
+                                'Generating voice sample (this may take a moment)...',
+                              );
+
+                              const result =
+                                await voiceTestMutation.mutateAsync({
+                                  voice_id: field.value,
+                                  sample_text:
+                                    'Hello, this is a voice preview.',
+                                });
+
+                              // Extract the file path from the public URL
+                              const url = new URL(result.audio_url);
+                              const pathMatch = url.pathname.match(
+                                /\/storage\/v1\/object\/public\/audio\/(.+)/,
+                              );
+
+                              if (pathMatch && pathMatch[1]) {
+                                const originalFilePath = pathMatch[1];
+
+                                // Try to cache the file for future use
+                                try {
+                                  const { data: fileData } =
+                                    await supabase.storage
+                                      .from('audio')
+                                      .download(originalFilePath);
+
+                                  if (fileData) {
+                                    const sampleFileName = `samples/${field.value}_sample.mp3`;
+                                    await supabase.storage
+                                      .from('audio')
+                                      .upload(sampleFileName, fileData, {
+                                        contentType: 'audio/mpeg',
+                                        upsert: true,
+                                      });
+                                    console.log(
+                                      'Voice sample cached successfully',
+                                    );
+                                  }
+                                } catch (cacheError) {
+                                  console.error(
+                                    'Failed to cache sample:',
+                                    cacheError,
+                                  );
+                                  // Continue anyway - we can still play the original
+                                }
+
+                                // Get authenticated URL for the original file
+                                const {
+                                  data: signedUrl,
+                                  error: signedUrlError,
+                                } = await supabase.storage
+                                  .from('audio')
+                                  .createSignedUrl(originalFilePath, 3600);
+
+                                if (signedUrlError) {
+                                  console.error(
+                                    'Signed URL error:',
+                                    signedUrlError,
+                                  );
+                                  toast.error(
+                                    'Failed to generate authenticated audio URL',
+                                  );
+                                  return;
+                                }
+
+                                if (signedUrl) {
+                                  // Play the audio with authenticated URL
+                                  const audio = new Audio(signedUrl.signedUrl);
+                                  setIsPlayingPreview(true);
+
+                                  audio.onended = () =>
+                                    setIsPlayingPreview(false);
+                                  audio.onerror = () => {
+                                    setIsPlayingPreview(false);
+                                    toast.error(
+                                      'Failed to play voice preview.',
+                                    );
+                                  };
+
+                                  await audio.play();
+                                  toast.success('Playing voice preview...');
+                                } else {
+                                  toast.error(
+                                    'Failed to generate authenticated audio URL',
+                                  );
+                                }
+                              } else {
+                                toast.error('Invalid audio URL format');
+                              }
+                            } catch (error) {
+                              console.error('Voice preview error:', error);
+                              toast.error('Failed to generate voice preview.');
+                            }
+                          }}
+                          disabled={
+                            voiceTestMutation.isPending || isPlayingPreview
+                          }
+                          className="whitespace-nowrap"
+                        >
+                          {voiceTestMutation.isPending
+                            ? 'Generating...'
+                            : isPlayingPreview
+                              ? 'Playing...'
+                              : 'Preview'}
+                        </Button>
+                      )}
+                    </div>
                     <FormDescription>
-                      How your agent should communicate with donors
+                      Choose from high-quality AI voices. Use the preview button
+                      to test the selected voice.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -374,43 +555,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
               badge: 'AI Voice',
             }}
           >
-            <FormField
-              control={form.control}
-              name="voice_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={formFieldStyles.label}>
-                    Select Voice
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={formFieldStyles.select}>
-                        <SelectValue placeholder="Choose a voice" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {voiceOptions.map((voice) => (
-                        <SelectItem key={voice.id} value={voice.id}>
-                          <span className="font-medium">{voice.name}</span>
-                          <span className="text-muted-foreground ml-2 text-sm">
-                            • {voice.provider}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Preview available voices to find the perfect match for your
-                    agent
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="organization_info"
