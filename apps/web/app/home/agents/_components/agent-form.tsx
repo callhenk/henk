@@ -4,22 +4,17 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Settings, User, Volume2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 // Import our Supabase hooks
-import {
-  useCreateAgent,
-  useUpdateAgent,
-} from '@kit/supabase/hooks/agents/use-agent-mutations';
-import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
+import { useCreateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 import { useUser } from '@kit/supabase/hooks/use-user';
 import { useVoiceTestMutation } from '@kit/supabase/hooks/voices/use-voice-mutations';
 import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
+// Import Edge Functions utilities
 import { Button } from '@kit/ui/button';
 import {
   Form,
@@ -47,17 +42,24 @@ import {
 } from '~/components/form-styles';
 import { PageHeader } from '~/components/shared';
 
-const agentSchema = z.object({
-  name: z.string().min(1, 'Agent name is required'),
-  description: z.string().optional(),
-  voice_type: z.string().min(1, 'Voice type is required'),
-  voice_id: z.string().min(1, 'Voice ID is required'),
-  organization_info: z.string().optional(),
-  donor_context: z.string().optional(),
-  faqs: z.string().optional(),
-});
-
-type AgentFormData = z.infer<typeof agentSchema>;
+interface AgentFormData {
+  name: string;
+  description?: string;
+  voice_type: string;
+  voice_id: string;
+  organization_info?: string;
+  donor_context?: string;
+  faqs?: string;
+  voice_settings: {
+    stability: number;
+    similarity_boost: number;
+    style: number;
+    use_speaker_boost: boolean;
+    elevenlabs_enabled: boolean;
+    enable_voice_testing: boolean;
+    fallback_to_simulation: boolean;
+  };
+}
 
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },
@@ -65,12 +67,10 @@ const voiceTypes = [
 ];
 
 interface AgentFormProps {
-  mode: 'create' | 'edit';
-  agentId?: string;
   initialData?: Partial<AgentFormData>;
 }
 
-export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
+export function AgentForm({ initialData }: AgentFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -111,16 +111,10 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
   };
 
   // Fetch agent data for edit mode
-  const { data: existingAgent, isLoading: loadingAgent } = useAgent(
-    agentId || '',
-  );
-
   // Mutations
   const createAgentMutation = useCreateAgent();
-  const updateAgentMutation = useUpdateAgent();
 
-  const form = useForm<AgentFormData>({
-    resolver: zodResolver(agentSchema),
+  const form = useForm({
     defaultValues: {
       name: '',
       description: '',
@@ -129,43 +123,22 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
       organization_info: '',
       donor_context: '',
       faqs: '',
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.75,
+        style: 0.0,
+        use_speaker_boost: true,
+        elevenlabs_enabled: true,
+        enable_voice_testing: true,
+        fallback_to_simulation: true,
+      },
       ...initialData,
     },
   });
 
-  // Update form when existing agent data is loaded (for edit mode)
+  // Update form when initialData changes
   useEffect(() => {
-    if (existingAgent && mode === 'edit') {
-      // Handle FAQs field - convert JSON to readable format
-      let faqsText = '';
-      if (existingAgent.faqs) {
-        if (typeof existingAgent.faqs === 'string') {
-          faqsText = existingAgent.faqs;
-        } else {
-          // If it's already a JSON object, convert to readable format
-          try {
-            faqsText = JSON.stringify(existingAgent.faqs, null, 2);
-          } catch {
-            faqsText = '';
-          }
-        }
-      }
-
-      form.reset({
-        name: existingAgent.name,
-        description: existingAgent.description || '',
-        voice_type: existingAgent.voice_type || '',
-        voice_id: existingAgent.voice_id || '',
-        organization_info: existingAgent.organization_info || '',
-        donor_context: existingAgent.donor_context || '',
-        faqs: faqsText,
-      });
-    }
-  }, [existingAgent, mode, form]);
-
-  // Update form when initialData changes (for create mode)
-  useEffect(() => {
-    if (initialData && mode === 'create') {
+    if (initialData) {
       Object.keys(initialData).forEach((key) => {
         const value = initialData[key as keyof AgentFormData];
         if (value !== undefined) {
@@ -173,104 +146,132 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
         }
       });
     }
-  }, [initialData, mode, form]);
+  }, [initialData, form]);
 
   const onSubmit = async (data: AgentFormData) => {
     if (!user?.id) {
+      toast.error('User not authenticated');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Handle FAQs field - convert to proper JSON structure
-      let faqsData = {};
-      if (data.faqs) {
-        try {
-          // Try to parse as JSON first
-          faqsData = JSON.parse(data.faqs);
-        } catch {
-          // If parsing fails, treat as plain text and create a simple structure
-          faqsData = {
-            general: data.faqs,
-          };
-        }
+      console.log('Creating agent with data:', data);
+
+      // First, create the ElevenLabs agent
+      const elevenLabsAgentConfig = {
+        name: data.name,
+        description: data.description || '',
+        voice_id: data.voice_id || '',
+        llm_model: 'gpt-4o', // Default to GPT-4o for best performance
+        voice_settings: data.voice_settings,
+        context_data: {
+          organization_info: data.organization_info || '',
+          donor_context: data.donor_context || '',
+          faqs: (() => {
+            try {
+              return data.faqs && data.faqs.trim() ? JSON.parse(data.faqs) : {};
+            } catch (error) {
+              console.error('Error parsing FAQs JSON:', error);
+              return {};
+            }
+          })(),
+        },
+        conversation_flow: {
+          greeting: `Hello! I'm ${data.name}, and I'm here to help with your fundraising needs.`,
+          introduction:
+            'I can assist you with donation campaigns, donor outreach, and fundraising strategies.',
+          value_proposition:
+            'Our organization is committed to making a difference, and your support helps us achieve our mission.',
+          closing:
+            'Thank you for your time and consideration. Your support means the world to us.',
+        },
+        prompts: {
+          fundraising:
+            'I help organizations raise funds through effective donor outreach and campaign management.',
+          objection_handling: {
+            cost_concern:
+              'I understand budget concerns. Let me show you how our programs provide excellent value.',
+            timing_issue:
+              'I appreciate your busy schedule. Let me work around your availability.',
+            already_donated:
+              'Thank you for your previous support! Every contribution makes a difference.',
+          },
+          closing_techniques: [
+            'Would you be interested in learning more about our current campaign?',
+            'Could I send you some information about our upcoming initiatives?',
+            'Would you like to schedule a follow-up conversation?',
+          ],
+        },
+        status: 'active',
+        account_id: user.id,
+      };
+
+      console.log(
+        'Creating ElevenLabs agent with config:',
+        JSON.stringify(elevenLabsAgentConfig, null, 2),
+      );
+
+      // Call the ElevenLabs agent creation Edge Function
+      const elevenLabsResponse = await fetch('/api/elevenlabs-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create',
+          ...elevenLabsAgentConfig,
+        }),
+      });
+
+      if (!elevenLabsResponse.ok) {
+        const errorData = await elevenLabsResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create ElevenLabs agent');
       }
 
-      if (mode === 'create') {
-        await createAgentMutation.mutateAsync({
-          name: data.name,
-          description: data.description || null,
-          voice_type: data.voice_type as 'ai_generated' | 'custom',
-          voice_id: data.voice_id,
-          knowledge_base: {},
-          status: 'active',
-        });
-        router.push('/home/agents');
-      } else if (agentId) {
-        await updateAgentMutation.mutateAsync({
-          id: agentId,
-          name: data.name,
-          description: data.description || null,
-          voice_type: data.voice_type as 'ai_generated' | 'custom',
-          voice_id: data.voice_id,
-          organization_info: data.organization_info || null,
-          donor_context: data.donor_context || null,
-          faqs: faqsData,
-        });
-        router.push(`/home/agents/${agentId}`);
-      }
-    } catch {
-      // Handle error silently or show user-friendly message
+      const elevenLabsData = await elevenLabsResponse.json();
+      console.log('ElevenLabs agent created:', elevenLabsData);
+
+      // Create the agent record in Supabase database with the ElevenLabs agent ID
+      const supabaseResult = await createAgentMutation.mutateAsync({
+        name: data.name,
+        description: data.description || null,
+        voice_type: data.voice_type || 'elevenlabs',
+        voice_id: data.voice_id || '',
+        knowledge_base: {},
+        status: 'active',
+        elevenlabs_agent_id: elevenLabsData.data?.agent_id || null,
+      });
+
+      console.log('Agent created successfully:', supabaseResult);
+      toast.success('Agent created successfully!');
+      router.push(`/home/agents/${supabaseResult.id}`);
+    } catch (error) {
+      console.error('Agent creation error:', error);
+      toast.error(
+        `Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBack = () => {
-    if (mode === 'edit' && agentId) {
-      router.push(`/home/agents/${agentId}`);
-    } else {
-      router.push('/home/agents');
-    }
+    router.push('/home/agents');
   };
 
-  // Show loading state while fetching agent data
-  if (mode === 'edit' && loadingAgent) {
-    return (
-      <div className={formContainerStyles.container}>
-        <div className="flex h-64 items-center justify-center">
-          <div className="text-center">
-            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground">Loading agent data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const isEditMode = mode === 'edit';
-  const pageTitle = isEditMode ? 'Edit Agent' : 'Create New Agent';
-  const submitButtonText = isSubmitting
-    ? isEditMode
-      ? 'Updating...'
-      : 'Creating...'
-    : isEditMode
-      ? 'Update Agent'
-      : 'Create Agent';
+  const pageTitle = 'Create New Agent';
+  const submitButtonText = isSubmitting ? 'Creating...' : 'Create Agent';
 
   return (
     <div className={formContainerStyles.container}>
       <PageHeader
         title={pageTitle}
-        description={
-          isEditMode
-            ? 'Update your AI voice agent settings and preferences'
-            : 'Set up a new AI voice agent for your fundraising campaigns'
-        }
+        description="Set up a new AI voice agent for your fundraising campaigns"
         onBack={handleBack}
         breadcrumbs={[
           { label: 'Agents', href: '/home/agents' },
-          { label: isEditMode ? 'Edit Agent' : 'Create Agent' },
+          { label: 'Create Agent' },
         ]}
       />
 
@@ -692,16 +693,6 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
                 Cancel
               </Button>
             </div>
-            {!isEditMode && (
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                Save as Draft
-              </Button>
-            )}
           </div>
         </form>
       </Form>

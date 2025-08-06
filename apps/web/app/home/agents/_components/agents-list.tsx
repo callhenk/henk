@@ -96,13 +96,13 @@ interface EnhancedAgent extends Agent {
 interface AgentCardProps {
   agent: EnhancedAgent;
   onView: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (agent: EnhancedAgent) => void;
 }
 
 interface AgentTableRowProps {
   agent: EnhancedAgent;
   onView: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (agent: EnhancedAgent) => void;
 }
 
 interface ViewToggleProps {
@@ -160,7 +160,7 @@ function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => onDelete(agent.id)}
+                onClick={() => onDelete(agent)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Agent
@@ -319,7 +319,7 @@ function AgentTableRow({ agent, onView, onDelete }: AgentTableRowProps) {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => onDelete(agent.id)}
+                    onClick={() => onDelete(agent)}
                     className="bg-red-600 hover:bg-red-700"
                   >
                     Delete Agent
@@ -390,6 +390,9 @@ export function AgentsList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [agentToDelete, setAgentToDelete] = useState<EnhancedAgent | null>(
+    null,
+  );
 
   const { data: agents = [], isLoading: loadingAgents } = useAgents();
   const { data: conversations = [] } = useConversations();
@@ -574,6 +577,7 @@ export function AgentsList() {
   const handleDelete = async (id: string) => {
     try {
       await deleteAgentMutation.mutateAsync(id);
+      setAgentToDelete(null);
       console.log('Agent deleted successfully');
     } catch (error) {
       console.error('Failed to delete agent:', error);
@@ -677,7 +681,7 @@ export function AgentsList() {
                   key={agent.id}
                   agent={agent}
                   onView={handleView}
-                  onDelete={handleDelete}
+                  onDelete={setAgentToDelete}
                 />
               ))}
             </div>
@@ -731,7 +735,7 @@ export function AgentsList() {
                       key={agent.id}
                       agent={agent}
                       onView={handleView}
-                      onDelete={handleDelete}
+                      onDelete={setAgentToDelete}
                     />
                   ))}
                 </TableBody>
@@ -758,6 +762,32 @@ export function AgentsList() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Agent Alert Dialog */}
+      <AlertDialog
+        open={!!agentToDelete}
+        onOpenChange={(open) => !open && setAgentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Agent</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{agentToDelete?.name}&quot;?
+              This action cannot be undone and will permanently remove the agent
+              and all associated data including conversations and campaigns.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => agentToDelete && handleDelete(agentToDelete.id)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Agent
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

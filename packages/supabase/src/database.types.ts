@@ -43,89 +43,77 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'accounts_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'accounts_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       agents: {
         Row: {
-          business_id: string;
-          created_at: string | null;
-          created_by: string | null;
-          description: string | null;
-          donor_context: string | null;
-          faqs: Json | null;
           id: string;
-          knowledge_base: Json | null;
           name: string;
-          organization_info: string | null;
+          description: string | null;
+          status: string;
+          voice_type: string;
+          voice_id: string | null;
+          speaking_tone: string;
+          voice_settings: Json | null;
           personality: string | null;
           script_template: string | null;
-          speaking_tone: string | null;
-          status: string;
-          updated_at: string | null;
-          updated_by: string | null;
-          voice_id: string | null;
-          voice_settings: Json | null;
-          voice_type: string | null;
+          organization_info: string | null;
+          donor_context: string | null;
+          faqs: Json | null;
+          knowledge_base: Json | null;
           workflow_config: Json | null;
+          elevenlabs_agent_id: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          business_id: string;
         };
         Insert: {
-          business_id: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
-          donor_context?: string | null;
-          faqs?: Json | null;
           id?: string;
-          knowledge_base?: Json | null;
           name: string;
-          organization_info?: string | null;
+          description?: string | null;
+          status?: string;
+          voice_type?: string;
+          voice_id?: string | null;
+          speaking_tone?: string;
+          voice_settings?: Json | null;
           personality?: string | null;
           script_template?: string | null;
-          speaking_tone?: string | null;
-          status?: string;
-          updated_at?: string | null;
-          updated_by?: string | null;
-          voice_id?: string | null;
-          voice_settings?: Json | null;
-          voice_type?: string | null;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json | null;
+          knowledge_base?: Json | null;
           workflow_config?: Json | null;
+          elevenlabs_agent_id?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id: string;
         };
         Update: {
-          business_id?: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
-          donor_context?: string | null;
-          faqs?: Json | null;
           id?: string;
-          knowledge_base?: Json | null;
           name?: string;
-          organization_info?: string | null;
+          description?: string | null;
+          status?: string;
+          voice_type?: string;
+          voice_id?: string | null;
+          speaking_tone?: string;
+          voice_settings?: Json | null;
           personality?: string | null;
           script_template?: string | null;
-          speaking_tone?: string | null;
-          status?: string;
-          updated_at?: string | null;
-          updated_by?: string | null;
-          voice_id?: string | null;
-          voice_settings?: Json | null;
-          voice_type?: string | null;
+          organization_info?: string | null;
+          donor_context?: string | null;
+          faqs?: Json | null;
+          knowledge_base?: Json | null;
           workflow_config?: Json | null;
+          elevenlabs_agent_id?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          business_id?: string;
         };
         Relationships: [
           {
@@ -151,57 +139,167 @@ export type Database = {
           },
         ];
       };
-      businesses: {
+      audio_generations: {
         Row: {
-          account_id: string;
-          address: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          description: string | null;
           id: string;
-          industry: string | null;
-          logo_url: string | null;
-          name: string;
-          phone: string | null;
-          settings: Json | null;
+          campaign_id: string | null;
+          agent_id: string | null;
+          lead_id: string | null;
+          text_content: string;
+          voice_id: string;
+          voice_settings: Json | null;
           status: string;
+          audio_url: string | null;
+          file_size_bytes: number | null;
+          duration_seconds: number | null;
+          elevenlabs_request_id: string | null;
+          elevenlabs_voice_name: string | null;
+          model_id: string;
+          generation_time_ms: number | null;
+          cost_cents: number | null;
+          cache_hit: boolean;
+          cache_key: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          retry_count: number;
+          created_at: string | null;
           updated_at: string | null;
-          updated_by: string | null;
-          website: string | null;
+          created_by: string | null;
         };
         Insert: {
-          account_id: string;
-          address?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
           id?: string;
-          industry?: string | null;
-          logo_url?: string | null;
-          name: string;
-          phone?: string | null;
-          settings?: Json | null;
+          campaign_id?: string | null;
+          agent_id?: string | null;
+          lead_id?: string | null;
+          text_content: string;
+          voice_id: string;
+          voice_settings?: Json | null;
           status?: string;
+          audio_url?: string | null;
+          file_size_bytes?: number | null;
+          duration_seconds?: number | null;
+          elevenlabs_request_id?: string | null;
+          elevenlabs_voice_name?: string | null;
+          model_id?: string;
+          generation_time_ms?: number | null;
+          cost_cents?: number | null;
+          cache_hit?: boolean;
+          cache_key?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          retry_count?: number;
+          created_at?: string | null;
           updated_at?: string | null;
-          updated_by?: string | null;
-          website?: string | null;
+          created_by?: string | null;
         };
         Update: {
-          account_id?: string;
-          address?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
           id?: string;
-          industry?: string | null;
-          logo_url?: string | null;
-          name?: string;
-          phone?: string | null;
-          settings?: Json | null;
+          campaign_id?: string | null;
+          agent_id?: string | null;
+          lead_id?: string | null;
+          text_content?: string;
+          voice_id?: string;
+          voice_settings?: Json | null;
           status?: string;
+          audio_url?: string | null;
+          file_size_bytes?: number | null;
+          duration_seconds?: number | null;
+          elevenlabs_request_id?: string | null;
+          elevenlabs_voice_name?: string | null;
+          model_id?: string;
+          generation_time_ms?: number | null;
+          cost_cents?: number | null;
+          cache_hit?: boolean;
+          cache_key?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          retry_count?: number;
+          created_at?: string | null;
           updated_at?: string | null;
-          updated_by?: string | null;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audio_generations_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_lead_id_fkey';
+            columns: ['lead_id'];
+            isOneToOne: false;
+            referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'audio_generations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      businesses: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          status: string;
+          account_id: string;
+          industry: string | null;
+          website: string | null;
+          phone: string | null;
+          address: string | null;
+          logo_url: string | null;
+          settings: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: string;
+          account_id: string;
+          industry?: string | null;
           website?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          logo_url?: string | null;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: string;
+          account_id?: string;
+          industry?: string | null;
+          website?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          logo_url?: string | null;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
         };
         Relationships: [
           {
@@ -229,67 +327,67 @@ export type Database = {
       };
       campaigns: {
         Row: {
-          agent_id: string | null;
-          business_id: string;
-          budget: number | null;
-          calling_hours: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          daily_call_cap: number | null;
-          description: string | null;
-          end_date: string | null;
           id: string;
-          max_attempts: number | null;
           name: string;
-          retry_logic: string | null;
-          script: string | null;
-          start_date: string | null;
+          description: string | null;
           status: string;
+          agent_id: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          calling_hours: string;
+          max_attempts: number;
+          daily_call_cap: number;
+          script: string;
+          retry_logic: string;
+          budget: number | null;
           target_amount: number | null;
+          created_at: string | null;
           updated_at: string | null;
+          created_by: string | null;
           updated_by: string | null;
+          business_id: string;
         };
         Insert: {
-          agent_id?: string | null;
-          business_id: string;
-          budget?: number | null;
-          calling_hours?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          daily_call_cap?: number | null;
-          description?: string | null;
-          end_date?: string | null;
           id?: string;
-          max_attempts?: number | null;
           name: string;
-          retry_logic?: string | null;
-          script?: string | null;
-          start_date?: string | null;
+          description?: string | null;
           status?: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script: string;
+          retry_logic?: string;
+          budget?: number | null;
           target_amount?: number | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
+          business_id: string;
         };
         Update: {
-          agent_id?: string | null;
-          business_id?: string;
-          budget?: number | null;
-          calling_hours?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          daily_call_cap?: number | null;
-          description?: string | null;
-          end_date?: string | null;
           id?: string;
-          max_attempts?: number | null;
           name?: string;
-          retry_logic?: string | null;
-          script?: string | null;
-          start_date?: string | null;
+          description?: string | null;
           status?: string;
+          agent_id?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          calling_hours?: string;
+          max_attempts?: number;
+          daily_call_cap?: number;
+          script?: string;
+          retry_logic?: string;
+          budget?: number | null;
           target_amount?: number | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
+          business_id?: string;
         };
         Relationships: [
           {
@@ -324,76 +422,69 @@ export type Database = {
       };
       conversations: {
         Row: {
-          agent_id: string | null;
-          call_sid: string | null;
-          campaign_id: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          duration_seconds: number | null;
-          ended_at: string | null;
           id: string;
-          key_points: Json | null;
-          lead_id: string | null;
-          notes: string | null;
-          outcome: string | null;
-          recording_url: string | null;
-          sentiment_score: number | null;
-          started_at: string | null;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
           status: string;
-          transcript: Json | null;
+          duration_seconds: number | null;
+          call_sid: string | null;
+          recording_url: string | null;
+          transcript: string | null;
+          sentiment_score: number | null;
+          key_points: Json | null;
+          outcome: string | null;
+          notes: string | null;
+          started_at: string | null;
+          ended_at: string | null;
+          created_at: string | null;
           updated_at: string | null;
+          created_by: string | null;
           updated_by: string | null;
         };
         Insert: {
-          agent_id?: string | null;
-          call_sid?: string | null;
-          campaign_id?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          duration_seconds?: number | null;
-          ended_at?: string | null;
           id?: string;
-          key_points?: Json | null;
-          lead_id?: string | null;
-          notes?: string | null;
-          outcome?: string | null;
-          recording_url?: string | null;
-          sentiment_score?: number | null;
-          started_at?: string | null;
+          campaign_id: string;
+          agent_id: string;
+          lead_id: string;
           status?: string;
-          transcript?: Json | null;
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json | null;
+          outcome?: string | null;
+          notes?: string | null;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
         };
         Update: {
-          agent_id?: string | null;
-          call_sid?: string | null;
-          campaign_id?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          duration_seconds?: number | null;
-          ended_at?: string | null;
           id?: string;
-          key_points?: Json | null;
-          lead_id?: string | null;
-          notes?: string | null;
-          outcome?: string | null;
-          recording_url?: string | null;
-          sentiment_score?: number | null;
-          started_at?: string | null;
+          campaign_id?: string;
+          agent_id?: string;
+          lead_id?: string;
           status?: string;
-          transcript?: Json | null;
+          duration_seconds?: number | null;
+          call_sid?: string | null;
+          recording_url?: string | null;
+          transcript?: string | null;
+          sentiment_score?: number | null;
+          key_points?: Json | null;
+          outcome?: string | null;
+          notes?: string | null;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: 'conversations_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'conversations_campaign_id_fkey';
             columns: ['campaign_id'];
@@ -402,10 +493,10 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'conversations_created_by_fkey';
-            columns: ['created_by'];
+            foreignKeyName: 'conversations_agent_id_fkey';
+            columns: ['agent_id'];
             isOneToOne: false;
-            referencedRelation: 'users';
+            referencedRelation: 'agents';
             referencedColumns: ['id'];
           },
           {
@@ -413,6 +504,13 @@ export type Database = {
             columns: ['lead_id'];
             isOneToOne: false;
             referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
           {
@@ -426,49 +524,49 @@ export type Database = {
       };
       integrations: {
         Row: {
-          business_id: string;
-          config: Json | null;
-          created_at: string | null;
-          created_by: string | null;
-          credentials: Json | null;
-          description: string | null;
           id: string;
-          last_sync_at: string | null;
           name: string;
-          status: string;
+          description: string | null;
           type: string;
+          status: string;
+          config: Json | null;
+          credentials: Json | null;
+          last_sync_at: string | null;
+          created_at: string | null;
           updated_at: string | null;
+          created_by: string | null;
           updated_by: string | null;
+          business_id: string;
         };
         Insert: {
-          business_id: string;
-          config?: Json | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          credentials?: Json | null;
-          description?: string | null;
           id?: string;
-          last_sync_at?: string | null;
           name: string;
-          status?: string;
+          description?: string | null;
           type: string;
+          status?: string;
+          config?: Json | null;
+          credentials?: Json | null;
+          last_sync_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
+          business_id: string;
         };
         Update: {
-          business_id?: string;
-          config?: Json | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          credentials?: Json | null;
-          description?: string | null;
           id?: string;
-          last_sync_at?: string | null;
           name?: string;
-          status?: string;
+          description?: string | null;
           type?: string;
+          status?: string;
+          config?: Json | null;
+          credentials?: Json | null;
+          last_sync_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
+          business_id?: string;
         };
         Relationships: [
           {
@@ -496,57 +594,57 @@ export type Database = {
       };
       leads: {
         Row: {
-          attempts: number | null;
-          campaign_id: string | null;
-          company: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          donated_amount: number | null;
-          email: string | null;
           id: string;
-          last_contact_date: string | null;
+          campaign_id: string;
           name: string;
-          notes: string | null;
-          phone: string | null;
-          pledged_amount: number | null;
+          email: string | null;
+          phone: string;
+          company: string | null;
           status: string;
+          notes: string | null;
+          last_contact_date: string | null;
+          attempts: number;
+          pledged_amount: number | null;
+          donated_amount: number | null;
+          created_at: string | null;
           updated_at: string | null;
+          created_by: string | null;
           updated_by: string | null;
         };
         Insert: {
-          attempts?: number | null;
-          campaign_id?: string | null;
-          company?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          donated_amount?: number | null;
-          email?: string | null;
           id?: string;
-          last_contact_date?: string | null;
+          campaign_id: string;
           name: string;
-          notes?: string | null;
-          phone?: string | null;
-          pledged_amount?: number | null;
+          email?: string | null;
+          phone: string;
+          company?: string | null;
           status?: string;
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
         };
         Update: {
-          attempts?: number | null;
-          campaign_id?: string | null;
-          company?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          donated_amount?: number | null;
-          email?: string | null;
           id?: string;
-          last_contact_date?: string | null;
+          campaign_id?: string;
           name?: string;
-          notes?: string | null;
-          phone?: string | null;
-          pledged_amount?: number | null;
+          email?: string | null;
+          phone?: string;
+          company?: string | null;
           status?: string;
+          notes?: string | null;
+          last_contact_date?: string | null;
+          attempts?: number;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
         };
         Relationships: [
@@ -575,46 +673,46 @@ export type Database = {
       };
       team_members: {
         Row: {
-          accepted_at: string | null;
-          business_id: string;
-          created_at: string | null;
           id: string;
-          invited_at: string | null;
-          invited_by: string | null;
-          last_active_at: string | null;
-          permissions: Json | null;
+          business_id: string;
+          user_id: string;
           role: string;
           status: string;
+          permissions: Json | null;
+          invited_by: string | null;
+          invited_at: string | null;
+          accepted_at: string | null;
+          last_active_at: string | null;
+          created_at: string | null;
           updated_at: string | null;
-          user_id: string;
         };
         Insert: {
-          accepted_at?: string | null;
-          business_id: string;
-          created_at?: string | null;
           id?: string;
-          invited_at?: string | null;
-          invited_by?: string | null;
-          last_active_at?: string | null;
-          permissions?: Json | null;
+          business_id: string;
+          user_id: string;
           role?: string;
           status?: string;
+          permissions?: Json | null;
+          invited_by?: string | null;
+          invited_at?: string | null;
+          accepted_at?: string | null;
+          last_active_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
-          user_id: string;
         };
         Update: {
-          accepted_at?: string | null;
-          business_id?: string;
-          created_at?: string | null;
           id?: string;
-          invited_at?: string | null;
-          invited_by?: string | null;
-          last_active_at?: string | null;
-          permissions?: Json | null;
+          business_id?: string;
+          user_id?: string;
           role?: string;
           status?: string;
+          permissions?: Json | null;
+          invited_by?: string | null;
+          invited_at?: string | null;
+          accepted_at?: string | null;
+          last_active_at?: string | null;
+          created_at?: string | null;
           updated_at?: string | null;
-          user_id?: string;
         };
         Relationships: [
           {
@@ -625,15 +723,15 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'team_members_invited_by_fkey';
-            columns: ['invited_by'];
+            foreignKeyName: 'team_members_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'team_members_user_id_fkey';
-            columns: ['user_id'];
+            foreignKeyName: 'team_members_invited_by_fkey';
+            columns: ['invited_by'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
@@ -642,46 +740,43 @@ export type Database = {
       };
       workflows: {
         Row: {
-          agent_id: string | null;
-          business_id: string;
-          created_at: string | null;
-          created_by: string | null;
-          description: string | null;
           id: string;
-          is_default: boolean | null;
           name: string;
+          description: string | null;
+          agent_id: string;
           status: string;
+          version: number;
+          is_default: boolean;
+          created_at: string | null;
           updated_at: string | null;
+          created_by: string | null;
           updated_by: string | null;
-          version: number | null;
         };
         Insert: {
-          agent_id?: string | null;
-          business_id: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
           id?: string;
-          is_default?: boolean | null;
           name: string;
+          description?: string | null;
+          agent_id: string;
           status?: string;
+          version?: number;
+          is_default?: boolean;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
-          version?: number | null;
         };
         Update: {
-          agent_id?: string | null;
-          business_id?: string;
-          created_at?: string | null;
-          created_by?: string | null;
-          description?: string | null;
           id?: string;
-          is_default?: boolean | null;
           name?: string;
+          description?: string | null;
+          agent_id?: string;
           status?: string;
+          version?: number;
+          is_default?: boolean;
+          created_at?: string | null;
           updated_at?: string | null;
+          created_by?: string | null;
           updated_by?: string | null;
-          version?: number | null;
         };
         Relationships: [
           {
@@ -709,59 +804,45 @@ export type Database = {
       };
       workflow_edges: {
         Row: {
+          id: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle: string | null;
+          target_handle: string | null;
+          label: string | null;
           condition: Json | null;
           created_at: string | null;
-          edge_id: string | null;
-          id: string;
-          label: string | null;
-          source_handle: string | null;
-          source_node_id: string | null;
-          target_handle: string | null;
-          target_node_id: string | null;
           updated_at: string | null;
-          workflow_id: string | null;
         };
         Insert: {
+          id?: string;
+          workflow_id: string;
+          edge_id: string;
+          source_node_id: string;
+          target_node_id: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
           condition?: Json | null;
           created_at?: string | null;
-          edge_id?: string | null;
-          id?: string;
-          label?: string | null;
-          source_handle?: string | null;
-          source_node_id?: string | null;
-          target_handle?: string | null;
-          target_node_id?: string | null;
           updated_at?: string | null;
-          workflow_id?: string | null;
         };
         Update: {
+          id?: string;
+          workflow_id?: string;
+          edge_id?: string;
+          source_node_id?: string;
+          target_node_id?: string;
+          source_handle?: string | null;
+          target_handle?: string | null;
+          label?: string | null;
           condition?: Json | null;
           created_at?: string | null;
-          edge_id?: string | null;
-          id?: string;
-          label?: string | null;
-          source_handle?: string | null;
-          source_node_id?: string | null;
-          target_handle?: string | null;
-          target_node_id?: string | null;
           updated_at?: string | null;
-          workflow_id?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: 'workflow_edges_source_node_id_fkey';
-            columns: ['source_node_id'];
-            isOneToOne: false;
-            referencedRelation: 'workflow_nodes';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'workflow_edges_target_node_id_fkey';
-            columns: ['target_node_id'];
-            isOneToOne: false;
-            referencedRelation: 'workflow_nodes';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'workflow_edges_workflow_id_fkey';
             columns: ['workflow_id'];
@@ -773,43 +854,37 @@ export type Database = {
       };
       workflow_nodes: {
         Row: {
-          config: Json | null;
-          created_at: string | null;
-          data: Json | null;
           id: string;
-          name: string;
-          node_id: string | null;
-          position_x: number | null;
-          position_y: number | null;
+          workflow_id: string;
+          node_id: string;
           type: string;
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at: string | null;
           updated_at: string | null;
-          workflow_id: string | null;
         };
         Insert: {
-          config?: Json | null;
-          created_at?: string | null;
-          data?: Json | null;
           id?: string;
-          name: string;
-          node_id?: string | null;
-          position_x?: number | null;
-          position_y?: number | null;
+          workflow_id: string;
+          node_id: string;
           type: string;
+          position_x: number;
+          position_y: number;
+          data: Json;
+          created_at?: string | null;
           updated_at?: string | null;
-          workflow_id?: string | null;
         };
         Update: {
-          config?: Json | null;
-          created_at?: string | null;
-          data?: Json | null;
           id?: string;
-          name?: string;
-          node_id?: string | null;
-          position_x?: number | null;
-          position_y?: number | null;
+          workflow_id?: string;
+          node_id?: string;
           type?: string;
+          position_x?: number;
+          position_y?: number;
+          data?: Json;
+          created_at?: string | null;
           updated_at?: string | null;
-          workflow_id?: string | null;
         };
         Relationships: [
           {
@@ -829,16 +904,35 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
-      agent_status: 'active' | 'inactive' | 'suspended';
       business_status: 'active' | 'inactive' | 'suspended';
-      campaign_status: 'draft' | 'active' | 'paused' | 'completed';
-      conversation_status: 'initiated' | 'in_progress' | 'completed' | 'failed';
-      integration_status: 'active' | 'inactive' | 'error';
-      lead_status: 'new' | 'contacted' | 'pledged' | 'failed';
       team_member_status: 'active' | 'invited' | 'suspended' | 'left';
       team_role: 'owner' | 'admin' | 'member' | 'viewer';
-      voice_type: 'ai_generated' | 'custom';
+      agent_status: 'active' | 'inactive' | 'draft';
+      voice_type: 'ai_generated' | 'human' | 'custom';
+      audio_generation_status:
+        | 'pending'
+        | 'processing'
+        | 'completed'
+        | 'failed';
+      campaign_status: 'draft' | 'active' | 'paused' | 'completed';
+      call_status: 'queued' | 'initiated' | 'answered' | 'ended' | 'failed';
+      campaign_execution_status:
+        | 'pending'
+        | 'running'
+        | 'paused'
+        | 'completed'
+        | 'failed';
+      queue_status: 'pending' | 'processing' | 'completed' | 'failed';
+      conversation_status: 'initiated' | 'active' | 'ended' | 'failed';
+      integration_status: 'active' | 'inactive' | 'error';
+      lead_status: 'new' | 'contacted' | 'pledged' | 'failed';
       workflow_status: 'draft' | 'active' | 'archived';
+      update_type: 'info' | 'warning' | 'error' | 'success';
+      event_type:
+        | 'call_started'
+        | 'call_ended'
+        | 'conversation_event'
+        | 'system_event';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -859,8 +953,44 @@ export type Tables<
     ? Database['public']['Tables'][PublicTableNameOrOptions]
     : never;
 
-export type TablesInsert<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert'];
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof Database['public']['Tables']
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: any;
+    }
+    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Insert']
+    : never
+  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
+    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+        Insert: any;
+      }
+      ? Database['public']['Tables'][PublicTableNameOrOptions]['Insert']
+      : never
+    : never;
 
-export type TablesUpdate<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update'];
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof Database['public']['Tables']
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: any;
+    }
+    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Update']
+    : never
+  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
+    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+        Update: any;
+      }
+      ? Database['public']['Tables'][PublicTableNameOrOptions]['Update']
+      : never
+    : never;

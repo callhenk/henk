@@ -35,6 +35,7 @@
     }
   },
   "devDependencies": {
+    "@elevenlabs/react": "^0.4.5",
     "@manypkg/cli": "^0.24.0",
     "@turbo/gen": "^2.5.0",
     "@types/papaparse": "^5.3.16",

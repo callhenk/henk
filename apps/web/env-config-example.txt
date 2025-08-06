@@ -1,50 +1,15 @@
-# HENK AI ENVIRONMENT CONFIGURATION
-# Copy this to .env.local and update with your actual values
+# Environment Configuration Example
+# Copy this file to .env.local and fill in your values
 
-# SITE CONFIGURATION
-NEXT_PUBLIC_SITE_URL=https://app.callhenk.com
-NEXT_PUBLIC_PRODUCT_NAME=Henk
-NEXT_PUBLIC_SITE_TITLE="Henk - AI-Powered Voice Fundraising Platform"
-NEXT_PUBLIC_SITE_DESCRIPTION="Henk enables charities to engage donors through natural phone conversations at scale. Reduce operational costs while improving donor experience and conversion rates."
-NEXT_PUBLIC_DEFAULT_LOCALE=en
-NEXT_PUBLIC_DEFAULT_THEME_MODE=light
-NEXT_PUBLIC_THEME_COLOR="#ffffff"
-NEXT_PUBLIC_THEME_COLOR_DARK="#0a0a0a"
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# AUTHENTICATION
-NEXT_PUBLIC_AUTH_PASSWORD=true
-NEXT_PUBLIC_AUTH_MAGIC_LINK=false
-NEXT_PUBLIC_CAPTCHA_SITE_KEY=
+# ElevenLabs Configuration
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+NEXT_PUBLIC_ELEVENLABS_API_KEY=your_elevenlabs_api_key
 
-# LOCALIZATION
-NEXT_PUBLIC_LOCALES_PATH=apps/web/public/locales
-
-# FEATURE FLAGS
-NEXT_PUBLIC_ENABLE_THEME_TOGGLE=true
-NEXT_PUBLIC_LANGUAGE_PRIORITY=application
-NEXT_PUBLIC_ENABLE_PERSONAL_ACCOUNT_DELETION=true
-
-# VOICE & AI CONFIGURATION
-NEXT_PUBLIC_ENABLE_VOICE_FEATURES=true
-NEXT_PUBLIC_ENABLE_AI_CONVERSATIONS=true
-
-# FUNDRAISING FEATURES
-NEXT_PUBLIC_ENABLE_CAMPAIGN_MANAGEMENT=true
-NEXT_PUBLIC_ENABLE_DONOR_ANALYTICS=true
-NEXT_PUBLIC_ENABLE_CRM_INTEGRATION=true
-
-# SUPABASE CONFIGURATION (Add your actual values)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
-
-# TWILIO CONFIGURATION (Add your actual values)
-TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
-TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
-TWILIO_CALLER_ID=your_verified_twilio_number_here
-
-# ELEVENLABS CONFIGURATION (Add your actual values)
-ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
-
-# LOGGING
-LOGGER=pino 
+# Other Configuration
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000 

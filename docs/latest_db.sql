@@ -1,5 +1,4 @@
 -- WARNING: This schema is for context only and is not meant to be run.
-
 -- Table order and constraints may not be valid for execution.
 
 CREATE TABLE public.accounts (
@@ -34,10 +33,13 @@ CREATE TABLE public.agents (
   created_by uuid,
   updated_by uuid,
   business_id uuid NOT NULL,
+  voice_settings jsonb DEFAULT '{"stability": 0.5, "similarity_boost": 0.75}'::jsonb,
+  personality text,
+  script_template text,
   CONSTRAINT agents_pkey PRIMARY KEY (id),
-  CONSTRAINT agents_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT agents_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id),
   CONSTRAINT agents_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
-  CONSTRAINT agents_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id)
+  CONSTRAINT agents_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.audio_generations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -65,10 +67,10 @@ CREATE TABLE public.audio_generations (
   updated_at timestamp with time zone DEFAULT now(),
   created_by uuid,
   CONSTRAINT audio_generations_pkey PRIMARY KEY (id),
-  CONSTRAINT audio_generations_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
-  CONSTRAINT audio_generations_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
+  CONSTRAINT audio_generations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
   CONSTRAINT audio_generations_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
-  CONSTRAINT audio_generations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+  CONSTRAINT audio_generations_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
+  CONSTRAINT audio_generations_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id)
 );
 CREATE TABLE public.businesses (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -87,9 +89,9 @@ CREATE TABLE public.businesses (
   created_by uuid,
   updated_by uuid,
   CONSTRAINT businesses_pkey PRIMARY KEY (id),
+  CONSTRAINT businesses_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
   CONSTRAINT businesses_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id),
-  CONSTRAINT businesses_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT businesses_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+  CONSTRAINT businesses_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.call_attempts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -111,8 +113,8 @@ CREATE TABLE public.call_attempts (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT call_attempts_pkey PRIMARY KEY (id),
   CONSTRAINT call_attempts_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
-  CONSTRAINT call_attempts_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
   CONSTRAINT call_attempts_call_log_id_fkey FOREIGN KEY (call_log_id) REFERENCES public.call_logs(id),
+  CONSTRAINT call_attempts_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
   CONSTRAINT call_attempts_audio_generation_id_fkey FOREIGN KEY (audio_generation_id) REFERENCES public.audio_generations(id)
 );
 CREATE TABLE public.call_logs (
@@ -150,11 +152,11 @@ CREATE TABLE public.call_logs (
   updated_at timestamp with time zone DEFAULT now(),
   created_by uuid,
   CONSTRAINT call_logs_pkey PRIMARY KEY (id),
-  CONSTRAINT call_logs_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
   CONSTRAINT call_logs_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
   CONSTRAINT call_logs_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
   CONSTRAINT call_logs_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.conversations(id),
-  CONSTRAINT call_logs_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+  CONSTRAINT call_logs_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT call_logs_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id)
 );
 CREATE TABLE public.campaign_executions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -187,8 +189,8 @@ CREATE TABLE public.campaign_executions (
   updated_at timestamp with time zone DEFAULT now(),
   created_by uuid,
   CONSTRAINT campaign_executions_pkey PRIMARY KEY (id),
-  CONSTRAINT campaign_executions_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
-  CONSTRAINT campaign_executions_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+  CONSTRAINT campaign_executions_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT campaign_executions_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id)
 );
 CREATE TABLE public.campaign_queue (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -210,9 +212,9 @@ CREATE TABLE public.campaign_queue (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT campaign_queue_pkey PRIMARY KEY (id),
-  CONSTRAINT campaign_queue_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
+  CONSTRAINT campaign_queue_audio_generation_id_fkey FOREIGN KEY (audio_generation_id) REFERENCES public.audio_generations(id),
   CONSTRAINT campaign_queue_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
-  CONSTRAINT campaign_queue_audio_generation_id_fkey FOREIGN KEY (audio_generation_id) REFERENCES public.audio_generations(id)
+  CONSTRAINT campaign_queue_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id)
 );
 CREATE TABLE public.campaigns (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -235,10 +237,10 @@ CREATE TABLE public.campaigns (
   updated_by uuid,
   business_id uuid NOT NULL,
   CONSTRAINT campaigns_pkey PRIMARY KEY (id),
-  CONSTRAINT campaigns_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
+  CONSTRAINT campaigns_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id),
   CONSTRAINT campaigns_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT campaigns_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
-  CONSTRAINT campaigns_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id)
+  CONSTRAINT campaigns_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
+  CONSTRAINT campaigns_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.conversation_events (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -282,11 +284,11 @@ CREATE TABLE public.conversations (
   created_by uuid,
   updated_by uuid,
   CONSTRAINT conversations_pkey PRIMARY KEY (id),
+  CONSTRAINT conversations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT conversations_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
   CONSTRAINT conversations_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
   CONSTRAINT conversations_agent_id_fkey FOREIGN KEY (agent_id) REFERENCES public.agents(id),
-  CONSTRAINT conversations_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id),
-  CONSTRAINT conversations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT conversations_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+  CONSTRAINT conversations_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id)
 );
 CREATE TABLE public.integrations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -303,9 +305,9 @@ CREATE TABLE public.integrations (
   updated_by uuid,
   business_id uuid NOT NULL,
   CONSTRAINT integrations_pkey PRIMARY KEY (id),
-  CONSTRAINT integrations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
   CONSTRAINT integrations_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
-  CONSTRAINT integrations_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id)
+  CONSTRAINT integrations_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id),
+  CONSTRAINT integrations_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.leads (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -325,8 +327,8 @@ CREATE TABLE public.leads (
   created_by uuid,
   updated_by uuid,
   CONSTRAINT leads_pkey PRIMARY KEY (id),
-  CONSTRAINT leads_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
   CONSTRAINT leads_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT leads_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
   CONSTRAINT leads_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.performance_metrics (
@@ -359,8 +361,8 @@ CREATE TABLE public.status_updates (
   expires_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT status_updates_pkey PRIMARY KEY (id),
-  CONSTRAINT status_updates_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id),
-  CONSTRAINT status_updates_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id)
+  CONSTRAINT status_updates_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id),
+  CONSTRAINT status_updates_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.campaigns(id)
 );
 CREATE TABLE public.team_members (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

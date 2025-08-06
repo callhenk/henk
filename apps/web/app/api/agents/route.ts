@@ -63,6 +63,18 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
+    // Prepare voice settings with ElevenLabs integration
+    const voiceSettings = body.voice_settings || {
+      stability: 0.5,
+      similarity_boost: 0.75,
+      style: 0.0,
+      use_speaker_boost: true,
+      // ElevenLabs integration settings
+      elevenlabs_enabled: true,
+      enable_voice_testing: true,
+      fallback_to_simulation: true,
+    };
+
     const { data: agent, error } = await supabase
       .from('agents')
       .insert({
@@ -71,14 +83,15 @@ export async function POST(request: NextRequest) {
         voice_id: body.voice_id,
         voice_type: body.voice_type || 'ai_generated',
         speaking_tone: body.speaking_tone || 'professional',
-        voice_settings: body.voice_settings || {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
+        voice_settings: voiceSettings,
         personality: body.personality,
         script_template: body.script_template,
         status: 'active',
         business_id: body.business_id || 'default-business-id', // You'll need to get this from auth context
+        // Additional ElevenLabs fields
+        organization_info: body.organization_info,
+        donor_context: body.donor_context,
+        faqs: body.faqs ? JSON.parse(body.faqs) : null,
       })
       .select()
       .single();

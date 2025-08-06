@@ -48,6 +48,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
+import { AgentTesting } from './agent-testing';
 import { FAQEditor } from './faq-editor';
 import { KnowledgeUpload } from './knowledge-upload';
 import { WorkflowBuilder } from './workflow-builder/index';
@@ -457,7 +458,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-5">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">
             Overview
           </TabsTrigger>
@@ -469,6 +470,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           </TabsTrigger>
           <TabsTrigger value="workflow" className="text-xs sm:text-sm">
             Workflow
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="text-xs sm:text-sm">
+            Testing
           </TabsTrigger>
         </TabsList>
 
@@ -1074,6 +1078,11 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         {/* Workflow Tab */}
         <TabsContent value="workflow" className="mt-6">
           <WorkflowBuilder />
+        </TabsContent>
+
+        {/* Testing Tab */}
+        <TabsContent value="testing" className="mt-6">
+          <AgentTesting agentId={agentId} />
         </TabsContent>
       </Tabs>
     </div>

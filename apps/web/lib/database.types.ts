@@ -62,6 +62,7 @@ export type Database = {
           faqs: Json | null;
           knowledge_base: Json | null;
           workflow_config: Json | null;
+          elevenlabs_agent_id: string | null;
           created_at: string | null;
           updated_at: string | null;
           created_by: string | null;
@@ -84,6 +85,7 @@ export type Database = {
           faqs?: Json | null;
           knowledge_base?: Json | null;
           workflow_config?: Json | null;
+          elevenlabs_agent_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
           created_by?: string | null;
@@ -106,6 +108,7 @@ export type Database = {
           faqs?: Json | null;
           knowledge_base?: Json | null;
           workflow_config?: Json | null;
+          elevenlabs_agent_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
           created_by?: string | null;

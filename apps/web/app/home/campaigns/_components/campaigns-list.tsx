@@ -34,7 +34,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@kit/ui/alert-dialog';
 import { Button } from '@kit/ui/button';
 import {
@@ -87,6 +86,8 @@ export function CampaignsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [campaignToDelete, setCampaignToDelete] =
+    useState<EnhancedCampaign | null>(null);
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
@@ -234,6 +235,7 @@ export function CampaignsList() {
   const handleDeleteCampaign = async (campaignId: string) => {
     try {
       await deleteCampaignMutation.mutateAsync(campaignId);
+      setCampaignToDelete(null);
       console.log('Campaign deleted successfully');
     } catch (error) {
       console.error('Failed to delete campaign:', error);
@@ -328,12 +330,40 @@ export function CampaignsList() {
             <TabsContent value={selectedTab} className="mt-6">
               <CampaignsTable
                 campaigns={filteredCampaigns}
-                onDeleteCampaign={handleDeleteCampaign}
+                onDeleteCampaign={setCampaignToDelete}
               />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Delete Campaign Alert Dialog */}
+      <AlertDialog
+        open={!!campaignToDelete}
+        onOpenChange={(open) => !open && setCampaignToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{campaignToDelete?.name}
+              &quot;? This action cannot be undone and will permanently remove
+              all associated data including leads and conversations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                campaignToDelete && handleDeleteCampaign(campaignToDelete.id)
+              }
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Campaign
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -343,7 +373,7 @@ function CampaignsTable({
   onDeleteCampaign,
 }: {
   campaigns: EnhancedCampaign[];
-  onDeleteCampaign: (campaignId: string) => Promise<void>;
+  onDeleteCampaign: (campaign: EnhancedCampaign) => void;
 }) {
   const router = useRouter();
   const getConversionRate = (contacted: number, conversions: number) => {
@@ -451,34 +481,13 @@ function CampaignsTable({
                     <Archive className="mr-2 h-4 w-4" />
                     Archive
                   </DropdownMenuItem>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete &quot;{campaign.name}
-                          &quot;? This action cannot be undone and will
-                          permanently remove all associated data including leads
-                          and conversations.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDeleteCampaign(campaign.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete Campaign
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => onDeleteCampaign(campaign)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
