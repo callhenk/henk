@@ -6,9 +6,7 @@ import {
   Bot,
   MessageSquare,
   Mic,
-  MicOff,
   Phone,
-  PhoneOff,
   RotateCcw,
   Send,
   User,
@@ -48,6 +46,12 @@ interface AgentTestingProps {
 }
 
 export function AgentTesting({ agentId }: AgentTestingProps) {
+  const [agentInfo, setAgentInfo] = useState<{
+    name: string;
+    voice_id: string;
+    status: string;
+    elevenlabs_agent_id: string;
+  } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -61,27 +65,29 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
     volume: 0.7,
     isMuted: false,
   });
-
-  const [agentInfo, setAgentInfo] = useState<{
-    name: string;
-    voice_id: string;
-    status: string;
-    elevenlabs_agent_id: string;
-  } | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Load agent information
   useEffect(() => {
     loadAgentInfo();
   }, [agentId]);
 
+  // Recording timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
   const loadAgentInfo = async () => {
     try {
-      // This would call your Edge Function to get agent details
       const response = await fetch(`/api/agents/${agentId}`);
       if (response.ok) {
         const data = await response.json();
@@ -98,7 +104,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
     try {
       setIsLoading(true);
 
-      // Get user and business context
       const userResponse = await fetch('/api/auth/user');
       const userData = await userResponse.json();
 
@@ -109,7 +114,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
         throw new Error('Failed to get user or business context');
       }
 
-      // Call Edge Function to start voice conversation
       const response = await fetch('/api/agent-conversation', {
         method: 'POST',
         headers: {
@@ -131,7 +135,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
           setConversationId(responseData.data.conversation_id);
           setVoiceSettings((prev) => ({ ...prev, isConnected: true }));
 
-          // Add welcome message
           addMessage(
             'agent',
             responseData.data.message ||
@@ -188,22 +191,23 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
 
   // Send text message
   const sendTextMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage = inputMessage.trim();
-    setInputMessage('');
-
-    // Add user message
-    addMessage('user', userMessage);
-    setIsLoading(true);
+    if (!inputMessage.trim() || isLoading) return;
 
     try {
-      // Get user context
+      setIsLoading(true);
+      const message = inputMessage.trim();
+      setInputMessage('');
+
+      addMessage('user', message);
+
       const userResponse = await fetch('/api/auth/user');
       const userData = await userResponse.json();
 
-      if (!userData.success) {
-        throw new Error('Failed to get user context');
+      const businessResponse = await fetch('/api/auth/business');
+      const businessData = await businessResponse.json();
+
+      if (!userData.success || !businessData.success) {
+        throw new Error('Failed to get user or business context');
       }
 
       const response = await fetch('/api/agent-conversation', {
@@ -214,9 +218,9 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
         body: JSON.stringify({
           agent_id: agentId,
           account_id: userData.data.id,
-          conversation_id: conversationId,
-          message: userMessage,
+          business_id: businessData.data.id,
           conversation_type: 'text',
+          message,
         }),
       });
 
@@ -236,36 +240,35 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      addMessage('agent', 'Sorry, I encountered an error. Please try again.');
       toast.error('Failed to send message');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Start voice recording
+  // Start recording audio
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
 
+      const chunks: Blob[] = [];
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        chunks.push(event.data);
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/wav',
-        });
+        const audioBlob = new Blob(chunks, { type: 'audio/wav' });
         await sendVoiceMessage(audioBlob);
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
       setVoiceSettings((prev) => ({ ...prev, isRecording: true }));
 
-      // Add user message indicator
       addMessage('user', '🎤 Recording...', true);
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -273,23 +276,18 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
     }
   };
 
-  // Stop voice recording
+  // Stop recording
   const stopRecording = () => {
-    if (mediaRecorderRef.current && voiceSettings.isRecording) {
+    if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
+      setIsRecording(false);
       setVoiceSettings((prev) => ({ ...prev, isRecording: false }));
-
-      // Stop all tracks
-      mediaRecorderRef.current.stream
-        .getTracks()
-        .forEach((track) => track.stop());
     }
   };
 
   // Send voice message
   const sendVoiceMessage = async (audioBlob: Blob) => {
     try {
-      // Get user context
       const userResponse = await fetch('/api/auth/user');
       const userData = await userResponse.json();
 
@@ -299,7 +297,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
 
       const formData = new FormData();
 
-      // Add JSON data
       const jsonData = {
         agent_id: agentId,
         account_id: userData.data.id,
@@ -319,7 +316,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
         const responseData = await response.json();
 
         if (responseData.success) {
-          // Remove the "Recording..." message and add the actual response
           setMessages((prev) =>
             prev.filter((msg) => msg.content !== '🎤 Recording...'),
           );
@@ -328,7 +324,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
             responseData.data.message || responseData.data.response,
           );
 
-          // Play agent's audio response if available
           if (responseData.data.audio_url) {
             playAudioResponse(responseData.data.audio_url);
           }
@@ -348,7 +343,6 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
   const playAudioResponse = (audioUrl: string) => {
     if (audioRef.current) {
       audioRef.current.src = audioUrl;
-      audioRef.current.volume = voiceSettings.volume;
       audioRef.current.play();
       setVoiceSettings((prev) => ({ ...prev, isPlaying: true }));
     }
@@ -373,7 +367,7 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
   // Clear conversation
   const clearConversation = () => {
     setMessages([]);
-    setConversationId(null);
+    setRecordingTime(0);
   };
 
   // Handle key press for text input
@@ -384,32 +378,55 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
     }
   };
 
+  // Format recording time
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="space-y-6">
-      {/* Agent Information */}
+      {/* Agent Info Card */}
       {agentInfo && (
-        <Card>
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              {agentInfo.name}
+            <CardTitle className="flex items-center gap-3">
+              <div className="rounded-lg bg-blue-100 p-2">
+                <Bot className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {agentInfo.name}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  AI Agent for Fundraising & Donor Outreach
+                </p>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Voice ID</Label>
-                <p className="text-muted-foreground">{agentInfo.voice_id}</p>
-              </div>
-              <div>
-                <Label>Status</Label>
+                <Label className="text-sm font-medium text-gray-700">
+                  Status
+                </Label>
                 <Badge
                   variant={
                     agentInfo.status === 'active' ? 'default' : 'secondary'
                   }
+                  className="mt-1"
                 >
                   {agentInfo.status}
                 </Badge>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  Voice ID
+                </Label>
+                <p className="mt-1 text-sm text-gray-600">
+                  {agentInfo.voice_id || 'Not configured'}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -417,19 +434,25 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
       )}
 
       {/* Testing Interface */}
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Agent Testing</span>
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-green-100 p-2">
+                <MessageSquare className="h-5 w-5 text-green-600" />
+              </div>
+              <span>Agent Testing Interface</span>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={clearConversation}
                 disabled={messages.length === 0}
+                className="flex items-center gap-2"
               >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Clear
+                <RotateCcw className="h-4 w-4" />
+                Clear Chat
               </Button>
             </div>
           </CardTitle>
@@ -440,42 +463,59 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
             onValueChange={(value) =>
               setTestMode(value as 'text' | 'voice' | 'realtime')
             }
+            className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="text" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1">
+              <TabsTrigger
+                value="text"
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
                 <MessageSquare className="h-4 w-4" />
                 Text Chat
               </TabsTrigger>
-              <TabsTrigger value="voice" className="flex items-center gap-2">
+              <TabsTrigger
+                value="voice"
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
                 <Mic className="h-4 w-4" />
                 Voice Chat
               </TabsTrigger>
-              <TabsTrigger value="realtime" className="flex items-center gap-2">
+              <TabsTrigger
+                value="realtime"
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
                 <Phone className="h-4 w-4" />
                 Real-time Voice
               </TabsTrigger>
             </TabsList>
 
             {/* Text Chat Tab */}
-            <TabsContent value="text" className="space-y-4">
+            <TabsContent value="text" className="mt-6 space-y-4">
               {/* Messages */}
-              <div className="h-96 space-y-4 overflow-y-auto rounded-lg border p-4">
+              <div className="h-96 space-y-4 overflow-y-auto rounded-lg border bg-gray-50 p-4">
                 {messages.length === 0 ? (
                   <div className="text-muted-foreground py-8 text-center">
                     <MessageSquare className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>Start a conversation with your agent</p>
+                    <p className="text-lg font-medium">Start a conversation</p>
+                    <p className="text-sm text-gray-500">
+                      Type a message below to begin chatting with your agent
+                    </p>
                   </div>
                 ) : (
                   messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${
+                        message.type === 'user'
+                          ? 'justify-end'
+                          : 'justify-start'
+                      }`}
                     >
                       <div
-                        className={`max-w-xs rounded-lg px-4 py-2 lg:max-w-md ${
+                        className={`max-w-xs rounded-lg px-4 py-2 shadow-sm lg:max-w-md ${
                           message.type === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                            ? 'bg-blue-500 text-white'
+                            : 'border border-gray-200 bg-white'
                         }`}
                       >
                         <div className="mb-1 flex items-center gap-2">
@@ -495,7 +535,7 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                 )}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg px-4 py-2">
+                    <div className="rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-sm">
                       <div className="flex items-center gap-2">
                         <Bot className="h-3 w-3" />
                         <span className="text-xs opacity-70">
@@ -513,13 +553,14 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="flex-1"
+                  placeholder="Type your message here..."
+                  className="flex-1 resize-none"
                   rows={2}
                 />
                 <Button
                   onClick={sendTextMessage}
                   disabled={!inputMessage.trim() || isLoading}
+                  className="px-6"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
@@ -527,11 +568,15 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
             </TabsContent>
 
             {/* Voice Chat Tab */}
-            <TabsContent value="voice" className="space-y-4">
+            <TabsContent value="voice" className="mt-6 space-y-4">
               {/* Voice Controls */}
               <div className="flex items-center justify-center gap-4">
                 {!voiceSettings.isConnected ? (
-                  <Button onClick={startVoiceConversation} disabled={isLoading}>
+                  <Button
+                    onClick={startVoiceConversation}
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-6 py-3"
+                  >
                     <Phone className="mr-2 h-4 w-4" />
                     Start Voice Chat
                   </Button>
@@ -547,14 +592,15 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                           : startRecording
                       }
                       disabled={!voiceSettings.isConnected}
+                      className="flex items-center gap-2 px-6 py-3"
                     >
                       {voiceSettings.isRecording ? (
-                        <MicOff className="mr-2 h-4 w-4" />
+                        <Mic className="mr-2 h-4 w-4" />
                       ) : (
                         <Mic className="mr-2 h-4 w-4" />
                       )}
                       {voiceSettings.isRecording
-                        ? 'Stop Recording'
+                        ? `Stop Recording (${formatRecordingTime(recordingTime)})`
                         : 'Start Recording'}
                     </Button>
 
@@ -562,8 +608,9 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                       variant="outline"
                       onClick={stopVoiceConversation}
                       disabled={!voiceSettings.isConnected}
+                      className="flex items-center gap-2 px-6 py-3"
                     >
-                      <PhoneOff className="mr-2 h-4 w-4" />
+                      <Phone className="mr-2 h-4 w-4" />
                       End Call
                     </Button>
 
@@ -576,6 +623,7 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                           isMuted: !prev.isMuted,
                         }))
                       }
+                      className="p-3"
                     >
                       {voiceSettings.isMuted ? (
                         <VolumeX className="h-4 w-4" />
@@ -589,8 +637,8 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
 
               {/* Voice Status */}
               {voiceSettings.isConnected && (
-                <Alert>
-                  <AlertDescription className="flex items-center gap-2">
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="flex items-center gap-2 text-green-800">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
                     Voice conversation active
                   </AlertDescription>
@@ -598,23 +646,32 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
               )}
 
               {/* Messages (same as text chat) */}
-              <div className="h-96 space-y-4 overflow-y-auto rounded-lg border p-4">
+              <div className="h-96 space-y-4 overflow-y-auto rounded-lg border bg-gray-50 p-4">
                 {messages.length === 0 ? (
                   <div className="text-muted-foreground py-8 text-center">
                     <Mic className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>Start a voice conversation with your agent</p>
+                    <p className="text-lg font-medium">
+                      Start a voice conversation
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Click "Start Voice Chat" to begin talking with your agent
+                    </p>
                   </div>
                 ) : (
                   messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${
+                        message.type === 'user'
+                          ? 'justify-end'
+                          : 'justify-start'
+                      }`}
                     >
                       <div
-                        className={`max-w-xs rounded-lg px-4 py-2 lg:max-w-md ${
+                        className={`max-w-xs rounded-lg px-4 py-2 shadow-sm lg:max-w-md ${
                           message.type === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                            ? 'bg-blue-500 text-white'
+                            : 'border border-gray-200 bg-white'
                         }`}
                       >
                         <div className="mb-1 flex items-center gap-2">
@@ -636,7 +693,7 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
             </TabsContent>
 
             {/* Real-time Voice Chat Tab */}
-            <TabsContent value="realtime" className="space-y-4">
+            <TabsContent value="realtime" className="mt-6 space-y-4">
               {agentInfo ? (
                 agentInfo.elevenlabs_agent_id ? (
                   <RealtimeVoiceChat
@@ -648,10 +705,13 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
                 ) : (
                   <div className="text-muted-foreground py-8 text-center">
                     <Bot className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>
+                    <p className="text-lg font-medium">
+                      ElevenLabs Integration Required
+                    </p>
+                    <p className="text-sm text-gray-500">
                       This agent doesn't have ElevenLabs integration configured.
                     </p>
-                    <p className="text-sm">
+                    <p className="text-sm text-gray-500">
                       Please create the agent with ElevenLabs voice settings.
                     </p>
                   </div>
@@ -659,7 +719,9 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
               ) : (
                 <div className="text-muted-foreground py-8 text-center">
                   <Bot className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                  <p>Loading agent information...</p>
+                  <p className="text-lg font-medium">
+                    Loading agent information...
+                  </p>
                 </div>
               )}
             </TabsContent>

@@ -88,7 +88,7 @@ import {
   TimePicker,
 } from '~/components/shared';
 
-import { CampaignControls } from '../_components/campaign-controls';
+import { CampaignControls } from '../../_components/campaign-controls';
 import { CSVUpload } from './csv-upload';
 import { ReassignAgentDialog } from './reassign-agent-dialog';
 
