@@ -637,20 +637,21 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       )}
 
       {/* Header with Agent Name and Talk to Agent Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={handleBack} size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Agents
+            <span className="hidden sm:inline">Back to Agents</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center space-x-2">
               {editingName ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex w-full items-center space-x-2">
                   <Input
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}
-                    className="h-8 text-2xl font-bold"
+                    className="h-8 flex-1 text-lg font-bold sm:text-2xl"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleSaveField('name', agentName);
@@ -679,20 +680,24 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl font-bold">{agentName}</h1>
+                <div className="flex min-w-0 items-center space-x-2">
+                  <h1 className="truncate text-lg font-bold sm:text-2xl">
+                    {agentName}
+                  </h1>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setEditingName(true)}
-                    className="h-6 w-6 p-0"
+                    className="h-6 w-6 flex-shrink-0 p-0"
                   >
                     <Edit className="h-3 w-3" />
                   </Button>
                 </div>
               )}
             </div>
-            <p className="text-muted-foreground">{agent.description}</p>
+            <p className="text-muted-foreground truncate text-sm">
+              {agent.description}
+            </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -703,31 +708,44 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             size="sm"
           >
             <Phone className="h-4 w-4" />
-            Start Voice Chat
+            <span className="hidden sm:inline">Start Voice Chat</span>
+            <span className="sm:hidden">Chat</span>
           </Button>
         </div>
       </div>
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+        <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4 sm:gap-2">
+          <TabsTrigger
+            value="overview"
+            className="px-2 text-xs sm:px-3 sm:text-sm"
+          >
             Overview
           </TabsTrigger>
-          <TabsTrigger value="knowledge" className="text-xs sm:text-sm">
-            Knowledge Base
+          <TabsTrigger
+            value="knowledge"
+            className="px-2 text-xs sm:px-3 sm:text-sm"
+          >
+            Knowledge
           </TabsTrigger>
-          <TabsTrigger value="voice" className="text-xs sm:text-sm">
-            Voice & Tone
+          <TabsTrigger
+            value="voice"
+            className="px-2 text-xs sm:px-3 sm:text-sm"
+          >
+            Voice
           </TabsTrigger>
-          <TabsTrigger value="workflow" className="text-xs sm:text-sm">
+          <TabsTrigger
+            value="workflow"
+            className="px-2 text-xs sm:px-3 sm:text-sm"
+          >
             Workflow
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
             {/* Stats Cards */}
             <div className="lg:col-span-2">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
@@ -897,7 +915,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
         {/* Knowledge Base Tab */}
         <TabsContent value="knowledge" className="mt-6">
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -912,7 +930,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 <Textarea
                   value={organizationInfo}
                   onChange={(e) => setOrganizationInfo(e.target.value)}
-                  className="min-h-[200px] resize-none"
+                  className="min-h-[150px] resize-none sm:min-h-[200px]"
                   placeholder="Enter organization information..."
                 />
                 {hasOrganizationChanges && (
@@ -947,7 +965,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 <Textarea
                   value={startingMessage}
                   onChange={(e) => setStartingMessage(e.target.value)}
-                  className="min-h-[150px] resize-none"
+                  className="min-h-[120px] resize-none sm:min-h-[150px]"
                   placeholder="Enter the starting message for the agent (e.g., 'Hello, this is [Agent Name] calling from [Organization]. How are you today?')"
                 />
                 {hasStartingMessageChanges && (
@@ -992,8 +1010,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
             {/* Floating Debug Panel - Only show in development/staging */}
             {process.env.NODE_ENV === 'development' && (
-              <div className="fixed right-4 bottom-4 z-50">
-                <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+              <div className="fixed right-2 bottom-4 z-50 sm:right-4">
+                <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:p-3">
                   <div className="mb-2 flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     <span className="text-xs font-medium text-gray-700">
@@ -1051,7 +1069,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 <Textarea
                   value={donorContext}
                   onChange={(e) => setDonorContext(e.target.value)}
-                  className="min-h-[200px] resize-none"
+                  className="min-h-[150px] resize-none sm:min-h-[200px]"
                   placeholder="Enter the prompt or context for the agent."
                 />
                 {hasDonorContextChanges && (
