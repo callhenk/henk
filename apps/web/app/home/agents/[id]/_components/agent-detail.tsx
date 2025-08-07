@@ -13,7 +13,6 @@ import {
   Phone,
   Play,
   TrendingUp,
-  Upload,
   Users,
   Volume2,
   Workflow,
@@ -48,8 +47,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
+import { EnhancedKnowledgeBase } from './enhanced-knowledge-base';
 import { FAQEditor } from './faq-editor';
-import { KnowledgeUpload } from './knowledge-upload';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
 import { WorkflowBuilder } from './workflow-builder/index';
 
@@ -127,6 +126,17 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
   // State for agent training
   const [isTrainingAgent, setIsTrainingAgent] = useState(false);
+  const [isCheckingKnowledgeBase, setIsCheckingKnowledgeBase] = useState(false);
+  const [knowledgeBaseStatus, setKnowledgeBaseStatus] = useState<{
+    hasDocuments: boolean;
+    documentCount: number;
+    documentTypes: string[];
+    lastUpdated?: string;
+    error?: string;
+    hasKnowledgeBaseConfigured?: boolean;
+    agentPromptLength?: number;
+  } | null>(null);
+  const [isLinkingKnowledgeBase, setIsLinkingKnowledgeBase] = useState(false);
 
   // Initialize form data when agent loads
   useEffect(() => {
@@ -413,6 +423,164 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       );
     } finally {
       setIsTrainingAgent(false);
+    }
+  };
+
+  const checkKnowledgeBaseAccess = async () => {
+    if (!agent?.elevenlabs_agent_id) {
+      toast.error('No ElevenLabs agent ID found');
+      return;
+    }
+
+    setIsCheckingKnowledgeBase(true);
+    try {
+      // Check knowledge base documents
+      const kbResponse = await fetch('/api/elevenlabs-agent/knowledge-base');
+      if (!kbResponse.ok) {
+        throw new Error(
+          `Failed to fetch knowledge base: ${kbResponse.statusText}`,
+        );
+      }
+      const kbData = await kbResponse.json();
+
+      // Check agent details to see if knowledge base is configured
+      const agentResponse = await fetch(
+        `/api/elevenlabs-agent/details/${agent.elevenlabs_agent_id}`,
+      );
+      if (!agentResponse.ok) {
+        throw new Error(
+          `Failed to fetch agent details: ${agentResponse.statusText}`,
+        );
+      }
+      const agentData = await agentResponse.json();
+
+      const documents = kbData.data?.documents || [];
+      const documentTypes = [
+        ...new Set(documents.map((doc: { type: string }) => doc.type)),
+      ];
+
+      const status = {
+        hasDocuments: documents.length > 0,
+        documentCount: documents.length,
+        documentTypes: documentTypes as string[],
+        lastUpdated:
+          documents.length > 0
+            ? new Date(
+                Math.max(
+                  ...documents.map(
+                    (doc: { metadata?: { created_at_unix_secs?: number } }) =>
+                      (doc.metadata?.created_at_unix_secs || 0) * 1000,
+                  ),
+                ),
+              ).toISOString()
+            : undefined,
+        error: undefined,
+      };
+
+      // Check if agent has knowledge base configured
+      const agentConfig = agentData.data?.conversation_config?.agent?.prompt;
+      const hasKnowledgeBaseConfigured =
+        agentConfig?.knowledge_base &&
+        Array.isArray(agentConfig.knowledge_base) &&
+        agentConfig.knowledge_base.length > 0;
+
+      setKnowledgeBaseStatus({
+        ...status,
+        hasKnowledgeBaseConfigured,
+        agentPromptLength: agentConfig?.prompt?.length || 0,
+      });
+
+      console.log('Knowledge Base Status:', status);
+      console.log('Agent Knowledge Base Config:', agentConfig?.knowledge_base);
+
+      if (documents.length === 0) {
+        toast.warning(
+          'No knowledge base documents found. Add documents to enable knowledge base access.',
+        );
+      } else if (!hasKnowledgeBaseConfigured) {
+        toast.warning(
+          'Knowledge base documents exist but agent is not configured to use them. Try training the agent.',
+        );
+      } else {
+        toast.success(
+          `Knowledge base access verified! ${documents.length} documents available.`,
+        );
+      }
+    } catch (error) {
+      console.error('Error checking knowledge base access:', error);
+      setKnowledgeBaseStatus({
+        hasDocuments: false,
+        documentCount: 0,
+        documentTypes: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      toast.error(
+        `Knowledge base check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setIsCheckingKnowledgeBase(false);
+    }
+  };
+
+  const linkKnowledgeBaseToAgent = async () => {
+    if (!agent?.elevenlabs_agent_id) {
+      toast.error('No ElevenLabs agent ID found');
+      return;
+    }
+
+    setIsLinkingKnowledgeBase(true);
+    try {
+      // First, get all knowledge base documents
+      const kbResponse = await fetch('/api/elevenlabs-agent/knowledge-base');
+      if (!kbResponse.ok) {
+        throw new Error(
+          `Failed to fetch knowledge base: ${kbResponse.statusText}`,
+        );
+      }
+      const kbData = await kbResponse.json();
+      const documents = kbData.data?.documents || [];
+
+      if (documents.length === 0) {
+        toast.error(
+          'No knowledge base documents found. Please add documents first.',
+        );
+        return;
+      }
+
+      // Extract document IDs for knowledge base
+      const knowledgeBaseIds = documents.map((doc: { id: string }) => doc.id);
+
+      const updateResponse = await fetch(`/api/elevenlabs-agent/update`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agent_id: agent.elevenlabs_agent_id,
+          knowledge_base_ids: knowledgeBaseIds,
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json().catch(() => ({}));
+        throw new Error(
+          `Failed to link knowledge base: ${errorData.detail || updateResponse.statusText}`,
+        );
+      }
+
+      toast.success(
+        `Successfully linked ${knowledgeBaseIds.length} documents to agent!`,
+      );
+
+      // Refresh the knowledge base status
+      await checkKnowledgeBaseAccess();
+    } catch (error) {
+      console.error('Error linking knowledge base:', error);
+      toast.error(
+        `Failed to link knowledge base: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setIsLinkingKnowledgeBase(false);
     }
   };
 
@@ -1008,6 +1176,90 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </Card>
             )}
 
+            {/* Knowledge Base Status Display */}
+            {knowledgeBaseStatus && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Knowledge Base Status
+                  </CardTitle>
+                  <CardDescription>
+                    Current knowledge base access status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Documents Available:
+                      </span>
+                      <Badge
+                        variant={
+                          knowledgeBaseStatus.hasDocuments
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {knowledgeBaseStatus.documentCount} documents
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Agent Configured:
+                      </span>
+                      <Badge
+                        variant={
+                          knowledgeBaseStatus.hasKnowledgeBaseConfigured
+                            ? 'default'
+                            : 'destructive'
+                        }
+                      >
+                        {knowledgeBaseStatus.hasKnowledgeBaseConfigured
+                          ? 'Yes'
+                          : 'No'}
+                      </Badge>
+                    </div>
+                    {knowledgeBaseStatus.documentTypes.length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          Document Types:
+                        </span>
+                        <div className="flex gap-1">
+                          {knowledgeBaseStatus.documentTypes.map((type) => (
+                            <Badge
+                              key={type}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {type}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {knowledgeBaseStatus.hasDocuments &&
+                      !knowledgeBaseStatus.hasKnowledgeBaseConfigured && (
+                        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
+                          <p className="text-sm text-orange-800">
+                            <strong>⚠️ Action Required:</strong> Documents exist
+                            but agent is not configured to use them. Click
+                            &ldquo;Link KB to Agent&rdquo; in debug tools.
+                          </p>
+                        </div>
+                      )}
+                    {knowledgeBaseStatus.error && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                        <p className="text-sm text-red-800">
+                          <strong>Error:</strong> {knowledgeBaseStatus.error}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Floating Debug Panel - Only show in development/staging */}
             {process.env.NODE_ENV === 'development' && (
               <div className="fixed right-2 bottom-4 z-50 sm:right-4">
@@ -1051,6 +1303,42 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         </>
                       ) : (
                         'Train Agent'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={checkKnowledgeBaseAccess}
+                      disabled={
+                        isCheckingKnowledgeBase || !agent?.elevenlabs_agent_id
+                      }
+                      className="w-full"
+                    >
+                      {isCheckingKnowledgeBase ? (
+                        <>
+                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                          Checking...
+                        </>
+                      ) : (
+                        'Check KB Access'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={linkKnowledgeBaseToAgent}
+                      disabled={
+                        isLinkingKnowledgeBase || !agent?.elevenlabs_agent_id
+                      }
+                      className="w-full"
+                    >
+                      {isLinkingKnowledgeBase ? (
+                        <>
+                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                          Linking...
+                        </>
+                      ) : (
+                        'Link KB to Agent'
                       )}
                     </Button>
                   </div>
@@ -1113,27 +1401,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Knowledge Documents
-                </CardTitle>
-                <CardDescription>
-                  Upload documents and files to enhance your agent&apos;s
-                  knowledge base
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <KnowledgeUpload
-                  agentId={agentId}
-                  onSaveSuccess={() => {
-                    setSaveSuccess('Knowledge documents saved successfully!');
-                    setTimeout(() => setSaveSuccess(null), 3000);
-                  }}
-                />
-              </CardContent>
-            </Card>
+            <EnhancedKnowledgeBase
+              _agentId={agentId}
+              elevenlabsAgentId={agent?.elevenlabs_agent_id || undefined}
+            />
           </div>
         </TabsContent>
 

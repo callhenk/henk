@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Parse request body
-    const { agent_id, updates } = await request.json();
+    const { agent_id, updates, knowledge_base_objects } = await request.json();
 
     if (!agent_id) {
       return NextResponse.json(
@@ -50,8 +50,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Transform updates to match ElevenLabs API structure
-    let transformedUpdates = updates;
-    if (updates.voice_id) {
+    let transformedUpdates = updates || {};
+    if (updates && updates.voice_id) {
       transformedUpdates = {
         conversation_config: {
           tts: {
@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest) {
       delete transformedUpdates.voice_id;
     }
 
-    if (updates.starting_message) {
+    if (updates && updates.starting_message) {
       transformedUpdates = {
         conversation_config: {
           agent: {
@@ -74,6 +74,55 @@ export async function PATCH(request: NextRequest) {
       // Remove starting_message from root level if it exists
       delete transformedUpdates.starting_message;
     }
+
+    // Handle knowledge base linking (array of objects)
+    if (knowledge_base_objects) {
+      console.log('Linking knowledge base objects to agent:', {
+        agent_id,
+        knowledge_base_objects,
+      });
+
+      // First get current agent configuration
+      const agentResponse = await fetch(
+        `https://api.elevenlabs.io/v1/convai/agents/${agent_id}`,
+        {
+          headers: {
+            'xi-api-key': apiKey,
+          },
+        },
+      );
+
+      if (!agentResponse.ok) {
+        throw new Error(
+          `Failed to fetch agent details: ${agentResponse.statusText}`,
+        );
+      }
+
+      const agentData = await agentResponse.json();
+      const currentPrompt = agentData.conversation_config?.agent?.prompt || {};
+
+      transformedUpdates = {
+        conversation_config: {
+          agent: {
+            prompt: {
+              ...currentPrompt,
+              knowledge_base: knowledge_base_objects,
+            },
+          },
+        },
+      };
+
+      console.log(
+        'Transformed updates for knowledge base:',
+        transformedUpdates,
+      );
+    }
+
+    console.log('Making API call to ElevenLabs:', {
+      url: `https://api.elevenlabs.io/v1/convai/agents/${agent_id}`,
+      method: 'PATCH',
+      body: transformedUpdates,
+    });
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/agents/${agent_id}`,
