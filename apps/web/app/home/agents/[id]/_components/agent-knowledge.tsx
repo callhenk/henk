@@ -59,9 +59,9 @@ export function AgentKnowledge({
   return (
     <div className="mx-auto max-w-7xl">
       {/* Hero Section */}
-      <div className="mb-12 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50">
-          <BookOpen className="h-8 w-8 text-blue-600" />
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-50 to-slate-50">
+          <BookOpen className="h-8 w-8 text-gray-600" />
         </div>
         <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
           Agent Knowledge
@@ -73,7 +73,7 @@ export function AgentKnowledge({
       </div>
 
       {/* Stats Overview */}
-      <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-3 sm:gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -85,8 +85,8 @@ export function AgentKnowledge({
               </p>
               <p className="text-xs text-gray-500">characters</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-              <BookOpen className="h-5 w-5 text-blue-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
+              <BookOpen className="h-5 w-5 text-gray-600" />
             </div>
           </div>
         </div>
@@ -127,15 +127,15 @@ export function AgentKnowledge({
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         {/* Left Column - Core Settings */}
-        <div className="space-y-8">
+        <div className="space-y-4 lg:space-y-6">
           {/* Organization Information */}
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-50">
+                  <BookOpen className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -174,7 +174,7 @@ export function AgentKnowledge({
           </div>
 
           {/* Starting Message */}
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
@@ -217,7 +217,7 @@ export function AgentKnowledge({
           </div>
 
           {/* Context Prompt */}
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
@@ -259,9 +259,9 @@ export function AgentKnowledge({
         </div>
 
         {/* Right Column - Advanced Features */}
-        <div className="space-y-8">
+        <div className="space-y-4 lg:space-y-6">
           {/* FAQs */}
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50">
@@ -290,7 +290,7 @@ export function AgentKnowledge({
           </div>
 
           {/* Knowledge Base */}
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">

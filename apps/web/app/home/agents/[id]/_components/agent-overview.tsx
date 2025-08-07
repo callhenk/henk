@@ -3,13 +3,6 @@
 import { Clock, Phone, TrendingUp, Users } from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
 
 interface AgentOverviewProps {
   agent: {
@@ -19,6 +12,7 @@ interface AgentOverviewProps {
     status: string;
     voice_type?: string | null;
     updated_at?: string | null;
+    starting_message?: string | null;
   };
   conversations: Array<{
     agent_id: string;
@@ -81,133 +75,209 @@ export function AgentOverview({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
-      {/* Stats Cards */}
-      <div className="lg:col-span-2">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Calls Handled
-              </CardTitle>
-              <Phone className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{callsHandled}</div>
-              <p className="text-muted-foreground text-xs">Total calls made</p>
-            </CardContent>
-          </Card>
+    <div className="mx-auto max-w-7xl">
+      {/* Hero Section */}
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50">
+          <Users className="h-8 w-8 text-blue-600" />
+        </div>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          Agent Overview
+        </h1>
+        <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          Monitor your agent&apos;s performance, track key metrics, and manage
+          campaign assignments.
+        </p>
+      </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Conversion Rate
-              </CardTitle>
-              <TrendingUp className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conversionRate}%</div>
-              <p className="text-muted-foreground text-xs">Successful calls</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Hours
-              </CardTitle>
-              <Clock className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeHours}</div>
-              <p className="text-muted-foreground text-xs">Hours this month</p>
-            </CardContent>
-          </Card>
+      {/* Stats Overview */}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Calls Handled</p>
+              <p className="text-2xl font-bold text-gray-900">{callsHandled}</p>
+              <p className="text-xs text-gray-500">Total calls made</p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
+              <Phone className="h-5 w-5 text-blue-600" />
+            </div>
+          </div>
         </div>
 
-        {/* Agent Details */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Agent Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Conversion Rate
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {conversionRate}%
+              </p>
+              <p className="text-xs text-gray-500">Successful calls</p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Hours</p>
+              <p className="text-2xl font-bold text-gray-900">{activeHours}</p>
+              <p className="text-xs text-gray-500">Hours this month</p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50">
+              <Clock className="h-5 w-5 text-purple-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left Column - Agent Details & Campaigns */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Agent Details */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Agent Details
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Key information about your agent
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <label className="text-sm font-medium text-gray-600">
                   Language
                 </label>
-                <p className="text-base">English</p>
+                <p className="mt-1 text-lg font-semibold text-gray-900">
+                  English
+                </p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <label className="text-sm font-medium text-gray-600">
                   Voice Type
                 </label>
-                <p className="text-base">
+                <p className="mt-1 text-lg font-semibold text-gray-900">
                   {getVoiceTypeLabel(agent.voice_type)}
                 </p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <label className="text-sm font-medium text-gray-600">
                   Last Edited
                 </label>
-                <p className="text-base">
+                <p className="mt-1 text-lg font-semibold text-gray-900">
                   {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Linked Campaigns */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Linked Campaigns</CardTitle>
-            <CardDescription>
-              Campaigns this agent is assigned to
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {agentCampaigns.map((campaign, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <span className="font-medium">{campaign.name}</span>
-                  <Badge
-                    variant="outline"
-                    className="hover:bg-muted transition-colors"
-                  >
-                    Active
-                  </Badge>
+          {/* Linked Campaigns */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Linked Campaigns
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Campaigns this agent is assigned to
+                  </p>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="space-y-3">
+              {agentCampaigns.length > 0 ? (
+                agentCampaigns.map((campaign, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                  >
+                    <span className="font-medium text-gray-900">
+                      {campaign.name}
+                    </span>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+                      Active
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
+                  <p className="text-sm text-gray-500">
+                    No campaigns assigned yet
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-      {/* Sidebar */}
-      <div className="space-y-4 sm:space-y-6 lg:col-span-1">
-        {/* Default Script */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Default Script</CardTitle>
-            <CardDescription>
-              The agent&apos;s primary conversation starter
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-muted rounded-lg p-4">
-              <p className="text-sm">
-                {agent.description || 'No script available'}
+        {/* Right Column - Agent Info */}
+        <div className="space-y-6 lg:col-span-1">
+          {/* Agent Description */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
+                  <Users className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Agent Description
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Overview and details about your agent
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm text-gray-700">
+                {agent.description || 'No description available'}
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Starting Message */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                  <Users className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Starting Message
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    The initial message the agent uses when starting a call
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm text-gray-700">
+                {agent.starting_message || 'No starting message available'}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

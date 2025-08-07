@@ -519,68 +519,70 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       />
 
       {/* Tabbed Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4 sm:gap-2">
-          <TabsTrigger
-            value="overview"
-            className="px-2 text-xs sm:px-3 sm:text-sm"
-          >
-            Overview
-          </TabsTrigger>
-          <TabsTrigger
-            value="knowledge"
-            className="px-2 text-xs sm:px-3 sm:text-sm"
-          >
-            Knowledge
-          </TabsTrigger>
-          <TabsTrigger
-            value="voice"
-            className="px-2 text-xs sm:px-3 sm:text-sm"
-          >
-            Voice
-          </TabsTrigger>
-          <TabsTrigger
-            value="workflow"
-            className="px-2 text-xs sm:px-3 sm:text-sm"
-          >
-            Workflow
-          </TabsTrigger>
-        </TabsList>
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 gap-1 rounded-lg bg-gray-50 p-1 sm:grid-cols-4 sm:gap-2">
+            <TabsTrigger
+              value="overview"
+              className="rounded-md px-2 py-2 text-xs font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm sm:px-3 sm:text-sm"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="knowledge"
+              className="rounded-md px-2 py-2 text-xs font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm sm:px-3 sm:text-sm"
+            >
+              Knowledge
+            </TabsTrigger>
+            <TabsTrigger
+              value="voice"
+              className="rounded-md px-2 py-2 text-xs font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm sm:px-3 sm:text-sm"
+            >
+              Voice
+            </TabsTrigger>
+            <TabsTrigger
+              value="workflow"
+              className="rounded-md px-2 py-2 text-xs font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm sm:px-3 sm:text-sm"
+            >
+              Workflow
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-6">
-          <AgentOverview
-            agent={agent}
-            conversations={conversations}
-            campaigns={campaigns}
-          />
-        </TabsContent>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="mt-4 sm:mt-6">
+            <AgentOverview
+              agent={agent}
+              conversations={conversations}
+              campaigns={campaigns}
+            />
+          </TabsContent>
 
-        {/* Knowledge Base Tab */}
-        <TabsContent value="knowledge" className="my-6">
-          <AgentKnowledge
-            agent={agent}
-            onSaveField={handleSaveField}
-            savingField={savingField}
-            onSaveSuccess={handleSaveSuccess}
-          />
-        </TabsContent>
+          {/* Knowledge Base Tab */}
+          <TabsContent value="knowledge" className="my-4 sm:my-6">
+            <AgentKnowledge
+              agent={agent}
+              onSaveField={handleSaveField}
+              savingField={savingField}
+              onSaveSuccess={handleSaveSuccess}
+            />
+          </TabsContent>
 
-        {/* Voice & Tone Tab */}
-        <TabsContent value="voice" className="mt-6">
-          <AgentVoice
-            agent={agent}
-            voices={voices}
-            onSaveField={handleSaveField}
-            onVoiceUpdate={handleVoiceUpdate}
-          />
-        </TabsContent>
+          {/* Voice & Tone Tab */}
+          <TabsContent value="voice" className="mt-4 sm:mt-6">
+            <AgentVoice
+              agent={agent}
+              voices={voices}
+              onSaveField={handleSaveField}
+              onVoiceUpdate={handleVoiceUpdate}
+            />
+          </TabsContent>
 
-        {/* Workflow Tab */}
-        <TabsContent value="workflow" className="mt-6">
-          <WorkflowBuilder />
-        </TabsContent>
-      </Tabs>
+          {/* Workflow Tab */}
+          <TabsContent value="workflow" className="mt-4 sm:mt-6">
+            <WorkflowBuilder />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Voice Chat Modal */}
       {showVoiceChat && (
