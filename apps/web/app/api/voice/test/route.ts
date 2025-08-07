@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const EDGE_FUNCTIONS_BASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL + '/functions/v1';
+import { ElevenLabsClient } from '~/lib/elevenlabs-client';
+import { getSupabaseServerClient } from '~/lib/supabase/server';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
 interface VoiceTestRequest {
   voice_id: string;
@@ -10,6 +16,26 @@ interface VoiceTestRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    const supabase = getSupabaseServerClient();
+
+    // Get authenticated user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401, headers: corsHeaders },
+      );
+    }
+
     const body: VoiceTestRequest = await request.json();
 
     const { voice_id, sample_text } = body;
@@ -22,72 +48,54 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Missing required fields: voice_id, sample_text',
         },
-        { status: 400 },
+        { status: 400, headers: corsHeaders },
       );
     }
 
-    // Call the edge function to test voice
-    const edgeFunctionUrl = `${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-test-voice`;
-    console.log('Calling edge function:', edgeFunctionUrl);
+    // Get ElevenLabs API key
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'ElevenLabs API key not configured' },
+        { status: 500, headers: corsHeaders },
+      );
+    }
 
-    const response = await fetch(edgeFunctionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({
-        voice_id,
-        sample_text,
-      }),
+    // Initialize ElevenLabs client
+    const elevenLabs = new ElevenLabsClient(apiKey);
+
+    // Generate test speech
+    const result = await elevenLabs.generateSpeech({
+      text: sample_text,
+      voice_id,
     });
 
-    console.log('Edge function response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Edge function error:', errorText);
-      throw new Error(
-        `Edge function error: ${response.statusText} - ${errorText}`,
-      );
-    }
-
-    const result = await response.json();
-    console.log('Edge function result:', result);
-
-    if (result.success) {
-      return NextResponse.json({
+    return NextResponse.json(
+      {
         success: true,
         data: {
           testId: `test_${Date.now()}`,
           voice_id,
           sample_text,
-          audio_url: result.data.audio_url,
-          duration_seconds: result.data.duration_seconds,
-          file_size_bytes: result.data.file_size_bytes,
-          voice_name: result.data.voice_name,
+          audio_url: `data:audio/mpeg;base64,${Buffer.from(result.audio).toString('base64')}`,
+          duration_seconds: result.duration,
+          file_size_bytes: result.audio.byteLength,
+          voice_name: 'Test Voice',
           status: 'completed',
           timestamp: new Date().toISOString(),
         },
-        demo_mode: result.demo_mode,
-      });
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error || 'Failed to test voice',
-        },
-        { status: 400 },
-      );
-    }
+        demo_mode: false,
+      },
+      { headers: corsHeaders },
+    );
   } catch (error) {
     console.error('POST /api/voice/test error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to test voice',
+        error: error instanceof Error ? error.message : 'Failed to test voice',
       },
-      { status: 500 },
+      { status: 500, headers: corsHeaders },
     );
   }
 }
