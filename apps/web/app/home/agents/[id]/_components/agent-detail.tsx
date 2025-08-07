@@ -862,8 +862,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   className="min-h-[150px] resize-none"
                   placeholder="Enter the starting message for the agent (e.g., 'Hello, this is [Agent Name] calling from [Organization]. How are you today?')"
                 />
-                <div className="flex items-center justify-between">
-                  {hasStartingMessageChanges && (
+                {hasStartingMessageChanges && (
+                  <div className="flex justify-end">
                     <Button
                       size="sm"
                       onClick={() =>
@@ -875,25 +875,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         ? 'Saving...'
                         : 'Save Starting Message'}
                     </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={checkElevenLabsAgentDetails}
-                    disabled={
-                      isLoadingAgentDetails || !agent?.elevenlabs_agent_id
-                    }
-                  >
-                    {isLoadingAgentDetails ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
-                        Loading...
-                      </>
-                    ) : (
-                      'Check Agent Details'
-                    )}
-                  </Button>
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -918,6 +901,36 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 </CardContent>
               </Card>
             )}
+
+            {/* Floating Debug Panel */}
+            <div className="fixed right-4 bottom-4 z-50">
+              <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span className="text-xs font-medium text-gray-700">
+                    Debug Tools
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={checkElevenLabsAgentDetails}
+                  disabled={
+                    isLoadingAgentDetails || !agent?.elevenlabs_agent_id
+                  }
+                  className="w-full"
+                >
+                  {isLoadingAgentDetails ? (
+                    <>
+                      <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                      Loading...
+                    </>
+                  ) : (
+                    'Check Agent Details'
+                  )}
+                </Button>
+              </div>
+            </div>
 
             <Card>
               <CardHeader>
