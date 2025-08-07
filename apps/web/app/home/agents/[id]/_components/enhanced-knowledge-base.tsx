@@ -14,13 +14,6 @@ import {
 
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
 import {
@@ -457,57 +450,64 @@ export function EnhancedKnowledgeBase({
 
   if (!elevenlabsAgentId) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            ElevenLabs Knowledge Base
-          </CardTitle>
-          <CardDescription>
-            No ElevenLabs agent ID found. Please ensure the agent is properly
-            configured.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="rounded-xl border p-6 shadow-sm">
+        <div className="mb-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Knowledge Base</h3>
+              <p className="text-muted-foreground text-sm">
+                No ElevenLabs agent ID found. Please ensure the agent is
+                properly configured.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                ElevenLabs Knowledge Base
-              </CardTitle>
-              <CardDescription>
-                Manage knowledge documents that your agent can access during
-                conversations
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
+    <>
+      <div className="space-y-6">
+        <div className="rounded-xl border p-6 shadow-sm">
+          <div className="mb-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Knowledge Base</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Manage knowledge documents that your agent can access during
+                    conversations
+                  </p>
+                </div>
+              </div>
               <Button onClick={() => setShowAddForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Document
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-                <p className="text-muted-foreground">Loading documents...</p>
+                <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-current"></div>
+                <p className="text-muted-foreground text-sm">
+                  Loading documents...
+                </p>
               </div>
             </div>
           ) : documents.length === 0 ? (
             <div className="py-8 text-center">
               <BookOpen className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
               <h3 className="mb-2 text-lg font-semibold">No documents yet</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-4 text-sm">
                 Add knowledge documents to help your agent provide better
                 responses
               </p>
@@ -517,7 +517,7 @@ export function EnhancedKnowledgeBase({
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {documents.map((doc) => {
                 const isLinked = isDocumentLinked(doc.id);
                 const linkedInfo = getLinkedDocumentInfo(doc.id);
@@ -526,26 +526,18 @@ export function EnhancedKnowledgeBase({
                 return (
                   <div
                     key={doc.id}
-                    className={`flex items-center justify-between rounded-lg border p-4 ${
-                      isLinked ? 'border-green-200 bg-green-50' : ''
-                    }`}
+                    className="flex items-center justify-between rounded-lg border p-4"
                   >
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
                         checked={isDocSelected(doc.id)}
                         onChange={() => toggleDocSelection(doc.id)}
-                        className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="h-4 w-4 rounded border-2 focus:ring-2 focus:ring-offset-2"
                         aria-label={`Select ${doc.name}`}
                         disabled={isUnlinking}
                       />
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
-                          isLinked
-                            ? 'bg-green-100 ring-2 ring-green-200'
-                            : 'bg-blue-100'
-                        }`}
-                      >
+                      <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
                         {getDocumentTypeIconComponent(doc.type)}
                       </div>
                       <div className="flex-1">
@@ -553,15 +545,7 @@ export function EnhancedKnowledgeBase({
                           <h4 className="font-medium">{doc.name}</h4>
                           {isLinked && (
                             <div className="flex items-center gap-1">
-                              <div className="flex items-center gap-1">
-                                <Link className="h-3 w-3 text-green-600" />
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-green-100 text-green-800"
-                                >
-                                  Linked
-                                </Badge>
-                              </div>
+                              <Badge variant="default">Linked</Badge>
                               {linkedInfo?.usage_mode && (
                                 <Badge variant="outline" className="text-xs">
                                   {linkedInfo.usage_mode}
@@ -599,7 +583,7 @@ export function EnhancedKnowledgeBase({
                             href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline"
+                            className="text-sm hover:underline"
                           >
                             {doc.url}
                           </a>
@@ -613,7 +597,6 @@ export function EnhancedKnowledgeBase({
                           size="sm"
                           onClick={() => unlinkDocument(doc.id)}
                           disabled={isUnlinking}
-                          className="text-orange-600 hover:text-orange-700"
                         >
                           {isUnlinking ? (
                             <>
@@ -632,7 +615,6 @@ export function EnhancedKnowledgeBase({
                         variant="ghost"
                         size="sm"
                         onClick={() => showDeleteConfirmation(doc)}
-                        className="text-red-600 hover:text-red-700"
                         disabled={isUnlinking}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -658,8 +640,6 @@ export function EnhancedKnowledgeBase({
             <Button
               onClick={linkSelectedKnowledgeBaseToAgent}
               disabled={selectedDocs.length === 0 || linkingDocs}
-              variant="default"
-              className="px-4"
             >
               {linkingDocs ? (
                 <>
@@ -671,10 +651,9 @@ export function EnhancedKnowledgeBase({
               )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Add Document Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
@@ -739,15 +718,15 @@ export function EnhancedKnowledgeBase({
 
               {documentType === 'file' && (
                 <div className="space-y-4">
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">
-                    <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-                    <p className="mb-2 text-sm text-gray-600">
+                  <div className="rounded-lg border-2 border-dashed p-6 text-center">
+                    <Upload className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                    <p className="text-muted-foreground mb-2 text-sm">
                       Upload a file to add to your knowledge base
                     </p>
-                    <p className="mb-4 text-xs text-gray-500">
+                    <p className="text-muted-foreground mb-4 text-xs">
                       Supported: PDF, DOCX, TXT, HTML, EPUB (max 10MB)
                     </p>
-                    <p className="mb-2 text-xs text-orange-600">
+                    <p className="text-muted-foreground mb-2 text-xs">
                       Note: Some PDF files may not upload successfully. If you
                       encounter issues, try converting to TXT or use a different
                       file format.
@@ -769,21 +748,25 @@ export function EnhancedKnowledgeBase({
                     />
                     <label
                       htmlFor="file-upload"
-                      className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      className="hover:bg-muted cursor-pointer rounded-md px-4 py-2 text-sm font-medium"
                     >
                       Choose File
                     </label>
                   </div>
                   {selectedFile && (
-                    <div className="rounded-lg border bg-green-50 p-3">
+                    <div className="rounded-lg border p-3">
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                        <span className="text-sm font-medium text-green-800">
-                          File selected: {selectedFile.name}
+                        <span className="text-sm font-medium">
+                          File selected: {selectedFile?.name || 'Unknown'}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-green-600">
-                        Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        Size:{' '}
+                        {selectedFile
+                          ? (selectedFile.size / 1024 / 1024).toFixed(2)
+                          : '0'}{' '}
+                        MB
                       </p>
                     </div>
                   )}
@@ -828,35 +811,32 @@ export function EnhancedKnowledgeBase({
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && documentToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-lg bg-white p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                <Trash2 className="h-5 w-5 text-red-600" />
+              <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full">
+                <Trash2 className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold">
                   Delete Knowledge Document
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-muted-foreground text-sm">
                   This action cannot be undone
                 </p>
               </div>
             </div>
 
-            <div className="mb-6 rounded-lg border bg-gray-50 p-4">
+            <div className="mb-6 rounded-lg border p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                  {getDocumentTypeIconComponent(documentToDelete.type)}
+                <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
+                  {getDocumentTypeIconComponent(documentToDelete!.type)}
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
-                    {documentToDelete.name}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Type: {documentToDelete.type}
+                  <h4 className="font-medium">{documentToDelete!.name}</h4>
+                  <p className="text-muted-foreground text-sm">
+                    Type: {documentToDelete!.type}
                   </p>
                 </div>
               </div>
@@ -873,9 +853,9 @@ export function EnhancedKnowledgeBase({
               </Button>
               <Button
                 variant="destructive"
-                onClick={() => deleteDocument(documentToDelete.id)}
+                onClick={() => deleteDocument(documentToDelete!.id)}
                 disabled={deletingDocument}
-                className="order-1 bg-red-600 hover:bg-red-700 sm:order-2"
+                className="order-1 sm:order-2"
               >
                 {deletingDocument ? (
                   <>
@@ -893,6 +873,6 @@ export function EnhancedKnowledgeBase({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

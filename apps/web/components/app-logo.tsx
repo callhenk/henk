@@ -5,7 +5,7 @@ import { cn } from '@kit/ui/utils';
 
 function LogoImage({
   className,
-  width = 105,
+  width = 60,
 }: {
   className?: string;
   width?: number;
@@ -14,14 +14,9 @@ function LogoImage({
     <Image
       src="/images/logo-clear.png"
       alt="Henk"
-      width={width}
+      width={width * 0.3}
       height={width * 0.3} // Assuming aspect ratio of roughly 3:1
-      className={cn(
-        'h-auto object-contain drop-shadow-sm filter',
-        'rounded-lg border border-gray-100 p-1',
-        'bg-white/80 backdrop-blur-sm',
-        className,
-      )}
+      className={cn(className)}
       priority
       quality={95}
     />
@@ -40,9 +35,9 @@ export function AppLogo({
   size?: 'small' | 'default' | 'large';
 }) {
   const sizeClasses = {
-    small: 'w-12 sm:w-14 md:w-16',
-    default: 'w-16 sm:w-20 md:w-24 lg:w-28',
-    large: 'w-20 sm:w-24 md:w-28 lg:w-32',
+    small: 'w-10 sm:w-8 md:w-8',
+    default: 'w-12 sm:w-12 md:w-12 lg:w-12',
+    large: 'w-14 sm:w-14 md:w-14 lg:w-14',
   };
 
   if (href === null) {

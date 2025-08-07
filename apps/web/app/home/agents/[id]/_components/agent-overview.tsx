@@ -78,13 +78,13 @@ export function AgentOverview({
     <div className="mx-auto max-w-7xl">
       {/* Hero Section */}
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50">
-          <Users className="h-8 w-8 text-blue-600" />
+        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Users className="h-8 w-8" />
         </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
           Agent Overview
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600">
+        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
           Monitor your agent&apos;s performance, track key metrics, and manage
           campaign assignments.
         </p>
@@ -92,45 +92,47 @@ export function AgentOverview({
 
       {/* Stats Overview */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Calls Handled</p>
-              <p className="text-2xl font-bold text-gray-900">{callsHandled}</p>
-              <p className="text-xs text-gray-500">Total calls made</p>
+              <p className="text-muted-foreground text-sm font-medium">
+                Calls Handled
+              </p>
+              <p className="text-2xl font-bold">{callsHandled}</p>
+              <p className="text-muted-foreground text-xs">Total calls made</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-              <Phone className="h-5 w-5 text-blue-600" />
+            <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
+              <Phone className="h-5 w-5" />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-muted-foreground text-sm font-medium">
                 Conversion Rate
               </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {conversionRate}%
-              </p>
-              <p className="text-xs text-gray-500">Successful calls</p>
+              <p className="text-2xl font-bold">{conversionRate}%</p>
+              <p className="text-muted-foreground text-xs">Successful calls</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+            <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
+              <TrendingUp className="h-5 w-5" />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Hours</p>
-              <p className="text-2xl font-bold text-gray-900">{activeHours}</p>
-              <p className="text-xs text-gray-500">Hours this month</p>
+              <p className="text-muted-foreground text-sm font-medium">
+                Active Hours
+              </p>
+              <p className="text-2xl font-bold">{activeHours}</p>
+              <p className="text-muted-foreground text-xs">Hours this month</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50">
-              <Clock className="h-5 w-5 text-purple-600" />
+            <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
+              <Clock className="h-5 w-5" />
             </div>
           </div>
         </div>
@@ -141,17 +143,15 @@ export function AgentOverview({
         {/* Left Column - Agent Details & Campaigns */}
         <div className="space-y-6 lg:col-span-2">
           {/* Agent Details */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                  <Users className="h-5 w-5 text-blue-600" />
+                <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Users className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Agent Details
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">Agent Details</h3>
+                  <p className="text-muted-foreground text-sm">
                     Key information about your agent
                   </p>
                 </div>
@@ -159,26 +159,18 @@ export function AgentOverview({
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Language
-                </label>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  English
-                </p>
+                <label className="text-sm font-medium">Language</label>
+                <p className="mt-1 text-lg font-semibold">English</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Voice Type
-                </label>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <label className="text-sm font-medium">Voice Type</label>
+                <p className="mt-1 text-lg font-semibold">
                   {getVoiceTypeLabel(agent.voice_type)}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Last Edited
-                </label>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <label className="text-sm font-medium">Last Edited</label>
+                <p className="mt-1 text-lg font-semibold">
                   {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
                 </p>
               </div>
@@ -186,19 +178,15 @@ export function AgentOverview({
           </div>
 
           {/* Linked Campaigns */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
                   <TrendingUp className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Linked Campaigns
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Campaigns this agent is assigned to
-                  </p>
+                  <h3 className="text-xl font-semibold">Linked Campaigns</h3>
+                  <p className="text-sm">Campaigns this agent is assigned to</p>
                 </div>
               </div>
             </div>
@@ -207,18 +195,14 @@ export function AgentOverview({
                 agentCampaigns.map((campaign, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                    className="flex items-center justify-between rounded-lg border p-4"
                   >
-                    <span className="font-medium text-gray-900">
-                      {campaign.name}
-                    </span>
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                      Active
-                    </Badge>
+                    <span className="font-medium">{campaign.name}</span>
+                    <Badge variant="success">Active</Badge>
                   </div>
                 ))
               ) : (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
+                <div className="rounded-lg border p-6 text-center">
                   <p className="text-sm text-gray-500">
                     No campaigns assigned yet
                   </p>
@@ -231,48 +215,44 @@ export function AgentOverview({
         {/* Right Column - Agent Info */}
         <div className="space-y-6 lg:col-span-1">
           {/* Agent Description */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
                   <Users className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Agent Description
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">Agent Description</h3>
+                  <p className="text-sm">
                     Overview and details about your agent
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <p className="text-sm text-gray-700">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm">
                 {agent.description || 'No description available'}
               </p>
             </div>
           </div>
 
           {/* Starting Message */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
                   <Users className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Starting Message
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">Starting Message</h3>
+                  <p className="text-sm">
                     The initial message the agent uses when starting a call
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <p className="text-sm text-gray-700">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm">
                 {agent.starting_message || 'No starting message available'}
               </p>
             </div>
