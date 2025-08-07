@@ -8,6 +8,56 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// Helper function to get user's business context
+async function getUserBusinessContext(supabase: any) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('Unauthorized');
+  }
+
+  // Get the user's active business membership
+  const { data: teamMembership, error: teamError } = await supabase
+    .from('team_members')
+    .select('business_id, user_id, role, status')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .single();
+
+  if (teamError || !teamMembership) {
+    throw new Error('No active business membership found');
+  }
+
+  return {
+    user_id: user.id,
+    business_id: teamMembership.business_id,
+    role: teamMembership.role,
+    status: teamMembership.status,
+  };
+}
+
+// Helper function to validate agent belongs to user's business
+async function validateAgentBusinessAccess(supabase: any, agentId: string, businessId: string) {
+  const { data: agent, error } = await supabase
+    .from('agents')
+    .select('id, business_id')
+    .eq('id', agentId)
+    .single();
+
+  if (error || !agent) {
+    throw new Error('Agent not found');
+  }
+
+  if (agent.business_id !== businessId) {
+    throw new Error('Access denied: Agent does not belong to your business');
+  }
+
+  return agent;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Handle CORS preflight
@@ -17,18 +67,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401, headers: corsHeaders },
-      );
-    }
+    // Get user's business context
+    const businessContext = await getUserBusinessContext(supabase);
 
     // Get ElevenLabs API key
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -47,6 +87,12 @@ export async function GET(request: NextRequest) {
     const showOnlyOwned =
       searchParams.get('show_only_owned_documents') || 'false';
     const types = searchParams.get('types');
+    const agentId = searchParams.get('agent_id');
+
+    // If agent_id is provided, validate it belongs to the user's business
+    if (agentId) {
+      await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
+    }
 
     // Build query parameters
     const queryParams = new URLSearchParams();
@@ -82,10 +128,19 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
+    // Filter documents by business access (if we have business-specific filtering)
+    // Note: ElevenLabs doesn't provide business-level filtering, so we rely on
+    // the fact that each business uses their own ElevenLabs API key or we
+    // implement additional filtering logic here if needed
+
     return NextResponse.json(
       {
         success: true,
         data,
+        business_context: {
+          business_id: businessContext.business_id,
+          role: businessContext.role,
+        },
       },
       { headers: corsHeaders },
     );
@@ -110,18 +165,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401, headers: corsHeaders },
-      );
-    }
+    // Get user's business context
+    const businessContext = await getUserBusinessContext(supabase);
 
     // Get ElevenLabs API key
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -133,7 +178,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, url, name, text, file } = body;
+    const { type, url, name, text, file, agent_id } = body;
+
+    // If agent_id is provided, validate it belongs to the user's business
+    if (agent_id) {
+      await validateAgentBusinessAccess(supabase, agent_id, businessContext.business_id);
+    }
 
     let response;
 
@@ -229,10 +279,23 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
+    // Log the creation for audit purposes
+    console.log('Knowledge base document created:', {
+      business_id: businessContext.business_id,
+      user_id: businessContext.user_id,
+      document_type: type,
+      document_name: name,
+      timestamp: new Date().toISOString(),
+    });
+
     return NextResponse.json(
       {
         success: true,
         data,
+        business_context: {
+          business_id: businessContext.business_id,
+          role: businessContext.role,
+        },
       },
       { headers: corsHeaders },
     );

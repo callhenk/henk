@@ -138,6 +138,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   } | null>(null);
   const [isLinkingKnowledgeBase, setIsLinkingKnowledgeBase] = useState(false);
 
+  // State for debug tools
+  const [isDebugToolsMinimized, setIsDebugToolsMinimized] = useState(false);
+
   // Initialize form data when agent loads
   useEffect(() => {
     if (agent) {
@@ -1082,7 +1085,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </TabsContent>
 
         {/* Knowledge Base Tab */}
-        <TabsContent value="knowledge" className="mt-6">
+        <TabsContent value="knowledge" className="my-6">
           <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
@@ -1263,85 +1266,129 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             {/* Floating Debug Panel - Only show in development/staging */}
             {process.env.NODE_ENV === 'development' && (
               <div className="fixed right-2 bottom-4 z-50 sm:right-4">
-                <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span className="text-xs font-medium text-gray-700">
-                      Debug Tools
-                    </span>
-                  </div>
-                  <div className="space-y-2">
+                <div className="rounded-lg border border-gray-200 bg-white shadow-lg sm:p-3">
+                  <div className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      <span className="text-xs font-medium text-gray-700">
+                        Debug Tools
+                      </span>
+                    </div>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={checkElevenLabsAgentDetails}
-                      disabled={
-                        isLoadingAgentDetails || !agent?.elevenlabs_agent_id
+                      onClick={() =>
+                        setIsDebugToolsMinimized(!isDebugToolsMinimized)
                       }
-                      className="w-full"
+                      className="h-6 w-6 p-0"
                     >
-                      {isLoadingAgentDetails ? (
-                        <>
-                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
-                          Loading...
-                        </>
+                      {isDebugToolsMinimized ? (
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
                       ) : (
-                        'Check Agent Details'
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={trainAgent}
-                      disabled={isTrainingAgent || !agent?.elevenlabs_agent_id}
-                      className="w-full"
-                    >
-                      {isTrainingAgent ? (
-                        <>
-                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
-                          Training...
-                        </>
-                      ) : (
-                        'Train Agent'
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={checkKnowledgeBaseAccess}
-                      disabled={
-                        isCheckingKnowledgeBase || !agent?.elevenlabs_agent_id
-                      }
-                      className="w-full"
-                    >
-                      {isCheckingKnowledgeBase ? (
-                        <>
-                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
-                          Checking...
-                        </>
-                      ) : (
-                        'Check KB Access'
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={linkKnowledgeBaseToAgent}
-                      disabled={
-                        isLinkingKnowledgeBase || !agent?.elevenlabs_agent_id
-                      }
-                      className="w-full"
-                    >
-                      {isLinkingKnowledgeBase ? (
-                        <>
-                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
-                          Linking...
-                        </>
-                      ) : (
-                        'Link KB to Agent'
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 15l7-7 7 7"
+                          />
+                        </svg>
                       )}
                     </Button>
                   </div>
+                  {!isDebugToolsMinimized && (
+                    <div className="space-y-2 p-2 pt-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={checkElevenLabsAgentDetails}
+                        disabled={
+                          isLoadingAgentDetails || !agent?.elevenlabs_agent_id
+                        }
+                        className="w-full"
+                      >
+                        {isLoadingAgentDetails ? (
+                          <>
+                            <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                            Loading...
+                          </>
+                        ) : (
+                          'Check Agent Details'
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={trainAgent}
+                        disabled={
+                          isTrainingAgent || !agent?.elevenlabs_agent_id
+                        }
+                        className="w-full"
+                      >
+                        {isTrainingAgent ? (
+                          <>
+                            <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                            Training...
+                          </>
+                        ) : (
+                          'Train Agent'
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={checkKnowledgeBaseAccess}
+                        disabled={
+                          isCheckingKnowledgeBase || !agent?.elevenlabs_agent_id
+                        }
+                        className="w-full"
+                      >
+                        {isCheckingKnowledgeBase ? (
+                          <>
+                            <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                            Checking...
+                          </>
+                        ) : (
+                          'Check KB Access'
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={linkKnowledgeBaseToAgent}
+                        disabled={
+                          isLinkingKnowledgeBase || !agent?.elevenlabs_agent_id
+                        }
+                        className="w-full"
+                      >
+                        {isLinkingKnowledgeBase ? (
+                          <>
+                            <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                            Linking...
+                          </>
+                        ) : (
+                          'Link KB to Agent'
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

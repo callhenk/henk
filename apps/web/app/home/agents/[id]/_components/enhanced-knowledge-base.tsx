@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react';
 
-import { BookOpen, FileText, Globe, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  BookOpen,
+  FileText,
+  Globe,
+  Link,
+  Plus,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -34,6 +42,25 @@ import { useKnowledgeBase } from './use-knowledge-base';
 interface EnhancedKnowledgeBaseProps {
   _agentId: string;
   elevenlabsAgentId?: string;
+}
+
+interface LinkedDocument {
+  id: string;
+  type: string;
+  name: string;
+  usage_mode?: string;
+}
+
+interface KnowledgeDocument {
+  id: string;
+  type: string;
+  name: string;
+  usage_mode?: string;
+  metadata?: {
+    size_bytes: number;
+    created_at_unix_secs: number;
+  };
+  url?: string;
 }
 
 export function EnhancedKnowledgeBase({
@@ -69,8 +96,60 @@ export function EnhancedKnowledgeBase({
   } | null>(null);
   const [deletingDocument, setDeletingDocument] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [linkedDocuments, setLinkedDocuments] = useState<LinkedDocument[]>([]);
+  const [loadingLinkedDocs, setLoadingLinkedDocs] = useState(false);
+  const [linkingDocs, setLinkingDocs] = useState(false);
+  const [unlinkingDocs, setUnlinkingDocs] = useState<string[]>([]);
 
-  // Handle Escape key to close delete confirmation
+  // Fetch linked documents from agent configuration
+  const fetchLinkedDocuments = async () => {
+    if (!elevenlabsAgentId) return;
+
+    setLoadingLinkedDocs(true);
+    try {
+      const response = await fetch(
+        `/api/elevenlabs-agent/details/${elevenlabsAgentId}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const agentConfig = data.data;
+
+        // Extract knowledge base from agent configuration
+        const knowledgeBase =
+          agentConfig?.conversation_config?.agent?.prompt?.knowledge_base;
+
+        if (knowledgeBase && Array.isArray(knowledgeBase)) {
+          setLinkedDocuments(knowledgeBase);
+        } else {
+          setLinkedDocuments([]);
+        }
+      } else {
+        console.error('Failed to fetch agent details');
+        setLinkedDocuments([]);
+      }
+    } catch (error) {
+      console.error('Error fetching linked documents:', error);
+      setLinkedDocuments([]);
+    } finally {
+      setLoadingLinkedDocs(false);
+    }
+  };
+
+  // Check if a document is linked to the agent
+  const isDocumentLinked = (docId: string) => {
+    return linkedDocuments.some((doc) => doc.id === docId);
+  };
+
+  // Get linked document info
+  const getLinkedDocumentInfo = (docId: string) => {
+    return linkedDocuments.find((doc) => doc.id === docId);
+  };
+
+  // Check if a document is being unlinked
+  const isDocumentUnlinking = (docId: string) => {
+    return unlinkingDocs.includes(docId);
+  };
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && showDeleteConfirm) {
@@ -83,6 +162,21 @@ export function EnhancedKnowledgeBase({
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [showDeleteConfirm]);
+
+  // Fetch linked documents when component mounts or agent ID changes
+  useEffect(() => {
+    if (elevenlabsAgentId) {
+      fetchLinkedDocuments();
+    }
+  }, [elevenlabsAgentId]);
+
+  // Auto-select linked documents when they are loaded
+  useEffect(() => {
+    if (linkedDocuments.length > 0) {
+      const linkedDocIds = linkedDocuments.map((doc) => doc.id);
+      setSelectedDocs(linkedDocIds);
+    }
+  }, [linkedDocuments]);
 
   // Add new document
   const addDocument = async () => {
@@ -128,6 +222,9 @@ export function EnhancedKnowledgeBase({
       console.log('Document added successfully, now auto-linking to agent...');
       await linkKnowledgeBaseToAgent();
 
+      // Refresh linked documents after linking
+      await fetchLinkedDocuments();
+
       // Reset form
       setShowAddForm(false);
       setDocumentName('');
@@ -150,6 +247,9 @@ export function EnhancedKnowledgeBase({
       await deleteDocumentHook(documentId);
       setShowDeleteConfirm(false);
       setDocumentToDelete(null);
+
+      // Refresh linked documents after deletion
+      await fetchLinkedDocuments();
     } catch (error) {
       console.error('Error deleting document:', error);
     } finally {
@@ -253,14 +353,17 @@ export function EnhancedKnowledgeBase({
       toast.error('Please select at least one document to link.');
       return;
     }
-    // Build correct KB object array
-    const kbObjects = selected.map((doc) => {
-      const base = { id: doc.id, type: doc.type, name: doc.name };
-      return 'usage_mode' in doc
-        ? { ...base, usage_mode: (doc as any).usage_mode }
-        : base;
-    });
+
+    setLinkingDocs(true);
     try {
+      // Build correct KB object array
+      const kbObjects = selected.map((doc) => {
+        const base = { id: doc.id, type: doc.type, name: doc.name };
+        return 'usage_mode' in doc
+          ? { ...base, usage_mode: (doc as KnowledgeDocument).usage_mode }
+          : base;
+      });
+
       const response = await fetch('/api/elevenlabs-agent/update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -269,9 +372,14 @@ export function EnhancedKnowledgeBase({
           knowledge_base_objects: kbObjects,
         }),
       });
+
       const { toast } = await import('sonner');
       if (response.ok) {
         toast.success('Linked selected documents to agent!');
+        // Refresh linked documents after linking
+        await fetchLinkedDocuments();
+        // Clear selection after successful linking
+        setSelectedDocs([]);
       } else {
         const errorData = await response.json().catch(() => ({}));
         toast.error(
@@ -285,6 +393,51 @@ export function EnhancedKnowledgeBase({
         'Failed to link documents: ' +
           (error instanceof Error ? error.message : 'Unknown error'),
       );
+    } finally {
+      setLinkingDocs(false);
+    }
+  };
+
+  // Unlink a single document from agent
+  const unlinkDocument = async (docId: string) => {
+    if (!elevenlabsAgentId) return;
+
+    setUnlinkingDocs((prev) => [...prev, docId]);
+    try {
+      // Get current linked documents excluding the one to unlink
+      const remainingLinkedDocs = linkedDocuments.filter(
+        (doc) => doc.id !== docId,
+      );
+
+      const response = await fetch('/api/elevenlabs-agent/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agent_id: elevenlabsAgentId,
+          knowledge_base_objects: remainingLinkedDocs,
+        }),
+      });
+
+      const { toast } = await import('sonner');
+      if (response.ok) {
+        toast.success('Document unlinked from agent!');
+        // Refresh linked documents after unlinking
+        await fetchLinkedDocuments();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(
+          'Failed to unlink document: ' +
+            (errorData?.error || response.statusText),
+        );
+      }
+    } catch (error) {
+      const { toast } = await import('sonner');
+      toast.error(
+        'Failed to unlink document: ' +
+          (error instanceof Error ? error.message : 'Unknown error'),
+      );
+    } finally {
+      setUnlinkingDocs((prev) => prev.filter((id) => id !== docId));
     }
   };
 
@@ -365,74 +518,160 @@ export function EnhancedKnowledgeBase({
             </div>
           ) : (
             <div className="space-y-4">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={isDocSelected(doc.id)}
-                      onChange={() => toggleDocSelection(doc.id)}
-                      className="form-checkbox h-5 w-5 text-blue-600"
-                      aria-label={`Select ${doc.name}`}
-                    />
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                      {getDocumentTypeIconComponent(doc.type)}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{doc.name}</h4>
-                      <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                        <Badge variant="outline">{doc.type}</Badge>
-                        {doc.metadata && (
-                          <>
-                            <span>•</span>
-                            <span>
-                              {formatFileSize(doc.metadata.size_bytes)}
-                            </span>
-                            <span>•</span>
-                            <span>
-                              Created{' '}
-                              {formatDate(doc.metadata.created_at_unix_secs)}
-                            </span>
-                          </>
+              {documents.map((doc) => {
+                const isLinked = isDocumentLinked(doc.id);
+                const linkedInfo = getLinkedDocumentInfo(doc.id);
+                const isUnlinking = isDocumentUnlinking(doc.id);
+
+                return (
+                  <div
+                    key={doc.id}
+                    className={`flex items-center justify-between rounded-lg border p-4 ${
+                      isLinked ? 'border-green-200 bg-green-50' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isDocSelected(doc.id)}
+                        onChange={() => toggleDocSelection(doc.id)}
+                        className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        aria-label={`Select ${doc.name}`}
+                        disabled={isUnlinking}
+                      />
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                          isLinked
+                            ? 'bg-green-100 ring-2 ring-green-200'
+                            : 'bg-blue-100'
+                        }`}
+                      >
+                        {getDocumentTypeIconComponent(doc.type)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium">{doc.name}</h4>
+                          {isLinked && (
+                            <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1">
+                                <Link className="h-3 w-3 text-green-600" />
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-green-100 text-green-800"
+                                >
+                                  Linked
+                                </Badge>
+                              </div>
+                              {linkedInfo?.usage_mode && (
+                                <Badge variant="outline" className="text-xs">
+                                  {linkedInfo.usage_mode}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                          <Badge variant="outline">{doc.type}</Badge>
+                          {doc.metadata && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                {formatFileSize(doc.metadata.size_bytes)}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                Created{' '}
+                                {formatDate(doc.metadata.created_at_unix_secs)}
+                              </span>
+                            </>
+                          )}
+                          {linkedInfo?.usage_mode && (
+                            <>
+                              <span>•</span>
+                              <Badge variant="outline" className="text-xs">
+                                Mode: {linkedInfo.usage_mode}
+                              </Badge>
+                            </>
+                          )}
+                        </div>
+                        {doc.url && (
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            {doc.url}
+                          </a>
                         )}
                       </div>
-                      {doc.url && (
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isLinked && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => unlinkDocument(doc.id)}
+                          disabled={isUnlinking}
+                          className="text-orange-600 hover:text-orange-700"
                         >
-                          {doc.url}
-                        </a>
+                          {isUnlinking ? (
+                            <>
+                              <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                              Unlinking...
+                            </>
+                          ) : (
+                            <>
+                              <Link className="mr-1 h-3 w-3" />
+                              Unlink
+                            </>
+                          )}
+                        </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => showDeleteConfirmation(doc)}
+                        className="text-red-600 hover:text-red-700"
+                        disabled={isUnlinking}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => showDeleteConfirmation(doc)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
+
+          <div className="flex items-center justify-between pt-4">
+            <div className="text-muted-foreground px-2 text-sm">
+              {loadingLinkedDocs ? (
+                <span>Checking linked documents...</span>
+              ) : (
+                <span>
+                  {linkedDocuments.length} of {documents.length} documents
+                  linked
+                </span>
+              )}
+            </div>
+            <Button
+              onClick={linkSelectedKnowledgeBaseToAgent}
+              disabled={selectedDocs.length === 0 || linkingDocs}
+              variant="default"
+              className="px-4"
+            >
+              {linkingDocs ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                  Linking...
+                </>
+              ) : (
+                'Link Selected'
+              )}
+            </Button>
+          </div>
         </CardContent>
-        <div className="mt-4 flex justify-end">
-          <Button
-            onClick={linkSelectedKnowledgeBaseToAgent}
-            disabled={selectedDocs.length === 0}
-            variant="default"
-          >
-            Link Selected to Agent
-          </Button>
-        </div>
       </Card>
 
       {/* Add Document Modal */}

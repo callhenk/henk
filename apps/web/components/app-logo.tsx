@@ -16,8 +16,14 @@ function LogoImage({
       alt="Henk"
       width={width}
       height={width * 0.3} // Assuming aspect ratio of roughly 3:1
-      className={cn('h-auto object-contain', className)}
+      className={cn(
+        'h-auto object-contain drop-shadow-sm filter',
+        'rounded-lg border border-gray-100 p-1',
+        'bg-white/80 backdrop-blur-sm',
+        className,
+      )}
       priority
+      quality={95}
     />
   );
 }
