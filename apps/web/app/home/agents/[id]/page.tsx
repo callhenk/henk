@@ -1,6 +1,6 @@
 import { PageBody, PageHeader } from '@kit/ui/page';
 
-import { AgentDetail } from './_components/agent-detail';
+import { AgentDetail } from './_components/agent-detail-refactored';
 
 interface AgentPageProps {
   params: Promise<{

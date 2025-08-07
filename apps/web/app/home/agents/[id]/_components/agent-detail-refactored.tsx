@@ -24,7 +24,7 @@ import { DebugTools } from './debug-tools';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
 import { WorkflowBuilder } from './workflow-builder/index';
 
-export function AgentDetailRefactored({ agentId }: { agentId: string }) {
+export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
