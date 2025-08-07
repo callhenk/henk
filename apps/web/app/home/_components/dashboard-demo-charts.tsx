@@ -576,6 +576,8 @@ function AgentStatusCard({
   agents: Agent[];
   conversations: Conversation[];
 }) {
+  const router = useRouter();
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
@@ -605,6 +607,10 @@ function AgentStatusCard({
     return `${Math.floor(diffInMinutes / 1440)} day ago`;
   };
 
+  const handleAgentClick = (agentId: string) => {
+    router.push(`/home/agents/${agentId}`);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -632,7 +638,8 @@ function AgentStatusCard({
             return (
               <div
                 key={agent.id}
-                className="flex items-center justify-between rounded-lg border p-3"
+                className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors"
+                onClick={() => handleAgentClick(agent.id)}
               >
                 <div className="flex items-center gap-3">
                   {getStatusIcon(agent.status)}

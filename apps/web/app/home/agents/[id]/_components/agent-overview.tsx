@@ -219,7 +219,7 @@ export function AgentOverview({
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Users className="h-5 w-5 text-purple-600" />
+                  <Users className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold">Agent Description</h3>
@@ -241,7 +241,7 @@ export function AgentOverview({
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Users className="h-5 w-5 text-green-600" />
+                  <Users className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold">Starting Message</h3>

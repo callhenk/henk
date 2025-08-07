@@ -152,13 +152,13 @@ export function AgentVoice({
     <div className="mx-auto max-w-7xl">
       {/* Hero Section */}
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50">
-          <Volume2 className="h-8 w-8 text-purple-600" />
+        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Volume2 className="h-8 w-8" />
         </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
           Voice & Tone
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600">
+        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
           Choose and customize your agent&apos;s voice to create engaging,
           personalized conversations.
         </p>
@@ -169,17 +169,15 @@ export function AgentVoice({
         {/* Left Column - Voice Selection */}
         <div className="space-y-6">
           {/* Voice Selection */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
-                  <Volume2 className="h-5 w-5 text-purple-600" />
+                <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Volume2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    AI Voice Selection
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">AI Voice Selection</h3>
+                  <p className="text-muted-foreground text-sm">
                     Choose from available AI voices for your agent
                   </p>
                 </div>
@@ -198,7 +196,7 @@ export function AgentVoice({
                   }
                 }}
               >
-                <SelectTrigger className="border-gray-200 focus:border-purple-500 focus:ring-purple-500">
+                <SelectTrigger>
                   <SelectValue placeholder="Select a voice" />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,33 +212,29 @@ export function AgentVoice({
 
           {/* Voice Preview */}
           {agent.voice_id && (
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="rounded-xl border p-6 shadow-sm">
               <div className="mb-6">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-                    <Play className="h-5 w-5 text-green-600" />
+                  <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
+                    <Play className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      Voice Preview
-                    </h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="text-xl font-semibold">Voice Preview</h3>
+                    <p className="text-muted-foreground text-sm">
                       Listen to your selected voice
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="rounded-lg border border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
+              <div className="bg-muted/50 rounded-lg border p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 shadow-sm">
-                      <Volume2 className="h-6 w-6 text-green-600" />
+                    <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full shadow-sm">
+                      <Volume2 className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Cached Sample Audio
-                      </p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-sm font-medium">Cached Sample Audio</p>
+                      <p className="text-muted-foreground text-xs">
                         &ldquo;Hello, this is a voice preview.&rdquo;
                       </p>
                     </div>
@@ -287,7 +281,6 @@ export function AgentVoice({
                         toast.error('Failed to play voice preview.');
                       }
                     }}
-                    className="flex items-center gap-2 border-green-200 px-4 hover:bg-green-50"
                   >
                     {isPlayingPreview ? (
                       <>
@@ -303,9 +296,9 @@ export function AgentVoice({
                   </Button>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs text-green-600">
+                <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-400"></div>
+                    <div className="bg-muted-foreground h-1.5 w-1.5 rounded-full"></div>
                     <span>Cached sample available</span>
                   </div>
                 </div>
@@ -314,17 +307,15 @@ export function AgentVoice({
           )}
 
           {/* Voice Type */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                  <Volume2 className="h-5 w-5 text-blue-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Volume2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Voice Type
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">Voice Type</h3>
+                  <p className="text-sm">
                     Choose between AI-generated or custom voice
                   </p>
                 </div>
@@ -342,7 +333,7 @@ export function AgentVoice({
                   }
                 }}
               >
-                <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                <SelectTrigger>
                   <SelectValue placeholder="Select voice type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,17 +350,15 @@ export function AgentVoice({
 
         {/* Right Column - Custom Voice Recording */}
         <div className="lg:col-span-1">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border p-6 shadow-sm">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50">
-                  <Mic className="h-5 w-5 text-orange-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Mic className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Record Custom Voice
-                  </h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-xl font-semibold">Record Custom Voice</h3>
+                  <p className="text-sm">
                     Record a 30-second sample for voice cloning
                   </p>
                 </div>
@@ -415,8 +404,8 @@ export function AgentVoice({
                 </Button>
               </div>
               {recordedAudio && (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-                  <p className="text-xs text-green-700">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs">
                     ✓ Recording saved. You can preview or record again.
                   </p>
                 </div>

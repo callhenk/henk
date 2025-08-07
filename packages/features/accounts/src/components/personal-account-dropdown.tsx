@@ -76,12 +76,14 @@ export function PersonalAccountDropdown({
           className ?? '',
           {
             ['active:bg-secondary/50 items-center gap-x-4 rounded-md' +
-            ' hover:bg-secondary p-2 transition-colors']: showProfileName,
+            ' hover:bg-secondary p-1 transition-colors']: showProfileName,
           },
         )}
       >
         <ProfileAvatar
-          className={'rounded-md'}
+          className={
+            'rounded-md transition-transform duration-200 hover:scale-105'
+          }
           fallbackClassName={'rounded-md border'}
           displayName={displayName ?? user?.email ?? ''}
           pictureUrl={personalAccountData?.data?.picture_url}
