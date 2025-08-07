@@ -125,6 +125,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     unknown
   > | null>(null);
 
+  // State for agent training
+  const [isTrainingAgent, setIsTrainingAgent] = useState(false);
+
   // Initialize form data when agent loads
   useEffect(() => {
     if (agent) {
@@ -371,6 +374,48 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     }
   };
 
+  const trainAgent = async () => {
+    if (!agent?.elevenlabs_agent_id) {
+      toast.error('No ElevenLabs agent ID found');
+      return;
+    }
+
+    setIsTrainingAgent(true);
+    try {
+      // Prepare training data
+      const trainingData = {
+        agent_id: agent.elevenlabs_agent_id,
+        organization_info: organizationInfo,
+        donor_context: donorContext,
+        starting_message: startingMessage,
+        faqs: faqs ? JSON.parse(faqs) : null,
+      };
+
+      const response = await fetch('/api/elevenlabs-agent/train', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(trainingData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Training failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      toast.success('Agent training completed successfully!');
+      console.log('Training result:', result);
+    } catch (error) {
+      console.error('Error training agent:', error);
+      toast.error(
+        `Training failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setIsTrainingAgent(false);
+    }
+  };
+
   const handleSaveField = useCallback(
     async (fieldName: string, value: string) => {
       if (!agent) return;
@@ -442,6 +487,49 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           `${fieldName === 'faqs' ? 'FAQs' : fieldName.replace('_', ' ')} saved successfully!`,
         );
         setTimeout(() => setSaveSuccess(null), 3000);
+
+        // Auto-train agent for knowledge base updates
+        if (
+          [
+            'organization_info',
+            'donor_context',
+            'starting_message',
+            'faqs',
+          ].includes(fieldName)
+        ) {
+          try {
+            const trainingData = {
+              agent_id: agent.elevenlabs_agent_id,
+              organization_info:
+                fieldName === 'organization_info' ? value : organizationInfo,
+              donor_context:
+                fieldName === 'donor_context' ? value : donorContext,
+              starting_message:
+                fieldName === 'starting_message' ? value : startingMessage,
+              faqs:
+                fieldName === 'faqs'
+                  ? JSON.parse(value)
+                  : faqs
+                    ? JSON.parse(faqs)
+                    : null,
+            };
+
+            const response = await fetch('/api/elevenlabs-agent/train', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(trainingData),
+            });
+
+            if (response.ok) {
+              toast.success('Agent automatically trained with new knowledge!');
+            }
+          } catch (trainingError) {
+            console.error('Auto-training failed:', trainingError);
+            // Don't show error toast for auto-training to avoid cluttering the UI
+          }
+        }
       } catch (error) {
         console.error(`Failed to save ${fieldName} changes:`, error);
         alert(
@@ -902,35 +990,55 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </Card>
             )}
 
-            {/* Floating Debug Panel */}
-            <div className="fixed right-4 bottom-4 z-50">
-              <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                  <span className="text-xs font-medium text-gray-700">
-                    Debug Tools
-                  </span>
+            {/* Floating Debug Panel - Only show in development/staging */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="fixed right-4 bottom-4 z-50">
+                <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    <span className="text-xs font-medium text-gray-700">
+                      Debug Tools
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={checkElevenLabsAgentDetails}
+                      disabled={
+                        isLoadingAgentDetails || !agent?.elevenlabs_agent_id
+                      }
+                      className="w-full"
+                    >
+                      {isLoadingAgentDetails ? (
+                        <>
+                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        'Check Agent Details'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={trainAgent}
+                      disabled={isTrainingAgent || !agent?.elevenlabs_agent_id}
+                      className="w-full"
+                    >
+                      {isTrainingAgent ? (
+                        <>
+                          <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
+                          Training...
+                        </>
+                      ) : (
+                        'Train Agent'
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={checkElevenLabsAgentDetails}
-                  disabled={
-                    isLoadingAgentDetails || !agent?.elevenlabs_agent_id
-                  }
-                  className="w-full"
-                >
-                  {isLoadingAgentDetails ? (
-                    <>
-                      <div className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-current"></div>
-                      Loading...
-                    </>
-                  ) : (
-                    'Check Agent Details'
-                  )}
-                </Button>
               </div>
-            </div>
+            )}
 
             <Card>
               <CardHeader>
