@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useConversation } from '@elevenlabs/react';
 import { AlertCircle, Phone, PhoneOff, Volume2, Wifi } from 'lucide-react';
@@ -16,6 +16,7 @@ interface RealtimeVoiceChatProps {
   agentName: string;
   voiceId: string;
   elevenlabsAgentId: string;
+  onClose?: () => void;
 }
 
 export function RealtimeVoiceChat({
@@ -23,17 +24,26 @@ export function RealtimeVoiceChat({
   agentName,
   voiceId: _voiceId,
   elevenlabsAgentId,
+  onClose,
 }: RealtimeVoiceChatProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
   const [connectionTime, setConnectionTime] = useState<Date | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Initialize ElevenLabs React SDK
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs');
       setIsConnected(true);
+      setIsCalling(false);
       setConnectionTime(new Date());
+      // Stop calling sound
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       toast.success('Connected to AI agent!', {
         description: 'You can now start speaking with your agent.',
       });
@@ -41,8 +51,14 @@ export function RealtimeVoiceChat({
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs');
       setIsConnected(false);
+      setIsCalling(false);
       setConnectionTime(null);
       setIsAgentSpeaking(false);
+      // Stop calling sound
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
     },
     onMessage: (message: unknown) => {
       // Handle incoming messages from the agent
@@ -85,6 +101,13 @@ export function RealtimeVoiceChat({
         throw new Error('Valid ElevenLabs agent ID is required');
       }
 
+      setIsCalling(true);
+      // Start calling sound
+      if (audioRef.current) {
+        audioRef.current.loop = true;
+        audioRef.current.play().catch(console.error);
+      }
+
       // Request microphone access first
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -97,6 +120,12 @@ export function RealtimeVoiceChat({
     } catch (error) {
       console.error('Error starting conversation:', error);
       toast.error('Failed to start conversation');
+      setIsCalling(false);
+      // Stop calling sound on error
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
     }
   };
 
@@ -104,6 +133,12 @@ export function RealtimeVoiceChat({
   const stopConversation = async () => {
     try {
       await conversation.endSession();
+      setIsCalling(false);
+      // Stop calling sound
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       toast.success('Call ended');
     } catch (error) {
       console.error('Error stopping conversation:', error);
@@ -129,10 +164,11 @@ export function RealtimeVoiceChat({
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black p-8 shadow-2xl ring-1 ring-white/10">
           {/* Close Button */}
           <button
-            onClick={() => {
+            onClick={async () => {
               if (isConnected) {
-                stopConversation();
+                await stopConversation();
               }
+              onClose?.();
             }}
             className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
@@ -183,7 +219,11 @@ export function RealtimeVoiceChat({
             </div>
             <h2 className="mb-1 text-xl font-semibold">{agentName}</h2>
             <p className="text-sm text-gray-300">
-              {isConnected ? 'Connected' : 'Calling...'}
+              {isCalling
+                ? 'Calling...'
+                : isConnected
+                  ? 'Connected'
+                  : 'Ready to call'}
             </p>
             {isAgentSpeaking && (
               <div className="mt-2 flex items-center justify-center gap-2 text-green-400">
@@ -194,7 +234,7 @@ export function RealtimeVoiceChat({
           </div>
 
           {/* Call Controls */}
-          <div className="space-y-4">
+          <div className="flex justify-center space-x-8">
             {!isConnected ? (
               <Button
                 onClick={startConversation}
@@ -205,23 +245,37 @@ export function RealtimeVoiceChat({
                 {conversation.status === 'connecting' ? (
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 ) : (
-                  <Phone className="h-6 w-6" />
+                  <Phone className="h-6 w-6 text-white" />
                 )}
               </Button>
             ) : (
-              <Button
-                onClick={stopConversation}
-                className="h-16 w-16 rounded-full bg-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-600"
-                size="lg"
-              >
-                <PhoneOff className="h-6 w-6" />
-              </Button>
-            )}
+              <>
+                {/* Answer Call Button */}
+                <Button
+                  onClick={() => {
+                    // Handle incoming call answer
+                  }}
+                  className="h-16 w-16 rounded-full bg-green-500 transition-all duration-200 hover:scale-105 hover:bg-green-600"
+                  size="lg"
+                >
+                  <Phone className="h-6 w-6 text-white" />
+                </Button>
 
-            {/* Call Status */}
-            <div className="text-center text-sm text-gray-400">
-              {!isConnected ? <p>Tap to start call</p> : <p>Tap to end call</p>}
-            </div>
+                {/* End Call Button */}
+                <Button
+                  onClick={stopConversation}
+                  className="h-16 w-16 rounded-full bg-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-600"
+                  size="lg"
+                >
+                  <PhoneOff className="h-6 w-6 text-white" />
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Call Status */}
+          <div className="mt-4 text-center text-sm text-gray-400">
+            {!isConnected ? <p>Tap to start call</p> : <p>Tap to end call</p>}
           </div>
 
           {/* Connection Progress */}
@@ -265,6 +319,9 @@ export function RealtimeVoiceChat({
           </Card>
         )}
       </div>
+
+      {/* Hidden audio element for calling sound */}
+      <audio ref={audioRef} src="/cellphone-ringing-6475.mp3" preload="auto" />
     </div>
   );
 }

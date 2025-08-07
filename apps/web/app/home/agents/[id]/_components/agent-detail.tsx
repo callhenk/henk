@@ -17,7 +17,6 @@ import {
   Users,
   Volume2,
   Workflow,
-  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,7 +26,6 @@ import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useSupabase } from '@kit/supabase/hooks/use-supabase';
-import { useVoiceTestMutation } from '@kit/supabase/hooks/voices/use-voice-mutations';
 import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -91,7 +89,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
   // Update mutation
   const updateAgentMutation = useUpdateAgent();
-  const voiceTestMutation = useVoiceTestMutation();
   const supabase = useSupabase();
 
   // State for knowledge base form
@@ -100,7 +97,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [_isTestingVoice, _setIsTestingVoice] = useState(false);
-  const [showVoiceChat, setShowVoiceChat] = useState(false);
+
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
@@ -116,6 +113,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   // State for inline editing
   const [editingName, setEditingName] = useState(false);
   const [agentName, setAgentName] = useState('');
+
+  // State for voice chat
+  const [showVoiceChat, setShowVoiceChat] = useState(false);
 
   // Initialize form data when agent loads
   useEffect(() => {
@@ -267,57 +267,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   };
 
   const handleTalkToAgent = () => {
-    // Debug: Log agent data
-    console.log('Agent data:', agent);
-    console.log('ElevenLabs Agent ID:', agent?.elevenlabs_agent_id);
-
-    // Show the voice chat component directly on this page
+    // Open voice chat modal
     setShowVoiceChat(true);
-  };
-
-  const createElevenLabsAgent = async () => {
-    if (!agent) return;
-
-    try {
-      toast.info('Creating ElevenLabs agent...');
-
-      const response = await fetch('/api/elevenlabs-agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'create',
-          name: agent.name,
-          description: agent.description || `AI agent for ${agent.name}`,
-          voice_id: agent.voice_id || '21m00Tcm4TlvDq8ikWAM', // Default voice
-          agent_id: agentId,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create ElevenLabs agent');
-      }
-
-      const result = await response.json();
-
-      // Update the agent with the ElevenLabs agent ID
-      await updateAgentMutation.mutateAsync({
-        id: agentId,
-        elevenlabs_agent_id: result.data.agent_id,
-      });
-
-      toast.success('ElevenLabs agent created successfully!');
-
-      // Refresh the page to get updated agent data
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to create ElevenLabs agent:', error);
-      toast.error(
-        `Failed to create ElevenLabs agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
   };
 
   const handleSaveField = useCallback(
@@ -924,7 +875,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-green-500"></div>
                       <span className="text-muted-foreground text-xs">
-                        Ready
+                        Using Cached Sample
                       </span>
                     </div>
                   </div>
@@ -937,7 +888,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            Sample Audio
+                            Cached Sample Audio
                           </p>
                           <p className="text-muted-foreground text-xs">
                             &ldquo;Hello, this is a voice preview.&rdquo;
@@ -951,11 +902,18 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         disabled={isPlayingPreview}
                         onClick={async () => {
                           try {
+                            const voiceId = (
+                              agent.voice_settings as unknown as VoiceSettings
+                            )?.voice_id;
+
+                            if (!voiceId) {
+                              toast.error('No voice selected for preview');
+                              return;
+                            }
+
                             // First try to get a cached sample
-                            const cachedUrl = await getCachedVoiceSample(
-                              (agent.voice_settings as unknown as VoiceSettings)
-                                ?.voice_id,
-                            );
+                            const cachedUrl =
+                              await getCachedVoiceSample(voiceId);
 
                             if (cachedUrl) {
                               // Play cached sample
@@ -973,96 +931,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                               return;
                             }
 
-                            // If no cached sample, generate one
+                            // If no cached sample exists, show message instead of generating
                             toast.info(
-                              'Generating voice sample (this may take a moment)...',
+                              'No cached sample available. Please generate a voice sample first.',
                             );
-
-                            const result = await voiceTestMutation.mutateAsync({
-                              voice_id: (
-                                agent.voice_settings as unknown as VoiceSettings
-                              )?.voice_id,
-                              sample_text: 'Hello, this is a voice preview.',
-                            });
-
-                            // Extract the file path from the public URL
-                            const url = new URL(result.audio_url);
-                            const pathMatch = url.pathname.match(
-                              /\/storage\/v1\/object\/public\/audio\/(.+)/,
-                            );
-
-                            if (pathMatch && pathMatch[1]) {
-                              const originalFilePath = pathMatch[1];
-
-                              // Try to cache the file for future use
-                              try {
-                                const { data: fileData } =
-                                  await supabase.storage
-                                    .from('audio')
-                                    .download(originalFilePath);
-
-                                if (fileData) {
-                                  const sampleFileName = `samples/${(agent.voice_settings as unknown as VoiceSettings)?.voice_id}_sample.mp3`;
-                                  await supabase.storage
-                                    .from('audio')
-                                    .upload(sampleFileName, fileData, {
-                                      contentType: 'audio/mpeg',
-                                      upsert: true,
-                                    });
-                                  console.log(
-                                    'Voice sample cached successfully',
-                                  );
-                                }
-                              } catch (cacheError) {
-                                console.error(
-                                  'Failed to cache sample:',
-                                  cacheError,
-                                );
-                                // Continue anyway - we can still play the original
-                              }
-
-                              // Get authenticated URL for the original file
-                              const { data: signedUrl, error: signedUrlError } =
-                                await supabase.storage
-                                  .from('audio')
-                                  .createSignedUrl(originalFilePath, 3600);
-
-                              if (signedUrlError) {
-                                console.error(
-                                  'Signed URL error:',
-                                  signedUrlError,
-                                );
-                                toast.error(
-                                  'Failed to generate authenticated audio URL',
-                                );
-                                return;
-                              }
-
-                              if (signedUrl) {
-                                // Play the audio with authenticated URL
-                                const audio = new Audio(signedUrl.signedUrl);
-                                setIsPlayingPreview(true);
-
-                                audio.onended = () =>
-                                  setIsPlayingPreview(false);
-                                audio.onerror = () => {
-                                  setIsPlayingPreview(false);
-                                  toast.error('Failed to play voice preview.');
-                                };
-
-                                await audio.play();
-                                toast.success('Playing voice preview...');
-                              } else {
-                                toast.error(
-                                  'Failed to generate authenticated audio URL',
-                                );
-                              }
-                            } else {
-                              toast.error('Invalid audio URL format');
-                            }
                           } catch (error) {
                             console.error('Voice preview error:', error);
-                            toast.error('Failed to generate voice preview.');
+                            toast.error('Failed to play voice preview.');
                           }
                         }}
                         className="flex items-center gap-2 px-4"
@@ -1191,53 +1066,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
       {/* Voice Chat Modal */}
       {showVoiceChat && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg shadow-xl">
-            <div className="bg-background sticky top-0 z-10 flex items-center justify-between border-b p-4">
-              <h2 className="text-lg font-semibold">
-                Voice Chat with {agent?.name}
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowVoiceChat(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="p-4">
-              {agent?.elevenlabs_agent_id ? (
-                <RealtimeVoiceChat
-                  agentId={agentId}
-                  agentName={agent?.name || 'AI Agent'}
-                  voiceId={agent?.voice_id || 'default'}
-                  elevenlabsAgentId={agent.elevenlabs_agent_id}
-                />
-              ) : (
-                <div className="py-8 text-center">
-                  <div className="text-muted-foreground mb-4">
-                    <Phone className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <h3 className="mb-2 text-lg font-semibold">
-                      ElevenLabs Agent Not Configured
-                    </h3>
-                    <p className="text-muted-foreground mb-4 text-sm">
-                      This agent needs to be configured with ElevenLabs before
-                      voice chat can be used.
-                    </p>
-                    <Button
-                      onClick={createElevenLabsAgent}
-                      className="flex items-center gap-2"
-                    >
-                      <Phone className="h-4 w-4" />
-                      Configure ElevenLabs Agent
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <RealtimeVoiceChat
+          agentId={agentId}
+          agentName={agent?.name || 'AI Agent'}
+          voiceId={agent?.voice_id || 'default'}
+          elevenlabsAgentId={agent?.elevenlabs_agent_id || 'default'}
+          onClose={() => setShowVoiceChat(false)}
+        />
       )}
     </div>
   );

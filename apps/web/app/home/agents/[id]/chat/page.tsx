@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 import { PageBody, PageHeader } from '@kit/ui/page';
 
 import { RealtimeVoiceChat } from '../_components/realtime-voice-chat';
@@ -8,8 +12,8 @@ interface AgentChatPageProps {
   }>;
 }
 
-export default async function AgentChatPage({ params }: AgentChatPageProps) {
-  const { id } = await params;
+export default function AgentChatPage({ params }: AgentChatPageProps) {
+  const [showVoiceChat, setShowVoiceChat] = useState(true);
 
   return (
     <>
@@ -19,12 +23,15 @@ export default async function AgentChatPage({ params }: AgentChatPageProps) {
       />
 
       <PageBody>
-        <RealtimeVoiceChat
-          agentId={id}
-          agentName="Your AI Agent"
-          voiceId="default"
-          elevenlabsAgentId="default"
-        />
+        {showVoiceChat && (
+          <RealtimeVoiceChat
+            agentId="default"
+            agentName="Your AI Agent"
+            voiceId="default"
+            elevenlabsAgentId="default"
+            onClose={() => setShowVoiceChat(false)}
+          />
+        )}
       </PageBody>
     </>
   );
