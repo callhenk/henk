@@ -3,19 +3,10 @@
 import { useState } from 'react';
 
 import { useConversation } from '@elevenlabs/react';
-import {
-  AlertCircle,
-  Clock,
-  Phone,
-  PhoneOff,
-  Volume2,
-  Wifi,
-  WifiOff,
-} from 'lucide-react';
+import { AlertCircle, Phone, PhoneOff, Volume2, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@kit/ui/alert';
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Progress } from '@kit/ui/progress';
@@ -113,10 +104,10 @@ export function RealtimeVoiceChat({
   const stopConversation = async () => {
     try {
       await conversation.endSession();
-      toast.success('Conversation ended');
+      toast.success('Call ended');
     } catch (error) {
       console.error('Error stopping conversation:', error);
-      toast.error('Failed to stop conversation');
+      toast.error('Failed to end call');
     }
   };
 
@@ -131,69 +122,114 @@ export function RealtimeVoiceChat({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Connection Status */}
-      <Card className="border-muted-foreground/20 hover:border-primary/50 border-2 border-dashed transition-colors">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-3">
-            <div className="relative">
-              <Phone className="text-primary h-6 w-6" />
-              {isConnected && (
-                <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
-              )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      {/* Phone Call Interface */}
+      <div className="animate-in fade-in-0 zoom-in-95 relative w-full max-w-sm duration-300">
+        {/* Phone Screen */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black p-8 shadow-2xl ring-1 ring-white/10">
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              if (isConnected) {
+                stopConversation();
+              }
+            }}
+            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          {/* Status Bar */}
+          <div className="mb-8 flex items-center justify-between text-white">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-4 w-4" />
+              <span className="text-sm">5G</span>
             </div>
-            <div>
-              <div className="text-lg font-semibold">Real-time Voice Chat</div>
-              <div className="text-muted-foreground text-sm">
-                {isConnected ? `Connected to ${agentName}` : 'Ready to connect'}
+            <div className="text-sm font-medium">{getConnectionDuration()}</div>
+            <div className="flex items-center gap-1">
+              <div className="h-2 w-2 rounded-full bg-white"></div>
+              <div className="h-2 w-2 rounded-full bg-white"></div>
+              <div className="h-2 w-2 rounded-full bg-white"></div>
+            </div>
+          </div>
+
+          {/* Call Info */}
+          <div className="mb-8 text-center text-white">
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1">
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-800">
+                    <Phone className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                {isConnected && (
+                  <div className="absolute -right-1 -bottom-1 h-6 w-6 animate-pulse rounded-full bg-green-500 p-1">
+                    <div className="h-full w-full rounded-full bg-white"></div>
+                  </div>
+                )}
               </div>
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Status Indicators */}
-          <div className="flex flex-wrap items-center gap-4">
-            <Badge
-              variant={isConnected ? 'default' : 'secondary'}
-              className="flex items-center gap-2"
-            >
-              {isConnected ? (
-                <>
-                  <Wifi className="h-3 w-3" />
-                  Connected
-                </>
-              ) : (
-                <>
-                  <WifiOff className="h-3 w-3" />
-                  Disconnected
-                </>
-              )}
-            </Badge>
-
-            {isConnected && connectionTime && (
-              <Badge variant="outline" className="flex items-center gap-2">
-                <Clock className="h-3 w-3" />
-                {getConnectionDuration()}
-              </Badge>
-            )}
-
+            <h2 className="mb-1 text-xl font-semibold">{agentName}</h2>
+            <p className="text-sm text-gray-300">
+              {isConnected ? 'Connected' : 'Calling...'}
+            </p>
             {isAgentSpeaking && (
-              <Badge
-                variant="default"
-                className="flex animate-pulse items-center gap-2"
-              >
-                <Volume2 className="h-3 w-3" />
-                Agent Speaking
-              </Badge>
+              <div className="mt-2 flex items-center justify-center gap-2 text-green-400">
+                <Volume2 className="h-4 w-4 animate-pulse" />
+                <span className="text-sm">Agent speaking</span>
+              </div>
             )}
+          </div>
+
+          {/* Call Controls */}
+          <div className="space-y-4">
+            {!isConnected ? (
+              <Button
+                onClick={startConversation}
+                disabled={conversation.status === 'connecting'}
+                className="h-16 w-16 rounded-full bg-green-500 transition-all duration-200 hover:scale-105 hover:bg-green-600"
+                size="lg"
+              >
+                {conversation.status === 'connecting' ? (
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Phone className="h-6 w-6" />
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={stopConversation}
+                className="h-16 w-16 rounded-full bg-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-600"
+                size="lg"
+              >
+                <PhoneOff className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* Call Status */}
+            <div className="text-center text-sm text-gray-400">
+              {!isConnected ? <p>Tap to start call</p> : <p>Tap to end call</p>}
+            </div>
           </div>
 
           {/* Connection Progress */}
           {conversation.status === 'connecting' && (
-            <div className="space-y-2">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-300">
                 <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-                Connecting to agent...
+                Connecting...
               </div>
               <Progress value={33} className="h-1" />
             </div>
@@ -201,68 +237,34 @@ export function RealtimeVoiceChat({
 
           {/* Error Alert */}
           {conversation.status === 'disconnected' && isConnected && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Connection lost. Please try reconnecting.
+                Call disconnected. Please try again.
               </AlertDescription>
             </Alert>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            {!isConnected ? (
-              <Button
-                onClick={startConversation}
-                disabled={conversation.status === 'connecting'}
-                className="from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center gap-2 bg-gradient-to-r"
-                size="lg"
-              >
-                {conversation.status === 'connecting' ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Phone className="h-4 w-4" />
-                    Start Conversation
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={stopConversation}
-                variant="destructive"
-                className="flex items-center gap-2"
-                size="lg"
-              >
-                <PhoneOff className="h-4 w-4" />
-                End Conversation
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Tips */}
-      {!isConnected && (
-        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              💡 Quick Tips
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-              <p>• Speak clearly and at a normal pace</p>
-              <p>• Allow microphone access when prompted</p>
-              <p>• The agent will respond automatically</p>
-              <p>• You can end the conversation anytime</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {/* Quick Tips */}
+        {!isConnected && (
+          <Card className="mt-6 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                💡 Call Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                <p>• Speak clearly and at a normal pace</p>
+                <p>• Allow microphone access when prompted</p>
+                <p>• The agent will respond automatically</p>
+                <p>• You can end the call anytime</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
