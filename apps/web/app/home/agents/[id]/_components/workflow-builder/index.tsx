@@ -185,7 +185,7 @@ export function WorkflowBuilder() {
       </div>
 
       {/* Workflow Container */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
         <div className="flex h-[600px] w-full flex-col">
           <WorkflowToolbar
             historyIndex={historyIndex}
