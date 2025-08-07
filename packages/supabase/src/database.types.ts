@@ -59,6 +59,7 @@ export type Database = {
           script_template: string | null;
           organization_info: string | null;
           donor_context: string | null;
+          starting_message: string | null;
           faqs: Json | null;
           knowledge_base: Json | null;
           workflow_config: Json | null;
@@ -82,6 +83,7 @@ export type Database = {
           script_template?: string | null;
           organization_info?: string | null;
           donor_context?: string | null;
+          starting_message?: string | null;
           faqs?: Json | null;
           knowledge_base?: Json | null;
           workflow_config?: Json | null;
@@ -105,6 +107,7 @@ export type Database = {
           script_template?: string | null;
           organization_info?: string | null;
           donor_context?: string | null;
+          starting_message?: string | null;
           faqs?: Json | null;
           knowledge_base?: Json | null;
           workflow_config?: Json | null;

@@ -57,6 +57,7 @@ export type Database = {
           voice_settings: Json | null;
           personality: string | null;
           script_template: string | null;
+          starting_message: string | null;
           organization_info: string | null;
           donor_context: string | null;
           faqs: Json | null;
@@ -80,6 +81,7 @@ export type Database = {
           voice_settings?: Json | null;
           personality?: string | null;
           script_template?: string | null;
+          starting_message?: string | null;
           organization_info?: string | null;
           donor_context?: string | null;
           faqs?: Json | null;
@@ -103,6 +105,7 @@ export type Database = {
           voice_settings?: Json | null;
           personality?: string | null;
           script_template?: string | null;
+          starting_message?: string | null;
           organization_info?: string | null;
           donor_context?: string | null;
           faqs?: Json | null;

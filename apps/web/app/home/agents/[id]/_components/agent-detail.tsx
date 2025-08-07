@@ -88,6 +88,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   // State for knowledge base form
   const [organizationInfo, setOrganizationInfo] = useState('');
   const [donorContext, setDonorContext] = useState('');
+  const [startingMessage, setStartingMessage] = useState('');
   const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [_isTestingVoice, _setIsTestingVoice] = useState(false);
@@ -117,12 +118,20 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     value: string;
   } | null>(null);
 
+  // State for ElevenLabs agent details
+  const [isLoadingAgentDetails, setIsLoadingAgentDetails] = useState(false);
+  const [elevenLabsAgentDetails, setElevenLabsAgentDetails] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+
   // Initialize form data when agent loads
   useEffect(() => {
     if (agent) {
       setAgentName(agent.name || '');
       setOrganizationInfo(agent.organization_info || '');
       setDonorContext(agent.donor_context || '');
+      setStartingMessage(agent.starting_message || '');
 
       // Handle FAQs field - Supabase returns JSON, so we stringify for the editor
       if (agent.faqs) {
@@ -143,6 +152,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const hasOrganizationChanges =
     organizationInfo !== (agent?.organization_info || '');
   const hasDonorContextChanges = donorContext !== (agent?.donor_context || '');
+  const hasStartingMessageChanges =
+    startingMessage !== (agent?.starting_message || '');
 
   // Calculate agent performance metrics
   const agentConversations = conversations.filter(
@@ -331,6 +342,35 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     setPendingVoiceUpdate(null);
   };
 
+  const checkElevenLabsAgentDetails = async () => {
+    if (!agent?.elevenlabs_agent_id) {
+      toast.error('No ElevenLabs agent ID found');
+      return;
+    }
+
+    setIsLoadingAgentDetails(true);
+    try {
+      const response = await fetch(
+        `/api/elevenlabs-agent/details/${agent.elevenlabs_agent_id}`,
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch agent details: ${response.statusText}`,
+        );
+      }
+      const data = await response.json();
+      setElevenLabsAgentDetails(data.data);
+      toast.success('Agent details fetched successfully');
+    } catch (error) {
+      console.error('Error fetching ElevenLabs agent details:', error);
+      toast.error(
+        `Failed to fetch agent details: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setIsLoadingAgentDetails(false);
+    }
+  };
+
   const handleSaveField = useCallback(
     async (fieldName: string, value: string) => {
       if (!agent) return;
@@ -347,6 +387,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         const updateData = {
           id: agentId,
           ...(fieldName === 'name' && { name: value }),
+          ...(fieldName === 'starting_message' && { starting_message: value }),
           ...(fieldName === 'organization_info' && {
             organization_info: value,
           }),
@@ -375,6 +416,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               elevenLabsUpdates.context_data = {
                 donor_context: value,
               };
+            }
+            if (fieldName === 'starting_message') {
+              elevenLabsUpdates.starting_message = value;
             }
 
             if (Object.keys(elevenLabsUpdates).length > 0) {
@@ -800,6 +844,80 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 )}
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Starting Message
+                </CardTitle>
+                <CardDescription>
+                  The initial message the agent uses when starting a call
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Textarea
+                  value={startingMessage}
+                  onChange={(e) => setStartingMessage(e.target.value)}
+                  className="min-h-[150px] resize-none"
+                  placeholder="Enter the starting message for the agent (e.g., 'Hello, this is [Agent Name] calling from [Organization]. How are you today?')"
+                />
+                <div className="flex items-center justify-between">
+                  {hasStartingMessageChanges && (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleSaveField('starting_message', startingMessage)
+                      }
+                      disabled={savingField === 'starting_message'}
+                    >
+                      {savingField === 'starting_message'
+                        ? 'Saving...'
+                        : 'Save Starting Message'}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={checkElevenLabsAgentDetails}
+                    disabled={
+                      isLoadingAgentDetails || !agent?.elevenlabs_agent_id
+                    }
+                  >
+                    {isLoadingAgentDetails ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                        Loading...
+                      </>
+                    ) : (
+                      'Check Agent Details'
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ElevenLabs Agent Details Display */}
+            {elevenLabsAgentDetails && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Volume2 className="h-5 w-5" />
+                    ElevenLabs Agent Details
+                  </CardTitle>
+                  <CardDescription>
+                    Current configuration from ElevenLabs
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted rounded-lg p-4">
+                    <pre className="overflow-auto text-xs">
+                      {JSON.stringify(elevenLabsAgentDetails, null, 2)}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>

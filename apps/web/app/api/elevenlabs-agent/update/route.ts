@@ -63,6 +63,18 @@ export async function PATCH(request: NextRequest) {
       delete transformedUpdates.voice_id;
     }
 
+    if (updates.starting_message) {
+      transformedUpdates = {
+        conversation_config: {
+          agent: {
+            first_message: updates.starting_message,
+          },
+        },
+      };
+      // Remove starting_message from root level if it exists
+      delete transformedUpdates.starting_message;
+    }
+
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/agents/${agent_id}`,
       {
