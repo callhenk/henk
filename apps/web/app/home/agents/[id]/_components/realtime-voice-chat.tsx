@@ -14,7 +14,6 @@ import { Progress } from '@kit/ui/progress';
 interface RealtimeVoiceChatProps {
   agentId: string;
   agentName: string;
-  voiceId: string;
   elevenlabsAgentId: string;
   onClose?: () => void;
 }
@@ -22,7 +21,6 @@ interface RealtimeVoiceChatProps {
 export function RealtimeVoiceChat({
   agentId,
   agentName,
-  voiceId: _voiceId,
   elevenlabsAgentId,
   onClose,
 }: RealtimeVoiceChatProps) {

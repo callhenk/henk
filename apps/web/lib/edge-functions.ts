@@ -1,9 +1,7 @@
 /**
- * Edge Functions utility for ElevenLabs agent management
+ * API Routes utility for ElevenLabs integration
+ * Migrated from Edge Functions to Next.js API routes
  */
-
-const EDGE_FUNCTIONS_BASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL + '/functions/v1';
 
 export interface AgentConfig {
   name: string;
@@ -22,7 +20,7 @@ export interface AgentConfig {
   context_data?: {
     organization_info?: string;
     donor_context?: string;
-    faqs?: any;
+    faqs?: Record<string, unknown>;
   };
   conversation_flow?: {
     greeting?: string;
@@ -45,22 +43,21 @@ export interface AgentConfig {
 
 export interface AgentResponse {
   success: boolean;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
   message?: string;
 }
 
 /**
- * Call an Edge Function with proper authentication
+ * Call an API route with proper authentication
  */
-async function callEdgeFunction(
+async function callApiRoute(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<AgentResponse> {
   const response = await fetch(endpoint, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
       ...options.headers,
     },
     ...options,
@@ -77,81 +74,165 @@ async function callEdgeFunction(
 }
 
 /**
- * Create a new agent with ElevenLabs integration
+ * Get available voices
  */
+export async function getVoices(): Promise<AgentResponse> {
+  return callApiRoute('/api/elevenlabs/voices');
+}
+
+/**
+ * Test voice generation
+ */
+export async function testVoice(
+  voiceId: string,
+  sampleText?: string,
+): Promise<AgentResponse> {
+  return callApiRoute('/api/elevenlabs/test-voice', {
+    method: 'POST',
+    body: JSON.stringify({
+      voice_id: voiceId,
+      sample_text: sampleText,
+    }),
+  });
+}
+
+/**
+ * Generate speech from text
+ */
+export async function generateSpeech(
+  text: string,
+  voiceId: string,
+  options?: {
+    model_id?: string;
+    voice_settings?: Record<string, unknown>;
+  },
+): Promise<AgentResponse> {
+  return callApiRoute('/api/elevenlabs/generate', {
+    method: 'POST',
+    body: JSON.stringify({
+      text,
+      voice_id: voiceId,
+      model_id: options?.model_id,
+      voice_settings: options?.voice_settings,
+    }),
+  });
+}
+
+/**
+ * List knowledge bases
+ */
+export async function listKnowledgeBases(): Promise<AgentResponse> {
+  return callApiRoute('/api/elevenlabs/knowledge-base');
+}
+
+/**
+ * Create knowledge base
+ */
+export async function createKnowledgeBase(data: {
+  name: string;
+  description?: string;
+}): Promise<AgentResponse> {
+  return callApiRoute('/api/elevenlabs/knowledge-base', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Get knowledge base by ID
+ */
+export async function getKnowledgeBase(id: string): Promise<AgentResponse> {
+  return callApiRoute(`/api/elevenlabs/knowledge-base/${id}`);
+}
+
+/**
+ * Update knowledge base
+ */
+export async function updateKnowledgeBase(
+  id: string,
+  updates: Record<string, unknown>,
+): Promise<AgentResponse> {
+  return callApiRoute(`/api/elevenlabs/knowledge-base/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+/**
+ * Delete knowledge base
+ */
+export async function deleteKnowledgeBase(id: string): Promise<AgentResponse> {
+  return callApiRoute(`/api/elevenlabs/knowledge-base/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+/**
+ * Train agent
+ */
+export async function trainAgent(
+  agentId: string,
+  businessId: string,
+): Promise<AgentResponse> {
+  return callApiRoute('/api/agents/train', {
+    method: 'POST',
+    body: JSON.stringify({
+      agent_id: agentId,
+      business_id: businessId,
+    }),
+  });
+}
+
+// Legacy functions for backward compatibility
 export async function createElevenLabsAgent(
   agentConfig: AgentConfig,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(
-    `${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-agent/create`,
-    {
-      method: 'POST',
-      body: JSON.stringify(agentConfig),
-    },
-  );
+  return callApiRoute('/api/elevenlabs-agent/create', {
+    method: 'POST',
+    body: JSON.stringify(agentConfig),
+  });
 }
 
-/**
- * List all agents
- */
 export async function listElevenLabsAgents(): Promise<AgentResponse> {
-  return callEdgeFunction(`${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-agent/list`);
+  return callApiRoute('/api/elevenlabs-agent/list');
 }
 
-/**
- * Get agent details by ID
- */
 export async function getElevenLabsAgent(
   agentId: string,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(
-    `${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-agent/get/${agentId}`,
-  );
+  return callApiRoute(`/api/elevenlabs-agent/details/${agentId}`);
 }
 
-/**
- * Update an agent
- */
 export async function updateElevenLabsAgent(
   agentId: string,
   updates: Partial<AgentConfig>,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(
-    `${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-agent/update/${agentId}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    },
-  );
+  return callApiRoute('/api/elevenlabs-agent/update', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      agent_id: agentId,
+      updates,
+    }),
+  });
 }
 
-/**
- * Delete an agent
- */
 export async function deleteElevenLabsAgent(
   agentId: string,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(
-    `${EDGE_FUNCTIONS_BASE_URL}/elevenlabs-agent/delete/${agentId}`,
-    {
-      method: 'DELETE',
-    },
-  );
+  return callApiRoute(`/api/elevenlabs-agent/delete/${agentId}`, {
+    method: 'DELETE',
+  });
 }
 
-/**
- * Start a new conversation with an agent
- */
 export async function startConversation(
   agentId: string,
   accountId: string,
   businessId: string,
   initialMessage?: string,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(`${EDGE_FUNCTIONS_BASE_URL}/agent-conversation`, {
+  return callApiRoute('/api/agent-conversation/start', {
     method: 'POST',
     body: JSON.stringify({
-      action: 'start_conversation',
       agent_id: agentId,
       account_id: accountId,
       business_id: businessId,
@@ -160,18 +241,14 @@ export async function startConversation(
   });
 }
 
-/**
- * Send a message in an existing conversation
- */
 export async function sendMessage(
   conversationId: string,
   message: string,
   accountId: string,
 ): Promise<AgentResponse> {
-  return callEdgeFunction(`${EDGE_FUNCTIONS_BASE_URL}/agent-conversation`, {
+  return callApiRoute('/api/agent-conversation/send', {
     method: 'POST',
     body: JSON.stringify({
-      action: 'send_message',
       conversation_id: conversationId,
       message,
       account_id: accountId,
@@ -179,16 +256,11 @@ export async function sendMessage(
   });
 }
 
-/**
- * Test agent voice conversation (legacy function)
- */
 export async function testAgentVoice(agentId: string): Promise<AgentResponse> {
-  return callEdgeFunction(`${EDGE_FUNCTIONS_BASE_URL}/agent-conversation`, {
+  return callApiRoute('/api/agent-conversation/test-voice', {
     method: 'POST',
     body: JSON.stringify({
-      action: 'start_conversation',
       agent_id: agentId,
-      conversation_type: 'voice',
     }),
   });
 }

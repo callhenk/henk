@@ -47,17 +47,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
+import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
 import { FAQEditor } from './faq-editor';
 import { KnowledgeUpload } from './knowledge-upload';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
 import { WorkflowBuilder } from './workflow-builder/index';
-
-// Type for voice settings
-interface VoiceSettings {
-  voice_id: string;
-  stability?: number;
-  similarity_boost?: number;
-}
 
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },
@@ -82,7 +76,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Fetch real data
-  const { data: agent, isLoading: loadingAgent } = useAgent(agentId);
+  const { data: agent, isLoading: loadingAgent, refetch } = useAgent(agentId);
   const { data: conversations = [] } = useConversations();
   const { data: campaigns = [] } = useCampaigns();
   const { data: voices = [] } = useVoices();
@@ -116,6 +110,12 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
   // State for voice chat
   const [showVoiceChat, setShowVoiceChat] = useState(false);
+
+  const [showVoiceUpdateConfirm, setShowVoiceUpdateConfirm] = useState(false);
+  const [pendingVoiceUpdate, setPendingVoiceUpdate] = useState<{
+    fieldName: string;
+    value: string;
+  } | null>(null);
 
   // Initialize form data when agent loads
   useEffect(() => {
@@ -271,9 +271,76 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     setShowVoiceChat(true);
   };
 
+  const handleConfirmVoiceUpdate = async () => {
+    if (!pendingVoiceUpdate || !agent) return;
+
+    setSavingField(pendingVoiceUpdate.fieldName);
+    try {
+      const updateData = {
+        id: agentId,
+        voice_id: pendingVoiceUpdate.value,
+      };
+
+      await updateAgentMutation.mutateAsync(updateData);
+
+      // Update ElevenLabs agent
+      if (agent?.elevenlabs_agent_id) {
+        try {
+          const result = await updateElevenLabsAgent(
+            agent.elevenlabs_agent_id,
+            {
+              voice_id: pendingVoiceUpdate.value,
+            },
+          );
+
+          if (!result.success) {
+            console.error(
+              'ElevenLabs agent voice update failed:',
+              result.error,
+            );
+          }
+
+          // Refresh agent data to get the updated voice_id
+          await refetch();
+        } catch (elevenLabsError) {
+          console.error(
+            'Failed to update ElevenLabs agent voice:',
+            elevenLabsError,
+          );
+          // Don't fail the entire operation if ElevenLabs update fails
+        }
+      }
+
+      // Show success message
+      setSaveSuccess('Voice updated successfully!');
+      setTimeout(() => setSaveSuccess(null), 3000);
+    } catch (error) {
+      console.error('Failed to save voice changes:', error);
+      alert(
+        `Failed to save voice: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setSavingField(null);
+      setShowVoiceUpdateConfirm(false);
+      setPendingVoiceUpdate(null);
+    }
+  };
+
+  const handleCancelVoiceUpdate = () => {
+    setShowVoiceUpdateConfirm(false);
+    setPendingVoiceUpdate(null);
+  };
+
   const handleSaveField = useCallback(
     async (fieldName: string, value: string) => {
       if (!agent) return;
+
+      // Show confirmation for voice updates
+      if (fieldName === 'voice_id' && agent?.elevenlabs_agent_id) {
+        setPendingVoiceUpdate({ fieldName, value });
+        setShowVoiceUpdateConfirm(true);
+        return;
+      }
 
       setSavingField(fieldName);
       try {
@@ -287,6 +354,44 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         };
 
         await updateAgentMutation.mutateAsync(updateData);
+
+        // Update ElevenLabs agent if it exists
+        if (agent?.elevenlabs_agent_id) {
+          try {
+            const elevenLabsUpdates: Record<string, unknown> = {};
+
+            if (fieldName === 'name') {
+              elevenLabsUpdates.name = value;
+            }
+            if (fieldName === 'voice_id') {
+              elevenLabsUpdates.voice_id = value;
+            }
+            if (fieldName === 'organization_info') {
+              elevenLabsUpdates.context_data = {
+                organization_info: value,
+              };
+            }
+            if (fieldName === 'donor_context') {
+              elevenLabsUpdates.context_data = {
+                donor_context: value,
+              };
+            }
+
+            if (Object.keys(elevenLabsUpdates).length > 0) {
+              await updateElevenLabsAgent(
+                agent.elevenlabs_agent_id,
+                elevenLabsUpdates,
+              );
+              console.log('ElevenLabs agent updated successfully');
+            }
+          } catch (elevenLabsError) {
+            console.error(
+              'Failed to update ElevenLabs agent:',
+              elevenLabsError,
+            );
+            // Don't fail the entire operation if ElevenLabs update fails
+          }
+        }
 
         // Show success message
         setSaveSuccess(
@@ -791,84 +896,43 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               {/* Voice Selection */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">AI Voice</label>
-                <Select
-                  value={
-                    (agent.voice_settings as unknown as VoiceSettings)
-                      ?.voice_id || ''
-                  }
-                  onValueChange={async (voiceId) => {
-                    try {
-                      console.log('Updating voice to:', voiceId);
-                      console.log('Current agent:', agent);
-
-                      // Try to update just the voice_id first (simpler approach)
-                      const updateData = {
-                        id: agentId,
-                        voice_id: voiceId,
-                      };
-
-                      console.log('Update data:', updateData);
-
-                      await updateAgentMutation.mutateAsync(updateData);
-                      toast.success('Voice updated successfully');
-                    } catch (error) {
-                      console.error('Error updating voice:', error);
-
-                      // If that fails, try updating voice_settings as well
-                      try {
-                        const currentVoiceSettings =
-                          (agent?.voice_settings as unknown as VoiceSettings) || {
-                            stability: 0.5,
-                            similarity_boost: 0.75,
-                          };
-
-                        const fallbackUpdateData = {
-                          id: agentId,
-                          voice_id: voiceId,
-                          voice_settings: {
-                            ...currentVoiceSettings,
-                            voice_id: voiceId,
-                          },
-                        };
-
-                        console.log(
-                          'Fallback update data:',
-                          fallbackUpdateData,
-                        );
-                        await updateAgentMutation.mutateAsync(
-                          fallbackUpdateData,
-                        );
-                        toast.success('Voice updated successfully');
-                      } catch (fallbackError) {
-                        console.error(
-                          'Fallback error updating voice:',
-                          fallbackError,
-                        );
-                        toast.error(
-                          'Failed to update voice - please check database schema',
-                        );
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={agent.voice_id || ''}
+                    onValueChange={(voiceId) => {
+                      // Show confirmation for voice updates
+                      if (agent?.elevenlabs_agent_id) {
+                        setPendingVoiceUpdate({
+                          fieldName: 'voice_id',
+                          value: voiceId,
+                        });
+                        setShowVoiceUpdateConfirm(true);
+                      } else {
+                        // If no ElevenLabs agent, update directly
+                        handleSaveField('voice_id', voiceId);
                       }
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a voice" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {voices.map((voice) => (
-                      <SelectItem key={voice.voice_id} value={voice.voice_id}>
-                        {voice.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voices.map((voice) => (
+                        <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                          {voice.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <p className="text-muted-foreground text-xs">
                   Choose from available AI voices for your agent
                 </p>
               </div>
 
               {/* Voice Preview */}
-              {(agent.voice_settings as unknown as VoiceSettings)?.voice_id && (
+              {agent.voice_id && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Voice Preview</label>
@@ -902,9 +966,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         disabled={isPlayingPreview}
                         onClick={async () => {
                           try {
-                            const voiceId = (
-                              agent.voice_settings as unknown as VoiceSettings
-                            )?.voice_id;
+                            const voiceId = agent.voice_id;
 
                             if (!voiceId) {
                               toast.error('No voice selected for preview');
@@ -961,8 +1023,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         <div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div>
                         <span>Cached sample available</span>
                       </div>
-                      <span>•</span>
-                      <span>High quality audio</span>
                     </div>
                   </div>
                 </div>
@@ -979,6 +1039,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         id: agentId,
                         voice_type: voiceType,
                       });
+
                       toast.success('Voice type updated successfully');
                     } catch {
                       toast.error('Failed to update voice type');
@@ -1069,10 +1130,44 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         <RealtimeVoiceChat
           agentId={agentId}
           agentName={agent?.name || 'AI Agent'}
-          voiceId={agent?.voice_id || 'default'}
           elevenlabsAgentId={agent?.elevenlabs_agent_id || 'default'}
           onClose={() => setShowVoiceChat(false)}
         />
+      )}
+
+      {/* Voice Update Confirmation Dialog */}
+      {showVoiceUpdateConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">Confirm Voice Update</h3>
+            <p className="mb-6 text-gray-600">
+              This will update the voice for both the local agent and the
+              ElevenLabs agent. Are you sure you want to proceed?
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={handleCancelVoiceUpdate}
+                disabled={savingField === 'voice_id'}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmVoiceUpdate}
+                disabled={savingField === 'voice_id'}
+              >
+                {savingField === 'voice_id' ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                    Updating...
+                  </>
+                ) : (
+                  'Update Voice'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
