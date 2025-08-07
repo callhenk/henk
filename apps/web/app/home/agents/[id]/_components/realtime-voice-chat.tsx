@@ -5,14 +5,9 @@ import { useState } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import {
   AlertCircle,
-  Bot,
   Clock,
-  MessageCircle,
-  Mic,
   Phone,
   PhoneOff,
-  RotateCcw,
-  User,
   Volume2,
   Wifi,
   WifiOff,
@@ -24,15 +19,6 @@ import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Progress } from '@kit/ui/progress';
-import { Separator } from '@kit/ui/separator';
-
-interface Message {
-  id: string;
-  type: 'user' | 'agent';
-  content: string;
-  timestamp: Date;
-  isAudio?: boolean;
-}
 
 interface RealtimeVoiceChatProps {
   agentId: string;
@@ -47,13 +33,9 @@ export function RealtimeVoiceChat({
   voiceId: _voiceId,
   elevenlabsAgentId,
 }: RealtimeVoiceChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [_conversationId, setConversationId] = useState<string | null>(null);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
-  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [connectionTime, setConnectionTime] = useState<Date | null>(null);
-  const [_autoStarted, setAutoStarted] = useState(false);
 
   // Initialize ElevenLabs React SDK
   const conversation = useConversation({
@@ -70,7 +52,6 @@ export function RealtimeVoiceChat({
       setIsConnected(false);
       setConnectionTime(null);
       setIsAgentSpeaking(false);
-      setIsUserSpeaking(false);
     },
     onMessage: (message: unknown) => {
       // Handle incoming messages from the agent
@@ -84,35 +65,21 @@ export function RealtimeVoiceChat({
       ) {
         messageText = String((message as { message: unknown }).message);
       }
-      addMessage('agent', messageText);
-      setIsAgentSpeaking(true);
-      // Simulate agent speaking duration
-      setTimeout(() => setIsAgentSpeaking(false), 3000);
+
+      if (messageText.trim()) {
+        setIsAgentSpeaking(true);
+        // Simulate agent speaking duration
+        setTimeout(() => setIsAgentSpeaking(false), 3000);
+      }
     },
     onError: (error) => {
       console.error('ElevenLabs connection error:', error);
       toast.error(
         'Connection error: ' +
-          (typeof error === 'string' ? error : error.message),
+          (typeof error === 'string' ? error : String(error)),
       );
     },
   });
-
-  // Add message to conversation
-  const addMessage = (
-    type: 'user' | 'agent',
-    content: string,
-    isAudio = false,
-  ) => {
-    const message: Message = {
-      id: Date.now().toString(),
-      type,
-      content,
-      timestamp: new Date(),
-      isAudio,
-    };
-    setMessages((prev) => [...prev, message]);
-  };
 
   // Start real-time conversation
   const startConversation = async () => {
@@ -131,14 +98,11 @@ export function RealtimeVoiceChat({
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
       // Start the conversation session
-      const sessionId = await conversation.startSession({
+      await conversation.startSession({
         agentId: elevenlabsAgentId,
-        connectionType: 'webrtc', // or 'websocket'
-        userId: 'user-' + Date.now(), // optional user ID
+        connectionType: 'webrtc',
+        userId: 'user-' + Date.now(),
       });
-
-      setConversationId(sessionId);
-      addMessage('agent', `Hello! I'm ${agentName}, ready to help!`);
     } catch (error) {
       console.error('Error starting conversation:', error);
       toast.error('Failed to start conversation');
@@ -149,37 +113,12 @@ export function RealtimeVoiceChat({
   const stopConversation = async () => {
     try {
       await conversation.endSession();
-      setConversationId(null);
       toast.success('Conversation ended');
     } catch (error) {
       console.error('Error stopping conversation:', error);
       toast.error('Failed to stop conversation');
     }
   };
-
-  // Clear conversation
-  const clearConversation = () => {
-    setMessages([]);
-    toast.success('Conversation cleared');
-  };
-
-  // Auto-start conversation when component mounts (only if not in modal)
-  const autoStartConversation = async () => {
-    if (autoStarted || isConnected) return;
-
-    setAutoStarted(true);
-    try {
-      await startConversation();
-    } catch (error) {
-      console.error('Auto-start failed:', error);
-      setAutoStarted(false);
-    }
-  };
-
-  // Auto-start on mount (disabled for modal usage)
-  // useEffect(() => {
-  //   autoStartConversation();
-  // }, []);
 
   // Get connection duration
   const getConnectionDuration = () => {
@@ -193,7 +132,7 @@ export function RealtimeVoiceChat({
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Connection Status */}
+      {/* Connection Status */}
       <Card className="border-muted-foreground/20 hover:border-primary/50 border-2 border-dashed transition-colors">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3">
@@ -245,16 +184,6 @@ export function RealtimeVoiceChat({
               >
                 <Volume2 className="h-3 w-3" />
                 Agent Speaking
-              </Badge>
-            )}
-
-            {isUserSpeaking && (
-              <Badge
-                variant="secondary"
-                className="flex animate-pulse items-center gap-2"
-              >
-                <Mic className="h-3 w-3" />
-                You Speaking
               </Badge>
             )}
           </div>
@@ -311,106 +240,6 @@ export function RealtimeVoiceChat({
                 <PhoneOff className="h-4 w-4" />
                 End Conversation
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Enhanced Messages */}
-      <Card className="overflow-hidden">
-        <CardHeader className="from-muted/50 to-muted/30 bg-gradient-to-r">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            Conversation
-            {messages.length > 0 && (
-              <Badge variant="secondary" className="ml-auto">
-                {messages.length} messages
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="max-h-96 space-y-4 overflow-y-auto p-4">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <MessageCircle className="text-muted-foreground/50 mb-4 h-12 w-12" />
-                <p className="text-muted-foreground font-medium">
-                  No messages yet
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  Start a conversation to see messages here
-                </p>
-              </div>
-            ) : (
-              <>
-                {messages.map((message, index) => (
-                  <div key={message.id} className="space-y-2">
-                    <div
-                      className={`flex ${
-                        message.type === 'user'
-                          ? 'justify-end'
-                          : 'justify-start'
-                      }`}
-                    >
-                      <div className="flex max-w-xs items-start gap-3 lg:max-w-md">
-                        {message.type === 'agent' && (
-                          <div className="flex-shrink-0">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
-                              <Bot className="h-4 w-4 text-white" />
-                            </div>
-                          </div>
-                        )}
-
-                        <div
-                          className={`rounded-2xl px-4 py-3 shadow-sm ${
-                            message.type === 'user'
-                              ? 'from-primary to-primary/90 text-primary-foreground bg-gradient-to-r'
-                              : 'bg-muted border'
-                          }`}
-                        >
-                          <p className="text-sm leading-relaxed">
-                            {message.content}
-                          </p>
-                          <div className="mt-2 flex items-center gap-2">
-                            <p className="text-xs opacity-70">
-                              {message.timestamp.toLocaleTimeString()}
-                            </p>
-                            {message.type === 'user' && (
-                              <User className="h-3 w-3 opacity-70" />
-                            )}
-                          </div>
-                        </div>
-
-                        {message.type === 'user' && (
-                          <div className="flex-shrink-0">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600">
-                              <User className="h-4 w-4 text-white" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Separator between messages */}
-                    {index < messages.length - 1 && (
-                      <Separator className="my-2" />
-                    )}
-                  </div>
-                ))}
-
-                {/* Clear Conversation Button */}
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={clearConversation}
-                    variant="outline"
-                    size="sm"
-                    className="hover:bg-destructive hover:text-destructive-foreground flex items-center gap-2"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Clear Conversation
-                  </Button>
-                </div>
-              </>
             )}
           </div>
         </CardContent>
