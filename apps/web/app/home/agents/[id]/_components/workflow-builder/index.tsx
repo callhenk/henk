@@ -157,81 +157,116 @@ export function WorkflowBuilder() {
   const connectionOptions = sourceNode?.data.options || [];
 
   return (
-    <div className="flex h-[700px] w-full flex-col">
-      <WorkflowToolbar
-        historyIndex={historyIndex}
-        historyLength={history.length}
-        onUndo={undo}
-        onRedo={redo}
-        onAddDecision={() => addNewNode('decision', { x: 100, y: 100 })}
-        onAddAction={() => addNewNode('action', { x: 100, y: 100 })}
-        onDeleteNode={() => selectedNode && deleteSelectedNode(selectedNode)}
-        onDeleteEdge={() => selectedEdge && deleteSelectedEdge(selectedEdge)}
-        selectedNode={selectedNode}
-        selectedEdge={selectedEdge}
-        onOpenTemplateDialog={() => setIsTemplateDialogOpen(true)}
-      />
+    <div className="mx-auto max-w-7xl">
+      {/* Hero Section */}
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-50 to-slate-50">
+          <svg
+            className="h-8 w-8 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+        </div>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          Workflow Builder
+        </h1>
+        <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          Design and configure your agent&apos;s conversation flow with a visual
+          workflow editor.
+        </p>
+      </div>
 
-      <WorkflowInstructions />
+      {/* Workflow Container */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex h-[600px] w-full flex-col">
+          <WorkflowToolbar
+            historyIndex={historyIndex}
+            historyLength={history.length}
+            onUndo={undo}
+            onRedo={redo}
+            onAddDecision={() => addNewNode('decision', { x: 100, y: 100 })}
+            onAddAction={() => addNewNode('action', { x: 100, y: 100 })}
+            onDeleteNode={() =>
+              selectedNode && deleteSelectedNode(selectedNode)
+            }
+            onDeleteEdge={() =>
+              selectedEdge && deleteSelectedEdge(selectedEdge)
+            }
+            selectedNode={selectedNode}
+            selectedEdge={selectedEdge}
+            onOpenTemplateDialog={() => setIsTemplateDialogOpen(true)}
+          />
 
-      <WorkflowCanvas
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
-        onPaneClick={() => {
-          setSelectedNode(null);
-          setSelectedEdge(null);
-        }}
-        onConnect={(params: Connection) => {
-          if (!params.source || !params.target) return;
+          <WorkflowInstructions />
 
-          const sourceNode = nodes.find((n) => n.id === params.source);
+          <WorkflowCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={handleNodeClick}
+            onEdgeClick={handleEdgeClick}
+            onPaneClick={() => {
+              setSelectedNode(null);
+              setSelectedEdge(null);
+            }}
+            onConnect={(params: Connection) => {
+              if (!params.source || !params.target) return;
 
-          if (sourceNode?.type === 'decision' && sourceNode.data.options) {
-            setPendingConnection(params);
-            setIsConnectionDialogOpen(true);
-            return;
-          }
+              const sourceNode = nodes.find((n) => n.id === params.source);
 
-          let label = '';
-          const targetNode = nodes.find((n) => n.id === params.target);
-          if (targetNode) {
-            const isPositiveAction = ['donation', 'conversation'].includes(
-              targetNode.data.action,
-            );
-            label = isPositiveAction ? 'Yes' : 'No';
-          }
+              if (sourceNode?.type === 'decision' && sourceNode.data.options) {
+                setPendingConnection(params);
+                setIsConnectionDialogOpen(true);
+                return;
+              }
 
-          const newEdge = {
-            id: `e${params.source}-${params.target}`,
-            source: params.source,
-            target: params.target,
-            sourceHandle: params.sourceHandle,
-            targetHandle: params.targetHandle,
-            type: 'smoothstep',
-            animated: true,
-            label: label,
-            style: {
-              stroke:
-                label === 'Yes'
-                  ? '#10b981'
-                  : label === 'No'
-                    ? '#ef4444'
-                    : '#3b82f6',
-              strokeWidth: 2,
-            },
-          };
+              let label = '';
+              const targetNode = nodes.find((n) => n.id === params.target);
+              if (targetNode) {
+                const isPositiveAction = ['donation', 'conversation'].includes(
+                  targetNode.data.action,
+                );
+                label = isPositiveAction ? 'Yes' : 'No';
+              }
 
-          const newEdges = [...edges, newEdge];
-          setEdges(newEdges);
-          saveToHistory(nodes, newEdges);
-        }}
-        isEmpty={nodes.length === 0}
-        onLoadTemplate={() => setIsTemplateDialogOpen(true)}
-      />
+              const newEdge = {
+                id: `e${params.source}-${params.target}`,
+                source: params.source,
+                target: params.target,
+                sourceHandle: params.sourceHandle,
+                targetHandle: params.targetHandle,
+                type: 'smoothstep',
+                animated: true,
+                label: label,
+                style: {
+                  stroke:
+                    label === 'Yes'
+                      ? '#10b981'
+                      : label === 'No'
+                        ? '#ef4444'
+                        : '#3b82f6',
+                  strokeWidth: 2,
+                },
+              };
+
+              const newEdges = [...edges, newEdge];
+              setEdges(newEdges);
+              saveToHistory(nodes, newEdges);
+            }}
+            isEmpty={nodes.length === 0}
+            onLoadTemplate={() => setIsTemplateDialogOpen(true)}
+          />
+        </div>
+      </div>
 
       <NodeEditorDialog
         node={selectedNode}

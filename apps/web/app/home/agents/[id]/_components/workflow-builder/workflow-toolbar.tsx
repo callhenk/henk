@@ -35,37 +35,33 @@ export function WorkflowToolbar({
   const hasSelection = selectedNode || selectedEdge;
 
   return (
-    <div className="mb-4 flex items-center justify-between">
-      <div>
-        <h3 className="text-lg font-semibold">Workflow Builder</h3>
-        <p className="text-muted-foreground text-sm">
-          Create and edit your agent&apos;s call workflow with visual
-          connections
-        </p>
-        {hasSelection && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs text-blue-700">
-              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-              <span>
-                {selectedNode ? `Selected: ${selectedNode.data.label}` : ''}
-                {selectedEdge ? 'Selected: Connection' : ''}
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (selectedNode) onDeleteNode();
-                if (selectedEdge) onDeleteEdge();
-              }}
-              className="h-6 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Selection Status */}
+      {hasSelection && (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            <div className="h-2 w-2 rounded-full bg-gray-500"></div>
+            <span>
+              {selectedNode ? `Selected: ${selectedNode.data.label}` : ''}
+              {selectedEdge ? 'Selected: Connection' : ''}
+            </span>
           </div>
-        )}
-      </div>
-      <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (selectedNode) onDeleteNode();
+              if (selectedEdge) onDeleteEdge();
+            }}
+            className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Toolbar Actions */}
+      <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={onOpenTemplateDialog}>
           <FileText className="mr-2 h-4 w-4" />
           Load Template
