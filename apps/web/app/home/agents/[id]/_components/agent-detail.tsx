@@ -17,6 +17,7 @@ import {
   Users,
   Volume2,
   Workflow,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -48,9 +49,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
-import { AgentTesting } from './agent-testing';
 import { FAQEditor } from './faq-editor';
 import { KnowledgeUpload } from './knowledge-upload';
+import { RealtimeVoiceChat } from './realtime-voice-chat';
 import { WorkflowBuilder } from './workflow-builder/index';
 
 // Type for voice settings
@@ -98,7 +99,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [donorContext, setDonorContext] = useState('');
   const [faqs, setFaqs] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
-  const [isTestingVoice, _setIsTestingVoice] = useState(false);
+  const [_isTestingVoice, _setIsTestingVoice] = useState(false);
+  const [showVoiceChat, setShowVoiceChat] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
@@ -264,6 +266,60 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     router.push('/home/agents');
   };
 
+  const handleTalkToAgent = () => {
+    // Debug: Log agent data
+    console.log('Agent data:', agent);
+    console.log('ElevenLabs Agent ID:', agent?.elevenlabs_agent_id);
+
+    // Show the voice chat component directly on this page
+    setShowVoiceChat(true);
+  };
+
+  const createElevenLabsAgent = async () => {
+    if (!agent) return;
+
+    try {
+      toast.info('Creating ElevenLabs agent...');
+
+      const response = await fetch('/api/elevenlabs-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create',
+          name: agent.name,
+          description: agent.description || `AI agent for ${agent.name}`,
+          voice_id: agent.voice_id || '21m00Tcm4TlvDq8ikWAM', // Default voice
+          agent_id: agentId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create ElevenLabs agent');
+      }
+
+      const result = await response.json();
+
+      // Update the agent with the ElevenLabs agent ID
+      await updateAgentMutation.mutateAsync({
+        id: agentId,
+        elevenlabs_agent_id: result.data.agent_id,
+      });
+
+      toast.success('ElevenLabs agent created successfully!');
+
+      // Refresh the page to get updated agent data
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to create ElevenLabs agent:', error);
+      toast.error(
+        `Failed to create ElevenLabs agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  };
+
   const handleSaveField = useCallback(
     async (fieldName: string, value: string) => {
       if (!agent) return;
@@ -392,7 +448,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </div>
       )}
 
-      {/* Header with Agent Name */}
+      {/* Header with Agent Name and Talk to Agent Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={handleBack} size="sm">
@@ -453,12 +509,20 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         </div>
         <div className="flex items-center space-x-2">
           {getStatusBadge(agent.status)}
+          <Button
+            onClick={handleTalkToAgent}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Phone className="h-4 w-4" />
+            Start Voice Chat
+          </Button>
         </div>
       </div>
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">
             Overview
           </TabsTrigger>
@@ -470,9 +534,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           </TabsTrigger>
           <TabsTrigger value="workflow" className="text-xs sm:text-sm">
             Workflow
-          </TabsTrigger>
-          <TabsTrigger value="testing" className="text-xs sm:text-sm">
-            Testing
           </TabsTrigger>
         </TabsList>
 
@@ -636,6 +697,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                     <Workflow className="mr-2 h-4 w-4" />
                     Edit Workflow
                   </Button>
+                  <Button className="w-full" onClick={handleTalkToAgent}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    Start Voice Chat
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -782,13 +847,56 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   }
                   onValueChange={async (voiceId) => {
                     try {
-                      await updateAgentMutation.mutateAsync({
+                      console.log('Updating voice to:', voiceId);
+                      console.log('Current agent:', agent);
+
+                      // Try to update just the voice_id first (simpler approach)
+                      const updateData = {
                         id: agentId,
-                        voice_settings: { voice_id: voiceId },
-                      });
+                        voice_id: voiceId,
+                      };
+
+                      console.log('Update data:', updateData);
+
+                      await updateAgentMutation.mutateAsync(updateData);
                       toast.success('Voice updated successfully');
                     } catch (error) {
-                      toast.error('Failed to update voice');
+                      console.error('Error updating voice:', error);
+
+                      // If that fails, try updating voice_settings as well
+                      try {
+                        const currentVoiceSettings =
+                          (agent?.voice_settings as unknown as VoiceSettings) || {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                          };
+
+                        const fallbackUpdateData = {
+                          id: agentId,
+                          voice_id: voiceId,
+                          voice_settings: {
+                            ...currentVoiceSettings,
+                            voice_id: voiceId,
+                          },
+                        };
+
+                        console.log(
+                          'Fallback update data:',
+                          fallbackUpdateData,
+                        );
+                        await updateAgentMutation.mutateAsync(
+                          fallbackUpdateData,
+                        );
+                        toast.success('Voice updated successfully');
+                      } catch (fallbackError) {
+                        console.error(
+                          'Fallback error updating voice:',
+                          fallbackError,
+                        );
+                        toast.error(
+                          'Failed to update voice - please check database schema',
+                        );
+                      }
                     }
                   }}
                 >
@@ -997,7 +1105,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                         voice_type: voiceType,
                       });
                       toast.success('Voice type updated successfully');
-                    } catch (error) {
+                    } catch {
                       toast.error('Failed to update voice type');
                     }
                   }}
@@ -1079,12 +1187,58 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         <TabsContent value="workflow" className="mt-6">
           <WorkflowBuilder />
         </TabsContent>
-
-        {/* Testing Tab */}
-        <TabsContent value="testing" className="mt-6">
-          <AgentTesting agentId={agentId} />
-        </TabsContent>
       </Tabs>
+
+      {/* Voice Chat Modal */}
+      {showVoiceChat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg shadow-xl">
+            <div className="bg-background sticky top-0 z-10 flex items-center justify-between border-b p-4">
+              <h2 className="text-lg font-semibold">
+                Voice Chat with {agent?.name}
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceChat(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4">
+              {agent?.elevenlabs_agent_id ? (
+                <RealtimeVoiceChat
+                  agentId={agentId}
+                  agentName={agent?.name || 'AI Agent'}
+                  voiceId={agent?.voice_id || 'default'}
+                  elevenlabsAgentId={agent.elevenlabs_agent_id}
+                />
+              ) : (
+                <div className="py-8 text-center">
+                  <div className="text-muted-foreground mb-4">
+                    <Phone className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                    <h3 className="mb-2 text-lg font-semibold">
+                      ElevenLabs Agent Not Configured
+                    </h3>
+                    <p className="text-muted-foreground mb-4 text-sm">
+                      This agent needs to be configured with ElevenLabs before
+                      voice chat can be used.
+                    </p>
+                    <Button
+                      onClick={createElevenLabsAgent}
+                      className="flex items-center gap-2"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Configure ElevenLabs Agent
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

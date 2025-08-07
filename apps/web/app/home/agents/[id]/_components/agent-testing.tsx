@@ -389,43 +389,50 @@ export function AgentTesting({ agentId }: AgentTestingProps) {
     <div className="space-y-6">
       {/* Agent Info Card */}
       {agentInfo && (
-        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-100 p-2">
-                <Bot className="h-6 w-6 text-blue-600" />
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5" />
+          <CardHeader className="relative">
+            <CardTitle className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+                <Bot className="h-8 w-8 text-white" />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-900">
                   {agentInfo.name}
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm font-medium text-gray-600">
                   AI Agent for Fundraising & Donor Outreach
                 </p>
               </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">
-                  Status
-                </Label>
+              <div className="flex items-center gap-2">
                 <Badge
                   variant={
                     agentInfo.status === 'active' ? 'default' : 'secondary'
                   }
-                  className="mt-1"
+                  className="bg-green-100 text-green-800 hover:bg-green-200"
                 >
+                  <div className="mr-1 h-2 w-2 rounded-full bg-green-500" />
                   {agentInfo.status}
                 </Badge>
               </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">
-                  Voice ID
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-lg bg-white/50 p-4 backdrop-blur-sm">
+                <Label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                  Voice Configuration
                 </Label>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm font-medium text-gray-900">
                   {agentInfo.voice_id || 'Not configured'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-white/50 p-4 backdrop-blur-sm">
+                <Label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                  Agent Type
+                </Label>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  Conversational AI
                 </p>
               </div>
             </div>

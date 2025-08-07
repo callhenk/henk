@@ -3,15 +3,28 @@
 import { useState } from 'react';
 
 import { useConversation } from '@elevenlabs/react';
-import { Phone, PhoneOff, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import {
+  AlertCircle,
+  Bot,
+  Clock,
+  MessageCircle,
+  Mic,
+  Phone,
+  PhoneOff,
+  RotateCcw,
+  User,
+  Volume2,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@kit/ui/alert';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
-import { Label } from '@kit/ui/label';
-import { Slider } from '@kit/ui/slider';
+import { Progress } from '@kit/ui/progress';
+import { Separator } from '@kit/ui/separator';
 
 interface Message {
   id: string;
@@ -36,23 +49,45 @@ export function RealtimeVoiceChat({
 }: RealtimeVoiceChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [_conversationId, setConversationId] = useState<string | null>(null);
+  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [connectionTime, setConnectionTime] = useState<Date | null>(null);
+  const [_autoStarted, setAutoStarted] = useState(false);
 
   // Initialize ElevenLabs React SDK
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs');
       setIsConnected(true);
+      setConnectionTime(new Date());
+      toast.success('Connected to AI agent!', {
+        description: 'You can now start speaking with your agent.',
+      });
     },
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs');
       setIsConnected(false);
+      setConnectionTime(null);
+      setIsAgentSpeaking(false);
+      setIsUserSpeaking(false);
     },
-    onMessage: (message) => {
+    onMessage: (message: unknown) => {
       // Handle incoming messages from the agent
-      addMessage('agent', message.message);
+      let messageText = '';
+      if (typeof message === 'string') {
+        messageText = message;
+      } else if (
+        message &&
+        typeof message === 'object' &&
+        'message' in message
+      ) {
+        messageText = String((message as { message: unknown }).message);
+      }
+      addMessage('agent', messageText);
+      setIsAgentSpeaking(true);
+      // Simulate agent speaking duration
+      setTimeout(() => setIsAgentSpeaking(false), 3000);
     },
     onError: (error) => {
       console.error('ElevenLabs connection error:', error);
@@ -88,8 +123,8 @@ export function RealtimeVoiceChat({
         elevenlabsAgentId,
       });
 
-      if (!elevenlabsAgentId) {
-        throw new Error('ElevenLabs agent ID is required');
+      if (!elevenlabsAgentId || elevenlabsAgentId === 'default') {
+        throw new Error('Valid ElevenLabs agent ID is required');
       }
 
       // Request microphone access first
@@ -104,7 +139,6 @@ export function RealtimeVoiceChat({
 
       setConversationId(sessionId);
       addMessage('agent', `Hello! I'm ${agentName}, ready to help!`);
-      toast.success('Real-time conversation started!');
     } catch (error) {
       console.error('Error starting conversation:', error);
       toast.error('Failed to start conversation');
@@ -123,79 +157,156 @@ export function RealtimeVoiceChat({
     }
   };
 
-  // Send text message
-  const sendTextMessage = async (message: string) => {
-    if (!isConnected) return;
-
-    try {
-      addMessage('user', message);
-      // The SDK handles sending messages automatically when connected
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-    }
-  };
-
-  // Set volume
-  const handleVolumeChange = async (value: number[]) => {
-    const newVolume = value[0] || 0.7;
-    setVolume(newVolume);
-    try {
-      await conversation.setVolume({ volume: newVolume });
-    } catch (error) {
-      console.error('Error setting volume:', error);
-    }
-  };
-
   // Clear conversation
   const clearConversation = () => {
     setMessages([]);
+    toast.success('Conversation cleared');
   };
 
-  // Handle mute toggle
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
+  // Auto-start conversation when component mounts (only if not in modal)
+  const autoStartConversation = async () => {
+    if (autoStarted || isConnected) return;
+
+    setAutoStarted(true);
+    try {
+      await startConversation();
+    } catch (error) {
+      console.error('Auto-start failed:', error);
+      setAutoStarted(false);
+    }
+  };
+
+  // Auto-start on mount (disabled for modal usage)
+  // useEffect(() => {
+  //   autoStartConversation();
+  // }, []);
+
+  // Get connection duration
+  const getConnectionDuration = () => {
+    if (!connectionTime) return '0:00';
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - connectionTime.getTime()) / 1000);
+    const minutes = Math.floor(diff / 60);
+    const seconds = diff % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="space-y-6">
-      {/* Connection Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5" />
-            Real-time Voice Chat
+      {/* Enhanced Connection Status */}
+      <Card className="border-muted-foreground/20 hover:border-primary/50 border-2 border-dashed transition-colors">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Phone className="text-primary h-6 w-6" />
+              {isConnected && (
+                <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
+              )}
+            </div>
+            <div>
+              <div className="text-lg font-semibold">Real-time Voice Chat</div>
+              <div className="text-muted-foreground text-sm">
+                {isConnected ? `Connected to ${agentName}` : 'Ready to connect'}
+              </div>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Badge variant={isConnected ? 'default' : 'secondary'}>
-              {isConnected ? 'Connected' : 'Disconnected'}
+          {/* Status Indicators */}
+          <div className="flex flex-wrap items-center gap-4">
+            <Badge
+              variant={isConnected ? 'default' : 'secondary'}
+              className="flex items-center gap-2"
+            >
+              {isConnected ? (
+                <>
+                  <Wifi className="h-3 w-3" />
+                  Connected
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-3 w-3" />
+                  Disconnected
+                </>
+              )}
             </Badge>
-            {conversation.status === 'disconnected' && (
-              <Alert>
-                <AlertDescription>Connection error occurred</AlertDescription>
-              </Alert>
+
+            {isConnected && connectionTime && (
+              <Badge variant="outline" className="flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                {getConnectionDuration()}
+              </Badge>
+            )}
+
+            {isAgentSpeaking && (
+              <Badge
+                variant="default"
+                className="flex animate-pulse items-center gap-2"
+              >
+                <Volume2 className="h-3 w-3" />
+                Agent Speaking
+              </Badge>
+            )}
+
+            {isUserSpeaking && (
+              <Badge
+                variant="secondary"
+                className="flex animate-pulse items-center gap-2"
+              >
+                <Mic className="h-3 w-3" />
+                You Speaking
+              </Badge>
             )}
           </div>
 
-          <div className="flex gap-2">
+          {/* Connection Progress */}
+          {conversation.status === 'connecting' && (
+            <div className="space-y-2">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                Connecting to agent...
+              </div>
+              <Progress value={33} className="h-1" />
+            </div>
+          )}
+
+          {/* Error Alert */}
+          {conversation.status === 'disconnected' && isConnected && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Connection lost. Please try reconnecting.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
             {!isConnected ? (
               <Button
                 onClick={startConversation}
                 disabled={conversation.status === 'connecting'}
-                className="flex items-center gap-2"
+                className="from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center gap-2 bg-gradient-to-r"
+                size="lg"
               >
-                <Phone className="h-4 w-4" />
-                {conversation.status === 'connecting'
-                  ? 'Connecting...'
-                  : 'Start Conversation'}
+                {conversation.status === 'connecting' ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Phone className="h-4 w-4" />
+                    Start Conversation
+                  </>
+                )}
               </Button>
             ) : (
               <Button
                 onClick={stopConversation}
                 variant="destructive"
                 className="flex items-center gap-2"
+                size="lg"
               >
                 <PhoneOff className="h-4 w-4" />
                 End Conversation
@@ -205,138 +316,120 @@ export function RealtimeVoiceChat({
         </CardContent>
       </Card>
 
-      {/* Voice Controls */}
-      {isConnected && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Voice Controls</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Badge
-                variant={conversation.isSpeaking ? 'default' : 'secondary'}
-              >
-                {conversation.isSpeaking ? 'Agent Speaking' : 'Agent Listening'}
+      {/* Enhanced Messages */}
+      <Card className="overflow-hidden">
+        <CardHeader className="from-muted/50 to-muted/30 bg-gradient-to-r">
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Conversation
+            {messages.length > 0 && (
+              <Badge variant="secondary" className="ml-auto">
+                {messages.length} messages
               </Badge>
-
-              <Button
-                onClick={toggleMute}
-                variant={isMuted ? 'destructive' : 'outline'}
-                className="flex items-center gap-2"
-              >
-                {isMuted ? (
-                  <VolumeX className="h-4 w-4" />
-                ) : (
-                  <Volume2 className="h-4 w-4" />
-                )}
-                {isMuted ? 'Unmute' : 'Mute'}
-              </Button>
-
-              <Button
-                onClick={clearConversation}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Clear
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Volume</Label>
-              <Slider
-                value={[volume]}
-                onValueChange={handleVolumeChange}
-                max={1}
-                min={0}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Messages */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Conversation</CardTitle>
+            )}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="max-h-96 space-y-4 overflow-y-auto">
+        <CardContent className="p-0">
+          <div className="max-h-96 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center">
-                Start a conversation to see messages here
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <MessageCircle className="text-muted-foreground/50 mb-4 h-12 w-12" />
+                <p className="text-muted-foreground font-medium">
+                  No messages yet
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Start a conversation to see messages here
+                </p>
+              </div>
             ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.type === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`max-w-xs rounded-lg px-3 py-2 ${
-                      message.type === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p className="mt-1 text-xs opacity-70">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+              <>
+                {messages.map((message, index) => (
+                  <div key={message.id} className="space-y-2">
+                    <div
+                      className={`flex ${
+                        message.type === 'user'
+                          ? 'justify-end'
+                          : 'justify-start'
+                      }`}
+                    >
+                      <div className="flex max-w-xs items-start gap-3 lg:max-w-md">
+                        {message.type === 'agent' && (
+                          <div className="flex-shrink-0">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
+                              <Bot className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          className={`rounded-2xl px-4 py-3 shadow-sm ${
+                            message.type === 'user'
+                              ? 'from-primary to-primary/90 text-primary-foreground bg-gradient-to-r'
+                              : 'bg-muted border'
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed">
+                            {message.content}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <p className="text-xs opacity-70">
+                              {message.timestamp.toLocaleTimeString()}
+                            </p>
+                            {message.type === 'user' && (
+                              <User className="h-3 w-3 opacity-70" />
+                            )}
+                          </div>
+                        </div>
+
+                        {message.type === 'user' && (
+                          <div className="flex-shrink-0">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600">
+                              <User className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Separator between messages */}
+                    {index < messages.length - 1 && (
+                      <Separator className="my-2" />
+                    )}
                   </div>
+                ))}
+
+                {/* Clear Conversation Button */}
+                <div className="flex justify-center pt-4">
+                  <Button
+                    onClick={clearConversation}
+                    variant="outline"
+                    size="sm"
+                    className="hover:bg-destructive hover:text-destructive-foreground flex items-center gap-2"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Clear Conversation
+                  </Button>
                 </div>
-              ))
+              </>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      {isConnected && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+      {/* Quick Tips */}
+      {!isConnected && (
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              💡 Quick Tips
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() =>
-                  sendTextMessage('Tell me about your fundraising services')
-                }
-                variant="outline"
-                size="sm"
-              >
-                Fundraising Services
-              </Button>
-              <Button
-                onClick={() =>
-                  sendTextMessage('What are your current campaigns?')
-                }
-                variant="outline"
-                size="sm"
-              >
-                Current Campaigns
-              </Button>
-              <Button
-                onClick={() => sendTextMessage('How can I make a donation?')}
-                variant="outline"
-                size="sm"
-              >
-                Make Donation
-              </Button>
-              <Button
-                onClick={() =>
-                  sendTextMessage('What impact does my donation have?')
-                }
-                variant="outline"
-                size="sm"
-              >
-                Impact
-              </Button>
+          <CardContent className="pt-0">
+            <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+              <p>• Speak clearly and at a normal pace</p>
+              <p>• Allow microphone access when prompted</p>
+              <p>• The agent will respond automatically</p>
+              <p>• You can end the conversation anytime</p>
             </div>
           </CardContent>
         </Card>
