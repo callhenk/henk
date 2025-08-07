@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Download, Eye, File, Trash2, Upload } from 'lucide-react';
 import { FileDrop } from 'react-file-drop';
 
 import { getSupabaseBrowserClient } from '@kit/supabase/browser-client';
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
+import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -27,6 +28,8 @@ interface KnowledgeFile {
   status: 'uploading' | 'processing' | 'completed' | 'error';
   progress?: number;
   error?: string;
+  url?: string;
+  path?: string;
 }
 
 interface KnowledgeUploadProps {
@@ -42,8 +45,32 @@ export function KnowledgeUpload({
 }: KnowledgeUploadProps) {
   const [files, setFiles] = useState<KnowledgeFile[]>([]);
   const [_uploading, setUploading] = useState(false);
+  const { data: agent } = useAgent(agentId);
 
   const updateAgentMutation = useUpdateAgent();
+
+  // Load existing files when agent data is available
+  useEffect(() => {
+    if (agent?.knowledge_base) {
+      const knowledgeBase = agent.knowledge_base as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const existingFiles: KnowledgeFile[] = Object.entries(knowledgeBase).map(
+        ([id, fileData]) => ({
+          id,
+          name: fileData.name as string,
+          size: fileData.size as number,
+          type: fileData.type as string,
+          uploadedAt: fileData.uploadedAt as string,
+          status: 'completed' as const,
+          url: fileData.url as string,
+          path: fileData.path as string,
+        }),
+      );
+      setFiles(existingFiles);
+    }
+  }, [agent?.knowledge_base]);
 
   const handleFileUpload = useCallback(
     async (files: File[], knowledgeFiles: KnowledgeFile[]) => {
@@ -92,13 +119,13 @@ export function KnowledgeUpload({
             .upload(`${agentId}/${knowledgeFile.id}/${file.name}`, file);
 
           if (uploadError) {
+            if (uploadError.message.includes('Bucket not found')) {
+              throw new Error(
+                'Storage bucket not configured. Please contact support to create the knowledge_base bucket.',
+              );
+            }
             throw new Error(`Upload failed: ${uploadError.message}`);
           }
-
-          // Get the public URL for the uploaded file
-          const { data: urlData } = supabase.storage
-            .from('knowledge_base')
-            .getPublicUrl(`${agentId}/${knowledgeFile.id}/${file.name}`);
 
           // Get existing knowledge base
           const { data: agent } = await supabase
@@ -117,7 +144,6 @@ export function KnowledgeUpload({
               name: knowledgeFile.name,
               type: knowledgeFile.type,
               size: knowledgeFile.size,
-              url: urlData.publicUrl,
               path: `${agentId}/${knowledgeFile.id}/${file.name}`,
               uploadedAt: knowledgeFile.uploadedAt,
             },
@@ -186,8 +212,47 @@ export function KnowledgeUpload({
     }
   };
 
-  const removeFile = (fileId: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+  const removeFile = async (fileId: string) => {
+    const file = files.find((f) => f.id === fileId);
+    if (!file) return;
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+
+      // Delete file from storage if it exists
+      if (file.path) {
+        const { error: storageError } = await supabase.storage
+          .from('knowledge_base')
+          .remove([file.path]);
+
+        if (storageError) {
+          console.error('Failed to delete file from storage:', storageError);
+        }
+      }
+
+      // Remove file from knowledge base in database
+      const { data: agent } = await supabase
+        .from('agents')
+        .select('knowledge_base')
+        .eq('id', agentId)
+        .single();
+
+      const existingKnowledge =
+        (agent?.knowledge_base as Record<string, unknown>) || {};
+
+      const updatedKnowledge = { ...existingKnowledge };
+      delete updatedKnowledge[fileId];
+
+      await updateAgentMutation.mutateAsync({
+        id: agentId,
+        knowledge_base: updatedKnowledge as Record<string, unknown>,
+      });
+
+      // Remove from local state
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch (error) {
+      console.error('Failed to remove file:', error);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -301,12 +366,57 @@ export function KnowledgeUpload({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {file.status === 'completed' && (
+                    {file.status === 'completed' && file.path && (
                       <>
-                        <Button size="sm" variant="ghost">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={async () => {
+                            if (!file.path) return;
+                            try {
+                              const supabase = getSupabaseBrowserClient();
+                              const { data } = await supabase.storage
+                                .from('knowledge_base')
+                                .createSignedUrl(file.path, 3600); // 1 hour expiry
+
+                              if (data?.signedUrl) {
+                                window.open(data.signedUrl, '_blank');
+                              }
+                            } catch (error) {
+                              console.error(
+                                'Error generating signed URL:',
+                                error,
+                              );
+                            }
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={async () => {
+                            if (!file.path) return;
+                            try {
+                              const supabase = getSupabaseBrowserClient();
+                              const { data } = await supabase.storage
+                                .from('knowledge_base')
+                                .createSignedUrl(file.path, 3600); // 1 hour expiry
+
+                              if (data?.signedUrl) {
+                                const link = document.createElement('a');
+                                link.href = data.signedUrl;
+                                link.download = file.name;
+                                link.click();
+                              }
+                            } catch (error) {
+                              console.error(
+                                'Error generating signed URL:',
+                                error,
+                              );
+                            }
+                          }}
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                       </>
