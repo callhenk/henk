@@ -9,6 +9,8 @@ import {
   Copy,
   DollarSign,
   Eye,
+  Grid3X3,
+  List,
   MoreHorizontal,
   Pause,
   Play,
@@ -394,8 +396,15 @@ function ViewToggle({
       variant="outline"
       size="sm"
       onClick={() => onViewModeChange(viewMode === 'grid' ? 'list' : 'grid')}
+      aria-label={
+        viewMode === 'grid' ? 'Switch to list view' : 'Switch to card view'
+      }
     >
-      {viewMode === 'grid' ? 'List' : 'Cards'}
+      {viewMode === 'grid' ? (
+        <List className="h-4 w-4" />
+      ) : (
+        <Grid3X3 className="h-4 w-4" />
+      )}
     </Button>
   );
 }
