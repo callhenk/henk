@@ -155,12 +155,15 @@ export function RealtimeVoiceChat({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      {/* Phone Call Interface */}
-      <div className="animate-in fade-in-0 zoom-in-95 relative w-full max-w-sm duration-300">
-        {/* Phone Screen */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black p-8 ring-1 ring-white/10">
-          {/* Close Button */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      {/* Glass modal container */}
+      <div className="animate-in fade-in-0 zoom-in-95 relative w-full max-w-md overflow-hidden rounded-2xl border border-white/30 bg-white/90 shadow-2xl backdrop-blur-xl duration-300 dark:border-white/10 dark:bg-neutral-900/85">
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/30 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-neutral-900/70">
+          <div>
+            <div className="text-muted-foreground text-sm">Voice Call</div>
+            <div className="text-base font-semibold">{agentName}</div>
+          </div>
           <button
             onClick={async () => {
               if (isConnected) {
@@ -168,7 +171,8 @@ export function RealtimeVoiceChat({
               }
               onClose?.();
             }}
-            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20"
+            className="rounded-full border border-white/30 bg-white/60 p-2 text-neutral-800 hover:bg-white/80 dark:border-white/10 dark:bg-neutral-800/60 dark:text-white dark:hover:bg-neutral-800/80"
+            aria-label="Close"
           >
             <svg
               className="h-4 w-4"
@@ -184,28 +188,31 @@ export function RealtimeVoiceChat({
               />
             </svg>
           </button>
+        </div>
 
+        {/* Body */}
+        <div className="px-6 py-6">
           {/* Status Bar */}
-          <div className="mb-8 flex items-center justify-between text-white">
+          <div className="mb-6 flex items-center justify-between text-neutral-600 dark:text-neutral-300">
             <div className="flex items-center gap-2">
               <Wifi className="h-4 w-4" />
               <span className="text-sm">5G</span>
             </div>
             <div className="text-sm font-medium">{getConnectionDuration()}</div>
             <div className="flex items-center gap-1">
-              <div className="h-2 w-2 rounded-full bg-white"></div>
-              <div className="h-2 w-2 rounded-full bg-white"></div>
-              <div className="h-2 w-2 rounded-full bg-white"></div>
+              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
+              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
+              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
             </div>
           </div>
 
           {/* Call Info */}
-          <div className="mb-8 text-center text-white">
+          <div className="mb-6 text-center">
             <div className="mb-4 flex justify-center">
               <div className="relative">
                 <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1">
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-800">
-                    <Phone className="h-8 w-8 text-white" />
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-white/70 dark:bg-neutral-800">
+                    <Phone className="h-8 w-8 text-neutral-900 dark:text-white" />
                   </div>
                 </div>
                 {isConnected && (
@@ -215,8 +222,7 @@ export function RealtimeVoiceChat({
                 )}
               </div>
             </div>
-            <h2 className="mb-1 text-xl font-semibold">{agentName}</h2>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
               {isCalling
                 ? 'Calling...'
                 : isConnected
@@ -224,7 +230,7 @@ export function RealtimeVoiceChat({
                   : 'Ready to call'}
             </p>
             {isAgentSpeaking && (
-              <div className="mt-2 flex items-center justify-center gap-2 text-green-400">
+              <div className="mt-2 flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
                 <Volume2 className="h-4 w-4 animate-pulse" />
                 <span className="text-sm">Agent speaking</span>
               </div>
@@ -248,18 +254,13 @@ export function RealtimeVoiceChat({
               </Button>
             ) : (
               <>
-                {/* Answer Call Button */}
                 <Button
-                  onClick={() => {
-                    // Handle incoming call answer
-                  }}
+                  onClick={() => {}}
                   className="h-16 w-16 rounded-full bg-green-500 transition-all duration-200 hover:scale-105 hover:bg-green-600"
                   size="lg"
                 >
                   <Phone className="h-6 w-6 text-white" />
                 </Button>
-
-                {/* End Call Button */}
                 <Button
                   onClick={stopConversation}
                   className="h-16 w-16 rounded-full bg-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-600"
@@ -272,14 +273,14 @@ export function RealtimeVoiceChat({
           </div>
 
           {/* Call Status */}
-          <div className="mt-4 text-center text-sm text-gray-400">
+          <div className="mt-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
             {!isConnected ? <p>Tap to start call</p> : <p>Tap to end call</p>}
           </div>
 
           {/* Connection Progress */}
           {conversation.status === 'connecting' && (
             <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-300">
+              <div className="flex items-center justify-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
                 <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
                 Connecting...
               </div>
@@ -296,26 +297,26 @@ export function RealtimeVoiceChat({
               </AlertDescription>
             </Alert>
           )}
-        </div>
 
-        {/* Quick Tips */}
-        {!isConnected && (
-          <Card className="mt-6 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                💡 Call Tips
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-                <p>• Speak clearly and at a normal pace</p>
-                <p>• Allow microphone access when prompted</p>
-                <p>• The agent will respond automatically</p>
-                <p>• You can end the call anytime</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* Quick Tips */}
+          {!isConnected && (
+            <Card className="mt-6 border-white/30 bg-white/60 backdrop-blur dark:border-white/10 dark:bg-neutral-900/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">
+                  💡 Call Tips
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2 text-sm text-neutral-700 dark:text-neutral-200">
+                  <p>• Speak clearly and at a normal pace</p>
+                  <p>• Allow microphone access when prompted</p>
+                  <p>• The agent will respond automatically</p>
+                  <p>• You can end the call anytime</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Hidden audio element for calling sound */}
