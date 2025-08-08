@@ -667,7 +667,7 @@ function AgentStatusCard({
                   </div>
                   <Badge
                     variant={
-                      agent.status === 'active' ? 'default' : 'secondary'
+                      agent.status === 'active' ? 'success' : 'secondary'
                     }
                   >
                     {agent.status === 'agent_paused' ? 'paused' : agent.status}
