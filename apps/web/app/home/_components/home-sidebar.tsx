@@ -18,7 +18,7 @@ export function HomeSidebar(props: {
   user: User;
 }) {
   return (
-    <Sidebar collapsible={'icon'}>
+    <Sidebar collapsible={'icon'} variant={'floating'}>
       <SidebarHeader className={'h-16 border-b px-4'}>
         <div className={'flex h-full items-center justify-center'}>
           <AppLogo className={'max-w-[64px]'} />
