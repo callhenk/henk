@@ -45,11 +45,16 @@ export function HomeMobileNavigation() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger aria-label={'Open menu'}>
         <Menu className={'h-7 w-7'} />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent sideOffset={10} className={'w-screen rounded-none'}>
+      <DropdownMenuContent
+        sideOffset={10}
+        className={
+          "mx-2 !w-[calc(100vw-16px)] !rounded-2xl border border-white/30 bg-white/40 p-1 shadow-2xl backdrop-blur-xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-[''] after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-[''] dark:border-white/10 dark:bg-neutral-900/50"
+        }
+      >
         <DropdownMenuGroup>{Links}</DropdownMenuGroup>
 
         <DropdownMenuSeparator />

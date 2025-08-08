@@ -58,14 +58,7 @@ export function PageMobileNavigation(
   }>,
 ) {
   return (
-    <div
-      className={cn(
-        'flex w-full items-center border-b px-2 py-1 lg:hidden lg:px-0',
-        props.className,
-      )}
-    >
-      {props.children}
-    </div>
+    <div className={cn('lg:hidden', props.className)}>{props.children}</div>
   );
 }
 
@@ -81,12 +74,15 @@ function PageWithHeader(props: PageProps) {
       >
         <div
           className={cn(
-            // Mobile: floating glass header
-            'mx-2 mt-2 flex h-12 items-center justify-between rounded-xl border border-white/30 bg-white/50 px-3 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/40',
+            // Mobile: floating glass header (Big Sur/iOS-style)
+            'relative mx-2 mt-2 flex h-12 items-center justify-between overflow-hidden rounded-2xl border border-white/30 bg-white/40 px-3 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50',
+            // Highlights and ambient glow for depth
+            "before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-['']",
+            "after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-['']",
             // Desktop: align and flatten
-            'md:h-14 md:px-4 lg:mx-0 lg:mt-0 lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-xs',
+            'md:h-14 md:px-4 md:before:opacity-40 md:after:opacity-20 md:after:blur-xl lg:mx-0 lg:mt-0 lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-xs',
             {
-              'sticky top-0 z-10': props.sticky ?? true,
+              'sticky top-2 z-40': props.sticky ?? true,
             },
           )}
         >
