@@ -1,4 +1,7 @@
-import { Inter as SansFont } from 'next/font/google';
+import {
+  Sora as HeadingFont,
+  Plus_Jakarta_Sans as SansFont,
+} from 'next/font/google';
 
 /**
  * @sans
@@ -10,14 +13,22 @@ const sans = SansFont({
   variable: '--font-sans',
   fallback: ['system-ui', 'Helvetica Neue', 'Helvetica', 'Arial'],
   preload: true,
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
 });
 
 /**
  * @heading
  * @description Define here the heading font.
  */
-const heading = sans;
+const heading = HeadingFont({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  fallback: ['system-ui', 'Helvetica Neue', 'Helvetica', 'Arial'],
+  preload: true,
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
 
 // we export these fonts into the root layout
-export { sans, heading };
+export { heading, sans };

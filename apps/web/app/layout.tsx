@@ -45,7 +45,7 @@ function getClassName(theme?: string) {
     [],
   );
 
-  return cn('bg-background min-h-screen antialiased', ...font, {
+  return cn('min-h-screen antialiased', ...font, {
     dark,
     light,
   });

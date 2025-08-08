@@ -12,11 +12,11 @@ function LogoImage({
 }) {
   return (
     <Image
-      src="/images/logo-clear.png"
+      src="/images/favicon/apple-touch-icon.png"
       alt="Henk"
-      width={width * 0.3}
-      height={width * 0.3} // Assuming aspect ratio of roughly 3:1
-      className={cn(className)}
+      width={width}
+      height={width}
+      className={cn('rounded-xl', className)}
       priority
       quality={95}
     />

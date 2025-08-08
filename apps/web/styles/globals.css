@@ -29,11 +29,38 @@
 @variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+  }
+
+  /* Blurred background image layer */
+  html::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('/background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(10px);
+    transform: scale(1.06);
+    z-index: -2;
   }
 
   *,
