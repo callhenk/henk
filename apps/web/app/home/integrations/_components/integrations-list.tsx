@@ -194,7 +194,7 @@ export function IntegrationsList() {
       </div>
 
       {/* Integrations List */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -247,7 +247,7 @@ function IntegrationCard({
   const Icon = integration.icon;
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">

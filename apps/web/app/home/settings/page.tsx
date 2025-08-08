@@ -50,7 +50,7 @@ function AccountSettingsPageContent() {
       </div>
 
       <div className="max-w-2xl space-y-6">
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
@@ -66,7 +66,7 @@ function AccountSettingsPageContent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle>Account Overview</CardTitle>
             <CardDescription>

@@ -175,7 +175,7 @@ export function ConversationDetail({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="space-y-6 lg:col-span-2">
-          <Card>
+          <Card className={'glass-panel'}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
@@ -235,7 +235,7 @@ export function ConversationDetail({
             </TabsList>
 
             <TabsContent value="transcript" className="mt-6">
-              <Card>
+              <Card className={'glass-panel'}>
                 <CardHeader>
                   <CardTitle>Call Transcript</CardTitle>
                   <CardDescription>
@@ -262,7 +262,7 @@ export function ConversationDetail({
             </TabsContent>
 
             <TabsContent value="summary" className="mt-6">
-              <Card>
+              <Card className={'glass-panel'}>
                 <CardHeader>
                   <CardTitle>AI Analysis Summary</CardTitle>
                   <CardDescription>
@@ -303,7 +303,7 @@ export function ConversationDetail({
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-6">
-              <Card>
+              <Card className={'glass-panel'}>
                 <CardHeader>
                   <CardTitle>Call Analytics</CardTitle>
                   <CardDescription>
@@ -373,7 +373,7 @@ export function ConversationDetail({
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Actions */}
-          <Card>
+          <Card className={'glass-panel'}>
             <CardHeader>
               <CardTitle>Actions</CardTitle>
             </CardHeader>
@@ -394,7 +394,7 @@ export function ConversationDetail({
           </Card>
 
           {/* Quick Stats */}
-          <Card>
+          <Card className={'glass-panel'}>
             <CardHeader>
               <CardTitle>Quick Stats</CardTitle>
             </CardHeader>

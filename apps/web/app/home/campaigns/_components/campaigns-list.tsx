@@ -138,7 +138,7 @@ export function CampaignsList() {
           ))}
         </div>
         {/* Loading Campaigns List */}
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
             <div className="bg-muted h-4 w-64 animate-pulse rounded" />
@@ -276,7 +276,7 @@ export function CampaignsList() {
       </div>
 
       {/* Search & Tabs */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

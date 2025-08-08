@@ -107,7 +107,7 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
     totalCalls > 0 ? (totalConversions / totalCalls) * 100 : 0;
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-center space-x-2">
           <Clock className="h-5 w-5" />

@@ -535,7 +535,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       </div>
 
       {/* Tabs */}
-      <Card>
+      <Card className={'glass-panel'}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <CardHeader>
             <TabsList className="grid w-full grid-cols-4">
@@ -549,7 +549,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <TabsContent value="overview" className="space-y-6">
               <div className="space-y-6">
                 {/* Campaign Name */}
-                <Card>
+                <Card className={'glass-panel'}>
                   <CardHeader>
                     <CardTitle>Campaign Name</CardTitle>
                     <CardDescription>
@@ -578,7 +578,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 </Card>
 
                 {/* Campaign Description */}
-                <Card>
+                <Card className={'glass-panel'}>
                   <CardHeader>
                     <CardTitle>Campaign Description</CardTitle>
                     <CardDescription>
@@ -611,7 +611,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 </Card>
 
                 {/* Campaign Script */}
-                <Card>
+                <Card className={'glass-panel'}>
                   <CardHeader>
                     <CardTitle>Call Script</CardTitle>
                     <CardDescription>
@@ -1010,7 +1010,7 @@ function AgentCard({ agent }: { agent: Tables<'agents'>['Row'] | undefined }) {
   const router = useRouter();
   if (!agent) {
     return (
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle className="flex items-center">
             <User className="mr-2 h-5 w-5" />
@@ -1030,7 +1030,7 @@ function AgentCard({ agent }: { agent: Tables<'agents'>['Row'] | undefined }) {
   }
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <CardTitle className="flex items-center">
           <User className="mr-2 h-5 w-5" />
@@ -1125,7 +1125,7 @@ function SettingsCard({
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle>Campaign Settings</CardTitle>
         </CardHeader>
@@ -1268,7 +1268,7 @@ function SettingsCard({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle>Script & Logic</CardTitle>
         </CardHeader>

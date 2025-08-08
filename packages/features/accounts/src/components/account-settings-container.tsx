@@ -45,7 +45,7 @@ export function PersonalAccountSettingsContainer(
 
   return (
     <div className={'flex w-full flex-col space-y-4 pb-32'}>
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle>
             <Trans i18nKey={'account:accountImage'} />
@@ -66,7 +66,7 @@ export function PersonalAccountSettingsContainer(
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle>
             <Trans i18nKey={'account:name'} />
@@ -83,7 +83,7 @@ export function PersonalAccountSettingsContainer(
       </Card>
 
       <If condition={supportsLanguageSelection}>
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle>
               <Trans i18nKey={'account:language'} />

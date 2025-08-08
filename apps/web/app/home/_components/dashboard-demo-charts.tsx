@@ -247,7 +247,12 @@ export default function DashboardDemo() {
       <div className="animate-in fade-in flex flex-col space-y-4 duration-500">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+            <Card
+              key={i}
+              className={
+                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+              }
+            >
               <CardHeader>
                 <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
                 <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
@@ -258,7 +263,12 @@ export default function DashboardDemo() {
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[...Array(2)].map((_, i) => (
-            <Card key={i}>
+            <Card
+              key={i}
+              className={
+                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+              }
+            >
               <CardHeader>
                 <div className="bg-muted mb-2 h-5 w-48 animate-pulse rounded" />
                 <div className="bg-muted h-3 w-32 animate-pulse rounded" />
@@ -277,7 +287,7 @@ export default function DashboardDemo() {
     <div className={'animate-in fade-in flex flex-col space-y-4 duration-500'}>
       {/* Key Metrics Cards */}
       <div className={'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'}>
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
               <Phone className="h-5 w-5 text-blue-500" />
@@ -303,7 +313,7 @@ export default function DashboardDemo() {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
               <DollarSign className="h-5 w-5 text-green-500" />
@@ -329,7 +339,7 @@ export default function DashboardDemo() {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
               <Users className="h-5 w-5 text-purple-500" />
@@ -355,7 +365,7 @@ export default function DashboardDemo() {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle className={'flex items-center gap-2.5'}>
               <TrendingUp className="h-5 w-5 text-orange-500" />
@@ -399,7 +409,7 @@ export default function DashboardDemo() {
 
       {/* Recent Conversations */}
       <div>
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <CardTitle>Recent Conversations</CardTitle>
             <CardDescription>Latest calls and their outcomes</CardDescription>
@@ -462,7 +472,7 @@ function CallVolumeChart({ conversations }: { conversations: Conversation[] }) {
   } satisfies ChartConfig;
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <CardTitle>Call Volume This Week</CardTitle>
         <CardDescription>
@@ -539,7 +549,7 @@ function ConversionChart({ conversations }: { conversations: Conversation[] }) {
   } satisfies ChartConfig;
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <CardTitle>Conversion Rate by Hour</CardTitle>
         <CardDescription>Best times for successful donations</CardDescription>
@@ -612,7 +622,7 @@ function AgentStatusCard({
   };
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <CardTitle>Agent Status</CardTitle>
         <CardDescription>
@@ -680,7 +690,11 @@ function CampaignSummariesCard({
   conversations: Conversation[];
 }) {
   return (
-    <Card>
+    <Card
+      className={
+        'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+      }
+    >
       <CardHeader>
         <CardTitle>Active Campaigns</CardTitle>
         <CardDescription>Campaign performance overview</CardDescription>

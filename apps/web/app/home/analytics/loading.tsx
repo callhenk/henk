@@ -21,7 +21,7 @@ export default function AnalyticsLoading() {
       </div>
 
       {/* Loading Performance Chart */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="bg-muted h-6 w-48 animate-pulse rounded" />
         </CardHeader>
@@ -33,7 +33,7 @@ export default function AnalyticsLoading() {
       {/* Loading Charts Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {Array.from({ length: 2 }).map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className={'glass-panel'}>
             <CardHeader>
               <div className="bg-muted h-6 w-40 animate-pulse rounded" />
             </CardHeader>
@@ -45,7 +45,7 @@ export default function AnalyticsLoading() {
       </div>
 
       {/* Loading Export Controls */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="bg-muted h-6 w-32 animate-pulse rounded" />
         </CardHeader>

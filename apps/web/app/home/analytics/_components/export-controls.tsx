@@ -76,7 +76,7 @@ export function ExportControls({ filters }: ExportControlsProps) {
   };
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-center space-x-2">
           <Download className="h-5 w-5" />

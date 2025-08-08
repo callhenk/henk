@@ -24,17 +24,9 @@ export const Header: React.FC<HeaderProps> = function ({
       <div className="container">
         <div
           className={cn(
-            // Base glass container
-            'relative overflow-hidden rounded-2xl border shadow-lg backdrop-blur-xl backdrop-saturate-150',
-            // Light mode glass
-            'border-white/30 bg-white/40',
-            // Dark mode glass
-            'dark:border-white/10 dark:bg-neutral-900/50',
-            // Subtle ambient glow and highlight (mobile focused)
-            "before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-['']",
-            "after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-['']",
+            'glass-panel',
             // Desktop: tone down effects
-            'md:rounded-xl md:bg-white/50 md:backdrop-blur-md md:backdrop-saturate-100 md:before:opacity-40 md:after:opacity-20 md:after:blur-xl dark:md:bg-neutral-900/40',
+            'md:rounded-xl md:bg-white/50 md:backdrop-blur-md md:backdrop-saturate-100 dark:md:bg-neutral-900/40',
           )}
         >
           <div className="grid h-12 grid-cols-3 items-center px-3 py-2 md:h-14 md:px-4 md:py-0">

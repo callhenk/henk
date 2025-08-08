@@ -10,17 +10,17 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-primary/80 border-transparent shadow-xs',
+          'glass-panel bg-primary/90 text-primary-foreground hover:bg-primary border-transparent shadow-xs',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent',
+          'glass-panel bg-secondary/90 text-secondary-foreground hover:bg-secondary border-transparent',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/80 border-transparent shadow-xs',
-        outline: 'text-foreground',
+          'glass-panel bg-destructive/90 text-destructive-foreground hover:bg-destructive border-transparent shadow-xs',
+        outline: 'glass-panel text-foreground border-white/20',
         success:
-          'border-transparent bg-green-50 text-green-500 hover:bg-green-50 dark:bg-green-500/20 dark:hover:bg-green-500/20',
+          'glass-panel border-transparent bg-green-500/40 text-green-600 hover:bg-green-500/60 dark:bg-green-500/30 dark:text-green-400 dark:hover:bg-green-500/50',
         warning:
-          'border-transparent bg-orange-50 text-orange-500 hover:bg-orange-50 dark:bg-orange-500/20 dark:hover:bg-orange-500/20',
-        info: 'border-transparent bg-blue-50 text-blue-500 hover:bg-blue-50 dark:bg-blue-500/20 dark:hover:bg-blue-500/20',
+          'glass-panel border-transparent bg-orange-500/40 text-orange-600 hover:bg-orange-500/60 dark:bg-orange-500/30 dark:text-orange-400 dark:hover:bg-orange-500/50',
+        info: 'glass-panel border-transparent bg-blue-500/40 text-blue-600 hover:bg-blue-500/60 dark:bg-blue-500/30 dark:text-blue-400 dark:hover:bg-blue-500/50',
       },
     },
     defaultVariants: {

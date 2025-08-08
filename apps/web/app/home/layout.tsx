@@ -45,7 +45,7 @@ function SidebarLayout({ children }: React.PropsWithChildren) {
 
         <PageMobileNavigation
           className={
-            "sticky top-2 z-40 mx-2 mt-2 flex h-12 items-center justify-between overflow-hidden rounded-2xl border-0 bg-white/40 p-0 px-3 shadow-lg backdrop-blur-xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-[''] after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-[''] dark:bg-neutral-900/50"
+            'glass-panel sticky top-2 z-40 mx-2 mt-2 flex h-12 items-center justify-between border-0 p-0 px-3'
           }
         >
           <MobileNavigation />

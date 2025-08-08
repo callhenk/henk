@@ -89,7 +89,7 @@ export function AnalyticsFilters({
   };
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4" />

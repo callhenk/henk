@@ -45,38 +45,35 @@ DropdownMenuSubTrigger.displayName =
 
 const DropdownMenuSubContent: React.FC<
   React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.SubContent>
-> = ({ className, ...props }) => (
-  <DropdownMenuPrimitive.SubContent
-    className={cn(
-      // Glassmorphism sub-menu panel
-      'text-popover-foreground z-[60] min-w-[10rem] overflow-hidden rounded-2xl border border-white/30 bg-white/40 p-1 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50',
-      // Animations
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-      // Highlight & glow layers
-      "before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-['']",
-      "after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-['']",
-      className,
-    )}
-    {...props}
-  />
+> = ({ className, sideOffset = 6, ...props }) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.SubContent
+      sideOffset={sideOffset}
+      className={cn(
+        'glass-panel text-popover-foreground relative z-[90] min-w-[10rem] p-1',
+        // Animations
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+        // Simple glass: no gradient layers
+        className,
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
 );
 DropdownMenuSubContent.displayName =
   DropdownMenuPrimitive.SubContent.displayName;
 
 const DropdownMenuContent: React.FC<
   React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.Content>
-> = ({ className, sideOffset = 6, ...props }) => (
+> = ({ className, sideOffset = 8, ...props }) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       sideOffset={sideOffset}
       className={cn(
-        // Glassmorphism main menu panel
-        'text-popover-foreground z-[60] min-w-[10rem] overflow-hidden rounded-2xl border border-white/30 bg-white/40 p-1 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50',
+        'glass-panel text-popover-foreground relative z-[85] min-w-[10rem] p-1',
         // Animations
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-        // Highlight & glow layers
-        "before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] before:opacity-70 before:mix-blend-screen before:content-['']",
-        "after:pointer-events-none after:absolute after:inset-[-32px] after:rounded-[24px] after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] after:opacity-40 after:blur-2xl after:content-['']",
+        // Simple glass: no gradient layers
         className,
       )}
       {...props}

@@ -120,7 +120,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   }, [agentPerformanceData, sortBy]);
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

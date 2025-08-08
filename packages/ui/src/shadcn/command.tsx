@@ -14,7 +14,7 @@ const Command: React.FC<
 > = ({ className, ...props }) => (
   <CommandPrimitive
     className={cn(
-      'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
+      'glass-panel text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
       className,
     )}
     {...props}
@@ -39,7 +39,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 const CommandInput: React.FC<
   React.ComponentPropsWithRef<typeof CommandPrimitive.Input>
 > = ({ className, ...props }) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+  <div className="flex items-center border-b border-white/20 px-3" cmdk-input-wrapper="">
     <MagnifyingGlassIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     <CommandPrimitive.Input
       className={cn(
@@ -101,7 +101,7 @@ const CommandItem: React.FC<
 > = ({ className, ...props }) => (
   <CommandPrimitive.Item
     className={cn(
-      "aria-selected:bg-accent aria-selected:text-accent-foreground relative flex cursor-default items-center rounded-xs px-2 py-1.5 text-sm outline-hidden select-none data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50",
+      "aria-selected:bg-accent/50 aria-selected:text-accent-foreground relative flex cursor-default items-center rounded-md px-2 py-1.5 text-sm outline-hidden select-none data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50 hover:bg-accent/30",
       className,
     )}
     {...props}

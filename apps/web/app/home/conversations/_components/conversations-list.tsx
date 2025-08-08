@@ -240,7 +240,7 @@ export function ConversationsList() {
           ))}
         </div>
         {/* Loading Conversations List */}
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
             <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
             <div className="bg-muted h-4 w-64 animate-pulse rounded" />
@@ -318,7 +318,7 @@ export function ConversationsList() {
       </div>
 
       {/* Search & Filters */}
-      <Card>
+        <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -415,7 +415,7 @@ export function ConversationsList() {
       </Card>
 
       {/* Conversations Table */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle>Conversations</CardTitle>
           <CardDescription>

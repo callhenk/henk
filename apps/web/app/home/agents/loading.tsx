@@ -11,7 +11,7 @@ export default function AgentsLoading() {
       </div>
 
       {/* Loading Agents List */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -46,7 +46,7 @@ export default function AgentsLoading() {
           {/* Loading Agent Cards */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
+              <Card key={i} className="glass-panel animate-pulse">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">

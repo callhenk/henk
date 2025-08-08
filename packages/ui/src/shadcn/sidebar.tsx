@@ -261,7 +261,7 @@ const Sidebar: React.FC<
       />
       <div
         className={cn(
-          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
+          'fixed inset-y-0 z-30 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
           side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
             : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
@@ -277,12 +277,8 @@ const Sidebar: React.FC<
           data-sidebar="sidebar"
           className={cn(
             'bg-sidebar flex h-full w-full flex-col',
-            // Floating glass variant: Big Sur / iOS-inspired
-            'group-data-[variant=floating]:overflow-hidden group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-white/30 group-data-[variant=floating]:bg-white/40 group-data-[variant=floating]:shadow-lg group-data-[variant=floating]:backdrop-blur-xl group-data-[variant=floating]:backdrop-saturate-150',
-            'dark:group-data-[variant=floating]:border-white/10 dark:group-data-[variant=floating]:bg-neutral-900/50',
-            // Subtle highlight and ambient glow layers
-            "group-data-[variant=floating]:before:pointer-events-none group-data-[variant=floating]:before:absolute group-data-[variant=floating]:before:inset-0 group-data-[variant=floating]:before:rounded-2xl group-data-[variant=floating]:before:bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0)_40%)] group-data-[variant=floating]:before:opacity-70 group-data-[variant=floating]:before:mix-blend-screen group-data-[variant=floating]:before:content-['']",
-            "group-data-[variant=floating]:after:pointer-events-none group-data-[variant=floating]:after:absolute group-data-[variant=floating]:after:inset-[-32px] group-data-[variant=floating]:after:rounded-[24px] group-data-[variant=floating]:after:bg-[radial-gradient(100%_60%_at_50%_-20%,rgba(255,255,255,0.5),rgba(255,255,255,0))] group-data-[variant=floating]:after:opacity-40 group-data-[variant=floating]:after:blur-2xl group-data-[variant=floating]:after:content-['']",
+            // Ensure floating variant uses our glass while preserving layout sizing
+            'group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-white/30 group-data-[variant=floating]:bg-white/40 group-data-[variant=floating]:shadow-lg group-data-[variant=floating]:backdrop-blur-xl group-data-[variant=floating]:backdrop-saturate-150 dark:group-data-[variant=floating]:border-white/10 dark:group-data-[variant=floating]:bg-neutral-900/50',
             {
               'bg-transparent': variant === 'ghost',
             },

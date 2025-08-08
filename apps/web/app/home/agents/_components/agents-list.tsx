@@ -112,7 +112,7 @@ interface ViewToggleProps {
 
 function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
   return (
-    <Card className="group transition-all duration-200 hover:shadow-lg">
+    <Card className="glass-panel group transition-all duration-200 hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
@@ -616,7 +616,7 @@ export function AgentsList() {
       </div>
 
       {/* Agents List */}
-      <Card>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

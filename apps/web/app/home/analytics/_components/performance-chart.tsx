@@ -124,7 +124,7 @@ export function PerformanceChart({
   }, [performanceData]);
 
   return (
-    <Card>
+    <Card className={'glass-panel'}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
