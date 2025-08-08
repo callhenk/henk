@@ -16,7 +16,7 @@ function LogoImage({
       alt="Henk"
       width={width}
       height={width}
-      className={cn('rounded-xl', className)}
+      className={cn(className)}
       priority
       quality={95}
     />
