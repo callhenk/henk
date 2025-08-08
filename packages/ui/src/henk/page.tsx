@@ -81,9 +81,12 @@ function PageWithHeader(props: PageProps) {
       >
         <div
           className={cn(
-            'bg-muted/40 dark:border-border dark:shadow-primary/10 flex h-14 items-center justify-between px-4 lg:justify-start lg:shadow-xs',
+            // Mobile: floating glass header
+            'mx-2 mt-2 flex h-12 items-center justify-between rounded-xl border border-white/30 bg-white/50 px-3 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/40',
+            // Desktop: align and flatten
+            'md:h-14 md:px-4 lg:mx-0 lg:mt-0 lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-xs',
             {
-              'sticky top-0 z-10 backdrop-blur-md': props.sticky ?? true,
+              'sticky top-0 z-10': props.sticky ?? true,
             },
           )}
         >

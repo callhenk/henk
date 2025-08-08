@@ -5,7 +5,7 @@ import { cn } from '@kit/ui/utils';
 
 function LogoImage({
   className,
-  width = 60,
+  width = 30,
 }: {
   className?: string;
   width?: number;
@@ -35,9 +35,10 @@ export function AppLogo({
   size?: 'small' | 'default' | 'large';
 }) {
   const sizeClasses = {
-    small: 'w-10 sm:w-8 md:w-8',
-    default: 'w-12 sm:w-12 md:w-12 lg:w-12',
-    large: 'w-14 sm:w-14 md:w-14 lg:w-14',
+    small: 'w-5 sm:w-5 md:w-5',
+    default: 'w-10 sm:w-10 md:w-10 lg:w-10',
+    large: 'w-12 sm:w-12 md:w-12 lg:w-12',
+    xlarge: 'w-14 sm:w-14 md:w-14 lg:w-14',
   };
 
   if (href === null) {

@@ -16,16 +16,20 @@ export const Header: React.FC<HeaderProps> = function ({
   return (
     <div
       className={cn(
-        'site-header sticky top-0 z-10 w-full py-1 backdrop-blur-md',
+        'site-header sticky top-2 z-10 w-full px-2 pt-2 pb-0',
         className,
       )}
       {...props}
     >
       <div className="container">
-        <div className="grid h-14 grid-cols-3 items-center">
-          <div className={'mx-auto md:mx-0'}>{logo}</div>
-          <div className="order-first md:order-none">{navigation}</div>
-          <div className="flex items-center justify-end gap-x-2">{actions}</div>
+        <div className="rounded-xl border border-white/30 bg-white/50 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/40">
+          <div className="grid h-12 grid-cols-3 items-center px-3 py-2 md:h-14 md:px-4 md:py-0">
+            <div className={'mx-auto md:mx-0'}>{logo}</div>
+            <div className="order-first md:order-none">{navigation}</div>
+            <div className="flex items-center justify-end gap-x-2">
+              {actions}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -63,6 +63,11 @@
     z-index: -2;
   }
 
+  /* Dark mode background image */
+  html.dark::before {
+    background-image: url('/backgroun-dark.png');
+  }
+
   *,
   ::after,
   ::before,
