@@ -213,28 +213,28 @@ export function VoiceTesting({ agentId, agentName }: VoiceTestingProps) {
 
           {/* Agent Speaking Indicator */}
           {isAgentSpeaking && (
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3">
+            <div className="bg-primary/10 flex items-center gap-2 rounded-lg p-3">
               <div className="flex items-center gap-1">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                <div className="bg-primary h-2 w-2 animate-pulse rounded-full"></div>
                 <div
-                  className="h-2 w-2 animate-pulse rounded-full bg-blue-500"
+                  className="bg-primary h-2 w-2 animate-pulse rounded-full"
                   style={{ animationDelay: '0.1s' }}
                 ></div>
                 <div
-                  className="h-2 w-2 animate-pulse rounded-full bg-blue-500"
+                  className="bg-primary h-2 w-2 animate-pulse rounded-full"
                   style={{ animationDelay: '0.2s' }}
                 ></div>
               </div>
-              <span className="text-sm text-blue-700">
+              <span className="text-primary text-sm">
                 {agentName} is speaking...
               </span>
             </div>
           )}
 
           {/* Instructions */}
-          <div className="rounded-lg border bg-blue-50 p-4">
-            <h4 className="mb-2 font-medium text-blue-900">Instructions</h4>
-            <ul className="space-y-1 text-sm text-blue-800">
+          <div className="bg-muted rounded-lg border p-4">
+            <h4 className="text-foreground mb-2 font-medium">Instructions</h4>
+            <ul className="text-muted-foreground space-y-1 text-sm">
               <li>• Click &quot;Connect Microphone&quot; to begin</li>
               <li>• Allow microphone access when prompted</li>
               <li>
@@ -247,11 +247,11 @@ export function VoiceTesting({ agentId, agentName }: VoiceTestingProps) {
           </div>
 
           {/* ElevenLabs Status */}
-          <div className="rounded-lg border bg-yellow-50 p-4">
-            <h4 className="mb-2 font-medium text-yellow-900">
+          <div className="bg-muted rounded-lg border p-4">
+            <h4 className="text-foreground mb-2 font-medium">
               ElevenLabs Status
             </h4>
-            <p className="text-sm text-yellow-800">
+            <p className="text-muted-foreground text-sm">
               Currently using simulated voice conversations. To enable real
               ElevenLabs voice conversations, you need to create an ElevenLabs
               agent first and configure it with your agent&apos;s voice
@@ -287,7 +287,7 @@ export function VoiceTesting({ agentId, agentName }: VoiceTestingProps) {
           <div className="space-y-2">
             <Label className="text-sm">Voice Quality</Label>
             <div className="flex items-center gap-2">
-              <div className="h-2 flex-1 rounded-full bg-gray-200">
+              <div className="bg-muted h-2 flex-1 rounded-full">
                 <div className="h-2 w-3/4 rounded-full bg-green-500"></div>
               </div>
               <span className="text-xs">Good</span>
@@ -297,7 +297,7 @@ export function VoiceTesting({ agentId, agentName }: VoiceTestingProps) {
           <div className="space-y-2">
             <Label className="text-sm">Response Time</Label>
             <div className="flex items-center gap-2">
-              <div className="h-4 w-4 rounded-full bg-blue-500"></div>
+              <div className="bg-primary h-4 w-4 rounded-full"></div>
               <span className="text-sm">~2.3 seconds average</span>
             </div>
           </div>
@@ -318,7 +318,7 @@ export function VoiceTesting({ agentId, agentName }: VoiceTestingProps) {
           {conversationId && (
             <div className="space-y-2">
               <Label className="text-sm">Session ID</Label>
-              <div className="rounded bg-gray-100 p-2 font-mono text-xs">
+              <div className="bg-muted rounded p-2 font-mono text-xs">
                 {conversationId}
               </div>
             </div>

@@ -92,7 +92,7 @@ export function AgentOverview({
 
       {/* Stats Overview */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -107,7 +107,7 @@ export function AgentOverview({
           </div>
         </div>
 
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -122,7 +122,7 @@ export function AgentOverview({
           </div>
         </div>
 
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -143,7 +143,7 @@ export function AgentOverview({
         {/* Left Column - Agent Details & Campaigns */}
         <div className="space-y-6 lg:col-span-2">
           {/* Agent Details */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -178,7 +178,7 @@ export function AgentOverview({
           </div>
 
           {/* Linked Campaigns */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">
@@ -203,7 +203,7 @@ export function AgentOverview({
                 ))
               ) : (
                 <div className="rounded-lg border p-6 text-center">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-muted-foreground text-sm">
                     No campaigns assigned yet
                   </p>
                 </div>
@@ -215,7 +215,7 @@ export function AgentOverview({
         {/* Right Column - Agent Info */}
         <div className="space-y-6 lg:col-span-1">
           {/* Agent Description */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">
@@ -237,7 +237,7 @@ export function AgentOverview({
           </div>
 
           {/* Starting Message */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">

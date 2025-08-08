@@ -169,7 +169,7 @@ export function AgentVoice({
         {/* Left Column - Voice Selection */}
         <div className="space-y-6">
           {/* Voice Selection */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -212,7 +212,7 @@ export function AgentVoice({
 
           {/* Voice Preview */}
           {agent.voice_id && (
-            <div className="rounded-xl border p-6 shadow-sm">
+            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
               <div className="mb-6">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -229,7 +229,7 @@ export function AgentVoice({
               <div className="bg-muted/50 rounded-lg border p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full shadow-sm">
+                    <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
                       <Volume2 className="h-6 w-6" />
                     </div>
                     <div>
@@ -307,7 +307,7 @@ export function AgentVoice({
           )}
 
           {/* Voice Type */}
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">
@@ -350,7 +350,7 @@ export function AgentVoice({
 
         {/* Right Column - Custom Voice Recording */}
         <div className="lg:col-span-1">
-          <div className="rounded-xl border p-6 shadow-sm">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg">

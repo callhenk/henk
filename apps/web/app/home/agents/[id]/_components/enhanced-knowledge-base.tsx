@@ -450,7 +450,7 @@ export function EnhancedKnowledgeBase({
 
   if (!elevenlabsAgentId) {
     return (
-      <div className="rounded-xl border p-6 shadow-sm">
+      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
         <div className="mb-6">
           <div className="mb-4 flex items-center gap-3">
             <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -472,7 +472,7 @@ export function EnhancedKnowledgeBase({
   return (
     <>
       <div className="space-y-6">
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="mb-6">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -656,7 +656,7 @@ export function EnhancedKnowledgeBase({
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6">
+          <div className="bg-card text-card-foreground w-full max-w-md rounded-lg p-6">
             <h3 className="mb-4 text-lg font-semibold">
               Add Knowledge Document
             </h3>
@@ -813,7 +813,7 @@ export function EnhancedKnowledgeBase({
 
       {showDeleteConfirm && documentToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-4 sm:p-6">
+          <div className="bg-card text-card-foreground w-full max-w-md rounded-lg p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-3">
               <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full">
                 <Trash2 className="h-5 w-5" />

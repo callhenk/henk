@@ -45,10 +45,15 @@ export function AgentHeader({
   };
 
   return (
-    <div className="rounded-xl border p-6 shadow-sm">
+    <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={onBack} size="sm">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            size="sm"
+            aria-label="Back to agents"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Back to Agents</span>
             <span className="sm:hidden">Back</span>
@@ -61,41 +66,63 @@ export function AgentHeader({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center space-x-2">
                   {editingName ? (
-                    <div className="flex w-full items-center space-x-2">
+                    <div className="flex w-full items-center gap-2">
+                      <label htmlFor="agent-name-input" className="sr-only">
+                        Agent name
+                      </label>
                       <Input
+                        id="agent-name-input"
                         value={agentName}
                         onChange={(e) => setAgentName(e.target.value)}
                         className="h-8 flex-1 text-lg font-bold sm:text-2xl"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            onSaveField('name', agentName);
+                            if (agentName.trim() && agentName !== agent.name) {
+                              onSaveField('name', agentName.trim());
+                            }
                             setEditingName(false);
                           } else if (e.key === 'Escape') {
                             setAgentName(agent.name || '');
                             setEditingName(false);
                           }
                         }}
-                        onBlur={() => {
-                          onSaveField('name', agentName);
-                          setEditingName(false);
-                        }}
                         autoFocus
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          onSaveField('name', agentName);
-                          setEditingName(false);
-                        }}
-                        className="h-6 w-6 p-0"
-                      >
-                        ✓
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (agentName.trim() && agentName !== agent.name) {
+                              onSaveField('name', agentName.trim());
+                            }
+                            setEditingName(false);
+                          }}
+                          disabled={
+                            !agentName.trim() || agentName === agent.name
+                          }
+                          aria-label="Save name"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setAgentName(agent.name || '');
+                            setEditingName(false);
+                          }}
+                          aria-label="Cancel editing name"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex min-w-0 items-center space-x-2">
-                      <h1 className="truncate text-lg font-bold sm:text-2xl">
+                      <h1
+                        className="truncate text-lg font-bold sm:text-2xl"
+                        title={agentName}
+                      >
                         {agentName}
                       </h1>
                       <Button
@@ -103,6 +130,8 @@ export function AgentHeader({
                         size="sm"
                         onClick={() => setEditingName(true)}
                         className="h-6 w-6 flex-shrink-0 p-0"
+                        aria-label="Edit agent name"
+                        title="Edit name"
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -118,7 +147,12 @@ export function AgentHeader({
         </div>
         <div className="flex items-center space-x-3">
           {getStatusBadge(agent.status)}
-          <Button onClick={onTalkToAgent} size="sm" variant="default">
+          <Button
+            onClick={onTalkToAgent}
+            size="sm"
+            variant="default"
+            aria-label="Start voice chat with agent"
+          >
             <Phone className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Start Voice Chat</span>
             <span className="sm:hidden">Chat</span>

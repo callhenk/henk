@@ -109,7 +109,7 @@ export function TextChat({ agentId, agentName }: TextChatProps) {
                   className={`max-w-xs rounded-lg p-3 lg:max-w-md ${
                     message.type === 'user'
                       ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-muted text-foreground'
                   }`}
                 >
                   <div className="mb-1 flex items-center gap-2">
@@ -132,19 +132,19 @@ export function TextChat({ agentId, agentName }: TextChatProps) {
           )}
           {isSendingMessage && (
             <div className="flex justify-start">
-              <div className="rounded-lg bg-gray-100 p-3">
+              <div className="bg-muted rounded-lg p-3">
                 <div className="flex items-center gap-2">
                   <Bot className="h-3 w-3" />
                   <span className="text-xs opacity-70">{agentName}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+                  <div className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full"></div>
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                    className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full"
                     style={{ animationDelay: '0.1s' }}
                   ></div>
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                    className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full"
                     style={{ animationDelay: '0.2s' }}
                   ></div>
                 </div>

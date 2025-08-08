@@ -107,15 +107,15 @@ export function ScenarioTesting({ agentId, agentName }: ScenarioTestingProps) {
   const getQualityColor = (quality: string) => {
     switch (quality) {
       case 'excellent':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-300';
       case 'good':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300';
       case 'fair':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300';
       case 'poor':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -133,7 +133,7 @@ export function ScenarioTesting({ agentId, agentName }: ScenarioTestingProps) {
           {defaultScenarios.map((scenario) => (
             <div
               key={scenario.id}
-              className="cursor-pointer rounded-lg border p-4 hover:bg-gray-50"
+              className="hover:bg-muted cursor-pointer rounded-lg border p-4"
               onClick={() => runScenarioTest(scenario)}
             >
               <div className="flex items-start justify-between">

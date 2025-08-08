@@ -74,7 +74,7 @@ export function AgentKnowledge({
 
       {/* Stats Overview */}
       <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-3 sm:gap-4">
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -91,7 +91,7 @@ export function AgentKnowledge({
           </div>
         </div>
 
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -108,7 +108,7 @@ export function AgentKnowledge({
           </div>
         </div>
 
-        <div className="rounded-xl border p-6 shadow-sm">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -131,7 +131,7 @@ export function AgentKnowledge({
         {/* Left Column - Core Settings */}
         <div className="space-y-4 lg:space-y-6">
           {/* Organization Information */}
-          <div className="rounded-xl border p-4 shadow-sm sm:p-6">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -173,7 +173,7 @@ export function AgentKnowledge({
           </div>
 
           {/* Starting Message */}
-          <div className="rounded-xl border p-4 shadow-sm sm:p-6">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -213,7 +213,7 @@ export function AgentKnowledge({
           </div>
 
           {/* Context Prompt */}
-          <div className="rounded-xl border p-4 shadow-sm sm:p-6">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -254,7 +254,7 @@ export function AgentKnowledge({
         {/* Right Column - Advanced Features */}
         <div className="space-y-4 lg:space-y-6">
           {/* FAQs */}
-          <div className="rounded-xl border p-4 shadow-sm sm:p-6">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
             <div className="mb-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">

@@ -11,8 +11,8 @@ import {
 
 export function WorkflowInstructions() {
   return (
-    <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+    <div className="bg-muted mb-4 rounded-lg border p-4">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <MousePointer className="h-4 w-4" />
           <span>Click nodes to select and edit</span>

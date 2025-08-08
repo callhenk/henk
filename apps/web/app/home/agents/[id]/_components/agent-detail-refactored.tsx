@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { BookOpen, GitBranch, LayoutDashboard, Mic } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import our Supabase hooks
@@ -519,32 +520,45 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       />
 
       {/* Tabbed Content */}
-      <div className="rounded-xl border p-4 shadow-sm sm:p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 gap-1 rounded-lg p-1 sm:grid-cols-4 sm:gap-2">
+      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            setActiveTab(value);
+            const params = new URLSearchParams(searchParams.toString());
+            params.set('tab', value);
+            router.replace(`?${params.toString()}`, { scroll: false });
+          }}
+          className="w-full"
+        >
+          <TabsList className="flex w-full gap-2 overflow-x-auto rounded-lg p-1 sm:grid sm:grid-cols-4">
             <TabsTrigger
               value="overview"
-              className="rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
             >
-              Overview
+              <LayoutDashboard className="h-4 w-4" />
+              <span>Overview</span>
             </TabsTrigger>
             <TabsTrigger
               value="knowledge"
-              className="rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
             >
-              Knowledge
+              <BookOpen className="h-4 w-4" />
+              <span>Knowledge</span>
             </TabsTrigger>
             <TabsTrigger
               value="voice"
-              className="rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
             >
-              Voice
+              <Mic className="h-4 w-4" />
+              <span>Voice</span>
             </TabsTrigger>
             <TabsTrigger
               value="workflow"
-              className="rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
             >
-              Workflow
+              <GitBranch className="h-4 w-4" />
+              <span>Workflow</span>
             </TabsTrigger>
           </TabsList>
 
@@ -597,7 +611,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       {/* Voice Update Confirmation Dialog */}
       {showVoiceUpdateConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
+          <div className="bg-card text-card-foreground mx-4 w-full max-w-md rounded-lg p-6">
             <h3 className="mb-4 text-lg font-semibold">Confirm Voice Update</h3>
             <p className="text-muted-foreground mb-6">
               This will update the voice for both the local agent and the

@@ -160,9 +160,9 @@ export function WorkflowBuilder() {
     <div className="mx-auto max-w-7xl">
       {/* Hero Section */}
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-50 to-slate-50">
+        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
           <svg
-            className="h-8 w-8 text-gray-600"
+            className="text-muted-foreground h-8 w-8"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -175,17 +175,17 @@ export function WorkflowBuilder() {
             />
           </svg>
         </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
           Workflow Builder
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600">
+        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
           Design and configure your agent&apos;s conversation flow with a visual
           workflow editor.
         </p>
       </div>
 
       {/* Workflow Container */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+      <div className="bg-card text-card-foreground rounded-xl border p-4 sm:p-6">
         <div className="flex h-[600px] w-full flex-col">
           <WorkflowToolbar
             historyIndex={historyIndex}

@@ -39,8 +39,8 @@ export function WorkflowToolbar({
       {/* Selection Status */}
       {hasSelection && (
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-700">
-            <div className="h-2 w-2 rounded-full bg-gray-500"></div>
+          <div className="bg-muted text-muted-foreground flex items-center gap-1 rounded-md px-3 py-2 text-sm">
+            <div className="bg-muted-foreground h-2 w-2 rounded-full"></div>
             <span>
               {selectedNode ? `Selected: ${selectedNode.data.label}` : ''}
               {selectedEdge ? 'Selected: Connection' : ''}
@@ -53,7 +53,7 @@ export function WorkflowToolbar({
               if (selectedNode) onDeleteNode();
               if (selectedEdge) onDeleteEdge();
             }}
-            className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="h-8 px-2 text-red-600 hover:bg-red-500/10 hover:text-red-700"
           >
             <X className="h-4 w-4" />
           </Button>

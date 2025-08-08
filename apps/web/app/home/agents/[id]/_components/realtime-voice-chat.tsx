@@ -159,7 +159,7 @@ export function RealtimeVoiceChat({
       {/* Phone Call Interface */}
       <div className="animate-in fade-in-0 zoom-in-95 relative w-full max-w-sm duration-300">
         {/* Phone Screen */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black p-8 shadow-2xl ring-1 ring-white/10">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black p-8 ring-1 ring-white/10">
           {/* Close Button */}
           <button
             onClick={async () => {
@@ -168,7 +168,7 @@ export function RealtimeVoiceChat({
               }
               onClose?.();
             }}
-            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20"
           >
             <svg
               className="h-4 w-4"

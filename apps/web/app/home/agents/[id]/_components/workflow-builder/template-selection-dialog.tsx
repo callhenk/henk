@@ -107,7 +107,7 @@ export function TemplateSelectionDialog({
             {filteredTemplates.map((template) => (
               <Card
                 key={template.id}
-                className="cursor-pointer transition-all hover:shadow-md"
+                className="cursor-pointer transition-all hover:opacity-90"
                 onClick={() => onSelectTemplate(template)}
               >
                 <CardContent className="p-4">
@@ -131,7 +131,7 @@ export function TemplateSelectionDialog({
           </div>
 
           {/* Start from scratch option */}
-          <Card className="cursor-pointer transition-all hover:shadow-md">
+          <Card className="cursor-pointer transition-all hover:opacity-90">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />

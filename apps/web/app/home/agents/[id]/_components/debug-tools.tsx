@@ -59,11 +59,11 @@ export function DebugTools({
 
   return (
     <div className="fixed right-2 bottom-4 z-50 sm:right-4">
-      <div className="rounded-lg border border-gray-200 bg-white shadow-lg sm:p-3">
+      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-lg border backdrop-blur sm:p-3">
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-green-500"></div>
-            <span className="text-xs font-medium text-gray-700">
+            <span className="text-foreground text-xs font-medium">
               Debug Tools
             </span>
           </div>
@@ -176,7 +176,7 @@ export function DebugTools({
 
       {/* ElevenLabs Agent Details Display */}
       {elevenLabsAgentDetails && (
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 mt-4 rounded-lg border p-4 backdrop-blur">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export function DebugTools({
 
       {/* Knowledge Base Status Display */}
       {knowledgeBaseStatus && (
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 mt-4 rounded-lg border p-4 backdrop-blur">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -287,8 +287,8 @@ export function DebugTools({
                 )}
                 {knowledgeBaseStatus.hasDocuments &&
                   !knowledgeBaseStatus.hasKnowledgeBaseConfigured && (
-                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
-                      <p className="text-sm text-orange-800">
+                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950/20">
+                      <p className="text-sm text-orange-800 dark:text-orange-200">
                         <strong>⚠️ Action Required:</strong> Documents exist but
                         agent is not configured to use them. Click &ldquo;Link
                         KB to Agent&rdquo; in debug tools.
@@ -296,8 +296,8 @@ export function DebugTools({
                     </div>
                   )}
                 {knowledgeBaseStatus.error && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                    <p className="text-sm text-red-800">
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20">
+                    <p className="text-sm text-red-800 dark:text-red-200">
                       <strong>Error:</strong> {knowledgeBaseStatus.error}
                     </p>
                   </div>

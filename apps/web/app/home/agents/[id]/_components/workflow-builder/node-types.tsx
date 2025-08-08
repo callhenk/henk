@@ -30,7 +30,7 @@ function StartNode({
 }) {
   return (
     <div
-      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-green-500 bg-green-100 shadow-lg transition-all ${
+      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-green-500 bg-green-100 transition-all ${
         selected ? 'scale-105 ring-4 ring-green-300 ring-offset-2' : ''
       }`}
     >
@@ -55,7 +55,7 @@ function DecisionNode({
 }) {
   return (
     <div
-      className={`flex h-24 w-48 flex-col items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-100 shadow-lg transition-all ${
+      className={`flex h-24 w-48 flex-col items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-100 transition-all ${
         selected ? 'scale-105 ring-4 ring-blue-300 ring-offset-2' : ''
       }`}
     >
@@ -117,36 +117,36 @@ function ActionNode({
       case 'end_call':
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
-        return <Settings className="h-5 w-5 text-gray-600" />;
+        return <Settings className="text-muted-foreground h-5 w-5" />;
     }
   };
 
   return (
     <div
-      className={`flex h-20 w-44 flex-col items-center justify-center rounded-lg border-2 border-gray-500 bg-gray-100 shadow-lg transition-all ${
-        selected ? 'scale-105 ring-4 ring-gray-300 ring-offset-2' : ''
+      className={`border-border bg-muted flex h-20 w-44 flex-col items-center justify-center rounded-lg border-2 transition-all ${
+        selected ? 'ring-muted scale-105 ring-4 ring-offset-2' : ''
       }`}
     >
       <Handle
         type="target"
         position={Position.Top}
-        className="h-4 w-4 bg-gray-500 transition-colors hover:bg-gray-600"
+        className="bg-muted-foreground hover:bg-foreground h-4 w-4 transition-colors"
         style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="h-4 w-4 bg-gray-500 transition-colors hover:bg-gray-600"
+        className="bg-muted-foreground hover:bg-foreground h-4 w-4 transition-colors"
         style={{ zIndex: 10 }}
       />
 
       <div className="mb-1 flex items-center">
         {getActionIcon(data.action)}
-        <span className="ml-2 text-sm font-medium text-gray-800">
+        <span className="text-foreground ml-2 text-sm font-medium">
           {data.label}
         </span>
       </div>
-      <span className="text-center text-xs text-gray-600">
+      <span className="text-muted-foreground text-center text-xs">
         {data.description}
       </span>
     </div>
@@ -162,7 +162,7 @@ function EndNode({
 }) {
   return (
     <div
-      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-red-500 bg-red-100 shadow-lg transition-all ${
+      className={`flex h-16 w-40 items-center justify-center rounded-lg border-2 border-red-500 bg-red-100 transition-all ${
         selected ? 'scale-105 ring-4 ring-red-300 ring-offset-2' : ''
       }`}
     >
