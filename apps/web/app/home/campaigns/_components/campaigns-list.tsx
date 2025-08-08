@@ -62,6 +62,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
+import { CreateCampaignPanel } from './create-campaign-panel';
+
 type Campaign = Tables<'campaigns'>['Row'];
 
 // Enhanced campaign interface with calculated fields
@@ -74,8 +76,6 @@ interface EnhancedCampaign extends Campaign {
 }
 
 export function CampaignsList() {
-  const router = useRouter();
-
   // Fetch real data using our hooks
   const { data: campaigns = [], isLoading: campaignsLoading } = useCampaigns();
   const { data: leads = [] } = useLeads();
@@ -88,6 +88,7 @@ export function CampaignsList() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [campaignToDelete, setCampaignToDelete] =
     useState<EnhancedCampaign | null>(null);
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
@@ -285,7 +286,7 @@ export function CampaignsList() {
                 Manage your fundraising campaigns and track performance
               </CardDescription>
             </div>
-            <Button onClick={() => router.push('/home/campaigns/create')}>
+            <Button onClick={() => setShowCreatePanel(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create Campaign
             </Button>
@@ -364,6 +365,11 @@ export function CampaignsList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateCampaignPanel
+        open={showCreatePanel}
+        onOpenChange={setShowCreatePanel}
+      />
     </div>
   );
 }

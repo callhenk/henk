@@ -78,12 +78,16 @@ interface CampaignFormProps {
   mode: 'create' | 'edit';
   campaignId?: string;
   initialData?: Partial<CampaignFormData>;
+  onSuccess?: (data: CampaignFormData) => void;
+  onCancel?: () => void;
 }
 
 export function CampaignForm({
   mode,
   campaignId,
   initialData,
+  onSuccess,
+  onCancel,
 }: CampaignFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,7 +201,13 @@ export function CampaignForm({
           daily_call_cap: 100,
           retry_logic: 'standard',
         });
-        router.push(`/home/campaigns/${createdCampaign.id}`);
+
+        // Call onSuccess callback if provided, otherwise navigate
+        if (onSuccess) {
+          onSuccess(data);
+        } else {
+          router.push(`/home/campaigns/${createdCampaign.id}`);
+        }
       } else if (campaignId) {
         await updateCampaignMutation.mutateAsync({
           id: campaignId,
@@ -209,7 +219,13 @@ export function CampaignForm({
           target_amount: parseFloat(data.target_amount) || 0,
           script: data.script,
         });
-        router.push(`/home/campaigns/${campaignId}`);
+
+        // Call onSuccess callback if provided, otherwise navigate
+        if (onSuccess) {
+          onSuccess(data);
+        } else {
+          router.push(`/home/campaigns/${campaignId}`);
+        }
       }
     } catch (error) {
       console.error('Error saving campaign:', error);
@@ -219,10 +235,15 @@ export function CampaignForm({
   };
 
   const handleBack = () => {
-    if (mode === 'edit' && campaignId) {
-      router.push(`/home/campaigns/${campaignId}`);
+    // Call onCancel callback if provided, otherwise navigate
+    if (onCancel) {
+      onCancel();
     } else {
-      router.push('/home/campaigns');
+      if (mode === 'edit' && campaignId) {
+        router.push(`/home/campaigns/${campaignId}`);
+      } else {
+        router.push('/home/campaigns');
+      }
     }
   };
 
