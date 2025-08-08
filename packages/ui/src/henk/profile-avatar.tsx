@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react';
+
 import { cn } from '../lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../shadcn/avatar';
 
@@ -13,13 +15,30 @@ type TextProps = {
 type ProfileAvatarProps = (SessionProps | TextProps) & {
   className?: string;
   fallbackClassName?: string;
+  onImageError?: () => void;
 };
 
 export function ProfileAvatar(props: ProfileAvatarProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(
+    'pictureUrl' in props ? props.pictureUrl : undefined,
+  );
+
   const avatarClassName = cn(
     props.className,
-    'mx-auto h-9 w-9 transition-transform duration-200 group-focus:ring-2 hover:scale-105',
+    'mx-auto h-9 w-9 transition-transform duration-200 hover:scale-105 group-focus:ring-2',
   );
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+    props.onImageError?.();
+  }, [props]);
+
+  // Reset image error state when pictureUrl changes
+  if ('pictureUrl' in props && imageSrc !== props.pictureUrl) {
+    setImageSrc(props.pictureUrl);
+    setImageError(false);
+  }
 
   if ('text' in props) {
     return (
@@ -40,7 +59,13 @@ export function ProfileAvatar(props: ProfileAvatarProps) {
 
   return (
     <Avatar className={avatarClassName}>
-      <AvatarImage src={props.pictureUrl ?? undefined} />
+      {!imageError && imageSrc && (
+        <AvatarImage
+          src={imageSrc}
+          onError={handleImageError}
+          alt={`${props.displayName || 'User'} profile picture`}
+        />
+      )}
 
       <AvatarFallback
         className={cn(props.fallbackClassName, 'animate-in fade-in')}

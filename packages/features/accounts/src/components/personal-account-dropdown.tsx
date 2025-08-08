@@ -21,7 +21,10 @@ import { ProfileAvatar } from '@kit/ui/profile-avatar';
 import { Trans } from '@kit/ui/trans';
 import { cn } from '@kit/ui/utils';
 
-import { usePersonalAccountData } from '../hooks/use-personal-account-data';
+import {
+  usePersonalAccountData,
+  useRefetchSignedUrl,
+} from '../hooks/use-personal-account-data';
 
 export function PersonalAccountDropdown({
   className,
@@ -55,6 +58,7 @@ export function PersonalAccountDropdown({
   className?: string;
 }) {
   const personalAccountData = usePersonalAccountData(user.id, account);
+  const refetchSignedUrl = useRefetchSignedUrl();
 
   const signedInAsLabel = useMemo(() => {
     const email = user?.email ?? undefined;
@@ -86,7 +90,10 @@ export function PersonalAccountDropdown({
           }
           fallbackClassName={'rounded-md border'}
           displayName={displayName ?? user?.email ?? ''}
-          pictureUrl={personalAccountData?.data?.picture_url}
+          pictureUrl={
+            personalAccountData?.data?.picture_url || account?.picture_url
+          }
+          onImageError={() => refetchSignedUrl(user.id)}
         />
 
         <If condition={showProfileName}>
