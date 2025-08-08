@@ -124,15 +124,6 @@ export function CampaignsList() {
     });
   }, [campaigns, leads, conversations, agents]);
 
-  const handleSort = (field: string) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-
   // Show loading state if data is still loading
   if (campaignsLoading) {
     return (
