@@ -18,6 +18,7 @@ import {
   Phone,
   Play,
   Trash2,
+  Upload,
   User,
   Users,
 } from 'lucide-react';
@@ -70,6 +71,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+import { Switch } from '@kit/ui/switch';
 import {
   Table,
   TableBody,
@@ -88,9 +90,7 @@ import {
   TimePicker,
 } from '~/components/shared';
 
-import { CampaignControls } from '../../_components/campaign-controls';
 import { CSVUpload } from './csv-upload';
-import { ReassignAgentDialog } from './reassign-agent-dialog';
 
 const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
   if (!retryLogic) return 'Standard retry logic';
@@ -106,7 +106,49 @@ const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('basics');
+  // New simplified flow local state
+  const [goalMetric, setGoalMetric] = useState<'pledge-rate' | 'avg-gift'>(
+    'pledge-rate',
+  );
+  const [disclosureOn, setDisclosureOn] = useState<boolean>(true);
+  const [disclosureCopy, setDisclosureCopy] = useState<string>(
+    'Hi {{first_name}}, this is {{agent_name}} with {{org_name}}.',
+  );
+  const [callWindowStart, setCallWindowStart] = useState<string>('09:00');
+  const [callWindowEnd, setCallWindowEnd] = useState<string>('17:00');
+  const [callerId, setCallerId] = useState<string>('');
+
+  const [segment, setSegment] = useState<'new' | 'lapsed' | 'vip'>('new');
+  const [timezone, setTimezone] = useState<string>('America/New_York');
+  const [respectDnc, setRespectDnc] = useState<boolean>(true);
+
+  const [voiceId, setVoiceId] = useState<string>('');
+  const [pace, setPace] = useState<'slow' | 'normal' | 'fast'>('normal');
+  const [scriptOpener, setScriptOpener] = useState<string>(
+    'Hi {{first_name}}, this is {{agent_name}} with {{org_name}}.',
+  );
+  const [scriptPitch, setScriptPitch] = useState<string>(
+    'Quick update about {{impact_short}}.',
+  );
+  const [scriptClose, setScriptClose] = useState<string>(
+    "I'll text a link: {{donation_link}}.",
+  );
+  const [retry48, setRetry48] = useState<boolean>(true);
+  const [retry96, setRetry96] = useState<boolean>(false);
+  const [voicemailOn, setVoicemailOn] = useState<boolean>(true);
+  const [smsFallbackOn, setSmsFallbackOn] = useState<boolean>(true);
+  const [voicemailCopy] = useState<string>(
+    'Hi {{first_name}}, it’s {{agent_name}} from {{org_name}}. Quick update about {{impact_short}}. I’ll text a link.',
+  );
+  const [testCallSent, setTestCallSent] = useState<boolean>(false);
+
+  // Fake list of Twilio numbers and voices for UI (replace with real hooks later)
+  const twilioNumbers = ['+1 202-555-0125', '+1 415-555-0142'];
+  const availableVoices = [
+    { id: 'default-1', name: 'Warm Female' },
+    { id: 'default-2', name: 'Confident Male' },
+  ];
   const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
 
   // Fetch real data
@@ -539,197 +581,354 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <CardHeader>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="leads">Leads</TabsTrigger>
-              <TabsTrigger value="agent">Agent</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="basics">Basics</TabsTrigger>
+              <TabsTrigger value="audience">Audience</TabsTrigger>
+              <TabsTrigger value="voice">Voice & Script</TabsTrigger>
+              <TabsTrigger value="review">Review & Launch</TabsTrigger>
             </TabsList>
           </CardHeader>
           <CardContent>
-            <TabsContent value="overview" className="space-y-6">
-              <div className="space-y-6">
-                {/* Campaign Name */}
-                <Card className={'glass-panel'}>
-                  <CardHeader>
-                    <CardTitle>Campaign Name</CardTitle>
-                    <CardDescription>
-                      The name of your campaign for easy identification
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Textarea
+            <TabsContent value="basics" className="space-y-6">
+              <Card className="glass-panel">
+                <CardHeader>
+                  <CardTitle>Basics</CardTitle>
+                  <CardDescription>Single-column, quick setup</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Campaign name
+                    </label>
+                    <Input
                       value={campaignName}
                       onChange={(e) => setCampaignName(e.target.value)}
-                      className="min-h-[60px] resize-none"
-                      placeholder="Enter campaign name..."
+                      placeholder="e.g., Fall Pledge Drive"
                     />
-                    {hasNameChanges && (
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() => handleSaveField('name', campaignName)}
-                          disabled={savingField === 'name'}
-                        >
-                          {savingField === 'name' ? 'Saving...' : 'Save Name'}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Campaign Description */}
-                <Card className={'glass-panel'}>
-                  <CardHeader>
-                    <CardTitle>Campaign Description</CardTitle>
-                    <CardDescription>
-                      A brief description of your campaign goals and objectives
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Textarea
-                      value={campaignDescription}
-                      onChange={(e) => setCampaignDescription(e.target.value)}
-                      className="min-h-[100px] resize-none"
-                      placeholder="Enter campaign description..."
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      Shown in dashboards and reports.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Goal metric
+                    </label>
+                    <Select
+                      value={goalMetric}
+                      onValueChange={(v) => setGoalMetric(v as any)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pledge-rate">Pledge rate</SelectItem>
+                        <SelectItem value="avg-gift">Average gift</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      We\'ll optimize summary cards for this KPI.
+                    </p>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Disclosure line
+                      </label>
+                      <p className="text-muted-foreground text-xs">
+                        Auto insert at the start of calls.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={disclosureOn}
+                      onCheckedChange={setDisclosureOn}
                     />
-                    {hasDescriptionChanges && (
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handleSaveField('description', campaignDescription)
-                          }
-                          disabled={savingField === 'description'}
-                        >
-                          {savingField === 'description'
-                            ? 'Saving...'
-                            : 'Save Description'}
-                        </Button>
+                  </div>
+                  {disclosureOn && (
+                    <div>
+                      <Textarea
+                        value={disclosureCopy}
+                        onChange={(e) => setDisclosureCopy(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        Use variables like {'{{first_name}}'},{' '}
+                        {'{{agent_name}}'}, {'{{org_name}}'}.
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Call window
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <TimePicker
+                          value={callWindowStart}
+                          onValueChange={setCallWindowStart}
+                          className="flex-1"
+                        />
+                        <span className="text-muted-foreground text-xs">
+                          to
+                        </span>
+                        <TimePicker
+                          value={callWindowEnd}
+                          onValueChange={setCallWindowEnd}
+                          className="flex-1"
+                        />
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Campaign Script */}
-                <Card className={'glass-panel'}>
-                  <CardHeader>
-                    <CardTitle>Call Script</CardTitle>
-                    <CardDescription>
-                      The script that your AI agent will use during calls
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Textarea
-                      value={campaignScript}
-                      onChange={(e) => setCampaignScript(e.target.value)}
-                      className="min-h-[200px] resize-none"
-                      placeholder="Enter call script..."
-                    />
-                    {hasScriptChanges && (
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handleSaveField('script', campaignScript)
-                          }
-                          disabled={savingField === 'script'}
-                        >
-                          {savingField === 'script'
-                            ? 'Saving...'
-                            : 'Save Script'}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Campaign Controls */}
-                <CampaignControls
-                  campaignId={campaignId}
-                  campaignStatus={campaign.status}
-                  onStatusChange={(newStatus) => {
-                    // Update the local campaign state
-                    if (campaign) {
-                      campaign.status = newStatus as any;
-                    }
-                  }}
-                />
-              </div>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        Local time for each contact.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Caller ID
+                      </label>
+                      <Select value={callerId} onValueChange={setCallerId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a Twilio number" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {twilioNumbers.map((n) => (
+                            <SelectItem key={n} value={n}>
+                              {n}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        The number displayed to donors.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setTestCallSent(true)}
+                    >
+                      Test call to me
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="leads" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Campaign Leads</h3>
-                <div className="flex space-x-2">
-                  <CSVUpload
-                    campaignId={campaignId}
-                    onSuccess={() => {
-                      // The mutation will automatically invalidate queries
-                      // No need to reload the page
-                    }}
-                  />
-                  <Button variant="outline" size="sm">
-                    <Link className="mr-2 h-4 w-4" />
-                    Connect CRM
-                  </Button>
-                </div>
-              </div>
-              <LeadsTable
-                leads={campaignLeads}
-                onDeleteLead={handleDeleteLead}
-                onUpdateLead={handleUpdateLead}
-                campaignId={campaignId}
-              />
+            <TabsContent value="audience" className="space-y-6">
+              <Card className="glass-panel">
+                <CardHeader>
+                  <CardTitle>Audience</CardTitle>
+                  <CardDescription>Upload or filter contacts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Segment
+                      </label>
+                      <Select
+                        value={segment}
+                        onValueChange={(v) => setSegment(v as any)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="lapsed">Lapsed</SelectItem>
+                          <SelectItem value="vip">VIP</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Timezone
+                      </label>
+                      <Input
+                        value={timezone}
+                        onChange={(e) => setTimezone(e.target.value)}
+                        placeholder="e.g., America/New_York"
+                      />
+                    </div>
+                    <div className="flex items-end justify-between gap-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">
+                          Respect DNC
+                        </label>
+                        <p className="text-muted-foreground text-xs">
+                          Exclude do-not-call contacts
+                        </p>
+                      </div>
+                      <Switch
+                        checked={respectDnc}
+                        onCheckedChange={setRespectDnc}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CSVUpload campaignId={campaignId} onSuccess={() => {}} />
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 h-4 w-4" /> Dedupe
+                    </Button>
+                  </div>
+                  <div className="text-sm">
+                    N contacts: {campaignLeads.length.toLocaleString()}
+                  </div>
+                  <div className="overflow-hidden rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Phone</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {campaignLeads.slice(0, 5).map((l) => (
+                          <TableRow key={l.id}>
+                            <TableCell>{l.name}</TableCell>
+                            <TableCell>{l.phone}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="agent" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Assigned Agent</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsReassignDialogOpen(true)}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Reassign Agent
-                </Button>
-                <ReassignAgentDialog
-                  campaignId={campaignId}
-                  currentAgentId={campaign?.agent_id || undefined}
-                  isOpen={isReassignDialogOpen}
-                  onClose={() => setIsReassignDialogOpen(false)}
-                />
-              </div>
-              <AgentCard agent={assignedAgent} />
+            <TabsContent value="voice" className="space-y-6">
+              <Card className="glass-panel">
+                <CardHeader>
+                  <CardTitle>Voice & Script</CardTitle>
+                  <CardDescription>Managed in the Agent page</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground text-sm">
+                    Voice selection, speaking pace, and script editing live on
+                    the Agent page. This campaign will use the assigned agent\'s
+                    current voice and script.
+                  </p>
+                  {assignedAgent ? (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          router.push(
+                            `/home/agents/${assignedAgent.id}?tab=voice`,
+                          )
+                        }
+                      >
+                        Go to Agent voice & script
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          router.push(`/home/agents/${assignedAgent.id}`)
+                        }
+                      >
+                        Open Agent
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm">
+                      No agent assigned. Assign an agent to control voice &
+                      script.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">Campaign Settings</h3>
-              </div>
-              <SettingsCard
-                campaign={campaign}
-                startDate={startDate}
-                setStartDate={setStartDate}
-                endDate={endDate}
-                setEndDate={setEndDate}
-                callingHours={callingHours}
-                setCallingHours={setCallingHours}
-                maxAttempts={maxAttempts}
-                setMaxAttempts={setMaxAttempts}
-                dailyCallCap={dailyCallCap}
-                setDailyCallCap={setDailyCallCap}
-                retryLogic={retryLogic}
-                setRetryLogic={setRetryLogic}
-                hasStartDateChanges={hasStartDateChanges}
-                hasEndDateChanges={hasEndDateChanges}
-                hasCallingHoursChanges={hasCallingHoursChanges}
-                hasMaxAttemptsChanges={hasMaxAttemptsChanges}
-                hasDailyCallCapChanges={hasDailyCallCapChanges}
-                hasRetryLogicChanges={hasRetryLogicChanges}
-                handleSaveField={handleSaveField}
-                savingField={savingField}
-              />
+            <TabsContent value="review" className="space-y-6">
+              <Card className="glass-panel">
+                <CardHeader>
+                  <CardTitle>Review & Launch</CardTitle>
+                  <CardDescription>
+                    Final checks before going live
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Card className="glass-panel">
+                      <CardHeader>
+                        <CardTitle className="text-base">Basics</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <div>
+                          <span className="font-medium">Name:</span>{' '}
+                          {campaignName}
+                        </div>
+                        <div>
+                          <span className="font-medium">Goal:</span>{' '}
+                          {goalMetric === 'pledge-rate'
+                            ? 'Pledge rate'
+                            : 'Average gift'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Caller ID:</span>{' '}
+                          {callerId || '—'}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="glass-panel">
+                      <CardHeader>
+                        <CardTitle className="text-base">Audience</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <div>
+                          <span className="font-medium">Segment:</span>{' '}
+                          {segment}
+                        </div>
+                        <div>
+                          <span className="font-medium">Timezone:</span>{' '}
+                          {timezone}
+                        </div>
+                        <div>
+                          <span className="font-medium">Contacts:</span>{' '}
+                          {campaignLeads.length.toLocaleString()}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="glass-panel">
+                      <CardHeader>
+                        <CardTitle className="text-base">Script</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <div>Managed in Agent page.</div>
+                        {assignedAgent && (
+                          <div className="text-muted-foreground text-xs">
+                            Agent: {assignedAgent.name}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-md border bg-white/70 p-3 text-sm dark:bg-neutral-900/50">
+                      ✓ number selected: {callerId ? 'Yes' : 'No'}
+                    </div>
+                    <div className="rounded-md border bg-white/70 p-3 text-sm dark:bg-neutral-900/50">
+                      ✓ CSV parsed: {campaignLeads.length > 0 ? 'Yes' : 'No'}
+                    </div>
+                    <div className="rounded-md border bg-white/70 p-3 text-sm dark:bg-neutral-900/50">
+                      ✓ test call sent: {testCallSent ? 'Yes' : 'No'}
+                    </div>
+                    <div className="rounded-md border bg-white/70 p-3 text-sm dark:bg-neutral-900/50">
+                      ✓ SMS link reachable: Pending
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      disabled={
+                        !callerId || campaignLeads.length === 0 || !testCallSent
+                      }
+                      onClick={handleActivateCampaign}
+                    >
+                      Launch Campaign
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </CardContent>
         </Tabs>

@@ -58,7 +58,8 @@ import {
   TableHeader,
   TableRow,
 } from '@kit/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
+
+// Tabs removed; filters handle status selection
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
@@ -89,6 +90,7 @@ export function CampaignsList() {
   const [campaignToDelete, setCampaignToDelete] =
     useState<EnhancedCampaign | null>(null);
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
@@ -121,6 +123,15 @@ export function CampaignsList() {
       } as EnhancedCampaign;
     });
   }, [campaigns, leads, conversations, agents]);
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
 
   // Show loading state if data is still loading
   if (campaignsLoading) {
@@ -286,10 +297,13 @@ export function CampaignsList() {
                 Manage your fundraising campaigns and track performance
               </CardDescription>
             </div>
-            <Button onClick={() => setShowCreatePanel(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Campaign
-            </Button>
+            <div className="flex items-center gap-2">
+              <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+              <Button onClick={() => setShowCreatePanel(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Campaign
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -320,21 +334,24 @@ export function CampaignsList() {
               onSortOrderChange={setSortOrder}
             />
           </div>
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="draft">Draft</TabsTrigger>
-              <TabsTrigger value="paused">Paused</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-            </TabsList>
-            <TabsContent value={selectedTab} className="mt-6">
+          <div className="mt-6">
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredCampaigns.map((c) => (
+                  <CampaignCard
+                    key={c.id}
+                    campaign={c}
+                    onDelete={(c) => setCampaignToDelete(c)}
+                  />
+                ))}
+              </div>
+            ) : (
               <CampaignsTable
                 campaigns={filteredCampaigns}
                 onDeleteCampaign={setCampaignToDelete}
               />
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -371,6 +388,120 @@ export function CampaignsList() {
         onOpenChange={setShowCreatePanel}
       />
     </div>
+  );
+}
+
+function ViewToggle({
+  viewMode,
+  onViewModeChange,
+}: {
+  viewMode: 'grid' | 'list';
+  onViewModeChange: (mode: 'grid' | 'list') => void;
+}) {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => onViewModeChange(viewMode === 'grid' ? 'list' : 'grid')}
+    >
+      {viewMode === 'grid' ? 'List' : 'Cards'}
+    </Button>
+  );
+}
+
+function CampaignCard({
+  campaign,
+  onDelete,
+}: {
+  campaign: EnhancedCampaign;
+  onDelete: (c: EnhancedCampaign) => void;
+}) {
+  const router = useRouter();
+  const conversionRate = campaign.contacted
+    ? Math.round((campaign.conversions / campaign.contacted) * 100)
+    : 0;
+  return (
+    <Card className="glass-panel group transition-all duration-200 hover:shadow-lg">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{campaign.name}</CardTitle>
+            <CardDescription>Agent: {campaign.agentName}</CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => router.push(`/home/campaigns/${campaign.id}`)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Copy className="mr-2 h-4 w-4" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Archive className="mr-2 h-4 w-4" /> Archive
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => onDelete(campaign)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <StatusBadge status={campaign.status} />
+          <span className="text-muted-foreground text-xs">
+            {campaign.start_date
+              ? new Date(campaign.start_date).toLocaleDateString()
+              : 'No start date'}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-center">
+          <div>
+            <div className="text-lg font-semibold">{campaign.leads}</div>
+            <div className="text-muted-foreground text-xs">Leads</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold">{campaign.contacted}</div>
+            <div className="text-muted-foreground text-xs">Contacted</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold">{conversionRate}%</div>
+            <div className="text-muted-foreground text-xs">Conversion</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold">
+              ${campaign.revenue.toLocaleString()}
+            </div>
+            <div className="text-muted-foreground text-xs">Revenue</div>
+          </div>
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => router.push(`/home/campaigns/${campaign.id}`)}
+          >
+            <Eye className="mr-2 h-4 w-4" /> View
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
