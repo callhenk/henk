@@ -3,13 +3,14 @@
 import { useRef, useState } from 'react';
 
 import { useConversation } from '@elevenlabs/react';
-import { AlertCircle, Phone, PhoneOff, Volume2, Wifi } from 'lucide-react';
+import { AlertCircle, Phone, PhoneOff, Volume2, Wifi, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@kit/ui/alert';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Progress } from '@kit/ui/progress';
+import { Spinner } from '@kit/ui/spinner';
 
 interface RealtimeVoiceChatProps {
   agentId: string;
@@ -155,80 +156,72 @@ export function RealtimeVoiceChat({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      {/* Glass modal container */}
-      <div className="animate-in fade-in-0 zoom-in-95 relative w-full max-w-md overflow-hidden rounded-2xl border border-white/30 bg-white/90 shadow-2xl backdrop-blur-xl duration-300 dark:border-white/10 dark:bg-neutral-900/85">
+    <div className="bg-background/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md">
+      <Card className="border-border/50 bg-card/80 relative w-full max-w-md border shadow-2xl backdrop-blur-xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/30 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-neutral-900/70">
-          <div>
-            <div className="text-muted-foreground text-sm">Voice Call</div>
-            <div className="text-base font-semibold">{agentName}</div>
+        <CardHeader className="bg-card/60 border-border/50 flex flex-row items-center justify-between space-y-0 border-b pb-4 backdrop-blur-sm">
+          <div className="space-y-1">
+            <CardTitle className="text-lg">Voice Call</CardTitle>
+            <p className="text-muted-foreground text-sm">{agentName}</p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={async () => {
               if (isConnected) {
                 await stopConversation();
               }
               onClose?.();
             }}
-            className="rounded-full border border-white/30 bg-white/60 p-2 text-neutral-800 hover:bg-white/80 dark:border-white/10 dark:bg-neutral-800/60 dark:text-white dark:hover:bg-neutral-800/80"
-            aria-label="Close"
+            className="h-8 w-8 p-0"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+        </CardHeader>
 
-        {/* Body */}
-        <div className="px-6 py-6">
+        <CardContent className="space-y-6">
           {/* Status Bar */}
-          <div className="mb-6 flex items-center justify-between text-neutral-600 dark:text-neutral-300">
+          <div className="text-muted-foreground flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <Wifi className="h-4 w-4" />
-              <span className="text-sm">5G</span>
+              <span>5G</span>
             </div>
-            <div className="text-sm font-medium">{getConnectionDuration()}</div>
+            <div className="font-medium">{getConnectionDuration()}</div>
             <div className="flex items-center gap-1">
-              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
-              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
-              <div className="h-2 w-2 rounded-full bg-neutral-500 dark:bg-white" />
+              <div className="bg-muted-foreground/50 h-2 w-2 rounded-full" />
+              <div className="bg-muted-foreground/50 h-2 w-2 rounded-full" />
+              <div className="bg-muted-foreground/50 h-2 w-2 rounded-full" />
             </div>
           </div>
 
           {/* Call Info */}
-          <div className="mb-6 text-center">
+          <div className="text-center">
             <div className="mb-4 flex justify-center">
               <div className="relative">
-                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1">
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-white/70 dark:bg-neutral-800">
-                    <Phone className="h-8 w-8 text-neutral-900 dark:text-white" />
-                  </div>
+                <div className="bg-primary flex h-20 w-20 items-center justify-center rounded-full">
+                  <Phone className="text-primary-foreground h-8 w-8" />
                 </div>
                 {isConnected && (
-                  <div className="absolute -right-1 -bottom-1 h-6 w-6 animate-pulse rounded-full bg-green-500 p-1">
+                  <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full bg-green-500 p-1">
                     <div className="h-full w-full rounded-full bg-white"></div>
                   </div>
                 )}
               </div>
             </div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            <p className="text-muted-foreground text-sm">
               {isCalling
                 ? 'Calling...'
                 : isConnected
                   ? 'Connected'
                   : 'Ready to call'}
             </p>
+            {isCalling && (
+              <div className="mt-2 flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                <span className="text-sm">Connecting to agent...</span>
+              </div>
+            )}
             {isAgentSpeaking && (
               <div className="mt-2 flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
                 <Volume2 className="h-4 w-4 animate-pulse" />
@@ -238,50 +231,58 @@ export function RealtimeVoiceChat({
           </div>
 
           {/* Call Controls */}
-          <div className="flex justify-center space-x-8">
+          <div className="flex justify-center space-x-4">
             {!isConnected ? (
               <Button
                 onClick={startConversation}
                 disabled={conversation.status === 'connecting'}
-                className="h-16 w-16 rounded-full bg-green-500 transition-all duration-200 hover:scale-105 hover:bg-green-600"
                 size="lg"
+                className="bg-primary hover:bg-primary/90 h-16 w-16 rounded-full"
               >
                 {conversation.status === 'connecting' ? (
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <Spinner className="text-primary-foreground h-6 w-6" />
                 ) : (
-                  <Phone className="h-6 w-6 text-white" />
+                  <Phone className="text-primary-foreground h-6 w-6" />
                 )}
               </Button>
             ) : (
-              <>
+              <div className="flex space-x-4">
                 <Button
-                  onClick={() => {}}
-                  className="h-16 w-16 rounded-full bg-green-500 transition-all duration-200 hover:scale-105 hover:bg-green-600"
+                  onClick={() => {
+                    // Mute/unmute functionality could be added here
+                    toast.info('Call controls coming soon');
+                  }}
                   size="lg"
+                  className="h-16 w-16 rounded-full bg-green-600 hover:bg-green-700"
                 >
                   <Phone className="h-6 w-6 text-white" />
                 </Button>
                 <Button
                   onClick={stopConversation}
-                  className="h-16 w-16 rounded-full bg-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-600"
                   size="lg"
+                  variant="destructive"
+                  className="h-16 w-16 rounded-full"
                 >
-                  <PhoneOff className="h-6 w-6 text-white" />
+                  <PhoneOff className="text-destructive-foreground h-6 w-6" />
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
           {/* Call Status */}
-          <div className="mt-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
-            {!isConnected ? <p>Tap to start call</p> : <p>Tap to end call</p>}
+          <div className="text-muted-foreground text-center text-sm">
+            {!isConnected ? (
+              <p>Tap the phone button to start your call</p>
+            ) : (
+              <p>Tap the red button to end the call</p>
+            )}
           </div>
 
           {/* Connection Progress */}
           {conversation.status === 'connecting' && (
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+            <div className="space-y-2">
+              <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+                <div className="bg-primary h-2 w-2 animate-pulse rounded-full" />
                 Connecting...
               </div>
               <Progress value={33} className="h-1" />
@@ -290,7 +291,7 @@ export function RealtimeVoiceChat({
 
           {/* Error Alert */}
           {conversation.status === 'disconnected' && isConnected && (
-            <Alert variant="destructive" className="mt-4">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Call disconnected. Please try again.
@@ -300,14 +301,14 @@ export function RealtimeVoiceChat({
 
           {/* Quick Tips */}
           {!isConnected && (
-            <Card className="mt-6 border-white/30 bg-white/60 backdrop-blur dark:border-white/10 dark:bg-neutral-900/50">
+            <Card className="border-border/50 bg-muted/30 backdrop-blur-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium">
                   💡 Call Tips
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="space-y-2 text-sm text-neutral-700 dark:text-neutral-200">
+                <div className="text-muted-foreground space-y-2 text-sm">
                   <p>• Speak clearly and at a normal pace</p>
                   <p>• Allow microphone access when prompted</p>
                   <p>• The agent will respond automatically</p>
@@ -316,8 +317,8 @@ export function RealtimeVoiceChat({
               </CardContent>
             </Card>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Hidden audio element for calling sound */}
       <audio ref={audioRef} src="/cellphone-ringing-6475.mp3" preload="auto" />
