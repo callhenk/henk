@@ -68,6 +68,8 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
+import { CreateAgentPanel } from './create-agent-panel';
+
 type Agent = Tables<'agents'>['Row'];
 
 const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
@@ -119,11 +121,7 @@ function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>
-                  {(agent as any).voice_settings?.voice_id
-                    ? 'AI Voice'
-                    : 'No voice selected'}
-                </span>
+                <span>{agent.voice_id ? 'AI Voice' : 'No voice selected'}</span>
                 <span>•</span>
                 <span>{getVoiceTypeLabel(agent.voice_type)}</span>
               </CardDescription>
@@ -228,12 +226,10 @@ function AgentTableRow({ agent, onView, onDelete }: AgentTableRowProps) {
             </div>
             <div
               className="text-muted-foreground line-clamp-1 text-xs"
-              title={`${getVoiceTypeLabel(agent.voice_type)} • ${agent.voice_settings?.voice_id ? 'AI Voice' : 'No voice selected'}`}
+              title={`${getVoiceTypeLabel(agent.voice_type)} • ${agent.voice_id ? 'AI Voice' : 'No voice selected'}`}
             >
               {getVoiceTypeLabel(agent.voice_type)} •{' '}
-              {(agent as any).voice_settings?.voice_id
-                ? 'AI Voice'
-                : 'No voice selected'}
+              {agent.voice_id ? 'AI Voice' : 'No voice selected'}
             </div>
           </div>
         </div>
@@ -393,6 +389,7 @@ export function AgentsList() {
   const [agentToDelete, setAgentToDelete] = useState<EnhancedAgent | null>(
     null,
   );
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const { data: agents = [], isLoading: loadingAgents } = useAgents();
   const { data: conversations = [] } = useConversations();
@@ -462,10 +459,8 @@ export function AgentsList() {
       filtered = filtered.filter(
         (agent) =>
           agent.name.toLowerCase().includes(searchLower) ||
-          ((agent as any).voice_settings?.voice_id &&
-            (agent as any).voice_settings.voice_id
-              .toLowerCase()
-              .includes(searchLower)) ||
+          (agent.voice_id &&
+            agent.voice_id.toLowerCase().includes(searchLower)) ||
           (agent.voice_type &&
             agent.voice_type.toLowerCase().includes(searchLower)),
       );
@@ -627,7 +622,7 @@ export function AgentsList() {
             </div>
             <div className="flex items-center gap-2">
               <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-              <Button onClick={() => router.push('/home/agents/create')}>
+              <Button onClick={() => setShowCreatePanel(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Agent
               </Button>
@@ -788,6 +783,11 @@ export function AgentsList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateAgentPanel
+        open={showCreatePanel}
+        onOpenChange={setShowCreatePanel}
+      />
     </div>
   );
 }
