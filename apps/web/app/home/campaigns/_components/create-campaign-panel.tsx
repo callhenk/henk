@@ -161,92 +161,66 @@ export function CreateCampaignPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85 [&>button]:hidden"
+        className="m-4 flex max-h-[calc(100vh-2rem)] min-h-fit w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/20 !bg-white/90 !p-0 backdrop-blur-xl backdrop-saturate-150 sm:m-6 sm:max-h-[calc(100vh-3rem)] sm:w-[480px] md:w-[640px] lg:m-8 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/90 [&>button]:hidden"
+        style={{
+          boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15)',
+        }}
       >
-        <SheetHeader className="sticky top-0 z-10 border-b border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
+        <SheetHeader className="sticky top-0 z-10 border-b border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
           <div className="flex items-center justify-between">
-            <div>
-              <SheetTitle className="text-xl font-semibold">
+            <div className="space-y-1">
+              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Create Campaign
               </SheetTitle>
-              <SheetDescription className="text-muted-foreground text-sm">
+              <SheetDescription className="text-sm text-gray-600 dark:text-gray-300">
                 Set up a new fundraising campaign with your AI agent
               </SheetDescription>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="rounded-full border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/20 dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
+            >
+              <span className="text-lg text-gray-700 dark:text-gray-200">
+                ×
+              </span>
+            </Button>
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Campaign Information */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-blue-500" />
-                  <h3 className="text-lg font-semibold">
-                    Campaign Information
-                  </h3>
-                </div>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="overflow-y-auto px-6 py-6">
+            <Form {...form}>
+              <form
+                id="campaign-form"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
+                {/* Campaign Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-blue-500" />
+                    <h3 className="text-lg font-semibold">
+                      Campaign Information
+                    </h3>
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., Summer Fundraiser 2024"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Choose a memorable name that reflects your
-                        campaign&apos;s purpose
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe the purpose and goals of this campaign..."
-                          className="min-h-[100px] resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Explain what this campaign is for and what you hope to
-                        achieve
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
-                    name="start_date"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Start Date</FormLabel>
+                        <FormLabel>Campaign Name</FormLabel>
                         <FormControl>
-                          <DatePicker
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Select start date"
+                          <Input
+                            placeholder="e.g., Summer Fundraiser 2024"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          When should your campaign begin?
+                          Choose a memorable name that reflects your
+                          campaign&apos;s purpose
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -255,19 +229,82 @@ export function CreateCampaignPanel({
 
                   <FormField
                     control={form.control}
-                    name="end_date"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>End Date (Optional)</FormLabel>
+                        <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <DatePicker
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Select end date"
+                          <Textarea
+                            placeholder="Describe the purpose and goals of this campaign..."
+                            className="min-h-[100px] resize-none"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          Set an end date to automatically pause the campaign
+                          Explain what this campaign is for and what you hope to
+                          achieve
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="start_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Date</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Select start date"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            When should your campaign begin?
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="end_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Date (Optional)</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Select end date"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Set an end date to automatically pause the campaign
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="target_amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fundraising Goal</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., $10,000" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Set a target amount to track your campaign&apos;s
+                          progress
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -275,118 +312,108 @@ export function CreateCampaignPanel({
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="target_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fundraising Goal</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., $10,000" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Set a target amount to track your campaign&apos;s
-                        progress
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                {/* Agent Selection */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-500" />
+                    <h3 className="text-lg font-semibold">
+                      AI Agent Selection
+                    </h3>
+                  </div>
 
-              {/* Agent Selection */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-purple-500" />
-                  <h3 className="text-lg font-semibold">AI Agent Selection</h3>
-                </div>
+                  <FormField
+                    control={form.control}
+                    name="agent_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Select Agent</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
 
-                <FormField
-                  control={form.control}
-                  name="agent_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Select Agent</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value);
-
-                          // Load the selected agent's default script
-                          if (value && agents.length > 0) {
-                            const selectedAgent = agents.find(
-                              (agent) => agent.id === value,
-                            );
-                            if (selectedAgent && selectedAgent.donor_context) {
-                              form.setValue(
-                                'script',
-                                selectedAgent.donor_context,
+                            // Load the selected agent's default script
+                            if (value && agents.length > 0) {
+                              const selectedAgent = agents.find(
+                                (agent) => agent.id === value,
                               );
+                              if (
+                                selectedAgent &&
+                                selectedAgent.donor_context
+                              ) {
+                                form.setValue(
+                                  'script',
+                                  selectedAgent.donor_context,
+                                );
+                              } else {
+                                // Clear script if agent has no default script
+                                form.setValue('script', '');
+                              }
                             } else {
-                              // Clear script if agent has no default script
+                              // Clear script if no agent is selected
                               form.setValue('script', '');
                             }
-                          } else {
-                            // Clear script if no agent is selected
-                            form.setValue('script', '');
-                          }
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose an AI agent" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {agents.map((agent) => (
-                            <SelectItem key={agent.id} value={agent.id}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">
-                                  {agent.name}
-                                </span>
-                                <span className="text-muted-foreground text-sm">
-                                  {agent.speaking_tone || 'Default tone'}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Preview each agent&apos;s voice and style to find the
-                        perfect match. The agent&apos;s default script will be
-                        loaded automatically.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose an AI agent" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {agents.map((agent) => (
+                              <SelectItem key={agent.id} value={agent.id}>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {agent.name}
+                                  </span>
+                                  <span className="text-muted-foreground text-sm">
+                                    {agent.speaking_tone || 'Default tone'}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Preview each agent&apos;s voice and style to find the
+                          perfect match. The agent&apos;s default script will be
+                          loaded automatically.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </form>
+            </Form>
+          </div>
 
-              {/* Submit Buttons */}
-              <div className="sticky bottom-0 z-10 -mx-4 flex gap-3 border-t border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-primary hover:bg-primary/90 flex-1"
-                >
-                  {isSubmitting ? (
-                    <Spinner className="h-4 w-4" />
-                  ) : (
-                    'Create Campaign'
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-400/40 dark:text-red-400 dark:hover:bg-red-400/10"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
+          {/* Submit Buttons */}
+          <div className="mt-auto border-t border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="submit"
+                form="campaign-form"
+                disabled={isSubmitting}
+                className="w-full bg-blue-500/80 hover:bg-blue-600/80 sm:flex-1"
+              >
+                {isSubmitting ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  'Create Campaign'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="w-full border-red-400/30 bg-red-500/10 hover:bg-red-500/20 sm:w-auto dark:hover:bg-red-500/20"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

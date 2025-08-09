@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   CheckCircle,
   DollarSign,
+  Info,
   Link,
   Phone,
   Upload,
@@ -46,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+import { Skeleton } from '@kit/ui/skeleton';
 import { Switch } from '@kit/ui/switch';
 import {
   Table,
@@ -57,6 +59,12 @@ import {
 } from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@kit/ui/tooltip';
 
 import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 
@@ -148,6 +156,18 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const [savingField, setSavingField] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
+  const timezoneOptions = [
+    'UTC',
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Los_Angeles',
+    'Europe/London',
+    'Europe/Berlin',
+    'Asia/Kolkata',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+  ];
 
   // Initialize form data when campaign loads
   useEffect(() => {
@@ -323,18 +343,15 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Campaigns
             </Button>
-            <div className="bg-muted h-8 w-48 animate-pulse rounded"></div>
+            <Skeleton className="h-8 w-48" />
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-muted h-24 animate-pulse rounded-lg"
-            ></div>
+            <Skeleton key={i} className="h-24 rounded-lg" />
           ))}
         </div>
-        <div className="bg-muted h-64 animate-pulse rounded-lg"></div>
+        <Skeleton className="h-64 rounded-lg" />
       </div>
     );
   }
@@ -557,50 +574,112 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   <CardDescription>Upload or filter contacts</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium">
-                        Segment
-                      </label>
-                      <Select
-                        value={segment}
-                        onValueChange={(v) => setSegment(v as any)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="lapsed">Lapsed</SelectItem>
-                          <SelectItem value="vip">VIP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-sm font-medium">
-                        Timezone
-                      </label>
-                      <Input
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        placeholder="e.g., America/New_York"
-                      />
-                    </div>
-                    <div className="flex items-end justify-between gap-2">
+                  <TooltipProvider>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div>
-                        <label className="mb-1 block text-sm font-medium">
-                          Respect DNC
-                        </label>
-                        <p className="text-muted-foreground text-xs">
-                          Exclude do-not-call contacts
-                        </p>
+                        <div className="mb-1 flex items-center gap-1">
+                          <label className="block text-sm font-medium">
+                            Segment
+                          </label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="text-muted-foreground h-3.5 w-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              align="start"
+                              className="max-w-xs"
+                            >
+                              <p className="text-xs">
+                                New: first-time or never-donated contacts.
+                                Lapsed: inactive donors (e.g., &gt;12 months).
+                                VIP: high-value donors or key supporters.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Select
+                          value={segment}
+                          onValueChange={(v) => setSegment(v as any)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a segment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="lapsed">Lapsed</SelectItem>
+                            <SelectItem value="vip">VIP</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <Switch
-                        checked={respectDnc}
-                        onCheckedChange={setRespectDnc}
-                      />
+                      <div>
+                        <div className="mb-1 flex items-center gap-1">
+                          <label className="block text-sm font-medium">
+                            Timezone
+                          </label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="text-muted-foreground h-3.5 w-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              align="start"
+                              className="max-w-xs"
+                            >
+                              <p className="text-xs">
+                                Calls respect each contact&apos;s local time.
+                                This default timezone applies when contact data
+                                lacks timezone info.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Select value={timezone} onValueChange={setTimezone}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timezoneOptions.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {tz}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end justify-between gap-2">
+                        <div>
+                          <div className="mb-1 flex items-center gap-1">
+                            <label className="block text-sm font-medium">
+                              Respect DNC
+                            </label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="text-muted-foreground h-3.5 w-3.5" />
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                align="start"
+                                className="max-w-xs"
+                              >
+                                <p className="text-xs">
+                                  Exclude contacts flagged as Do Not Call. We
+                                  won&apos;t dial or SMS these contacts.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <p className="text-muted-foreground text-xs">
+                            Exclude do-not-call contacts
+                          </p>
+                        </div>
+                        <Switch
+                          checked={respectDnc}
+                          onCheckedChange={setRespectDnc}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </TooltipProvider>
                   <div className="flex items-center gap-2">
                     <CSVUpload campaignId={campaignId} onSuccess={() => {}} />
                     <Button variant="outline" size="sm">

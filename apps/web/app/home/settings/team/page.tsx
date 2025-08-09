@@ -1,6 +1,6 @@
 import { use } from 'react';
 
-import { PageBody } from '@kit/ui/page';
+import { PageBody, PageHeader } from '@kit/ui/page';
 
 import { withI18n } from '~/lib/i18n/with-i18n';
 import { requireUserInServerComponent } from '~/lib/server/require-user-in-server-component';
@@ -17,11 +17,17 @@ function TeamSettingsPage() {
   const user = use(requireUserInServerComponent());
 
   return (
-    <PageBody>
-      <div className={'flex w-full flex-1 flex-col lg:max-w-4xl'}>
-        <TeamSettingsContainer userId={user.id} />
-      </div>
-    </PageBody>
+    <>
+      <PageHeader
+        title="Team Management"
+        description="Manage team members, roles, and permissions"
+      />
+      <PageBody>
+        <div className={'w-full max-w-5xl'}>
+          <TeamSettingsContainer userId={user.id} hideHeader />
+        </div>
+      </PageBody>
+    </>
   );
 }
 

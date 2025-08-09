@@ -79,7 +79,7 @@ const SheetHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn('flex flex-col gap-y-3 text-center sm:text-left', className)}
+    className={cn('flex flex-col text-center sm:text-left', className)}
     {...props}
   />
 );

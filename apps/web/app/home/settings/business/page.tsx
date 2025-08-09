@@ -1,6 +1,6 @@
 import { use } from 'react';
 
-import { PageBody } from '@kit/ui/page';
+import { PageBody, PageHeader } from '@kit/ui/page';
 
 import { withI18n } from '~/lib/i18n/with-i18n';
 import { requireUserInServerComponent } from '~/lib/server/require-user-in-server-component';
@@ -17,12 +17,18 @@ function BusinessSettingsPage() {
   const user = use(requireUserInServerComponent());
 
   return (
-    <PageBody>
-      <div className={'flex w-full flex-1 flex-col lg:max-w-4xl'}>
-        <BusinessSettingsContainer userId={user.id} />
-      </div>
-    </PageBody>
+    <>
+      <PageHeader
+        title="Business Settings"
+        description="Manage your businesses and related preferences"
+      />
+      <PageBody>
+        <div className={'w-full max-w-4xl'}>
+          <BusinessSettingsContainer userId={user.id} hideHeader />
+        </div>
+      </PageBody>
+    </>
   );
 }
 
-export default withI18n(BusinessSettingsPage); 
+export default withI18n(BusinessSettingsPage);

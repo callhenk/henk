@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from '@kit/ui/card';
+import { Skeleton } from '@kit/ui/skeleton';
 
 export default function IntegrationsLoading() {
   return (
@@ -6,46 +7,46 @@ export default function IntegrationsLoading() {
       {/* Loading Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-muted h-24 animate-pulse rounded-lg" />
+          <Skeleton key={i} className="h-24 rounded-lg" />
         ))}
       </div>
 
       {/* Loading Integrations List */}
-      <Card>
+      <Card className="glass-panel">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <div className="bg-muted h-6 w-48 animate-pulse rounded" />
-              <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
             </div>
-            <div className="bg-muted h-10 w-48 animate-pulse rounded" />
+            <Skeleton className="h-10 w-48" />
           </div>
         </CardHeader>
         <CardContent>
           {/* Loading Integration Cards */}
           <div className="grid gap-4 md:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
+              <Card key={i} className="glass-panel">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="bg-muted h-12 w-12 animate-pulse rounded" />
+                      <Skeleton className="h-12 w-12" />
                       <div className="space-y-2">
-                        <div className="bg-muted h-5 w-24 animate-pulse rounded" />
-                        <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-4 w-32" />
                       </div>
                     </div>
-                    <div className="bg-muted h-6 w-16 animate-pulse rounded" />
+                    <Skeleton className="h-6 w-16" />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <div className="bg-muted h-4 w-full animate-pulse rounded" />
-                    <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
                   </div>
                   <div className="flex gap-2">
-                    <div className="bg-muted h-8 flex-1 animate-pulse rounded" />
-                    <div className="bg-muted h-8 flex-1 animate-pulse rounded" />
+                    <Skeleton className="h-8 flex-1" />
+                    <Skeleton className="h-8 flex-1" />
                   </div>
                 </CardContent>
               </Card>

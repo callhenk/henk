@@ -130,15 +130,18 @@ export function CreateAgentPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85 [&>button]:hidden"
+        className="m-4 flex max-h-[calc(100vh-2rem)] min-h-fit w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/20 !bg-white/90 !p-0 backdrop-blur-xl backdrop-saturate-150 sm:m-6 sm:max-h-[calc(100vh-3rem)] sm:w-[480px] md:w-[640px] lg:m-8 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/90 [&>button]:hidden"
+        style={{
+          boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15)',
+        }}
       >
-        <SheetHeader className="sticky top-0 z-10 border-b border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
+        <SheetHeader className="sticky top-0 z-10 border-b border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
           <div className="flex items-center justify-between">
-            <div>
-              <SheetTitle className="text-xl font-semibold">
+            <div className="space-y-1">
+              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Create Agent
               </SheetTitle>
-              <SheetDescription className="text-muted-foreground text-sm">
+              <SheetDescription className="text-sm text-gray-600 dark:text-gray-300">
                 Set up a new AI voice agent for your campaigns
               </SheetDescription>
             </div>
@@ -146,102 +149,113 @@ export function CreateAgentPanel({
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
+              className="rounded-full border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/20 dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 text-gray-700 dark:text-gray-200" />
             </Button>
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-500" />
-                <h3 className="text-lg font-semibold">Agent Information</h3>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="overflow-y-auto px-6 py-6">
+            <form id="agent-form" onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold">Agent Information</h3>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Agent Name
+                  </label>
+                  <Input
+                    placeholder="e.g., Sarah"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    Choose a friendly, memorable name.
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Description
+                  </label>
+                  <Textarea
+                    placeholder="Brief description"
+                    className="min-h-[80px]"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    What this agent is for.
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Agent Name
-                </label>
-                <Input
-                  placeholder="e.g., Sarah"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Choose a friendly, memorable name.
-                </p>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Description
-                </label>
-                <Textarea
-                  placeholder="Brief description"
-                  className="min-h-[80px]"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-                <p className="text-muted-foreground mt-1 text-xs">
-                  What this agent is for.
-                </p>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Volume2 className="h-5 w-5 text-purple-500" />
-                <h3 className="text-lg font-semibold">Voice</h3>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Voice Type
-                </label>
-                <Select
-                  value={voiceType}
-                  onValueChange={(v) =>
-                    setVoiceType(v as 'ai_generated' | 'custom')
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ai_generated">AI Generated</SelectItem>
-                    <SelectItem value="custom">Custom Voice</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Technology powering your agent voice.
-                </p>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Select Voice
-                </label>
-                <Select value={voiceId} onValueChange={setVoiceId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a voice" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {voices.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        No voices available
-                      </SelectItem>
-                    ) : (
-                      voices.map((v) => (
-                        <SelectItem key={v.voice_id} value={v.voice_id}>
-                          {v.name}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-5 w-5 text-purple-500" />
+                  <h3 className="text-lg font-semibold">Voice</h3>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Voice Type
+                  </label>
+                  <Select
+                    value={voiceType}
+                    onValueChange={(v) =>
+                      setVoiceType(v as 'ai_generated' | 'custom')
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ai_generated">AI Generated</SelectItem>
+                      <SelectItem value="custom">Custom Voice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    Technology powering your agent voice.
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Select Voice
+                  </label>
+                  <Select value={voiceId} onValueChange={setVoiceId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voices.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No voices available
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                      ) : (
+                        voices.map((v) => (
+                          <SelectItem key={v.voice_id} value={v.voice_id}>
+                            {v.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            </form>
+          </div>
 
-            <div className="sticky bottom-0 z-10 -mx-4 flex gap-3 border-t border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
-              <Button type="submit" disabled={isSubmitting}>
+          {/* Submit Buttons */}
+          <div className="mt-auto border-t border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="submit"
+                form="agent-form"
+                disabled={isSubmitting}
+                className="w-full bg-blue-500/80 hover:bg-blue-600/80 sm:w-auto sm:flex-1"
+              >
                 {isSubmitting ? (
                   <Spinner className="h-4 w-4" />
                 ) : (
@@ -252,12 +266,12 @@ export function CreateAgentPanel({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-400/40 dark:text-red-400 dark:hover:bg-red-400/10"
+                className="w-full border-red-400/30 bg-red-500/10 hover:bg-red-500/20 sm:w-auto dark:hover:bg-red-500/20"
               >
                 Cancel
               </Button>
             </div>
-          </form>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

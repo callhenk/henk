@@ -39,7 +39,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-[400px] items-center justify-center">
-          <Card className="w-full max-w-md">
+          <Card className="glass-panel w-full max-w-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="text-destructive h-5 w-5" />

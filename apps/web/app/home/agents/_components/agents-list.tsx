@@ -57,6 +57,7 @@ import {
   DropdownMenuTrigger,
 } from '@kit/ui/dropdown-menu';
 import { Progress } from '@kit/ui/progress';
+import { Skeleton } from '@kit/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -542,13 +543,10 @@ export function AgentsList() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-muted h-24 animate-pulse rounded-lg"
-            ></div>
+            <Skeleton key={i} className="h-24 rounded-lg" />
           ))}
         </div>
-        <div className="bg-muted h-64 animate-pulse rounded-lg"></div>
+        <Skeleton className="h-64 rounded-lg" />
       </div>
     );
   }

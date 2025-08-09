@@ -32,6 +32,7 @@ type Business = Tables<'businesses'>['Row'];
 
 interface BusinessSettingsContainerProps {
   userId: string;
+  hideHeader?: boolean;
 }
 
 function BusinessFormSkeleton() {
@@ -55,6 +56,7 @@ function BusinessFormSkeleton() {
 
 export function BusinessSettingsContainer({
   userId: _userId,
+  hideHeader = false,
 }: BusinessSettingsContainerProps) {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null,
@@ -170,12 +172,14 @@ export function BusinessSettingsContainer({
   if (businessesLoading) {
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Business Management
-          </h1>
-          <p className="text-muted-foreground">Manage your businesses</p>
-        </div>
+        {!hideHeader && (
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Business Management
+            </h1>
+            <p className="text-muted-foreground">Manage your businesses</p>
+          </div>
+        )}
         <div className="space-y-8">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index}>
@@ -193,12 +197,14 @@ export function BusinessSettingsContainer({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Business Management
-        </h1>
-        <p className="text-muted-foreground">Manage your businesses</p>
-      </div>
+      {!hideHeader && (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Business Management
+          </h1>
+          <p className="text-muted-foreground">Manage your businesses</p>
+        </div>
+      )}
 
       <div className="space-y-8">
         {businesses?.map((business, index) => (
@@ -212,7 +218,7 @@ export function BusinessSettingsContainer({
               </Badge>
             </div>
 
-            <div className="space-y-6">
+            <div className="glass-panel space-y-6 rounded-md border p-4">
               <div className="space-y-2">
                 <Label htmlFor={`name-${business.id}`}>Business Name</Label>
                 <Input

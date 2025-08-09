@@ -41,6 +41,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@kit/ui/chart';
+import { Skeleton } from '@kit/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -254,9 +255,9 @@ export default function DashboardDemo() {
               }
             >
               <CardHeader>
-                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
-                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
-                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="mb-2 h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
               </CardHeader>
             </Card>
           ))}
@@ -270,11 +271,11 @@ export default function DashboardDemo() {
               }
             >
               <CardHeader>
-                <div className="bg-muted mb-2 h-5 w-48 animate-pulse rounded" />
-                <div className="bg-muted h-3 w-32 animate-pulse rounded" />
+                <Skeleton className="mb-2 h-5 w-48" />
+                <Skeleton className="h-3 w-32" />
               </CardHeader>
               <CardContent>
-                <div className="bg-muted h-64 w-full animate-pulse rounded" />
+                <Skeleton className="h-64 w-full" />
               </CardContent>
             </Card>
           ))}

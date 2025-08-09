@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+import { Skeleton } from '@kit/ui/skeleton';
 import { Switch } from '@kit/ui/switch';
 
 import { StatsCard } from '~/components/shared';
@@ -112,31 +113,31 @@ export function IntegrationsList() {
         {/* Loading Stats */}
         <div className="grid gap-4 md:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className={'glass-panel'}>
               <CardHeader>
-                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
-                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
-                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="mb-2 h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
               </CardHeader>
             </Card>
           ))}
         </div>
         {/* Loading Integrations List */}
-        <Card>
+        <Card className={'glass-panel'}>
           <CardHeader>
-            <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
-            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+            <Skeleton className="mb-2 h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <Card key={i}>
+                <Card key={i} className={'glass-panel'}>
                   <CardHeader>
-                    <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
-                    <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
+                    <Skeleton className="mb-2 h-4 w-32" />
+                    <Skeleton className="mb-2 h-3 w-24" />
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-muted h-16 w-full animate-pulse rounded" />
+                    <Skeleton className="h-16 w-full" />
                   </CardContent>
                 </Card>
               ))}

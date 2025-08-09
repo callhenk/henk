@@ -11,14 +11,14 @@ export function SettingsLoading() {
   return (
     <div className="space-y-6">
       {/* Header Skeleton */}
-      <div>
+      <div className="px-4 lg:px-6 xl:px-8">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="mt-2 h-4 w-64" />
       </div>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="w-full max-w-3xl space-y-6">
         {/* Settings Card Skeleton */}
-        <Card>
+        <Card className="glass-panel">
           <CardHeader>
             <CardTitle>Settings</CardTitle>
             <CardDescription>
@@ -46,7 +46,7 @@ export function SettingsLoading() {
         </Card>
 
         {/* Additional Settings Card Skeleton */}
-        <Card>
+        <Card className="glass-panel">
           <CardHeader>
             <CardTitle>Additional Settings</CardTitle>
             <CardDescription>

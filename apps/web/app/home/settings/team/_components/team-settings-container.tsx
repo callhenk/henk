@@ -64,11 +64,12 @@ type Business = Tables<'businesses'>['Row'];
 
 interface TeamSettingsContainerProps {
   _userId: string;
+  hideHeader?: boolean;
 }
 
 function BusinessSelectionSkeleton() {
   return (
-    <Card>
+    <Card className="glass-panel">
       <CardHeader>
         <CardTitle>Select Business</CardTitle>
         <CardDescription>
@@ -80,7 +81,7 @@ function BusinessSelectionSkeleton() {
           {Array.from({ length: 3 }).map((_, index) => (
             <Card
               key={index}
-              className="cursor-pointer transition-all hover:shadow-md"
+              className="glass-panel cursor-pointer transition-all hover:shadow-md"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -107,7 +108,7 @@ function TeamMembersTableSkeleton() {
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">
-        <Card>
+        <Card className="glass-panel">
           <CardHeader>
             <CardTitle>All Team Members</CardTitle>
             <CardDescription>
@@ -160,7 +161,10 @@ function TeamMembersTableSkeleton() {
   );
 }
 
-export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
+export function TeamSettingsContainer({
+  _userId,
+  hideHeader = false,
+}: TeamSettingsContainerProps) {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null,
   );
@@ -251,12 +255,14 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
     return (
       <div className="space-y-6">
         {/* Header Skeleton */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-2 h-4 w-64" />
+        {!hideHeader && (
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="mt-2 h-4 w-64" />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Business Selection Skeleton */}
         <BusinessSelectionSkeleton />
@@ -267,17 +273,19 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">
-            Manage team members, roles, and permissions across your businesses
-          </p>
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Team Management</h1>
+            <p className="text-muted-foreground">
+              Manage team members, roles, and permissions across your businesses
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Business Selection */}
-      <Card>
+      <Card className="glass-panel">
         <CardHeader>
           <CardTitle>Select Business</CardTitle>
           <CardDescription>
@@ -289,7 +297,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
             {businesses?.map((business) => (
               <Card
                 key={business.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
+                className={`glass-panel cursor-pointer transition-all hover:shadow-md ${
                   selectedBusiness?.id === business.id
                     ? 'ring-primary ring-2'
                     : ''
@@ -424,7 +432,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                <Card>
+                <Card className="glass-panel">
                   <CardHeader>
                     <CardTitle>All Team Members</CardTitle>
                     <CardDescription>
@@ -535,7 +543,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
               </TabsContent>
 
               <TabsContent value="active" className="space-y-4">
-                <Card>
+                <Card className="glass-panel">
                   <CardHeader>
                     <CardTitle>Active Members</CardTitle>
                     <CardDescription>
@@ -547,7 +555,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
                       {teamMembers
                         ?.filter((m) => m.status === 'active')
                         .map((member) => (
-                          <Card key={member.id}>
+                          <Card key={member.id} className="glass-panel">
                             <CardHeader className="pb-3">
                               <div className="flex items-center space-x-3">
                                 <Avatar>
@@ -582,7 +590,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
               </TabsContent>
 
               <TabsContent value="invited" className="space-y-4">
-                <Card>
+                <Card className="glass-panel">
                   <CardHeader>
                     <CardTitle>Invited Members</CardTitle>
                     <CardDescription>Pending invitations</CardDescription>
@@ -592,7 +600,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
                       {teamMembers
                         ?.filter((m) => m.status === 'invited')
                         .map((member) => (
-                          <Card key={member.id}>
+                          <Card key={member.id} className="glass-panel">
                             <CardHeader className="pb-3">
                               <div className="flex items-center space-x-3">
                                 <Avatar>
@@ -632,7 +640,7 @@ export function TeamSettingsContainer({ _userId }: TeamSettingsContainerProps) {
 
       {/* Role Permissions Guide */}
       {selectedBusiness && (
-        <Card>
+        <Card className="glass-panel">
           <CardHeader>
             <CardTitle>Role Permissions</CardTitle>
             <CardDescription>

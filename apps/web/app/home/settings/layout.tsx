@@ -3,56 +3,40 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import {
-  Bell,
-  Building2,
-  ChevronRight,
-  CreditCard,
-  Shield,
-  User,
-  Users,
-} from 'lucide-react';
+import { Bell, Building2, CreditCard, Shield, User, Users } from 'lucide-react';
 
-import { AppBreadcrumbs } from '@kit/ui/app-breadcrumbs';
 import { Button } from '@kit/ui/button';
-import { PageHeader } from '@kit/ui/page';
 
 const settingsNavItems = [
   {
     title: 'Account',
     href: '/home/settings',
     icon: User,
-    description: 'Personal account settings',
   },
   {
     title: 'Business',
     href: '/home/settings/business',
     icon: Building2,
-    description: 'Manage businesses and teams',
   },
   {
     title: 'Team',
     href: '/home/settings/team',
     icon: Users,
-    description: 'Team member management',
   },
   {
     title: 'Security',
     href: '/home/settings/security',
     icon: Shield,
-    description: 'Security and privacy settings',
   },
   {
     title: 'Notifications',
     href: '/home/settings/notifications',
     icon: Bell,
-    description: 'Notification preferences',
   },
   {
     title: 'Billing',
     href: '/home/settings/billing',
     icon: CreditCard,
-    description: 'Billing and subscription',
   },
 ];
 
@@ -60,42 +44,57 @@ function UserSettingsLayout(props: React.PropsWithChildren) {
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar Navigation */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 w-64 border-r backdrop-blur">
-        <div className="space-y-4 py-4">
-          <div className="px-3 py-2">
-            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-              Settings
-            </h2>
-            <div className="space-y-1">
-              {settingsNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Button
-                    key={item.href}
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <Link href={item.href}>
-                      <Icon className="mr-2 h-4 w-4" />
-                      {item.title}
-                      <ChevronRight className="ml-auto h-4 w-4" />
-                    </Link>
-                  </Button>
-                );
-              })}
-            </div>
+    <div className="flex w-full gap-5 px-3 pt-2 pb-4 lg:px-4 xl:px-6">
+      {/* Sidebar (desktop) */}
+      <aside className="glass-panel sticky top-24 hidden h-fit w-60 shrink-0 rounded-md border p-1.5 lg:block">
+        <nav className="flex flex-col gap-1">
+          {settingsNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Button
+                key={item.href}
+                variant={isActive ? 'secondary' : 'ghost'}
+                className="justify-start"
+                asChild
+              >
+                <Link href={item.href}>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.title}
+                </Link>
+              </Button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top nav */}
+        <div className="glass-panel -mx-2 mb-3 block snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth rounded-md border p-1.5 pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max flex-nowrap gap-2">
+            {settingsNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Button
+                  key={item.href}
+                  variant={isActive ? 'secondary' : 'outline'}
+                  size="sm"
+                  className="shrink-0 snap-start"
+                  asChild
+                >
+                  <Link href={item.href} className="whitespace-nowrap">
+                    <Icon className="mr-1.5 h-3.5 w-3.5" />
+                    {item.title}
+                  </Link>
+                </Button>
+              );
+            })}
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1">
-        <PageHeader description={<AppBreadcrumbs />} />
-        <div className="p-6">{props.children}</div>
+        {/* Page content */}
+        {props.children}
       </div>
     </div>
   );

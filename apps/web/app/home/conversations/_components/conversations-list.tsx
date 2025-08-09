@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+import { Skeleton } from '@kit/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -230,11 +231,11 @@ export function ConversationsList() {
         {/* Loading Stats */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className={'glass-panel'}>
               <CardHeader>
-                <div className="bg-muted mb-2 h-4 w-32 animate-pulse rounded" />
-                <div className="bg-muted mb-2 h-3 w-24 animate-pulse rounded" />
-                <div className="bg-muted h-8 w-16 animate-pulse rounded" />
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="mb-2 h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
               </CardHeader>
             </Card>
           ))}
@@ -242,17 +243,17 @@ export function ConversationsList() {
         {/* Loading Conversations List */}
         <Card className={'glass-panel'}>
           <CardHeader>
-            <div className="bg-muted mb-2 h-6 w-48 animate-pulse rounded" />
-            <div className="bg-muted h-4 w-64 animate-pulse rounded" />
+            <Skeleton className="mb-2 h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="flex items-center space-x-4">
-                  <div className="bg-muted h-12 w-12 animate-pulse rounded-full" />
+                  <Skeleton className="h-12 w-12 rounded-full" />
                   <div className="flex-1 space-y-2">
-                    <div className="bg-muted h-4 w-32 animate-pulse rounded" />
-                    <div className="bg-muted h-3 w-24 animate-pulse rounded" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
                   </div>
                 </div>
               ))}
@@ -318,7 +319,7 @@ export function ConversationsList() {
       </div>
 
       {/* Search & Filters */}
-        <Card className={'glass-panel'}>
+      <Card className={'glass-panel'}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
