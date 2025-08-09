@@ -45,6 +45,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
+import { Dialog, DialogContent } from '@kit/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +67,7 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
-import { CreateCampaignPanel } from './create-campaign-panel';
+import { WizardContainer } from '../wizard/wizard-container';
 
 type Campaign = Tables<'campaigns'>['Row'];
 
@@ -92,8 +93,8 @@ export function CampaignsList() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [campaignToDelete, setCampaignToDelete] =
     useState<EnhancedCampaign | null>(null);
-  const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showWizard, setShowWizard] = useState(false);
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
@@ -293,7 +294,7 @@ export function CampaignsList() {
             </div>
             <div className="flex items-center gap-2">
               <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-              <Button onClick={() => setShowCreatePanel(true)}>
+              <Button onClick={() => setShowWizard(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Campaign
               </Button>
@@ -377,10 +378,13 @@ export function CampaignsList() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <CreateCampaignPanel
-        open={showCreatePanel}
-        onOpenChange={setShowCreatePanel}
-      />
+      <Dialog open={showWizard} onOpenChange={setShowWizard}>
+        <DialogContent className="max-w-4xl border-none bg-transparent p-0 shadow-none">
+          <div className="glass-panel">
+            <WizardContainer onClose={() => setShowWizard(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

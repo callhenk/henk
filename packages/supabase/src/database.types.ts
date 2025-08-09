@@ -337,13 +337,26 @@ export type Database = {
           agent_id: string | null;
           start_date: string | null;
           end_date: string | null;
-          calling_hours: string;
+
+          // New: Calling & Voice
+          goal_metric: string | null; // 'pledge_rate' | 'average_gift' | 'total_donations'
+          disclosure_line: string | null;
+          call_window_start: string | null; // time with time zone -> string
+          call_window_end: string | null; // time with time zone -> string
+          caller_id: string | null;
+
+          // New: Audience
+          audience_list_id: string | null; // uuid
+          dedupe_by_phone: boolean; // default false
+          exclude_dnc: boolean; // default true
+          audience_contact_count: number; // default 0
+
+          // Existing
           max_attempts: number;
           daily_call_cap: number;
           script: string;
           retry_logic: string;
           budget: number | null;
-          target_amount: number | null;
           created_at: string | null;
           updated_at: string | null;
           created_by: string | null;
@@ -358,13 +371,26 @@ export type Database = {
           agent_id?: string | null;
           start_date?: string | null;
           end_date?: string | null;
-          calling_hours?: string;
+
+          // New: Calling & Voice
+          goal_metric?: string | null;
+          disclosure_line?: string | null;
+          call_window_start?: string | null;
+          call_window_end?: string | null;
+          caller_id?: string | null;
+
+          // New: Audience
+          audience_list_id?: string | null;
+          dedupe_by_phone?: boolean; // if omitted -> false
+          exclude_dnc?: boolean; // if omitted -> true
+          audience_contact_count?: number; // if omitted -> 0
+
+          // Existing
           max_attempts?: number;
           daily_call_cap?: number;
           script: string;
           retry_logic?: string;
           budget?: number | null;
-          target_amount?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           created_by?: string | null;
@@ -379,13 +405,26 @@ export type Database = {
           agent_id?: string | null;
           start_date?: string | null;
           end_date?: string | null;
-          calling_hours?: string;
+
+          // New: Calling & Voice
+          goal_metric?: string | null;
+          disclosure_line?: string | null;
+          call_window_start?: string | null;
+          call_window_end?: string | null;
+          caller_id?: string | null;
+
+          // New: Audience
+          audience_list_id?: string | null;
+          dedupe_by_phone?: boolean;
+          exclude_dnc?: boolean;
+          audience_contact_count?: number;
+
+          // Existing
           max_attempts?: number;
           daily_call_cap?: number;
           script?: string;
           retry_logic?: string;
           budget?: number | null;
-          target_amount?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           created_by?: string | null;
@@ -421,6 +460,7 @@ export type Database = {
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
+          // Add an FK for audience_list_id here if/when you create an audience_lists table + constraint.
         ];
       };
       conversations: {
