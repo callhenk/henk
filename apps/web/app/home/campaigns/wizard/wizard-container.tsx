@@ -360,6 +360,80 @@ export function WizardContainer({
     return true;
   }, [audienceForm, currentCampaignId, updateCampaign]);
 
+  // Draft saves (no blocking validation)
+  const saveBasicsDraft = useCallback(async (): Promise<boolean> => {
+    const values = basicsForm.getValues();
+    const name = (values.campaign_name || '').trim() || 'Untitled campaign';
+    const budget = Number.isFinite(values.fundraising_goal)
+      ? Number(values.fundraising_goal)
+      : 0;
+    const agentId = values.agent_id ? values.agent_id : null;
+    const startDate = values.start_date
+      ? values.start_date.toISOString()
+      : null;
+    const endDate = values.end_date ? values.end_date.toISOString() : null;
+
+    if (!currentCampaignId) {
+      const created = await createCampaign.mutateAsync({
+        name,
+        budget,
+        agent_id: agentId as string | null,
+        start_date: startDate,
+        end_date: endDate,
+        description: '',
+        status: 'draft',
+        max_attempts: 3,
+        daily_call_cap: 100,
+        script: '',
+        retry_logic: 'Wait 24 hours before retry',
+      } as Parameters<typeof createCampaign.mutateAsync>[0]);
+      setCurrentCampaignId(created.id);
+      return true;
+    } else {
+      await updateCampaign.mutateAsync({
+        id: currentCampaignId,
+        name,
+        budget,
+        agent_id: agentId as string | null,
+        start_date: startDate,
+        end_date: endDate,
+        status: 'draft',
+      } as { id: string } & Partial<WizardCampaign>);
+      return true;
+    }
+  }, [basicsForm, currentCampaignId, createCampaign, updateCampaign]);
+
+  const saveCallingDraft = useCallback(async (): Promise<boolean> => {
+    if (!currentCampaignId) return false;
+    const v = callingForm.getValues();
+    await updateCampaign.mutateAsync({
+      id: currentCampaignId,
+      goal_metric: v.goal_metric,
+      disclosure_line: v.disclosure_line,
+      call_window_start: v.call_window_start
+        ? `${v.call_window_start}:00`
+        : null,
+      call_window_end: v.call_window_end ? `${v.call_window_end}:00` : null,
+      caller_id: v.caller_id || null,
+      status: 'draft',
+    } as { id: string } & Partial<WizardCampaign>);
+    return true;
+  }, [callingForm, currentCampaignId, updateCampaign]);
+
+  const saveAudienceDraft = useCallback(async (): Promise<boolean> => {
+    if (!currentCampaignId) return false;
+    const v = audienceForm.getValues();
+    await updateCampaign.mutateAsync({
+      id: currentCampaignId,
+      audience_list_id: v.audience_list_id ?? null,
+      dedupe_by_phone: v.dedupe_by_phone,
+      exclude_dnc: v.exclude_dnc,
+      audience_contact_count: v.audience_contact_count,
+      status: 'draft',
+    } as { id: string } & Partial<WizardCampaign>);
+    return true;
+  }, [audienceForm, currentCampaignId, updateCampaign]);
+
   // Navigation
   const goNext = async () => {
     if (step === (1 as Step)) {
@@ -418,14 +492,42 @@ export function WizardContainer({
     return hasBasics && hasCaller && audienceCount >= 1;
   }, [audienceForm, basicsForm, callingForm]);
 
+  const [isActing, setIsActing] = useState(false);
   const setStatus = async (status: 'active' | 'draft' | 'paused') => {
     if (!currentCampaignId) return;
-    await updateCampaign.mutateAsync({ id: currentCampaignId, status } as {
-      id: string;
-      status: 'active' | 'draft' | 'paused';
-    });
-    if (status === 'active') {
-      onClose?.();
+    try {
+      setIsActing(true);
+      if (status === 'active') {
+        const resp = await fetch(`/api/campaigns/${currentCampaignId}/start`, {
+          method: 'POST',
+        });
+        if (!resp.ok) {
+          const j = await resp.json().catch(() => ({}));
+          throw new Error(j?.error || 'Failed to start campaign');
+        }
+        onClose?.();
+        return;
+      }
+
+      if (status === 'paused') {
+        const resp = await fetch(`/api/campaigns/${currentCampaignId}/stop`, {
+          method: 'POST',
+        });
+        if (!resp.ok) {
+          const j = await resp.json().catch(() => ({}));
+          throw new Error(j?.error || 'Failed to pause campaign');
+        }
+        return;
+      }
+
+      await updateCampaign.mutateAsync({ id: currentCampaignId, status } as {
+        id: string;
+        status: 'active' | 'draft' | 'paused';
+      });
+    } catch (e) {
+      console.error('Set status error:', e);
+    } finally {
+      setIsActing(false);
     }
   };
 
@@ -588,7 +690,7 @@ export function WizardContainer({
                 <Link href="/home/campaigns">Cancel</Link>
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={saveBasics}>
+                <Button variant="outline" onClick={saveBasicsDraft}>
                   <Save className="mr-2 h-4 w-4" /> Save as draft
                 </Button>
                 <Button onClick={goNext} className="min-w-36">
@@ -779,7 +881,7 @@ export function WizardContainer({
                 Back
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={saveCalling}>
+                <Button variant="outline" onClick={saveCallingDraft}>
                   <Save className="mr-2 h-4 w-4" /> Save as draft
                 </Button>
                 <Button onClick={goNext} className="min-w-36">
@@ -943,7 +1045,7 @@ export function WizardContainer({
                 Back
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={saveAudience}>
+                <Button variant="outline" onClick={saveAudienceDraft}>
                   <Save className="mr-2 h-4 w-4" /> Save as draft
                 </Button>
                 <Button onClick={goNext} className="min-w-36">
@@ -1065,7 +1167,7 @@ export function WizardContainer({
                   <Save className="mr-2 h-4 w-4" /> Save as draft
                 </Button>
                 <Button
-                  disabled={!canActivate}
+                  disabled={!canActivate || isActing}
                   onClick={() => setStatus('active')}
                   className="min-w-36"
                 >
@@ -1074,7 +1176,7 @@ export function WizardContainer({
                 <Button
                   variant="outline"
                   onClick={() => setStatus('paused')}
-                  disabled={existingCampaign?.status !== 'active'}
+                  disabled={existingCampaign?.status !== 'active' || isActing}
                 >
                   <Pause className="mr-2 h-4 w-4" /> Pause
                 </Button>
