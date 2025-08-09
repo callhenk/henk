@@ -9,15 +9,8 @@ import {
   ArrowLeft,
   CheckCircle,
   DollarSign,
-  Download,
-  Edit,
-  FileText,
   Link,
-  MoreHorizontal,
-  Pause,
   Phone,
-  Play,
-  Trash2,
   Upload,
   User,
   Users,
@@ -37,17 +30,6 @@ import {
   useUpdateLead,
 } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@kit/ui/alert-dialog';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -56,13 +38,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@kit/ui/dropdown-menu';
 import { Input } from '@kit/ui/input';
 import {
   Select,
@@ -83,13 +58,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Textarea } from '@kit/ui/textarea';
 
-import {
-  DatePicker,
-  StatsCard,
-  StatusBadge,
-  TimePicker,
-} from '~/components/shared';
+import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 
+import { CampaignHeader } from './campaign-header';
 import { CSVUpload } from './csv-upload';
 
 const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
@@ -403,150 +374,17 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/home/campaigns')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Campaigns
-          </Button>
-          <div>
-            <div className="flex items-center space-x-2">
-              {editingName ? (
-                <div className="flex items-center space-x-2">
-                  <Input
-                    value={campaignName}
-                    onChange={(e) => setCampaignName(e.target.value)}
-                    className="h-8 text-2xl font-bold"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSaveField('name', campaignName);
-                        setEditingName(false);
-                      } else if (e.key === 'Escape') {
-                        setCampaignName(campaign?.name || '');
-                        setEditingName(false);
-                      }
-                    }}
-                    onBlur={() => {
-                      handleSaveField('name', campaignName);
-                      setEditingName(false);
-                    }}
-                    autoFocus
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      handleSaveField('name', campaignName);
-                      setEditingName(false);
-                    }}
-                    className="h-6 w-6 p-0"
-                  >
-                    ✓
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl font-bold">{campaignName}</h1>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingName(true)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
-            </div>
-            <p className="text-muted-foreground">{campaignDescription}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <StatusBadge status={campaign.status} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="mr-2 h-4 w-4" />
-                Actions
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setActiveTab('overview')}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Campaign
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FileText className="mr-2 h-4 w-4" />
-                Preview Call Script
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {campaign.status === 'active' ? (
-                <DropdownMenuItem
-                  onClick={handlePauseCampaign}
-                  disabled={updateCampaignMutation.isPending}
-                >
-                  <Pause className="mr-2 h-4 w-4" />
-                  {updateCampaignMutation.isPending
-                    ? 'Pausing...'
-                    : 'Pause Campaign'}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={handleActivateCampaign}
-                  disabled={updateCampaignMutation.isPending}
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  {updateCampaignMutation.isPending
-                    ? 'Activating...'
-                    : 'Activate Campaign'}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Download className="mr-2 h-4 w-4" />
-                Export Results
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    className="text-red-600"
-                    disabled={deleteCampaignMutation.isPending}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {deleteCampaignMutation.isPending
-                      ? 'Deleting...'
-                      : 'Delete Campaign'}
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this campaign? This action
-                      cannot be undone and will permanently remove all
-                      associated data including leads and conversations.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteCampaign}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Delete Campaign
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      <CampaignHeader
+        campaign={campaign}
+        onBack={() => router.push('/home/campaigns')}
+        onSaveField={handleSaveField}
+        onEdit={() => setActiveTab('overview')}
+        onActivate={handleActivateCampaign}
+        onPause={handlePauseCampaign}
+        onDelete={handleDeleteCampaign}
+        isUpdatingStatus={updateCampaignMutation.isPending}
+        isDeleting={deleteCampaignMutation.isPending}
+      />
 
       {/* Metrics Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -38,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@kit/ui/sheet';
+import { Spinner } from '@kit/ui/spinner';
 import { Textarea } from '@kit/ui/textarea';
 
 import { DatePicker } from '~/components/shared';
@@ -160,7 +161,7 @@ export function CreateCampaignPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 shadow-lg sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85"
+        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85 [&>button]:hidden"
       >
         <SheetHeader className="sticky top-0 z-10 border-b border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
           <div className="flex items-center justify-between">
@@ -369,7 +370,11 @@ export function CreateCampaignPanel({
                   disabled={isSubmitting}
                   className="bg-primary hover:bg-primary/90 flex-1"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create Campaign'}
+                  {isSubmitting ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    'Create Campaign'
+                  )}
                 </Button>
                 <Button
                   type="button"

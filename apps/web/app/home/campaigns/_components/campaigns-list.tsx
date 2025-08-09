@@ -421,7 +421,7 @@ function CampaignCard({
     ? Math.round((campaign.conversions / campaign.contacted) * 100)
     : 0;
   return (
-    <Card className="glass-panel group transition-all duration-200 hover:shadow-lg">
+    <Card className="glass-panel group transition-all duration-200">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>

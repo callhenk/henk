@@ -61,5 +61,5 @@ Optimize dropdowns for mobile
 
 /* Simple glass utility for consistent frosted panels */
 .glass-panel {
-  @apply relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50;
+  @apply relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50;
 }

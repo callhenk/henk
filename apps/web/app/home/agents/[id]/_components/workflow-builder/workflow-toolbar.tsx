@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Plus, RotateCcw, RotateCw, Trash2, X } from 'lucide-react';
+import { FileText, Plus, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 import { type Edge, type Node } from 'reactflow';
 
 import { Button } from '@kit/ui/button';
@@ -46,17 +46,7 @@ export function WorkflowToolbar({
               {selectedEdge ? 'Selected: Connection' : ''}
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (selectedNode) onDeleteNode();
-              if (selectedEdge) onDeleteEdge();
-            }}
-            className="h-8 px-2 text-red-600 hover:bg-red-500/10 hover:text-red-700"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {/* Duplicate quick-delete removed; rely on the Destructive Delete button below */}
         </div>
       )}
 

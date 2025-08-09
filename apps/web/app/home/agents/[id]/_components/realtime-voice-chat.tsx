@@ -157,7 +157,7 @@ export function RealtimeVoiceChat({
 
   return (
     <div className="bg-background/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md">
-      <Card className="border-border/50 bg-card/80 relative w-full max-w-md border shadow-2xl backdrop-blur-xl">
+      <Card className="border-border/50 bg-card/80 relative w-full max-w-md border backdrop-blur-xl">
         {/* Header */}
         <CardHeader className="bg-card/60 border-border/50 flex flex-row items-center justify-between space-y-0 border-b pb-4 backdrop-blur-sm">
           <div className="space-y-1">
@@ -237,7 +237,8 @@ export function RealtimeVoiceChat({
                 onClick={startConversation}
                 disabled={conversation.status === 'connecting'}
                 size="lg"
-                className="bg-primary hover:bg-primary/90 h-16 w-16 rounded-full"
+                variant="ghost"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-16 w-16 rounded-full"
               >
                 {conversation.status === 'connecting' ? (
                   <Spinner className="text-primary-foreground h-6 w-6" />
@@ -253,6 +254,7 @@ export function RealtimeVoiceChat({
                     toast.info('Call controls coming soon');
                   }}
                   size="lg"
+                  variant="ghost"
                   className="h-16 w-16 rounded-full bg-green-600 hover:bg-green-700"
                 >
                   <Phone className="h-6 w-6 text-white" />
@@ -260,8 +262,8 @@ export function RealtimeVoiceChat({
                 <Button
                   onClick={stopConversation}
                   size="lg"
-                  variant="destructive"
-                  className="h-16 w-16 rounded-full"
+                  variant="ghost"
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground h-16 w-16 rounded-full"
                 >
                   <PhoneOff className="text-destructive-foreground h-6 w-6" />
                 </Button>

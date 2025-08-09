@@ -157,34 +157,7 @@ export function WorkflowBuilder() {
   const connectionOptions = sourceNode?.data.options || [];
 
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Hero Section */}
-      <div className="mb-8 text-center">
-        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
-          <svg
-            className="text-muted-foreground h-8 w-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-        </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-          Workflow Builder
-        </h1>
-        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-          Design and configure your agent&apos;s conversation flow with a visual
-          workflow editor.
-        </p>
-      </div>
-
-      {/* Workflow Container */}
+    <div className="space-y-6">
       <div className="bg-card text-card-foreground rounded-xl border p-4 sm:p-6">
         <div className="flex h-[600px] w-full flex-col">
           <WorkflowToolbar

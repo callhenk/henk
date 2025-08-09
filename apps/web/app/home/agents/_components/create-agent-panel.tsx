@@ -27,6 +27,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@kit/ui/sheet';
+import { Spinner } from '@kit/ui/spinner';
 import { Textarea } from '@kit/ui/textarea';
 
 interface CreateAgentPanelProps {
@@ -129,7 +130,7 @@ export function CreateAgentPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 shadow-lg sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85"
+        className="m-2 flex h-dvh w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/30 !bg-white/95 !p-0 sm:m-4 sm:h-screen sm:w-[480px] sm:rounded-2xl sm:border-white/30 md:w-[640px] lg:m-6 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/85 [&>button]:hidden"
       >
         <SheetHeader className="sticky top-0 z-10 border-b border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
           <div className="flex items-center justify-between">
@@ -240,12 +241,12 @@ export function CreateAgentPanel({
             </div>
 
             <div className="sticky bottom-0 z-10 -mx-4 flex gap-3 border-t border-white/30 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-neutral-900/85">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
-              >
-                {isSubmitting ? 'Creating...' : 'Create Agent'}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  'Create Agent'
+                )}
               </Button>
               <Button
                 type="button"

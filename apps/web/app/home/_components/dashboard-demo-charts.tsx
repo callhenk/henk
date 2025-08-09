@@ -250,7 +250,7 @@ export default function DashboardDemo() {
             <Card
               key={i}
               className={
-                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
               }
             >
               <CardHeader>
@@ -266,7 +266,7 @@ export default function DashboardDemo() {
             <Card
               key={i}
               className={
-                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
               }
             >
               <CardHeader>
@@ -692,7 +692,7 @@ function CampaignSummariesCard({
   return (
     <Card
       className={
-        'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 shadow-lg backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
+        'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
       }
     >
       <CardHeader>

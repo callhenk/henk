@@ -8,6 +8,13 @@ import { toast } from 'sonner';
 import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 import { Button } from '@kit/ui/button';
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -149,49 +156,23 @@ export function AgentVoice({
   };
 
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Hero Section */}
-      <div className="mb-8 text-center">
-        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
-          <Volume2 className="h-8 w-8" />
-        </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-          Voice & Tone
-        </h1>
-        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-          Choose and customize your agent&apos;s voice to create engaging,
-          personalized conversations.
-        </p>
-      </div>
-
-      {/* Main Content Grid */}
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left Column - Voice Selection */}
         <div className="space-y-6">
-          {/* Voice Selection */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Volume2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">AI Voice Selection</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Choose from available AI voices for your agent
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>AI Voice Selection</CardTitle>
+              <CardDescription>
+                Choose from available AI voices for your agent
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <Select
                 value={agent.voice_id || ''}
                 onValueChange={(voiceId) => {
-                  // Show confirmation for voice updates
                   if (agent?.elevenlabs_agent_id) {
                     onVoiceUpdate('voice_id', voiceId);
                   } else {
-                    // If no ElevenLabs agent, update directly
                     onSaveField('voice_id', voiceId);
                   }
                 }}
@@ -207,121 +188,100 @@ export function AgentVoice({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
+              <p className="text-muted-foreground text-xs">
+                Your selection is saved to the agent and used across campaigns.
+              </p>
+            </CardContent>
+          </Card>
 
-          {/* Voice Preview */}
           {agent.voice_id && (
-            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-              <div className="mb-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
-                    <Play className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">Voice Preview</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Listen to your selected voice
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-muted/50 rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
-                      <Volume2 className="h-6 w-6" />
+            <Card className="glass-panel">
+              <CardHeader>
+                <CardTitle>Voice Preview</CardTitle>
+                <CardDescription>Listen to your selected voice</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted/50 rounded-lg border p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
+                        <Volume2 className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          Cached Sample Audio
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          &ldquo;Hello, this is a voice preview.&rdquo;
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">Cached Sample Audio</p>
-                      <p className="text-muted-foreground text-xs">
-                        &ldquo;Hello, this is a voice preview.&rdquo;
-                      </p>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isPlayingPreview}
+                      onClick={async () => {
+                        try {
+                          const voiceId = agent.voice_id;
+                          if (!voiceId) {
+                            toast.error('No voice selected for preview');
+                            return;
+                          }
+                          const cachedUrl = await getCachedVoiceSample(voiceId);
+                          if (cachedUrl) {
+                            const audio = new Audio(cachedUrl);
+                            setIsPlayingPreview(true);
+                            audio.onended = () => setIsPlayingPreview(false);
+                            audio.onerror = () => {
+                              setIsPlayingPreview(false);
+                              toast.error('Failed to play voice preview.');
+                            };
+                            await audio.play();
+                            toast.success('Playing cached voice preview...');
+                            return;
+                          }
+                          toast.info(
+                            'No cached sample available. Please generate a voice sample first.',
+                          );
+                        } catch (error) {
+                          console.error('Voice preview error:', error);
+                          toast.error('Failed to play voice preview.');
+                        }
+                      }}
+                    >
+                      {isPlayingPreview ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                          <span>Playing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4" />
+                          <span>Play Sample</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="bg-muted-foreground h-1.5 w-1.5 rounded-full"></div>
+                      <span>Cached sample available</span>
                     </div>
                   </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isPlayingPreview}
-                    onClick={async () => {
-                      try {
-                        const voiceId = agent.voice_id;
-
-                        if (!voiceId) {
-                          toast.error('No voice selected for preview');
-                          return;
-                        }
-
-                        // First try to get a cached sample
-                        const cachedUrl = await getCachedVoiceSample(voiceId);
-
-                        if (cachedUrl) {
-                          // Play cached sample
-                          const audio = new Audio(cachedUrl);
-                          setIsPlayingPreview(true);
-
-                          audio.onended = () => setIsPlayingPreview(false);
-                          audio.onerror = () => {
-                            setIsPlayingPreview(false);
-                            toast.error('Failed to play voice preview.');
-                          };
-
-                          await audio.play();
-                          toast.success('Playing cached voice preview...');
-                          return;
-                        }
-
-                        // If no cached sample exists, show message instead of generating
-                        toast.info(
-                          'No cached sample available. Please generate a voice sample first.',
-                        );
-                      } catch (error) {
-                        console.error('Voice preview error:', error);
-                        toast.error('Failed to play voice preview.');
-                      }
-                    }}
-                  >
-                    {isPlayingPreview ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
-                        <span>Playing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" />
-                        <span>Play Sample</span>
-                      </>
-                    )}
-                  </Button>
                 </div>
-
-                <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="bg-muted-foreground h-1.5 w-1.5 rounded-full"></div>
-                    <span>Cached sample available</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* Voice Type */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Volume2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Voice Type</h3>
-                  <p className="text-sm">
-                    Choose between AI-generated or custom voice
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Voice Type</CardTitle>
+              <CardDescription>
+                Choose between AI-generated or custom voice
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <Select
                 value={agent.voice_type || 'ai_generated'}
                 onValueChange={async (voiceType) => {
@@ -344,27 +304,22 @@ export function AgentVoice({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
+              <p className="text-muted-foreground text-xs">
+                Custom voices require a valid 30s sample recording.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right Column - Custom Voice Recording */}
         <div className="lg:col-span-1">
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Mic className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Record Custom Voice</h3>
-                  <p className="text-sm">
-                    Record a 30-second sample for voice cloning
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Record Custom Voice</CardTitle>
+              <CardDescription>
+                Record a 30-second sample for voice cloning
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="flex flex-col gap-3">
                 <Button
                   variant="outline"
@@ -410,8 +365,8 @@ export function AgentVoice({
                   </p>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

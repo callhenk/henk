@@ -1,8 +1,15 @@
 'use client';
 
-import { Clock, Phone, TrendingUp, Users } from 'lucide-react';
+import { Clock, Phone, TrendingUp } from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
 
 interface AgentOverviewProps {
   agent: {
@@ -75,188 +82,146 @@ export function AgentOverview({
   };
 
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Hero Section */}
-      <div className="mb-8 text-center">
-        <div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
-          <Users className="h-8 w-8" />
-        </div>
-        <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-          Agent Overview
-        </h1>
-        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-          Monitor your agent&apos;s performance, track key metrics, and manage
-          campaign assignments.
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">
-                Calls Handled
-              </p>
-              <p className="text-2xl font-bold">{callsHandled}</p>
-              <p className="text-muted-foreground text-xs">Total calls made</p>
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card className="glass-panel">
+          <CardHeader>
+            <CardTitle className="text-base">Calls Handled</CardTitle>
+            <CardDescription>Total calls made</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-2xl font-bold">{callsHandled}</p>
             <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
               <Phone className="h-5 w-5" />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">
-                Conversion Rate
-              </p>
-              <p className="text-2xl font-bold">{conversionRate}%</p>
-              <p className="text-muted-foreground text-xs">Successful calls</p>
-            </div>
+        <Card className="glass-panel">
+          <CardHeader>
+            <CardTitle className="text-base">Conversion Rate</CardTitle>
+            <CardDescription>Successful calls</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-2xl font-bold">{conversionRate}%</p>
             <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
               <TrendingUp className="h-5 w-5" />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">
-                Active Hours
-              </p>
-              <p className="text-2xl font-bold">{activeHours}</p>
-              <p className="text-muted-foreground text-xs">Hours this month</p>
-            </div>
+        <Card className="glass-panel">
+          <CardHeader>
+            <CardTitle className="text-base">Active Hours</CardTitle>
+            <CardDescription>Hours this month</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-2xl font-bold">{activeHours}</p>
             <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
               <Clock className="h-5 w-5" />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column - Agent Details & Campaigns */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Agent Details */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Users className="h-5 w-5" />
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Agent Details</CardTitle>
+              <CardDescription>
+                Key information about your agent
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                <div>
+                  <label className="text-sm font-medium">Language</label>
+                  <p className="mt-1 text-lg font-semibold">English</p>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">Agent Details</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Key information about your agent
+                  <label className="text-sm font-medium">Voice Type</label>
+                  <p className="mt-1 text-lg font-semibold">
+                    {getVoiceTypeLabel(agent.voice_type)}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Last Edited</label>
+                  <p className="mt-1 text-lg font-semibold">
+                    {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div>
-                <label className="text-sm font-medium">Language</label>
-                <p className="mt-1 text-lg font-semibold">English</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Voice Type</label>
-                <p className="mt-1 text-lg font-semibold">
-                  {getVoiceTypeLabel(agent.voice_type)}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Last Edited</label>
-                <p className="mt-1 text-lg font-semibold">
-                  {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
-                </p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Linked Campaigns */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Linked Campaigns</h3>
-                  <p className="text-sm">Campaigns this agent is assigned to</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {agentCampaigns.length > 0 ? (
-                agentCampaigns.map((campaign, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border p-4"
-                  >
-                    <span className="font-medium">{campaign.name}</span>
-                    <Badge variant="success">Active</Badge>
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Linked Campaigns</CardTitle>
+              <CardDescription>
+                Campaigns this agent is assigned to
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {agentCampaigns.length > 0 ? (
+                  agentCampaigns.map((campaign, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg border p-4"
+                    >
+                      <span className="font-medium">{campaign.name}</span>
+                      <Badge variant="success">Active</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-lg border p-6 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      No campaigns assigned yet
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="rounded-lg border p-6 text-center">
-                  <p className="text-muted-foreground text-sm">
-                    No campaigns assigned yet
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right Column - Agent Info */}
+        {/* Right Column */}
         <div className="space-y-6 lg:col-span-1">
-          {/* Agent Description */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Agent Description</h3>
-                  <p className="text-sm">
-                    Overview and details about your agent
-                  </p>
-                </div>
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Agent Description</CardTitle>
+              <CardDescription>
+                Overview and details about your agent
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border p-4">
+                <p className="text-sm">
+                  {agent.description || 'No description available'}
+                </p>
               </div>
-            </div>
-            <div className="rounded-lg border p-4">
-              <p className="text-sm">
-                {agent.description || 'No description available'}
-              </p>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Starting Message */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Starting Message</h3>
-                  <p className="text-sm">
-                    The initial message the agent uses when starting a call
-                  </p>
-                </div>
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle>Starting Message</CardTitle>
+              <CardDescription>
+                The initial message the agent uses when starting a call
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border p-4">
+                <p className="text-sm">
+                  {agent.starting_message || 'No starting message available'}
+                </p>
               </div>
-            </div>
-            <div className="rounded-lg border p-4">
-              <p className="text-sm">
-                {agent.starting_message || 'No starting message available'}
-              </p>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -51,7 +51,7 @@ export function HomeMobileNavigation() {
 
       <DropdownMenuContent
         sideOffset={10}
-        className={'glass-panel mx-2 !w-[calc(100vw-16px)] p-1 shadow-2xl'}
+        className={'glass-panel mx-2 !w-[calc(100vw-16px)] p-1'}
       >
         <DropdownMenuGroup>{Links}</DropdownMenuGroup>
 

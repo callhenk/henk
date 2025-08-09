@@ -14,6 +14,7 @@ import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Button } from '@kit/ui/button';
+import { Card, CardContent, CardHeader } from '@kit/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
@@ -520,7 +521,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       />
 
       {/* Tabbed Content */}
-      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-4 backdrop-blur sm:p-6">
+      <Card className={'glass-panel'}>
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
@@ -531,72 +532,75 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           }}
           className="w-full"
         >
-          <TabsList className="flex w-full gap-2 overflow-x-auto rounded-lg p-1 sm:grid sm:grid-cols-4">
-            <TabsTrigger
-              value="overview"
-              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="knowledge"
-              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
-            >
-              <BookOpen className="h-4 w-4" />
-              <span>Knowledge</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="voice"
-              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
-            >
-              <Mic className="h-4 w-4" />
-              <span>Voice</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="workflow"
-              className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm"
-            >
-              <GitBranch className="h-4 w-4" />
-              <span>Workflow</span>
-            </TabsTrigger>
-          </TabsList>
+          <CardHeader>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger
+                value="overview"
+                className="inline-flex items-center gap-2"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Overview</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="knowledge"
+                className="inline-flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span>Knowledge</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="voice"
+                className="inline-flex items-center gap-2"
+              >
+                <Mic className="h-4 w-4" />
+                <span>Voice</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="workflow"
+                className="inline-flex items-center gap-2"
+              >
+                <GitBranch className="h-4 w-4" />
+                <span>Workflow</span>
+              </TabsTrigger>
+            </TabsList>
+          </CardHeader>
+          <CardContent>
+            {/* Overview Tab */}
+            <TabsContent value="overview">
+              <AgentOverview
+                agent={agent}
+                conversations={conversations}
+                campaigns={campaigns}
+              />
+            </TabsContent>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-4 sm:mt-6">
-            <AgentOverview
-              agent={agent}
-              conversations={conversations}
-              campaigns={campaigns}
-            />
-          </TabsContent>
+            {/* Knowledge Base Tab */}
+            <TabsContent value="knowledge">
+              <AgentKnowledge
+                agent={agent}
+                onSaveField={handleSaveField}
+                savingField={savingField}
+                onSaveSuccess={handleSaveSuccess}
+              />
+            </TabsContent>
 
-          {/* Knowledge Base Tab */}
-          <TabsContent value="knowledge" className="my-4 sm:my-6">
-            <AgentKnowledge
-              agent={agent}
-              onSaveField={handleSaveField}
-              savingField={savingField}
-              onSaveSuccess={handleSaveSuccess}
-            />
-          </TabsContent>
+            {/* Voice & Tone Tab */}
+            <TabsContent value="voice">
+              <AgentVoice
+                agent={agent}
+                voices={voices}
+                onSaveField={handleSaveField}
+                onVoiceUpdate={handleVoiceUpdate}
+              />
+            </TabsContent>
 
-          {/* Voice & Tone Tab */}
-          <TabsContent value="voice" className="mt-4 sm:mt-6">
-            <AgentVoice
-              agent={agent}
-              voices={voices}
-              onSaveField={handleSaveField}
-              onVoiceUpdate={handleVoiceUpdate}
-            />
-          </TabsContent>
-
-          {/* Workflow Tab */}
-          <TabsContent value="workflow" className="mt-4 sm:mt-6">
-            <WorkflowBuilder />
-          </TabsContent>
+            {/* Workflow Tab */}
+            <TabsContent value="workflow">
+              <WorkflowBuilder />
+            </TabsContent>
+          </CardContent>
         </Tabs>
-      </div>
+      </Card>
 
       {/* Voice Chat Modal */}
       {showVoiceChat && (
