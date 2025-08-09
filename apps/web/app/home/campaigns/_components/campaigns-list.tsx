@@ -438,12 +438,7 @@ function CampaignCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/home/campaigns/${campaign.id}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
+              {/* Removed duplicate View action; primary View button below remains */}
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Copy className="mr-2 h-4 w-4" /> Duplicate
@@ -588,15 +583,7 @@ function CampaignsTable({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
-                      router.push(`/home/campaigns/${campaign.id}`)
-                    }
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View
-                  </DropdownMenuItem>
-
+                  {/* Removed duplicate View action; card click/View button handles nav */}
                   <DropdownMenuItem>
                     <Copy className="mr-2 h-4 w-4" />
                     Duplicate

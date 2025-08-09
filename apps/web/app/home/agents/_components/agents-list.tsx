@@ -137,11 +137,7 @@ function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView(agent.id)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-
+              {/* Removed duplicate View action; primary View button below remains */}
               <DropdownMenuItem>
                 <Play className="mr-2 h-4 w-4" />
                 Test Voice
