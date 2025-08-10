@@ -330,38 +330,38 @@ export type Database = {
       };
       campaigns: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          status: string;
-          agent_id: string | null;
-          start_date: string | null;
-          end_date: string | null;
+          id: string; // UUID for the campaign
+          name: string; // Human-readable campaign name shown in UI
+          description: string | null; // Optional longer text about the campaign
+          status: string; // Current lifecycle status: draft | active | paused | completed
+          agent_id: string | null; // Assigned AI agent (nullable until assigned)
+          start_date: string | null; // When the campaign should start (ISO timestamp)
+          end_date: string | null; // When the campaign should end (ISO timestamp)
 
           // New: Calling & Voice
-          goal_metric: string | null; // 'pledge_rate' | 'average_gift' | 'total_donations'
-          disclosure_line: string | null;
-          call_window_start: string | null; // time with time zone -> string
-          call_window_end: string | null; // time with time zone -> string
-          caller_id: string | null;
+          goal_metric: string | null; // Optimization KPI: 'pledge_rate' | 'average_gift' | 'total_donations'
+          disclosure_line: string | null; // Optional disclosure line to prepend in calls/voicemail
+          call_window_start: string | null; // Daily call window (contact local time) start in HH:MM:SS or HH:MM
+          call_window_end: string | null; // Daily call window (contact local time) end in HH:MM:SS or HH:MM
+          caller_id: string | null; // Phone number used as caller ID (when multiple numbers available)
 
           // New: Audience
-          audience_list_id: string | null; // uuid
-          dedupe_by_phone: boolean; // default false
-          exclude_dnc: boolean; // default true
-          audience_contact_count: number; // default 0
+          audience_list_id: string | null; // Linked audience list (future table), if used
+          dedupe_by_phone: boolean; // Remove duplicate contacts by phone when importing/syncing
+          exclude_dnc: boolean; // Exclude Do Not Call phone numbers for compliance
+          audience_contact_count: number; // Cached count of contacts in the audience
 
           // Existing
-          max_attempts: number;
-          daily_call_cap: number;
-          script: string;
-          retry_logic: string;
-          budget: number | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-          business_id: string;
+          max_attempts: number; // Max number of dial attempts per lead
+          daily_call_cap: number; // Max calls the system should place per day for this campaign
+          script: string; // Call script/template used by the agent
+          retry_logic: string; // Strategy description for retries (e.g., spacing/limits)
+          budget: number | null; // Optional monetary budget for the campaign
+          created_at: string | null; // Row creation timestamp (UTC)
+          updated_at: string | null; // Last update timestamp (UTC)
+          created_by: string | null; // User ID that created the campaign
+          updated_by: string | null; // User ID that last updated the campaign
+          business_id: string; // Owning business/organization ID (tenant scope)
         };
         Insert: {
           id?: string;

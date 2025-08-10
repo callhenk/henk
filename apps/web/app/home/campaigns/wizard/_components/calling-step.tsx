@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@kit/ui/form';
-import { Input } from '@kit/ui/input';
 import {
   Select,
   SelectContent,
@@ -28,22 +27,24 @@ import { TimePicker } from '~/components/shared';
 
 export interface CallingFormValues {
   goal_metric: 'pledge_rate' | 'average_gift' | 'total_donations';
-  disclosure_line: string;
   call_window_start: string;
   call_window_end: string;
-  caller_id: string;
+  // TODO: Add back when multiple Twilio numbers are available:
+  // caller_id: string;
+  // TODO: Add back disclosure_line if needed (currently conflicts with agent's first message):
+  // disclosure_line: string;
 }
 
 export function CallingStep({
   form,
-  twilioNumbers,
+  _twilioNumbers, // TODO: Re-enable caller ID selection when multiple Twilio numbers are available
   onBlurCalling,
   onSaveDraft,
   onNext,
   onBack,
 }: {
   form: UseFormReturn<CallingFormValues>;
-  twilioNumbers: string[];
+  _twilioNumbers: string[]; // TODO: Rename back to twilioNumbers when caller ID field is restored
   onBlurCalling: () => void;
   onSaveDraft: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
@@ -88,27 +89,7 @@ export function CallingStep({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="disclosure_line"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Disclosure line</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    onBlur={onBlurCalling}
-                    placeholder="Hi {{first_name}}, this is {{agent_name}} with {{org_name}}."
-                  />
-                </FormControl>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Auto‑inserted at the start of calls. Supports tokens{' '}
-                  {'{{first_name}}'} {'{{agent_name}}'} {'{{org_name}}'}.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
@@ -125,6 +106,9 @@ export function CallingStep({
                       }}
                     />
                   </FormControl>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Time in UTC
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -144,11 +128,16 @@ export function CallingStep({
                       }}
                     />
                   </FormControl>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Time in UTC
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          {/* TODO: Restore caller ID field when multiple Twilio numbers are available
           <FormField
             control={form.control}
             name="caller_id"
@@ -167,7 +156,7 @@ export function CallingStep({
                       <SelectValue placeholder="Choose a Twilio number" />
                     </SelectTrigger>
                     <SelectContent>
-                      {twilioNumbers.map((n) => (
+                      {_twilioNumbers.map((n) => (
                         <SelectItem key={n} value={n}>
                           {n}
                         </SelectItem>
@@ -179,6 +168,7 @@ export function CallingStep({
               </FormItem>
             )}
           />
+          */}
         </form>
       </Form>
 

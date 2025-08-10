@@ -83,10 +83,10 @@ export async function POST(request: NextRequest) {
         end_date: body.end_date,
         // Wizard fields (optional on create)
         goal_metric: body.goal_metric,
-        disclosure_line: body.disclosure_line,
         call_window_start: body.call_window_start,
         call_window_end: body.call_window_end,
-        caller_id: body.caller_id,
+        // TODO: Add back when multiple Twilio numbers available: caller_id: body.caller_id,
+        // TODO: Add back if needed: disclosure_line: body.disclosure_line,
         audience_list_id: body.audience_list_id,
         dedupe_by_phone: body.dedupe_by_phone,
         exclude_dnc: body.exclude_dnc,

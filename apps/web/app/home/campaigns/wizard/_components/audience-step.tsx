@@ -5,12 +5,19 @@ import {
   CheckCircle,
   FileDown,
   FileSpreadsheet,
+  HelpCircle,
 } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Switch } from '@kit/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@kit/ui/tooltip';
 
 import { CsvDropzone } from './csv-dropzone';
 
@@ -55,8 +62,9 @@ export function AudienceStep({
   onNext: () => void | Promise<void>;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="px-0 pt-0 text-base font-medium">Audience</div>
+    <TooltipProvider>
+      <div className="space-y-5">
+        <div className="px-0 pt-0 text-base font-medium">Audience</div>
         <div className="rounded-md p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -152,6 +160,17 @@ export function AudienceStep({
                 }}
               />
               <span className="text-sm">Dedupe by phone</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 cursor-help text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Remove duplicate contacts with the same phone number to
+                    avoid calling the same person multiple times
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <div className="flex items-center gap-2">
               <Switch
@@ -162,6 +181,17 @@ export function AudienceStep({
                 }}
               />
               <span className="text-sm">Exclude DNC list</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 cursor-help text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Automatically exclude contacts on the Do Not Call registry
+                    to ensure compliance with telemarketing regulations
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -178,7 +208,8 @@ export function AudienceStep({
             </Button>
           </div>
         </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
 

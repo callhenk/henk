@@ -27,10 +27,10 @@ import WizardTopBar from './_components/top-bar';
 
 type WizardCampaign = Tables<'campaigns'>['Row'] & {
   goal_metric?: string | null;
-  disclosure_line?: string | null;
+
   call_window_start?: string | null;
   call_window_end?: string | null;
-  caller_id?: string | null;
+
   audience_list_id?: string | null;
   dedupe_by_phone?: boolean | null;
   exclude_dnc?: boolean | null;
@@ -42,7 +42,9 @@ type Step = 1 | 2 | 3 | 4;
 const basicsSchema = z
   .object({
     campaign_name: z.string().min(1, 'Campaign name is required'),
-    fundraising_goal: z.coerce.number().min(0, 'Goal must be ≥ 0'),
+    fundraising_goal: z.coerce
+      .number()
+      .min(0.01, 'Goal must be greater than 0'),
     start_date: z.date({ required_error: 'Start date is required' }),
     end_date: z.date().optional(),
     agent_id: z.string().min(1, 'Select an agent'),
@@ -59,10 +61,8 @@ const basicsSchema = z
 
 const callingSchema = z.object({
   goal_metric: z.enum(['pledge_rate', 'average_gift', 'total_donations']),
-  disclosure_line: z.string().min(1, 'Disclosure is required'),
   call_window_start: z.string().min(1),
   call_window_end: z.string().min(1),
-  caller_id: z.string().min(1, 'Choose a caller ID'),
 });
 
 const audienceSchema = z.object({
@@ -123,16 +123,13 @@ export function WizardContainer({
           | 'average_gift'
           | 'total_donations'
           | undefined) ?? 'pledge_rate',
-      disclosure_line:
-        existingCampaign?.disclosure_line ??
-        'Hi {{first_name}}, this is {{agent_name}} with {{org_name}}.',
+
       call_window_start: existingCampaign?.call_window_start
         ? dayjs(existingCampaign.call_window_start!).format('HH:mm')
         : '09:00',
       call_window_end: existingCampaign?.call_window_end
         ? dayjs(existingCampaign.call_window_end!).format('HH:mm')
         : '17:00',
-      caller_id: existingCampaign?.caller_id ?? '',
     },
   });
 
@@ -268,7 +265,7 @@ export function WizardContainer({
     }, 500);
   }, []);
 
-  // Create or update Draft on Step 1 submit and on blur
+  // Create or update Draft on Step 1 submit (with navigation)
   const saveBasics = useCallback(async (): Promise<boolean> => {
     const valid = await basicsForm.trigger();
     if (!valid) return false;
@@ -286,7 +283,7 @@ export function WizardContainer({
         status: 'draft',
         max_attempts: 3,
         daily_call_cap: 100,
-        script: '',
+        script: 'Default campaign script', // TODO: Get from agent or allow customization
         retry_logic: 'Wait 24 hours before retry',
       } as Parameters<typeof createCampaign.mutateAsync>[0]);
       setCurrentCampaignId(created.id);
@@ -306,6 +303,44 @@ export function WizardContainer({
     }
   }, [basicsForm, currentCampaignId, createCampaign, updateCampaign]);
 
+  // Autosave basics (without navigation)
+  const saveBasicsAutosave = useCallback(async (): Promise<boolean> => {
+    // Don't validate for autosave - just save what we have
+    const values = basicsForm.getValues();
+
+    // Only save if we have at least a campaign name
+    if (!values.campaign_name?.trim()) return false;
+
+    if (!currentCampaignId) {
+      const created = await createCampaign.mutateAsync({
+        name: values.campaign_name,
+        budget: values.fundraising_goal || 0,
+        agent_id: values.agent_id || null,
+        start_date: values.start_date?.toISOString() ?? null,
+        end_date: values.end_date?.toISOString() ?? null,
+        description: '',
+        status: 'draft',
+        max_attempts: 3,
+        daily_call_cap: 100,
+        script: 'Default campaign script', // TODO: Get from agent or allow customization
+        retry_logic: 'Wait 24 hours before retry',
+      } as Parameters<typeof createCampaign.mutateAsync>[0]);
+      setCurrentCampaignId(created.id);
+      return true;
+    } else {
+      await updateCampaign.mutateAsync({
+        id: currentCampaignId,
+        name: values.campaign_name,
+        budget: values.fundraising_goal || 0,
+        agent_id: values.agent_id || null,
+        start_date: values.start_date?.toISOString() ?? null,
+        end_date: values.end_date?.toISOString() ?? null,
+        status: 'draft',
+      } as { id: string } & Partial<WizardCampaign>);
+      return true;
+    }
+  }, [basicsForm, currentCampaignId, createCampaign, updateCampaign]);
+
   // Save Step 2
   const saveCalling = useCallback(async (): Promise<boolean> => {
     if (!currentCampaignId) return false;
@@ -315,10 +350,10 @@ export function WizardContainer({
     await updateCampaign.mutateAsync({
       id: currentCampaignId,
       goal_metric: v.goal_metric,
-      disclosure_line: v.disclosure_line,
+
       call_window_start: `${v.call_window_start}:00`,
       call_window_end: `${v.call_window_end}:00`,
-      caller_id: v.caller_id,
+
       status: 'draft',
     } as { id: string } & Partial<WizardCampaign>);
     return true;
@@ -365,7 +400,7 @@ export function WizardContainer({
         status: 'draft',
         max_attempts: 3,
         daily_call_cap: 100,
-        script: '',
+        script: 'Default campaign script', // TODO: Get from agent or allow customization
         retry_logic: 'Wait 24 hours before retry',
       } as Parameters<typeof createCampaign.mutateAsync>[0]);
       setCurrentCampaignId(created.id);
@@ -390,12 +425,12 @@ export function WizardContainer({
     await updateCampaign.mutateAsync({
       id: currentCampaignId,
       goal_metric: v.goal_metric,
-      disclosure_line: v.disclosure_line,
+
       call_window_start: v.call_window_start
         ? `${v.call_window_start}:00`
         : null,
       call_window_end: v.call_window_end ? `${v.call_window_end}:00` : null,
-      caller_id: v.caller_id || null,
+
       status: 'draft',
     } as { id: string } & Partial<WizardCampaign>);
     return true;
@@ -459,19 +494,21 @@ export function WizardContainer({
   };
 
   // Autosave on blur
-  const onBlurBasics = () => triggerAutosave(saveBasics);
+  const onBlurBasics = () => triggerAutosave(saveBasicsAutosave);
   const onBlurCalling = () => triggerAutosave(saveCalling);
   const onBlurAudience = () => triggerAutosave(saveAudience);
 
   // Activate / Pause from Step 4
+  const campaignName = basicsForm.watch('campaign_name');
+  const agentId = basicsForm.watch('agent_id');
+  const audienceContactCount = audienceForm.watch('audience_contact_count');
+
   const canActivate = useMemo(() => {
-    const hasBasics = Boolean(
-      basicsForm.getValues().campaign_name && basicsForm.getValues().agent_id,
-    );
-    const hasCaller = !!callingForm.getValues().caller_id;
-    const audienceCount = audienceForm.getValues().audience_contact_count || 0;
-    return hasBasics && hasCaller && audienceCount >= 1;
-  }, [audienceForm, basicsForm, callingForm]);
+    const hasBasics = Boolean(campaignName?.trim() && agentId?.trim());
+    const hasAudience = (audienceContactCount || 0) >= 1;
+
+    return hasBasics && hasAudience;
+  }, [campaignName, agentId, audienceContactCount]);
 
   const [isActing, setIsActing] = useState(false);
   const setStatus = async (status: 'active' | 'draft' | 'paused') => {
@@ -484,7 +521,11 @@ export function WizardContainer({
         });
         if (!resp.ok) {
           const j = await resp.json().catch(() => ({}));
-          throw new Error(j?.error || 'Failed to start campaign');
+          console.error('Campaign start error:', j);
+          const errorMessage =
+            j?.error || `Failed to start campaign (${resp.status})`;
+          alert(`Error: ${errorMessage}`); // Temporary alert to see the actual error
+          throw new Error(errorMessage);
         }
         onClose?.();
         return;
@@ -512,8 +553,8 @@ export function WizardContainer({
     }
   };
 
-  // Dummy caller id list (placeholder; integration to Twilio numbers to be added)
-  const twilioNumbers = ['+12025550125', '+14155550142'];
+  // TODO: Re-enable when multiple Twilio numbers are available
+  const _twilioNumbers = ['+12025550125', '+14155550142'];
 
   if (loadingCampaign && currentCampaignId) {
     return (
@@ -546,7 +587,7 @@ export function WizardContainer({
       {step === 2 && (
         <CallingStep
           form={callingForm as unknown as UseFormReturn<CallingFormValues>}
-          twilioNumbers={twilioNumbers}
+          _twilioNumbers={_twilioNumbers}
           onBlurCalling={onBlurCalling}
           onSaveDraft={() => void saveCallingDraft()}
           onNext={() => void goNext()}

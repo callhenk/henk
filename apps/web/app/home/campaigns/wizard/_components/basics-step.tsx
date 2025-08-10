@@ -81,7 +81,7 @@ export function BasicsStep({
                 <FormControl>
                   <Input
                     type="number"
-                    min={0}
+                    min={0.01}
                     step="0.01"
                     value={
                       Number.isFinite(field.value as unknown as number)
@@ -90,9 +90,31 @@ export function BasicsStep({
                     }
                     onChange={(e) => {
                       const raw = e.target.value ?? '';
+
+                      // Handle empty input
+                      if (raw === '') {
+                        field.onChange(0);
+                        return;
+                      }
+
+                      // Allow decimal inputs starting with 0 (like 0.5, 0.25)
+                      if (raw.startsWith('0.')) {
+                        const next = Number(raw);
+                        field.onChange(isNaN(next) ? 0 : next);
+                        return;
+                      }
+
+                      // Remove leading zeros for whole numbers (prevent 01, 02, etc.)
                       const normalized = raw.replace(/^0+(?=\d)/, '');
-                      const next = normalized === '' ? 0 : Number(normalized);
-                      field.onChange(next);
+
+                      // Don't allow just "0" - reset to empty
+                      if (normalized === '0') {
+                        field.onChange(0);
+                        return;
+                      }
+
+                      const next = Number(normalized);
+                      field.onChange(isNaN(next) ? 0 : next);
                     }}
                     onBlur={onBlurBasics}
                     inputMode="decimal"
