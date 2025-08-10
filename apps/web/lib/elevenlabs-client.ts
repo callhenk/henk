@@ -43,17 +43,20 @@ export interface KnowledgeBase {
 export class ElevenLabsClient {
   private apiKey: string;
   private baseUrl: string;
+  private voicesBaseUrl: string;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
     this.baseUrl = 'https://api.elevenlabs.io/v1';
+    // Voices API uses v2 per latest docs
+    this.voicesBaseUrl = 'https://api.elevenlabs.io/v2';
   }
 
   /**
    * Get all available voices
    */
   async getVoices(): Promise<Voice[]> {
-    const response = await fetch(`${this.baseUrl}/voices`, {
+    const response = await fetch(`${this.voicesBaseUrl}/voices`, {
       headers: {
         'xi-api-key': this.apiKey,
         'Content-Type': 'application/json',
