@@ -642,8 +642,10 @@ export type Database = {
           name: string;
           email: string | null;
           phone: string;
+          timezone: string | null;
           company: string | null;
           status: string;
+          dnc: boolean | null;
           notes: string | null;
           last_contact_date: string | null;
           attempts: number;
@@ -660,8 +662,10 @@ export type Database = {
           name: string;
           email?: string | null;
           phone: string;
+          timezone?: string | null;
           company?: string | null;
           status?: string;
+          dnc?: boolean | null;
           notes?: string | null;
           last_contact_date?: string | null;
           attempts?: number;
@@ -678,8 +682,10 @@ export type Database = {
           name?: string;
           email?: string | null;
           phone?: string;
+          timezone?: string | null;
           company?: string | null;
           status?: string;
+          dnc?: boolean | null;
           notes?: string | null;
           last_contact_date?: string | null;
           attempts?: number;
