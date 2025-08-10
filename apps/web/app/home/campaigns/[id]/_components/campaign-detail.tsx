@@ -16,6 +16,7 @@ import {
   Phone,
   Users,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import type { Tables } from '@kit/supabase/database';
@@ -32,6 +33,7 @@ import {
   useUpdateLead,
 } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 // Removed unused Card imports
@@ -89,6 +91,9 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   const [callWindowStart, setCallWindowStart] = useState<string>('09:00');
   const [callWindowEnd, setCallWindowEnd] = useState<string>('17:00');
+  const { data: _businessContext } = useBusinessContext();
+
+  // Removed campaign-level simulate call (moved to Agent page)
 
   // TODO: Add back when multiple Twilio numbers are available
   // const [callerId, setCallerId] = useState<string>('');
@@ -117,35 +122,39 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const [retryLogic, setRetryLogic] = useState('');
   const [_savingField, setSavingField] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Initialize form data when campaign loads
   useEffect(() => {
-    if (campaign) {
-      setCampaignName(campaign.name || '');
-      setCampaignDescription(campaign.description || '');
-      setCampaignScript(campaign.script || '');
-      setStartDate(
-        campaign.start_date
-          ? dayjs(campaign.start_date).format('YYYY-MM-DD')
-          : '',
-      );
-      setEndDate(
-        campaign.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '',
-      );
-      setCallWindowStart(
-        campaign.call_window_start
-          ? dayjs(campaign.call_window_start).format('HH:mm')
-          : '09:00',
-      );
-      setCallWindowEnd(
-        campaign.call_window_end
-          ? dayjs(campaign.call_window_end).format('HH:mm')
-          : '17:00',
-      );
-      setMaxAttempts(campaign.max_attempts?.toString() || '');
-      setDailyCallCap(campaign.daily_call_cap?.toString() || '');
-      setRetryLogic(campaign.retry_logic || '');
-    }
+    if (!campaign) return;
+
+    const normalizeTime = (value?: string | null): string => {
+      if (!value) return '';
+      // If already HH:mm
+      if (/^\d{2}:\d{2}$/.test(value)) return value;
+      // If HH:mm:ss
+      if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
+      // Try parse ISO/string to time
+      const parsed = dayjs(value);
+      return parsed.isValid() ? parsed.format('HH:mm') : '';
+    };
+
+    setCampaignName(campaign.name || '');
+    setCampaignDescription(campaign.description || '');
+    setCampaignScript(campaign.script || '');
+    setStartDate(
+      campaign.start_date
+        ? dayjs(campaign.start_date).format('YYYY-MM-DD')
+        : '',
+    );
+    setEndDate(
+      campaign.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '',
+    );
+    setCallWindowStart(normalizeTime(campaign.call_window_start) || '09:00');
+    setCallWindowEnd(normalizeTime(campaign.call_window_end) || '17:00');
+    setMaxAttempts(campaign.max_attempts?.toString() || '');
+    setDailyCallCap(campaign.daily_call_cap?.toString() || '');
+    setRetryLogic(campaign.retry_logic || '');
   }, [campaign]);
 
   // Check if there are unsaved changes for each field
@@ -299,13 +308,23 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     if (!campaign) return;
 
     try {
-      await updateCampaignMutation.mutateAsync({
-        id: campaignId,
-        status: 'active',
+      setIsUpdatingStatus(true);
+      const resp = await fetch(`/api/campaigns/${campaignId}/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Campaign activated successfully');
+      const json = await resp.json();
+      if (!resp.ok || !json?.success) {
+        throw new Error(json?.error || `Failed (${resp.status})`);
+      }
+      toast.success('Campaign activated');
     } catch (error) {
       console.error('Failed to activate campaign:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to activate campaign',
+      );
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -313,15 +332,27 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     if (!campaign) return;
 
     try {
-      await updateCampaignMutation.mutateAsync({
-        id: campaignId,
-        status: 'paused',
+      setIsUpdatingStatus(true);
+      const resp = await fetch(`/api/campaigns/${campaignId}/stop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Campaign paused successfully');
+      const json = await resp.json();
+      if (!resp.ok || !json?.success) {
+        throw new Error(json?.error || `Failed (${resp.status})`);
+      }
+      toast.success('Campaign paused');
     } catch (error) {
       console.error('Failed to pause campaign:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to pause campaign',
+      );
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
+
+  // Removed campaign-level simulate call handler
 
   // Show loading state while fetching campaign data
   if (loadingCampaign) {
@@ -393,7 +424,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         onActivate={handleActivateCampaign}
         onPause={handlePauseCampaign}
         onDelete={handleDeleteCampaign}
-        isUpdatingStatus={updateCampaignMutation.isPending}
+        isUpdatingStatus={isUpdatingStatus}
         isDeleting={deleteCampaignMutation.isPending}
       />
 
@@ -511,11 +542,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               )}
               {/* TODO: Add back caller ID when multiple Twilio numbers are available */}
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => {}}>
-                Test call to me
-              </Button>
-            </div>
+            {/* Simulate call UI removed; use Agent page for test calls */}
           </TabsContent>
 
           <TabsContent value="audience" className="space-y-5">

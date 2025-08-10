@@ -223,7 +223,7 @@ export function AgentOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
                   {agentCampaigns.length > 0 ? (
                     agentCampaigns.map((campaign, index) => (
                       <div

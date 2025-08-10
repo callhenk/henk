@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -15,6 +15,14 @@ import { useConversations } from '@kit/supabase/hooks/conversations/use-conversa
 import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader } from '@kit/ui/card';
+import { Input } from '@kit/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@kit/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
@@ -79,6 +87,43 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     agentPromptLength?: number;
   } | null>(null);
   const [isLinkingKnowledgeBase, setIsLinkingKnowledgeBase] = useState(false);
+
+  // Phone numbers for assignment
+  const [availableCallerIds, setAvailableCallerIds] = useState<string[]>([]);
+  const [assignCallerId, setAssignCallerId] = useState<string>('');
+  const [isSavingCallerId, setIsSavingCallerId] = useState(false);
+  // Test call state
+  const [testToNumber, setTestToNumber] = useState('');
+  const [testCallerId, setTestCallerId] = useState('');
+  const [isPlacingTestCall, setIsPlacingTestCall] = useState(false);
+
+  // Load phone numbers
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await fetch('/api/voice/phone-numbers');
+        const json = await resp.json();
+        if (resp.ok && json?.success && Array.isArray(json.data)) {
+          const numbers = (
+            json.data as Array<{
+              phone_number: string;
+              supports_outbound?: boolean;
+            }>
+          )
+            .filter((n) => n.supports_outbound)
+            .map((n) => n.phone_number)
+            .filter((p): p is string => typeof p === 'string' && p.length > 0);
+          setAvailableCallerIds(numbers);
+          if (!assignCallerId && numbers.length > 0)
+            setAssignCallerId(numbers[0] ?? '');
+          if (!testCallerId && numbers.length > 0)
+            setTestCallerId(numbers[0] ?? '');
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, [assignCallerId, testCallerId]);
 
   const handleBack = () => {
     router.push('/home/agents');
@@ -572,6 +617,155 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 conversations={conversations}
                 campaigns={campaigns}
               />
+
+              {/* Assign Caller ID */}
+              <Card className="glass-panel mt-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold">
+                        Outbound Caller ID
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Assign an ElevenLabs phone number to this agent for
+                        outbound calls
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Select
+                    value={assignCallerId}
+                    onValueChange={setAssignCallerId}
+                  >
+                    <SelectTrigger className="sm:w-80">
+                      <SelectValue placeholder="Select caller ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCallerIds.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    disabled={isSavingCallerId || !assignCallerId || !agent}
+                    onClick={async () => {
+                      try {
+                        setIsSavingCallerId(true);
+                        const resp = await fetch(
+                          `/api/agents/${agent!.id}/assign-phone`,
+                          {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ caller_id: assignCallerId }),
+                          },
+                        );
+                        const json = await resp.json();
+                        if (!resp.ok || !json?.success) {
+                          throw new Error(
+                            json?.error || `Failed (${resp.status})`,
+                          );
+                        }
+                        toast.success('Caller ID assigned to agent');
+                      } catch (e) {
+                        toast.error(
+                          e instanceof Error
+                            ? e.message
+                            : 'Failed to assign caller ID',
+                        );
+                      } finally {
+                        setIsSavingCallerId(false);
+                      }
+                    }}
+                  >
+                    {isSavingCallerId ? 'Saving…' : 'Assign'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Simulate/Test Call */}
+              <Card className="glass-panel mt-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold">
+                        Place test call
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Quickly call your own number using this agent and a
+                        selected caller ID
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Input
+                    placeholder="Your phone (e.g. +15551234567)"
+                    value={testToNumber}
+                    onChange={(e) => setTestToNumber(e.target.value)}
+                    className="sm:w-80"
+                  />
+                  <Select value={testCallerId} onValueChange={setTestCallerId}>
+                    <SelectTrigger className="sm:w-72">
+                      <SelectValue placeholder="Select caller ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCallerIds.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    disabled={
+                      isPlacingTestCall ||
+                      !testToNumber ||
+                      !testCallerId ||
+                      !agent
+                    }
+                    onClick={async () => {
+                      try {
+                        if (!agent) return;
+                        setIsPlacingTestCall(true);
+                        const resp = await fetch(
+                          '/api/campaigns/simulate-call',
+                          {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              to_number: testToNumber,
+                              agent_id: agent.elevenlabs_agent_id || undefined,
+                              caller_id: testCallerId,
+                              lead_name: 'Test Call',
+                              goal_metric: 'pledge_rate',
+                            }),
+                          },
+                        );
+                        const json = await resp.json();
+                        if (!resp.ok || !json?.success) {
+                          throw new Error(
+                            json?.error || `Failed (${resp.status})`,
+                          );
+                        }
+                        toast.success('Test call started');
+                      } catch (e) {
+                        toast.error(
+                          e instanceof Error
+                            ? e.message
+                            : 'Failed to start test call',
+                        );
+                      } finally {
+                        setIsPlacingTestCall(false);
+                      }
+                    }}
+                  >
+                    {isPlacingTestCall ? 'Starting…' : 'Place test call'}
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Knowledge Base Tab */}
