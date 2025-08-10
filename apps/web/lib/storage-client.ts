@@ -63,6 +63,45 @@ export class StorageClient {
   }
 
   /**
+   * Upload audio buffer to a specific path with optional upsert
+   */
+  async uploadAudioToPath(
+    filePath: string,
+    audioBuffer: ArrayBuffer,
+    options?: { upsert?: boolean },
+  ): Promise<UploadResult> {
+    try {
+      const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+
+      const { data, error } = await this.supabase.storage
+        .from('audio')
+        .upload(filePath, blob, {
+          contentType: 'audio/mpeg',
+          cacheControl: '3600',
+          upsert: options?.upsert ?? false,
+        });
+
+      if (error) {
+        throw new Error(`Upload failed: ${error.message}`);
+      }
+
+      const { data: urlData } = this.supabase.storage
+        .from('audio')
+        .getPublicUrl(filePath);
+
+      return {
+        url: urlData.publicUrl,
+        path: filePath,
+        size: audioBuffer.byteLength,
+      };
+    } catch (error) {
+      throw new Error(
+        `Storage upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  /**
    * Delete audio file from storage
    */
   async deleteAudio(filePath: string): Promise<void> {

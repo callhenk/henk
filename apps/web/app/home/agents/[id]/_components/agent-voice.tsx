@@ -228,22 +228,43 @@ export function AgentVoice({
                             toast.error('No voice selected for preview');
                             return;
                           }
-                          const cachedUrl = await getCachedVoiceSample(voiceId);
-                          if (cachedUrl) {
-                            const audio = new Audio(cachedUrl);
-                            setIsPlayingPreview(true);
-                            audio.onended = () => setIsPlayingPreview(false);
-                            audio.onerror = () => {
-                              setIsPlayingPreview(false);
-                              toast.error('Failed to play voice preview.');
-                            };
-                            await audio.play();
-                            toast.success('Playing cached voice preview...');
-                            return;
+                          let cachedUrl = await getCachedVoiceSample(voiceId);
+                          if (!cachedUrl) {
+                            toast.info(
+                              'No cached sample. Generating sample...',
+                            );
+                            const resp = await fetch(
+                              '/api/elevenlabs/test-voice',
+                              {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ voice_id: voiceId }),
+                              },
+                            );
+                            if (!resp.ok) {
+                              const msg = await resp.text();
+                              throw new Error(
+                                msg || 'Failed to generate sample',
+                              );
+                            }
+                            const result = await resp.json();
+                            cachedUrl =
+                              result?.data?.audio_url_signed ||
+                              result?.data?.audio_url ||
+                              null;
+                            if (!cachedUrl) {
+                              throw new Error('No audio URL returned');
+                            }
                           }
-                          toast.info(
-                            'No cached sample available. Please generate a voice sample first.',
-                          );
+                          const audio = new Audio(cachedUrl);
+                          setIsPlayingPreview(true);
+                          audio.onended = () => setIsPlayingPreview(false);
+                          audio.onerror = () => {
+                            setIsPlayingPreview(false);
+                            toast.error('Failed to play voice preview.');
+                          };
+                          await audio.play();
+                          toast.success('Playing voice preview...');
                         } catch (error) {
                           console.error('Voice preview error:', error);
                           toast.error('Failed to play voice preview.');

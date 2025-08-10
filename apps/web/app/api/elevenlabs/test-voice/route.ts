@@ -63,18 +63,25 @@ export async function POST(request: NextRequest) {
       sample_text || 'Hello! This is a test of the voice. How does it sound?';
     const speechResult = await elevenLabs.testVoice(voice_id, textToTest);
 
-    // Upload to storage
-    const fileName = storage.generateFileName(voice_id, Date.now());
-    const uploadResult = await storage.uploadAudio(
+    // Upload to storage at a stable, cacheable path for previews
+    const previewPath = `samples/${voice_id}_sample.mp3`;
+    const uploadResult = await storage.uploadAudioToPath(
+      previewPath,
       speechResult.audio,
-      fileName,
+      {
+        upsert: true,
+      },
     );
+
+    // Also provide a signed URL for immediate playback when bucket is private
+    const signedUrl = await storage.getSignedUrl(uploadResult.path, 3600);
 
     return NextResponse.json(
       {
         success: true,
         data: {
           audio_url: uploadResult.url,
+          audio_url_signed: signedUrl,
           file_path: uploadResult.path,
           file_size: uploadResult.size,
           duration: speechResult.duration,
