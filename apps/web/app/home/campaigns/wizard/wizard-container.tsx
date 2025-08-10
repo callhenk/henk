@@ -2,23 +2,10 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import Link from 'next/link';
-
-// import { useRouter, useSearchParams } from 'next/navigation';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
-import {
-  AlertCircle,
-  CheckCircle,
-  ExternalLink,
-  FileDown,
-  FileSpreadsheet,
-  Pause,
-  Play,
-  Save,
-} from 'lucide-react';
 import Papa from 'papaparse';
+import type { UseFormReturn } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -30,31 +17,13 @@ import {
 } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import { Badge } from '@kit/ui/badge';
-import { Button } from '@kit/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@kit/ui/form';
-import { Input } from '@kit/ui/input';
-import { Progress } from '@kit/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
-import { Separator } from '@kit/ui/separator';
 import { Spinner } from '@kit/ui/spinner';
-import { Switch } from '@kit/ui/switch';
 
-import { DatePicker, TimePicker } from '~/components/shared';
+import AudienceStep, { AudienceFormValues } from './_components/audience-step';
+import BasicsStep, { BasicsFormValues } from './_components/basics-step';
+import CallingStep, { CallingFormValues } from './_components/calling-step';
+import ReviewStep from './_components/review-step';
+import WizardTopBar from './_components/top-bar';
 
 type WizardCampaign = Tables<'campaigns'>['Row'] & {
   goal_metric?: string | null;
@@ -128,7 +97,6 @@ export function WizardContainer({
   const bulkCreateLeads = useBulkCreateLeads();
 
   const totalSteps = 4;
-  const progress = useMemo(() => (step / totalSteps) * 100, [step]);
 
   // Forms per step
   const basicsForm = useForm<z.infer<typeof basicsSchema>>({
@@ -275,6 +243,19 @@ export function WizardContainer({
       setIsUploading(false);
     }
   };
+
+  // Helper to download CSV template
+  const downloadCsvTemplate = useCallback(() => {
+    const csvContent =
+      'first_name,last_name,phone,email,timezone,opt_in\nJane,Doe,+14155550142,jane@example.org,America/Los_Angeles,true';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'audience_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
 
   // Autosave helpers
   const autosave = useRef<{ timer: ReturnType<typeof setTimeout> | null }>({
@@ -534,23 +515,6 @@ export function WizardContainer({
   // Dummy caller id list (placeholder; integration to Twilio numbers to be added)
   const twilioNumbers = ['+12025550125', '+14155550142'];
 
-  const topBar = (
-    <div className="mb-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
-          </Button>
-          <span className="text-sm">Step {step} of 4</span>
-          <span className="bg-muted rounded-full px-2 py-0.5 text-xs">
-            {existingCampaign?.status ?? 'Draft'}
-          </span>
-        </div>
-      </div>
-      <Progress value={progress} className="h-1.5" />
-    </div>
-  );
-
   if (loadingCampaign && currentCampaignId) {
     return (
       <div className="flex h-72 items-center justify-center">
@@ -561,629 +525,68 @@ export function WizardContainer({
 
   return (
     <div className="mx-auto max-w-4xl p-5">
-      {topBar}
+      <WizardTopBar
+        step={step}
+        totalSteps={totalSteps}
+        status={existingCampaign?.status}
+        onClose={onClose}
+      />
 
       {/* Step content */}
       {step === 1 && (
-        <Card className="border-none bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-base">Basics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 rounded-xl bg-white/40 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur supports-[backdrop-filter]:bg-white/30 dark:bg-zinc-900/40 dark:ring-white/10">
-            <Form {...basicsForm}>
-              <form className="space-y-4">
-                <FormField
-                  control={basicsForm.control}
-                  name="campaign_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Campaign name</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          onBlur={onBlurBasics}
-                          placeholder="e.g., Spring Appeal"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={basicsForm.control}
-                  name="fundraising_goal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fundraising goal</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          {...field}
-                          onBlur={onBlurBasics}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={basicsForm.control}
-                    name="start_date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start date</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            value={field.value}
-                            onValueChange={(d?: Date) => {
-                              field.onChange(d);
-                              onBlurBasics();
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={basicsForm.control}
-                    name="end_date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End date (optional)</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            value={field.value}
-                            onValueChange={(d?: Date) => {
-                              field.onChange(d);
-                              onBlurBasics();
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={basicsForm.control}
-                  name="agent_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Agent</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={(v) => {
-                            field.onChange(v);
-                            onBlurBasics();
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select agent" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {agents.map((a) => (
-                              <SelectItem key={a.id} value={a.id}>
-                                {a.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Agent determines voice & script. You can adjust from the
-                        Agent page.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-            <Separator />
-            <div className="mt-4 flex justify-between">
-              <Button variant="ghost" asChild>
-                <Link href="/home/campaigns">Cancel</Link>
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={saveBasicsDraft}>
-                  <Save className="mr-2 h-4 w-4" /> Save as draft
-                </Button>
-                <Button onClick={goNext} className="min-w-36">
-                  Save & continue
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <BasicsStep
+          form={basicsForm as unknown as UseFormReturn<BasicsFormValues>}
+          agents={agents}
+          onBlurBasics={onBlurBasics}
+          onSaveDraft={() => void saveBasicsDraft()}
+          onNext={() => void goNext()}
+        />
       )}
 
       {step === 2 && (
-        <Card className="border-none bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-base">Calling & Voice</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 rounded-xl bg-white/40 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur supports-[backdrop-filter]:bg-white/30 dark:bg-zinc-900/40 dark:ring-white/10">
-            <Form {...callingForm}>
-              <form className="space-y-4">
-                <FormField
-                  control={callingForm.control}
-                  name="goal_metric"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Goal metric</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={(v) => {
-                            field.onChange(v);
-                            onBlurCalling();
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select KPI" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pledge_rate">
-                              Pledge rate
-                            </SelectItem>
-                            <SelectItem value="average_gift">
-                              Average gift
-                            </SelectItem>
-                            <SelectItem value="total_donations">
-                              Total donations
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        We optimize summaries for this KPI.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={callingForm.control}
-                  name="disclosure_line"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Disclosure line</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          onBlur={onBlurCalling}
-                          placeholder="Hi {{first_name}}, this is {{agent_name}} with {{org_name}}."
-                        />
-                      </FormControl>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Auto‑inserted at the start of calls. Supports tokens{' '}
-                        {'{{first_name}}'} {'{{agent_name}}'} {'{{org_name}}'}.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={callingForm.control}
-                    name="call_window_start"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Call window start</FormLabel>
-                        <FormControl>
-                          <TimePicker
-                            value={field.value}
-                            onValueChange={(v) => {
-                              field.onChange(v);
-                              onBlurCalling();
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={callingForm.control}
-                    name="call_window_end"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Call window end</FormLabel>
-                        <FormControl>
-                          <TimePicker
-                            value={field.value}
-                            onValueChange={(v) => {
-                              field.onChange(v);
-                              onBlurCalling();
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={callingForm.control}
-                  name="caller_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Caller ID</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={(v) => {
-                            field.onChange(v);
-                            onBlurCalling();
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose a Twilio number" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {twilioNumbers.map((n) => (
-                              <SelectItem key={n} value={n}>
-                                {n}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-
-            <Separator />
-            <div className="bg-muted rounded-md px-3 py-3 text-sm">
-              <div className="mb-2 font-medium">Voice & Script</div>
-              <p className="text-muted-foreground">
-                This campaign uses the assigned agent’s current voice & script.
-              </p>
-              <div className="mt-2 flex gap-2">
-                {basicsForm.getValues().agent_id ? (
-                  <>
-                    <Button variant="outline" asChild>
-                      <Link
-                        href={`/home/agents/${basicsForm.getValues().agent_id}`}
-                        target="_blank"
-                      >
-                        Go to agent voice & script{' '}
-                        <ExternalLink className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" asChild>
-                      <Link
-                        href={`/home/agents/${basicsForm.getValues().agent_id}`}
-                        target="_blank"
-                      >
-                        Open agent
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">
-                    Select an agent in Basics to manage voice & script.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-between">
-              <Button variant="ghost" onClick={goBack}>
-                Back
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={saveCallingDraft}>
-                  <Save className="mr-2 h-4 w-4" /> Save as draft
-                </Button>
-                <Button onClick={goNext} className="min-w-36">
-                  Save & continue
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <CallingStep
+          form={callingForm as unknown as UseFormReturn<CallingFormValues>}
+          twilioNumbers={twilioNumbers}
+          onBlurCalling={onBlurCalling}
+          onSaveDraft={() => void saveCallingDraft()}
+          onNext={() => void goNext()}
+          onBack={goBack}
+        />
       )}
 
       {step === 3 && (
-        <Card className="border-none bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-base">Audience</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 rounded-xl bg-white/40 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur supports-[backdrop-filter]:bg-white/30 dark:bg-zinc-900/40 dark:ring-white/10">
-            <div className="rounded-md p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  <p className="text-sm font-medium">Upload CSV</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const csvContent =
-                        'first_name,last_name,phone,email,timezone,opt_in\nJane,Doe,+14155550142,jane@example.org,America/Los_Angeles,true';
-                      const blob = new Blob([csvContent], {
-                        type: 'text/csv;charset=utf-8;',
-                      });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'audience_template.csv';
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    <FileDown className="mr-2 h-4 w-4" /> Template
-                  </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <a
-                      href="/home/integrations"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Connect CRM
-                    </a>
-                  </Button>
-                </div>
-              </div>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Required headers: first_name, phone. Optional: last_name, email,
-                timezone, opt_in.
-              </p>
-              <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <label className="text-muted-foreground col-span-2 flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-black/10 bg-white/50 p-6 text-sm hover:bg-white/70 dark:border-white/10 dark:bg-zinc-900/50">
-                  <input
-                    type="file"
-                    accept=".csv,text/csv"
-                    onChange={(e) =>
-                      handleCsvChange(e.target.files?.[0] ?? null)
-                    }
-                    disabled={!currentCampaignId}
-                    className="hidden"
-                  />
-                  Drop CSV here or click to choose
-                </label>
-                <div className="rounded-lg bg-white/50 p-3 text-xs ring-1 ring-black/5 dark:bg-zinc-900/50 dark:ring-white/10">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium">Headers detected</span>
-                    <AlertCircle className="h-3.5 w-3.5 opacity-60" />
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {(() => {
-                      const hs = csvHeaders || [];
-                      return [
-                        'first_name',
-                        'last_name',
-                        'phone',
-                        'email',
-                        'timezone',
-                        'opt_in',
-                      ].map((h) => (
-                        <Badge
-                          key={h}
-                          variant={hs.includes(h) ? 'default' : 'outline'}
-                          className="gap-1"
-                        >
-                          {hs.includes(h) ? (
-                            <CheckCircle className="h-3 w-3" />
-                          ) : (
-                            <AlertCircle className="h-3 w-3" />
-                          )}
-                          {h}
-                        </Badge>
-                      ));
-                    })()}
-                  </div>
-                </div>
-              </div>
-              {csvErrors.length > 0 && (
-                <div className="mt-2 text-xs text-red-600">
-                  {csvErrors.slice(0, 5).map((er, i) => (
-                    <div key={i}>{er}</div>
-                  ))}
-                  {csvErrors.length > 5 && (
-                    <div>+{csvErrors.length - 5} more…</div>
-                  )}
-                </div>
-              )}
-              {csvRows.length > 0 && (
-                <div className="text-muted-foreground mt-2 text-xs">
-                  {csvRows.length} rows parsed
-                </div>
-              )}
-              <div className="mt-3">
-                <Button
-                  onClick={uploadCsv}
-                  disabled={
-                    !currentCampaignId ||
-                    csvRows.length === 0 ||
-                    csvErrors.length > 0 ||
-                    isUploading
-                  }
-                >
-                  {isUploading ? 'Uploading…' : 'Upload contacts'}
-                </Button>
-              </div>
-              <div className="mt-3 flex items-center gap-4">
-                <div className="text-sm">
-                  {audienceForm.watch('audience_contact_count')} contacts ready
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={audienceForm.watch('dedupe_by_phone')}
-                    onCheckedChange={(v) => {
-                      audienceForm.setValue('dedupe_by_phone', v);
-                      onBlurAudience();
-                    }}
-                  />
-                  <span className="text-sm">Dedupe by phone</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={audienceForm.watch('exclude_dnc')}
-                    onCheckedChange={(v) => {
-                      audienceForm.setValue('exclude_dnc', v);
-                      onBlurAudience();
-                    }}
-                  />
-                  <span className="text-sm">Exclude DNC list</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-between">
-              <Button variant="ghost" onClick={goBack}>
-                Back
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={saveAudienceDraft}>
-                  <Save className="mr-2 h-4 w-4" /> Save as draft
-                </Button>
-                <Button onClick={goNext} className="min-w-36">
-                  Save & continue
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AudienceStep
+          csvHeaders={csvHeaders}
+          csvErrors={csvErrors}
+          csvRows={csvRows}
+          isUploading={isUploading}
+          hasCampaignId={Boolean(currentCampaignId)}
+          onTemplateDownload={downloadCsvTemplate}
+          onConnectCrm={() =>
+            window.open('/home/integrations', '_blank', 'noopener,noreferrer')
+          }
+          onDropCsv={(file) => handleCsvChange(file)}
+          onUploadCsv={() => void uploadCsv()}
+          form={audienceForm as unknown as UseFormReturn<AudienceFormValues>}
+          onBlurAudience={onBlurAudience}
+          onBack={goBack}
+          onSaveDraft={() => void saveAudienceDraft()}
+          onNext={() => void goNext()}
+        />
       )}
 
       {step === 4 && (
-        <Card className="border-none bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-base">Review & Launch</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 rounded-xl bg-white/40 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur supports-[backdrop-filter]:bg-white/30 dark:bg-zinc-900/40 dark:ring-white/10">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-md p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="font-medium">Basics</div>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => goToStep(1)}
-                    className="px-0 text-sm"
-                  >
-                    Edit
-                  </Button>
-                </div>
-                <div className="text-sm">
-                  Name: {basicsForm.getValues().campaign_name || '-'}
-                </div>
-                <div className="text-sm">
-                  Dates:{' '}
-                  {basicsForm.getValues().start_date?.toLocaleDateString() ||
-                    '-'}{' '}
-                  →{' '}
-                  {basicsForm.getValues().end_date?.toLocaleDateString() || '—'}
-                </div>
-                <div className="text-sm">
-                  Goal: {basicsForm.getValues().fundraising_goal}
-                </div>
-                <div className="text-sm">
-                  Agent:{' '}
-                  {agents.find((a) => a.id === basicsForm.getValues().agent_id)
-                    ?.name || '-'}
-                </div>
-              </div>
-              <div className="rounded-md p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="font-medium">Calling & Voice</div>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => goToStep(2)}
-                    className="px-0 text-sm"
-                  >
-                    Edit
-                  </Button>
-                </div>
-                <div className="text-sm">
-                  Goal metric: {callingForm.getValues().goal_metric}
-                </div>
-                <div className="text-sm">
-                  Disclosure: {callingForm.getValues().disclosure_line}
-                </div>
-                <div className="text-sm">
-                  Call window: {callingForm.getValues().call_window_start} –{' '}
-                  {callingForm.getValues().call_window_end}
-                </div>
-                <div className="text-sm">
-                  Caller ID: {callingForm.getValues().caller_id || '-'}
-                </div>
-                {basicsForm.getValues().agent_id && (
-                  <div className="text-sm">
-                    Agent page:{' '}
-                    <Link
-                      className="underline"
-                      target="_blank"
-                      href={`/home/agents/${basicsForm.getValues().agent_id}`}
-                    >
-                      Open
-                    </Link>
-                  </div>
-                )}
-              </div>
-              <div className="rounded-md p-4 md:col-span-2">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="font-medium">Audience</div>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => goToStep(3)}
-                    className="px-0 text-sm"
-                  >
-                    Edit
-                  </Button>
-                </div>
-                <div className="text-sm">
-                  Contacts: {audienceForm.getValues().audience_contact_count}
-                </div>
-                <div className="text-sm">
-                  Dedupe:{' '}
-                  {audienceForm.getValues().dedupe_by_phone ? 'On' : 'Off'}
-                </div>
-                <div className="text-sm">
-                  Exclude DNC:{' '}
-                  {audienceForm.getValues().exclude_dnc ? 'On' : 'Off'}
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center justify-between">
-              <Button variant="ghost" onClick={goBack}>
-                Back
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStatus('draft')}>
-                  <Save className="mr-2 h-4 w-4" /> Save as draft
-                </Button>
-                <Button
-                  disabled={!canActivate || isActing}
-                  onClick={() => setStatus('active')}
-                  className="min-w-36"
-                >
-                  <Play className="mr-2 h-4 w-4" /> Activate campaign
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setStatus('paused')}
-                  disabled={existingCampaign?.status !== 'active' || isActing}
-                >
-                  <Pause className="mr-2 h-4 w-4" /> Pause
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ReviewStep
+          basics={basicsForm.getValues() as BasicsFormValues}
+          calling={callingForm.getValues() as CallingFormValues}
+          audience={audienceForm.getValues() as AudienceFormValues}
+          agents={agents}
+          canActivate={canActivate}
+          isActing={isActing}
+          onBack={goBack}
+          onEditStep={(s: 1 | 2 | 3) => goToStep(s)}
+          onSetStatus={(s: 'active' | 'draft' | 'paused') => void setStatus(s)}
+        />
       )}
     </div>
   );
