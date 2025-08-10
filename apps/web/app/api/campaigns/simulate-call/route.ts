@@ -13,10 +13,7 @@ const corsHeaders = {
 
 const requestSchema = z.object({
   to_number: z.string().min(5),
-  // One of: internal agent_id or external elevenlabs_agent_id
-  agent_id: z.string().uuid().optional(),
-  elevenlabs_agent_id: z.string().optional(),
-  // One of: human caller_id (E.164) or external agent_phone_number_id
+  agent_id: z.string().optional(),
   caller_id: z.string().min(5).optional(),
   agent_phone_number_id: z.string().optional(),
   campaign_id: z.string().uuid().optional(),
@@ -100,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If we have ElevenLabs IDs, call ElevenLabs directly
-    if (elevenLabsApiKey && (elevenlabs_agent_id || agent_id)) {
+    if (elevenLabsApiKey && agent_id) {
       // Resolve agent_phone_number_id from caller_id via ElevenLabs when possible
       let agent_phone_number_id: string | undefined = req_phone_number_id;
       if (!agent_phone_number_id && caller_id) {
@@ -111,18 +108,31 @@ export async function POST(request: NextRequest) {
           const target = digits(caller_id);
           const equalish = (a: string, b: string) => {
             if (a === b) return true;
-            if (a.length + 1 === b.length && b.startsWith('1') && b.slice(1) === a) return true;
-            if (b.length + 1 === a.length && a.startsWith('1') && a.slice(1) === b) return true;
+            if (
+              a.length + 1 === b.length &&
+              b.startsWith('1') &&
+              b.slice(1) === a
+            )
+              return true;
+            if (
+              b.length + 1 === a.length &&
+              a.startsWith('1') &&
+              a.slice(1) === b
+            )
+              return true;
             return false;
           };
-          const match = numbers.find((n) => equalish(digits(n.phone_number), target));
+          const match = numbers.find((n) =>
+            equalish(digits(n.phone_number), target),
+          );
           agent_phone_number_id = match?.phone_number_id;
         } catch (e) {
           console.warn('Failed to resolve phone_number_id from ElevenLabs:', e);
         }
       }
 
-      if (!elevenlabs_agent_id) {
+      let resolvedElevenlabsAgentId: string | undefined = agent_id;
+      if (!resolvedElevenlabsAgentId) {
         // Try to resolve ElevenLabs agent id from internal agent_id
         const { data: agentRow } = await supabase
           .from('agents')
@@ -130,20 +140,25 @@ export async function POST(request: NextRequest) {
           .eq('id', agent_id)
           .single();
         if (agentRow?.elevenlabs_agent_id) {
-          (parsed as any).data.elevenlabs_agent_id = agentRow.elevenlabs_agent_id;
+          resolvedElevenlabsAgentId = agentRow.elevenlabs_agent_id as string;
         }
       }
 
-      if (!((parsed as any).data.elevenlabs_agent_id && agent_phone_number_id)) {
+      const effectiveElevenlabsAgentId = resolvedElevenlabsAgentId;
+
+      if (!(effectiveElevenlabsAgentId && agent_phone_number_id)) {
         return NextResponse.json(
-          { success: false, error: 'Missing elevenlabs_agent_id or agent_phone_number_id' },
+          {
+            success: false,
+            error: 'Missing elevenlabs_agent_id or agent_phone_number_id',
+          },
           { status: 400, headers: corsHeaders },
         );
       }
 
       const el = new ElevenLabsClient(elevenLabsApiKey);
       const result = await el.twilioOutboundCall({
-        agent_id: (parsed as any).data.elevenlabs_agent_id,
+        agent_id: effectiveElevenlabsAgentId!,
         agent_phone_number_id: agent_phone_number_id!,
         to_number,
         conversation_initiation_client_data: {
@@ -181,72 +196,6 @@ export async function POST(request: NextRequest) {
     const edgeJson = await edgeResponse.json().catch(() => ({}));
     if (!edgeResponse.ok) {
       return NextResponse.json(
-        { success: false, error: edgeJson?.error || 'Failed to trigger simulate call', details: edgeJson },
-        { status: edgeResponse.status, headers: corsHeaders },
-      );
-    }
-    return NextResponse.json(
-      { success: true, data: edgeJson, message: 'Simulation call initiated' },
-      { headers: corsHeaders },
-    );
-      try {
-        const el = new ElevenLabsClient(elevenLabsApiKey);
-        const numbers = await el.listPhoneNumbers();
-        const digits = (s: string) => s.replace(/\D+/g, '');
-        const target = digits(caller_id);
-        const equalish = (a: string, b: string) => {
-          if (a === b) return true;
-          // Allow leading country code 1 differences (US numbers)
-          if (
-            a.length + 1 === b.length &&
-            b.startsWith('1') &&
-            b.slice(1) === a
-          )
-            return true;
-          if (
-            b.length + 1 === a.length &&
-            a.startsWith('1') &&
-            a.slice(1) === b
-          )
-            return true;
-          return false;
-        };
-
-        const match = numbers.find((n) =>
-          equalish(digits(n.phone_number), target),
-        );
-        agent_phone_number_id = match?.phone_number_id;
-      } catch (e) {
-        // Non-fatal: if lookup fails, let the edge function handle mapping
-        console.warn('Failed to resolve phone_number_id from ElevenLabs:', e);
-      }
-    }
-
-    const edgePayload = {
-      business_id: userBusiness.business_id,
-      agent_id,
-      caller_id,
-      agent_phone_number_id,
-      to_number,
-      campaign_id,
-      lead_name: lead_name || user.user_metadata?.full_name || 'Test Call',
-      disclosure_line,
-      goal_metric: goal_metric || 'pledge_rate',
-    };
-
-    const edgeResponse = await fetch(edgeFunctionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify(edgePayload),
-    });
-
-    const edgeJson = await edgeResponse.json().catch(() => ({}));
-
-    if (!edgeResponse.ok) {
-      return NextResponse.json(
         {
           success: false,
           error: edgeJson?.error || 'Failed to trigger simulate call',
@@ -255,13 +204,8 @@ export async function POST(request: NextRequest) {
         { status: edgeResponse.status, headers: corsHeaders },
       );
     }
-
     return NextResponse.json(
-      {
-        success: true,
-        data: edgeJson,
-        message: 'Simulation call initiated',
-      },
+      { success: true, data: edgeJson, message: 'Simulation call initiated' },
       { headers: corsHeaders },
     );
   } catch (error) {
