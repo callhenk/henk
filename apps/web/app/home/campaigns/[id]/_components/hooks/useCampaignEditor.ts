@@ -122,18 +122,19 @@ export function useCampaignEditor(campaignId: string) {
     [agents, selectedAgentId, campaign?.agent_id],
   );
 
-  const agentReadiness = {
-    hasScript: Boolean(
-      assignedAgent?.script && String(assignedAgent.script).trim().length > 0,
-    ),
-    hasDisclosure: Boolean(
-      assignedAgent?.disclosure_line &&
-        String(assignedAgent.disclosure_line).trim().length > 0,
-    ),
-    hasCallerId: Boolean(
-      /^\+[1-9]\d{6,14}$/.test(String(assignedAgent?.caller_id ?? '')),
-    ),
-  };
+  const agentReadiness = useMemo(() => {
+    const hasScript = Boolean(
+      assignedAgent?.donor_context &&
+        String(assignedAgent.donor_context).trim().length > 0,
+    );
+    const hasDisclosure = Boolean(
+      assignedAgent?.starting_message &&
+        String(assignedAgent.starting_message).trim().length > 0,
+    );
+    // Caller ID is automatically assigned for new agents
+    const hasCallerId = true;
+    return { hasScript, hasDisclosure, hasCallerId } as const;
+  }, [assignedAgent?.donor_context, assignedAgent?.starting_message]);
 
   const contacted = campaignConversations.length;
   const conversions = campaignConversations.filter(
@@ -192,7 +193,8 @@ export function useCampaignEditor(campaignId: string) {
           id: string;
         } = {
           id: campaignId,
-          [fieldName]: validatedValue as any,
+          [fieldName]:
+            validatedValue as Tables<'campaigns'>['Update'][keyof Tables<'campaigns'>['Update']],
         };
         await updateCampaignMutation.mutateAsync(updateData);
 

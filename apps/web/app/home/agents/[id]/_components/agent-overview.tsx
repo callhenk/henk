@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { Clock, Info, Phone, TrendingUp } from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
@@ -77,14 +79,9 @@ export function AgentOverview({
     });
   };
 
-  const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
-    if (!voiceType) return 'Default';
-    const voiceTypes = [
-      { value: 'ai_generated', label: 'AI Generated' },
-      { value: 'custom', label: 'Custom Voice' },
-    ];
-    const voiceTypeOption = voiceTypes.find((type) => type.value === voiceType);
-    return voiceTypeOption?.label || voiceType;
+  const getVoiceTypeLabel = (_voiceType: string | null | undefined): string => {
+    // For now, only AI Generated is supported
+    return 'AI Generated';
   };
 
   return (
@@ -225,14 +222,17 @@ export function AgentOverview({
               <CardContent>
                 <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
                   {agentCampaigns.length > 0 ? (
-                    agentCampaigns.map((campaign, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg border p-4"
+                    agentCampaigns.map((campaign) => (
+                      <Link
+                        key={campaign.id}
+                        href={`/home/campaigns/${campaign.id}`}
+                        className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
                       >
-                        <span className="font-medium">{campaign.name}</span>
+                        <span className="font-medium underline-offset-2 hover:underline">
+                          {campaign.name}
+                        </span>
                         <Badge variant="success">Active</Badge>
-                      </div>
+                      </Link>
                     ))
                   ) : (
                     <div className="rounded-lg border p-6 text-center">

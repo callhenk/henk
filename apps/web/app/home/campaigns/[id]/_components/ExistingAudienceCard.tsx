@@ -3,16 +3,37 @@
 import { useMemo, useState } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, Trash2, Users } from 'lucide-react';
+import { Download, Users } from 'lucide-react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 
-import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import {
+  useCreateLead,
+  useDeleteLead,
+  useUpdateLead,
+} from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeadsByCampaign } from '@kit/supabase/hooks/leads/use-leads';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@kit/ui/alert-dialog';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@kit/ui/dialog';
 import { Input } from '@kit/ui/input';
+import { Label } from '@kit/ui/label';
 import {
   Select,
   SelectContent,
@@ -29,8 +50,46 @@ function toCSV(rows: Array<Record<string, unknown>>): string {
 export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const { data: leads = [], isLoading } = useLeadsByCampaign(campaignId);
   const deleteLead = useDeleteLead();
+  const updateLead = useUpdateLead();
+  const createLead = useCreateLead();
   const queryClient = useQueryClient();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // selection state handled via selectedIds; no per-row delete button
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    id: string;
+    name: string | null;
+    phone: string | null;
+    email: string | null;
+    company: string | null;
+    status: string;
+  } | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState<{
+    name: string;
+    phone: string;
+    email: string;
+    company: string;
+    status: string;
+    notes: string;
+    attempts: number;
+    pledged_amount: number | '';
+    donated_amount: number | '';
+    last_contact_date: string;
+  }>({
+    name: '',
+    phone: '',
+    email: '',
+    company: '',
+    status: 'new',
+    notes: '',
+    attempts: 0,
+    pledged_amount: '',
+    donated_amount: '',
+    last_contact_date: '',
+  });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<
     | 'all'
@@ -63,6 +122,76 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const count = filtered.length;
   const preview = useMemo(() => filtered.slice(0, 10), [filtered]);
 
+  const isAllSelected =
+    preview.length > 0 && preview.every((l) => selectedIds.has(l.id));
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (isAllSelected) {
+        preview.forEach((l) => next.delete(l.id));
+      } else {
+        preview.forEach((l) => next.add(l.id));
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    try {
+      setIsBulkDeleting(true);
+      await Promise.all(ids.map((id) => deleteLead.mutateAsync(id)));
+      await queryClient.invalidateQueries({
+        queryKey: ['leads', 'campaign', campaignId],
+      });
+      setSelectedIds(new Set());
+      toast.success('Selected leads deleted');
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : 'Failed to delete selected leads',
+      );
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const openEditForSelected = () => {
+    const id = Array.from(selectedIds)[0];
+    const lead = leads.find((l) => l.id === id);
+    if (!lead) return;
+    setEditForm({
+      id: lead.id,
+      name: lead.name,
+      phone: lead.phone,
+      email: lead.email,
+      company: lead.company,
+      status: lead.status,
+    });
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editForm) return;
+    try {
+      await updateLead.mutateAsync({
+        id: editForm.id,
+        name: editForm.name ?? undefined,
+        phone: editForm.phone ?? undefined,
+        email: editForm.email ?? undefined,
+        company: editForm.company ?? undefined,
+        status: editForm.status,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['leads', 'campaign', campaignId],
+      });
+      toast.success('Lead updated');
+      setEditOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to update lead');
+    }
+  };
+
   const handleExport = () => {
     if (filtered.length === 0) return;
     const rows = filtered.map((l) => ({
@@ -71,7 +200,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       email: l.email,
       company: l.company,
       status: l.status,
-      dnc: l.dnc,
+      // dnc may not exist on the Row type; omit from export to keep type-safe
       attempts: l.attempts,
       pledged_amount: l.pledged_amount,
       donated_amount: l.donated_amount,
@@ -153,6 +282,27 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              Add
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openEditForSelected}
+              disabled={selectedIds.size !== 1}
+            >
+              Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmOpen(true)}
+              disabled={selectedIds.size === 0}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -166,27 +316,48 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
             No leads yet. Upload a CSV to add contacts.
           </div>
         ) : (
-          <div className="max-h-64 overflow-auto rounded-md border">
+          <div className="max-h-64 overflow-auto overflow-x-auto rounded-md border">
             <table className="w-full text-sm">
               <thead className="bg-muted sticky top-0">
                 <tr>
-                  {[
-                    'Name',
-                    'Phone',
-                    'Email',
-                    'Company',
-                    'Status',
-                    'Actions',
-                  ].map((h) => (
-                    <th key={h} className="p-2 text-left">
-                      {h}
-                    </th>
-                  ))}
+                  <th className="w-10 p-2 text-left">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2 text-left">Phone</th>
+                  <th className="p-2 text-left">Email</th>
+                  <th className="p-2 text-left">Company</th>
+                  <th className="p-2 text-left">Status</th>
+                  <th className="p-2 text-left">Attempts</th>
+                  <th className="p-2 text-left">Pledged</th>
+                  <th className="p-2 text-left">Donated</th>
+                  <th className="p-2 text-left">Last contact</th>
+                  <th className="p-2 text-left">Notes</th>
                 </tr>
               </thead>
               <tbody>
                 {preview.map((l) => (
                   <tr key={l.id} className="border-t">
+                    <td className="p-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(l.id)}
+                        onChange={(e) =>
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (e.target.checked) next.add(l.id);
+                            else next.delete(l.id);
+                            return next;
+                          })
+                        }
+                        aria-label={`Select ${l.name ?? 'lead'}`}
+                      />
+                    </td>
                     <td className="p-2">{l.name ?? '-'}</td>
                     <td className="p-2">{l.phone ?? '-'}</td>
                     <td className="p-2">{l.email ?? '-'}</td>
@@ -199,37 +370,11 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                         {l.status}
                       </Badge>
                     </td>
-                    <td className="p-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          const ok = window.confirm('Delete this lead?');
-                          if (!ok) return;
-                          try {
-                            setDeletingId(l.id);
-                            await deleteLead.mutateAsync(l.id);
-                            // ensure campaign-scoped list refreshes
-                            queryClient.invalidateQueries({
-                              queryKey: ['leads', 'campaign', campaignId],
-                            });
-                            toast.success('Lead deleted');
-                          } catch (e) {
-                            toast.error(
-                              e instanceof Error
-                                ? e.message
-                                : 'Failed to delete lead',
-                            );
-                          } finally {
-                            setDeletingId(null);
-                          }
-                        }}
-                        disabled={deletingId === l.id}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {deletingId === l.id ? 'Deleting…' : 'Delete'}
-                      </Button>
-                    </td>
+                    <td className="p-2">{l.attempts}</td>
+                    <td className="p-2">{l.pledged_amount ?? '-'}</td>
+                    <td className="p-2">{l.donated_amount ?? '-'}</td>
+                    <td className="p-2">{l.last_contact_date ?? '-'}</td>
+                    <td className="p-2">{l.notes ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -237,6 +382,334 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
           </div>
         )}
       </CardContent>
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit lead</DialogTitle>
+          </DialogHeader>
+          {editForm && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Name</Label>
+                <Input
+                  value={editForm.name ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) => (f ? { ...f, name: e.target.value } : f))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  value={editForm.phone ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) =>
+                      f ? { ...f, phone: e.target.value } : f,
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={editForm.email ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) =>
+                      f ? { ...f, email: e.target.value } : f,
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label>Company</Label>
+                <Input
+                  value={editForm.company ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) =>
+                      f ? { ...f, company: e.target.value } : f,
+                    )
+                  }
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Status</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(v) =>
+                    setEditForm((f) => (f ? { ...f, status: v } : f))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      'new',
+                      'queued',
+                      'in_progress',
+                      'contacted',
+                      'unreachable',
+                      'bad_number',
+                      'do_not_call',
+                      'pledged',
+                      'donated',
+                      'completed',
+                    ].map((s) => (
+                      <SelectItem key={s} value={s} className="capitalize">
+                        {s.replaceAll('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveEdit} disabled={updateLead.isPending}>
+                  {updateLead.isPending ? 'Saving…' : 'Save changes'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete selected leads?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to delete {selectedIds.size} lead
+              {selectedIds.size === 1 ? '' : 's'}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="text-muted-foreground text-xs">
+            {Array.from(selectedIds)
+              .slice(0, 5)
+              .map((id) => leads.find((l) => l.id === id)?.name || id)
+              .join(', ')}
+            {selectedIds.size > 5 ? '…' : ''}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isBulkDeleting}
+              onClick={async () => {
+                await handleDeleteSelected();
+                setConfirmOpen(false);
+              }}
+            >
+              {isBulkDeleting ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Add dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add lead</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Name</Label>
+              <Input
+                value={addForm.name}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, name: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input
+                value={addForm.phone}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, phone: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input
+                value={addForm.email}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, email: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Company</Label>
+              <Input
+                value={addForm.company}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, company: e.target.value }))
+                }
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Status</Label>
+              <Select
+                value={addForm.status}
+                onValueChange={(v) => setAddForm((f) => ({ ...f, status: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    'new',
+                    'queued',
+                    'in_progress',
+                    'contacted',
+                    'unreachable',
+                    'bad_number',
+                    'do_not_call',
+                    'pledged',
+                    'donated',
+                    'completed',
+                  ].map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">
+                      {s.replaceAll('_', ' ')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Attempts</Label>
+              <Input
+                type="number"
+                min={0}
+                value={addForm.attempts}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    attempts: Number(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Pledged amount</Label>
+              <Input
+                type="number"
+                min={0}
+                value={addForm.pledged_amount}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    pledged_amount:
+                      e.target.value === '' ? '' : Number(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Donated amount</Label>
+              <Input
+                type="number"
+                min={0}
+                value={addForm.donated_amount}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    donated_amount:
+                      e.target.value === '' ? '' : Number(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Last contact (YYYY-MM-DD)</Label>
+              <Input
+                placeholder="2025-01-01"
+                value={addForm.last_contact_date}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    last_contact_date: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Notes</Label>
+              <Input
+                value={addForm.notes}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, notes: e.target.value }))
+                }
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
+              <Button variant="outline" onClick={() => setAddOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!addForm.name.trim() || !addForm.phone.trim()) {
+                    toast.error('Name and phone are required');
+                    return;
+                  }
+                  try {
+                    await createLead.mutateAsync({
+                      campaign_id: campaignId,
+                      name: addForm.name,
+                      phone: addForm.phone,
+                      email: addForm.email || null,
+                      company: addForm.company || null,
+                      status: addForm.status,
+                      notes: addForm.notes || null,
+                      attempts: addForm.attempts,
+                      pledged_amount:
+                        addForm.pledged_amount === ''
+                          ? null
+                          : Number(addForm.pledged_amount),
+                      donated_amount:
+                        addForm.donated_amount === ''
+                          ? null
+                          : Number(addForm.donated_amount),
+                      last_contact_date: addForm.last_contact_date || null,
+                    } as unknown as Parameters<
+                      typeof createLead.mutateAsync
+                    >[0]);
+                    await queryClient.invalidateQueries({
+                      queryKey: ['leads', 'campaign', campaignId],
+                    });
+                    toast.success('Lead added');
+                    setAddOpen(false);
+                    setAddForm({
+                      name: '',
+                      phone: '',
+                      email: '',
+                      company: '',
+                      status: 'new',
+                      notes: '',
+                      attempts: 0,
+                      pledged_amount: '',
+                      donated_amount: '',
+                      last_contact_date: '',
+                    });
+                  } catch (e) {
+                    toast.error(
+                      e instanceof Error ? e.message : 'Failed to add lead',
+                    );
+                  }
+                }}
+                disabled={createLead.isPending}
+              >
+                {createLead.isPending ? 'Saving…' : 'Save lead'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

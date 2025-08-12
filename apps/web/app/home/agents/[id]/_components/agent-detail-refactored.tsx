@@ -88,10 +88,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   } | null>(null);
   const [isLinkingKnowledgeBase, setIsLinkingKnowledgeBase] = useState(false);
 
-  // Phone numbers for assignment
+  // Phone numbers (used for test calls). In the future we may allow selecting a caller ID here.
   const [availableCallerIds, setAvailableCallerIds] = useState<string[]>([]);
-  const [assignCallerId, setAssignCallerId] = useState<string>('');
-  const [isSavingCallerId, setIsSavingCallerId] = useState(false);
   // Test call state
   const [testToNumber, setTestToNumber] = useState('');
   const [testCallerId, setTestCallerId] = useState('');
@@ -114,8 +112,6 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             .map((n) => n.phone_number)
             .filter((p): p is string => typeof p === 'string' && p.length > 0);
           setAvailableCallerIds(numbers);
-          if (!assignCallerId && numbers.length > 0)
-            setAssignCallerId(numbers[0] ?? '');
           if (!testCallerId && numbers.length > 0)
             setTestCallerId(numbers[0] ?? '');
         }
@@ -123,7 +119,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         // ignore
       }
     })();
-  }, [assignCallerId, testCallerId]);
+  }, [testCallerId]);
 
   const handleBack = () => {
     router.push('/home/agents');
@@ -618,72 +614,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 campaigns={campaigns}
               />
 
-              {/* Assign Caller ID */}
-              <Card className="glass-panel mt-6">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold">
-                        Outbound Caller ID
-                      </h3>
-                      <p className="text-muted-foreground text-sm">
-                        Assign an ElevenLabs phone number to this agent for
-                        outbound calls
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Select
-                    value={assignCallerId}
-                    onValueChange={setAssignCallerId}
-                  >
-                    <SelectTrigger className="sm:w-80">
-                      <SelectValue placeholder="Select caller ID" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCallerIds.map((n) => (
-                        <SelectItem key={n} value={n}>
-                          {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    disabled={isSavingCallerId || !assignCallerId || !agent}
-                    onClick={async () => {
-                      try {
-                        setIsSavingCallerId(true);
-                        const resp = await fetch(
-                          `/api/agents/${agent!.id}/assign-phone`,
-                          {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ caller_id: assignCallerId }),
-                          },
-                        );
-                        const json = await resp.json();
-                        if (!resp.ok || !json?.success) {
-                          throw new Error(
-                            json?.error || `Failed (${resp.status})`,
-                          );
-                        }
-                        toast.success('Caller ID assigned to agent');
-                      } catch (e) {
-                        toast.error(
-                          e instanceof Error
-                            ? e.message
-                            : 'Failed to assign caller ID',
-                        );
-                      } finally {
-                        setIsSavingCallerId(false);
-                      }
-                    }}
-                  >
-                    {isSavingCallerId ? 'Saving…' : 'Assign'}
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* Outbound Caller ID
+                  Hidden for now. Caller ID will be automatically set to the only
+                  available phone number on agent creation. In the future, we may
+                  expose a picker here to choose among multiple numbers. */}
 
               {/* Simulate/Test Call */}
               <Card className="glass-panel mt-6">
