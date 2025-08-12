@@ -41,7 +41,7 @@ export async function POST(
       .from('campaigns')
       .update({
         status: 'active',
-        started_at: new Date().toISOString(),
+        start_date: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -67,7 +67,7 @@ export async function POST(
         'Campaign started successfully. The system will begin processing calls automatically.',
     });
   } catch (error) {
-    console.error(`POST /api/campaigns/${id}/start error:`, error);
+    console.error('POST /api/campaigns/[id]/start error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to start campaign' },
       { status: 500 },
