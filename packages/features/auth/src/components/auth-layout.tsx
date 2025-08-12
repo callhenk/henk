@@ -25,12 +25,10 @@ export function AuthLayoutShell({
 
       <div
         className={
-          // Card: full-width on mobile with comfortable paddings,
-          // smooth readability, and toned-down effects for performance
+          // Card: solid surface, no translucency or blur
           'relative flex w-full max-w-md flex-col gap-y-5 rounded-2xl' +
-          ' bg-white/85 px-5 py-5 shadow-xl ring-1 ring-black/10 backdrop-blur-md backdrop-saturate-150' +
-          ' md:gap-y-6 md:px-8 md:py-6 lg:max-w-lg lg:px-8 xl:max-w-xl xl:gap-y-8 xl:py-8' +
-          ' dark:bg-neutral-900/70 dark:ring-white/10'
+          ' bg-card px-5 py-5 shadow-xl ring-1 ring-black/10 dark:ring-white/10' +
+          ' md:gap-y-6 md:px-8 md:py-6 lg:max-w-lg lg:px-8 xl:max-w-xl xl:gap-y-8 xl:py-8'
         }
       >
         {children}

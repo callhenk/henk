@@ -49,24 +49,8 @@
       'calt' 1;
   }
 
-  /* Blurred background image layer */
-  html::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url('/background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: blur(10px);
-    transform: scale(1.06);
-    z-index: -2;
-  }
-
-  /* Dark mode background image */
-  html.dark::before {
-    background-image: url('/backgroun-dark.png');
-  }
+  /* Remove blurred background layer for better readability */
+  /* Intentionally left empty to rely on theme background tokens */
 
   *,
   ::after,

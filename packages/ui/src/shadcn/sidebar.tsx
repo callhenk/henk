@@ -277,8 +277,8 @@ const Sidebar: React.FC<
           data-sidebar="sidebar"
           className={cn(
             'bg-sidebar flex h-full w-full flex-col',
-            // Ensure floating variant uses our glass while preserving layout sizing
-            'group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-white/30 group-data-[variant=floating]:bg-white/40 group-data-[variant=floating]:shadow-lg group-data-[variant=floating]:backdrop-blur-xl group-data-[variant=floating]:backdrop-saturate-150 dark:group-data-[variant=floating]:border-white/10 dark:group-data-[variant=floating]:bg-neutral-900/50',
+            // Floating variant: solid surface (no translucency/blur)
+            'group-data-[variant=floating]:bg-card group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:shadow-lg',
             {
               'bg-transparent': variant === 'ghost',
             },

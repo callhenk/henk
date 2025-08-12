@@ -248,12 +248,7 @@ export default function DashboardDemo() {
       <div className="animate-in fade-in flex flex-col space-y-4 duration-500">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card
-              key={i}
-              className={
-                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
-              }
-            >
+            <Card key={i} className={'bg-card relative rounded-2xl border'}>
               <CardHeader>
                 <Skeleton className="mb-2 h-4 w-32" />
                 <Skeleton className="mb-2 h-3 w-24" />
@@ -264,12 +259,7 @@ export default function DashboardDemo() {
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[...Array(2)].map((_, i) => (
-            <Card
-              key={i}
-              className={
-                'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
-              }
-            >
+            <Card key={i} className={'bg-card relative rounded-2xl border'}>
               <CardHeader>
                 <Skeleton className="mb-2 h-5 w-48" />
                 <Skeleton className="h-3 w-32" />
@@ -691,11 +681,7 @@ function CampaignSummariesCard({
   conversations: Conversation[];
 }) {
   return (
-    <Card
-      className={
-        'relative overflow-hidden rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 dark:bg-neutral-900/50'
-      }
-    >
+    <Card className={'bg-card relative rounded-2xl border'}>
       <CardHeader>
         <CardTitle>Active Campaigns</CardTitle>
         <CardDescription>Campaign performance overview</CardDescription>

@@ -59,7 +59,7 @@ export function DebugTools({
 
   return (
     <div className="fixed right-2 bottom-4 z-50 sm:right-4">
-      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-lg border backdrop-blur sm:p-3">
+      <div className="bg-card rounded-lg border sm:p-3">
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-green-500"></div>
@@ -176,7 +176,7 @@ export function DebugTools({
 
       {/* ElevenLabs Agent Details Display */}
       {elevenLabsAgentDetails && (
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 mt-4 rounded-lg border p-4 backdrop-blur">
+        <div className="bg-card mt-4 rounded-lg border p-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export function DebugTools({
 
       {/* Knowledge Base Status Display */}
       {knowledgeBaseStatus && (
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 mt-4 rounded-lg border p-4 backdrop-blur">
+        <div className="bg-card mt-4 rounded-lg border p-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

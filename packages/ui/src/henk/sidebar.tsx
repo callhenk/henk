@@ -267,7 +267,7 @@ export function SidebarItem({
 function getClassNameBuilder(className: string) {
   return cva([
     cn(
-      'group/sidebar transition-width fixed box-content flex h-screen w-2/12 flex-col bg-inherit backdrop-blur-xs duration-200',
+      'group/sidebar transition-width fixed box-content flex h-screen w-2/12 flex-col bg-inherit duration-200',
       className,
     ),
   ]);

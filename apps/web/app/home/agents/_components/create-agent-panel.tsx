@@ -130,12 +130,12 @@ export function CreateAgentPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="m-4 flex max-h-[calc(100vh-2rem)] min-h-fit w-full max-w-full flex-col overflow-hidden rounded-2xl border border-white/20 !bg-white/90 !p-0 backdrop-blur-xl backdrop-saturate-150 sm:m-6 sm:max-h-[calc(100vh-3rem)] sm:w-[480px] md:w-[640px] lg:m-8 lg:w-[720px] dark:border-white/10 dark:!bg-neutral-900/90 [&>button]:hidden"
+        className="bg-card m-4 flex max-h-[calc(100vh-2rem)] min-h-fit w-full max-w-full flex-col overflow-hidden rounded-2xl border !p-0 sm:m-6 sm:max-h-[calc(100vh-3rem)] sm:w-[480px] md:w-[640px] lg:m-8 lg:w-[720px] [&>button]:hidden"
         style={{
           boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15)',
         }}
       >
-        <SheetHeader className="sticky top-0 z-10 border-b border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
+        <SheetHeader className="bg-card sticky top-0 z-10 border-b px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -149,7 +149,7 @@ export function CreateAgentPanel({
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="rounded-full border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/20 dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
+              className="bg-muted hover:bg-muted/80 rounded-full border"
             >
               <X className="h-4 w-4 text-gray-700 dark:text-gray-200" />
             </Button>
@@ -248,7 +248,7 @@ export function CreateAgentPanel({
           </div>
 
           {/* Submit Buttons */}
-          <div className="mt-auto border-t border-white/20 bg-white/20 px-6 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-black/20">
+          <div className="bg-card mt-auto border-t px-6 py-6">
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button
                 type="submit"

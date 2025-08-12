@@ -156,10 +156,10 @@ export function RealtimeVoiceChat({
   };
 
   return (
-    <div className="bg-background/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md">
-      <Card className="border-border/50 bg-card/80 relative w-full max-w-md border backdrop-blur-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <Card className="relative w-full max-w-md border shadow-lg">
         {/* Header */}
-        <CardHeader className="bg-card/60 border-border/50 flex flex-row items-center justify-between space-y-0 border-b pb-4 backdrop-blur-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-4">
           <div className="space-y-1">
             <CardTitle className="text-lg">Voice Call</CardTitle>
             <p className="text-muted-foreground text-sm">{agentName}</p>
@@ -303,7 +303,7 @@ export function RealtimeVoiceChat({
 
           {/* Quick Tips */}
           {!isConnected && (
-            <Card className="border-border/50 bg-muted/30 backdrop-blur-sm">
+            <Card className="">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium">
                   💡 Call Tips

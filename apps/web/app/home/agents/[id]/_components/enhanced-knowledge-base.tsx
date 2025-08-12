@@ -450,7 +450,7 @@ export function EnhancedKnowledgeBase({
 
   if (!elevenlabsAgentId) {
     return (
-      <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
+      <div className="bg-card rounded-xl border p-6">
         <div className="mb-6">
           <div className="mb-4 flex items-center gap-3">
             <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
@@ -472,7 +472,7 @@ export function EnhancedKnowledgeBase({
   return (
     <>
       <div className="space-y-6">
-        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
+        <div className="bg-card rounded-xl border p-6">
           <div className="mb-6">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">

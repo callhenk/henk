@@ -45,7 +45,7 @@ export function AgentHeader({
   };
 
   return (
-    <div className="bg-card/60 supports-[backdrop-filter]:bg-card/60 rounded-xl border p-6 backdrop-blur">
+    <div className="bg-card rounded-xl border p-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="flex items-center space-x-4">
           <Button
