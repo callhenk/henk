@@ -75,6 +75,13 @@ export function CampaignHeader({
       return;
     }
     await onSaveField('name', name.trim());
+    // Show an explicit toast for name save to avoid confusion with other messages
+    try {
+      const { toast } = await import('sonner');
+      toast.success('Name saved');
+    } catch {
+      // no-op if toasts unavailable
+    }
     setEditingName(false);
   };
 

@@ -1,42 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-
 import { useRouter } from 'next/navigation';
 
-import dayjs from 'dayjs';
-import {
-  AlertCircle,
-  ArrowLeft,
-  CheckCircle,
-  DollarSign,
-  FileDown,
-  FileSpreadsheet,
-  HelpCircle,
-  Phone,
-  Users,
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle, DollarSign, Phone, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
-import type { Tables } from '@kit/supabase/database';
-// Import our Supabase hooks
-import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
-import {
-  useDeleteCampaign,
-  useUpdateCampaign,
-} from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
-import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
-import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-import {
-  useDeleteLead,
-  useUpdateLead,
-} from '@kit/supabase/hooks/leads/use-lead-mutations';
-import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
-// Removed unused Card imports
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@kit/ui/dialog';
 import { Input } from '@kit/ui/input';
 import {
   Select,
@@ -46,313 +23,77 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 import { Skeleton } from '@kit/ui/skeleton';
-import { Switch } from '@kit/ui/switch';
-// Removed unused TableCell/TableRow imports
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@kit/ui/tooltip';
+import { TooltipProvider } from '@kit/ui/tooltip';
 
 import { StatsCard, TimePicker } from '~/components/shared';
 
-import { CsvDropzone } from '../../wizard/_components/csv-dropzone';
+import AudienceImportCard from './AudienceImportCard';
+import ExistingAudienceCard from './ExistingAudienceCard';
 import { CampaignHeader } from './campaign-header';
-
-// Remove unused subcomponents left over from earlier versions
-// and UI imports not used in this file
-
-// import { CSVUpload } from './csv-upload';
-
-const _getRetryLogicLabel = (retryLogic: string | null | undefined): string => {
-  if (!retryLogic) return 'Standard retry logic';
-  const retryLogics = [
-    { value: 'standard', label: 'Standard Retry Logic' },
-    { value: 'aggressive', label: 'Aggressive Retry Logic' },
-    { value: 'conservative', label: 'Conservative Retry Logic' },
-    { value: 'smart', label: 'Smart Retry Logic' },
-  ];
-  const logicOption = retryLogics.find((logic) => logic.value === retryLogic);
-  return logicOption?.label || retryLogic;
-};
+import useCampaignEditor from './hooks/useCampaignEditor';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('basics');
-  // New simplified flow local state
-  const [goalMetric, setGoalMetric] = useState<
-    'pledge-rate' | 'avg-gift' | 'total-donations'
-  >('pledge-rate');
-  // TODO: Add back disclosure when needed (currently conflicts with agent's first message)
-  // const [disclosureOn, setDisclosureOn] = useState<boolean>(true);
-  // const [disclosureCopy, setDisclosureCopy] = useState<string>('');
-
-  const [callWindowStart, setCallWindowStart] = useState<string>('09:00');
-  const [callWindowEnd, setCallWindowEnd] = useState<string>('17:00');
   const { data: _businessContext } = useBusinessContext();
+  const editor = useCampaignEditor(campaignId);
 
-  // Removed campaign-level simulate call (moved to Agent page)
+  const {
+    campaign,
+    loadingCampaign,
+    leads,
+    agents,
+    assignedAgent,
+    agentReadiness,
+    metrics,
+    activeTab,
+    setActiveTab,
+    goalMetric,
+    setGoalMetric,
+    campaignName,
+    setCampaignName,
+    campaignDescription,
+    setCampaignDescription,
+    callWindowStart,
+    setCallWindowStart,
+    callWindowEnd,
+    setCallWindowEnd,
+    maxAttempts,
+    setMaxAttempts,
+    dailyCallCap,
+    setDailyCallCap,
+    retryLogicValue,
+    setRetryLogicValue,
+    selectedAgentId,
+    setSelectedAgentId,
+    savingField,
+    isUpdatingStatus,
+    isScriptDialogOpen,
+    setIsScriptDialogOpen,
+    hasCallWindowChanges,
+    handleSaveField,
+    handleSaveCallWindow,
+    handleDeleteCampaign,
+    handleActivateCampaign,
+    handlePauseCampaign,
+  } = editor;
 
-  // TODO: Add back when multiple Twilio numbers are available
-  // const [callerId, setCallerId] = useState<string>('');
+  // computed inside hook and exposed as hasCallWindowChanges
 
-  // Fetch real data
-  const { data: campaign, isLoading: loadingCampaign } =
-    useCampaign(campaignId);
-  const { data: leads = [] } = useLeads();
-  const { data: conversations = [] } = useConversations();
-  const { data: agents = [] } = useAgents();
-
-  // Mutations
-  const deleteCampaignMutation = useDeleteCampaign();
-  const updateCampaignMutation = useUpdateCampaign();
-  const deleteLeadMutation = useDeleteLead();
-  const updateLeadMutation = useUpdateLead();
-
-  // State for inline editing
-  const [campaignName, setCampaignName] = useState('');
-  const [campaignDescription, setCampaignDescription] = useState('');
-  const [campaignScript, setCampaignScript] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [maxAttempts, setMaxAttempts] = useState('');
-  const [dailyCallCap, setDailyCallCap] = useState('');
-  const [retryLogic, setRetryLogic] = useState('');
-  const [_savingField, setSavingField] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
-  // Initialize form data when campaign loads
-  useEffect(() => {
-    if (!campaign) return;
-
-    const normalizeTime = (value?: string | null): string => {
-      if (!value) return '';
-      // If already HH:mm
-      if (/^\d{2}:\d{2}$/.test(value)) return value;
-      // If HH:mm:ss
-      if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
-      // Try parse ISO/string to time
-      const parsed = dayjs(value);
-      return parsed.isValid() ? parsed.format('HH:mm') : '';
-    };
-
-    setCampaignName(campaign.name || '');
-    setCampaignDescription(campaign.description || '');
-    setCampaignScript(campaign.script || '');
-    setStartDate(
-      campaign.start_date
-        ? dayjs(campaign.start_date).format('YYYY-MM-DD')
-        : '',
-    );
-    setEndDate(
-      campaign.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '',
-    );
-    setCallWindowStart(normalizeTime(campaign.call_window_start) || '09:00');
-    setCallWindowEnd(normalizeTime(campaign.call_window_end) || '17:00');
-    setMaxAttempts(campaign.max_attempts?.toString() || '');
-    setDailyCallCap(campaign.daily_call_cap?.toString() || '');
-    setRetryLogic(campaign.retry_logic || '');
-  }, [campaign]);
-
-  // Check if there are unsaved changes for each field
-  const _hasNameChanges = campaignName !== (campaign?.name || '');
-  const _hasDescriptionChanges =
-    campaignDescription !== (campaign?.description || '');
-  const _hasScriptChanges = campaignScript !== (campaign?.script || '');
-  const _hasStartDateChanges =
-    startDate !==
-    (campaign?.start_date
-      ? dayjs(campaign.start_date).format('YYYY-MM-DD')
-      : '');
-  const _hasEndDateChanges =
-    endDate !==
-    (campaign?.end_date ? dayjs(campaign.end_date).format('YYYY-MM-DD') : '');
-  const _hasMaxAttemptsChanges = maxAttempts !== '';
-  const _hasDailyCallCapChanges = dailyCallCap !== '';
-  const _hasRetryLogicChanges = retryLogic !== '';
-
-  const hasCallWindowChanges =
-    callWindowStart !==
-      (campaign?.call_window_start
-        ? dayjs(campaign.call_window_start).format('HH:mm')
-        : '09:00') ||
-    callWindowEnd !==
-      (campaign?.call_window_end
-        ? dayjs(campaign.call_window_end).format('HH:mm')
-        : '17:00');
-
-  const handleSaveField = useCallback(
-    async (fieldName: string, value: string) => {
-      if (!campaign) return;
-
-      setSavingField(fieldName);
-      try {
-        const updateData = {
-          id: campaignId,
-          ...(fieldName === 'name' && { name: value }),
-          ...(fieldName === 'description' && { description: value }),
-          ...(fieldName === 'script' && { script: value }),
-          ...(fieldName === 'start_date' && { start_date: value }),
-          ...(fieldName === 'end_date' && { end_date: value }),
-          ...(fieldName === 'max_attempts' && {
-            max_attempts: parseInt(value) || 3,
-          }),
-          ...(fieldName === 'daily_call_cap' && {
-            daily_call_cap: parseInt(value) || 100,
-          }),
-          ...(fieldName === 'retry_logic' && { retry_logic: value }),
-        };
-
-        await updateCampaignMutation.mutateAsync(updateData);
-
-        // Show success message
-        setSaveSuccess(
-          `${fieldName === 'script' ? 'Script' : fieldName} saved successfully!`,
-        );
-        setTimeout(() => setSaveSuccess(null), 3000);
-      } catch (error) {
-        console.error(`Failed to save ${fieldName} changes:`, error);
-        alert(
-          `Failed to save ${fieldName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
-      } finally {
-        setSavingField(null);
-      }
-    },
-    [campaign, campaignId, updateCampaignMutation],
-  );
-
-  const handleSaveCallWindow = useCallback(async () => {
-    const schema = z.object({
-      start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time (HH:mm)'),
-      end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time (HH:mm)'),
-    });
-
-    const result = schema.safeParse({
-      start: callWindowStart,
-      end: callWindowEnd,
-    });
-    if (!result.success) {
-      alert(result.error.issues[0]?.message ?? 'Invalid call window');
-      return;
-    }
-
-    try {
-      await updateCampaignMutation.mutateAsync({
-        id: campaignId,
-        call_window_start: `${callWindowStart}:00`,
-        call_window_end: `${callWindowEnd}:00`,
-      });
-      setSaveSuccess('Call window saved successfully!');
-      setTimeout(() => setSaveSuccess(null), 3000);
-    } catch (error) {
-      console.error('Failed to save call window:', error);
-      alert(
-        `Failed to save call window: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }, [callWindowStart, callWindowEnd, campaignId, updateCampaignMutation]);
-
-  // Filter data for this campaign
-  const campaignLeads = leads.filter((lead) => lead.campaign_id === campaignId);
-  const campaignConversations = conversations.filter(
-    (conv) => conv.campaign_id === campaignId,
-  );
-  const assignedAgent = agents.find((agent) => agent.id === campaign?.agent_id);
-
-  // Calculate metrics
-  const contacted = campaignConversations.length;
-  const conversions = campaignConversations.filter(
-    (conv) => conv.outcome === 'donated' || conv.status === 'completed',
-  ).length;
-  const conversionRate =
-    contacted > 0 ? Math.round((conversions / contacted) * 100) : 0;
-  const revenue = 0; // TODO: Add revenue tracking when implemented
-
-  // Delete handlers
-  const handleDeleteCampaign = async () => {
-    if (!campaign) return;
-
-    try {
-      await deleteCampaignMutation.mutateAsync(campaignId);
-      router.push('/home/campaigns');
-    } catch (error) {
-      console.error('Failed to delete campaign:', error);
-    }
+  const maskE164 = (num?: string | null): string => {
+    if (!num) return '—';
+    if (!/^\+[1-9]\d{6,14}$/.test(num)) return num;
+    const visible = num.slice(-2);
+    return `${num.slice(0, 2)}••••••••${visible}`;
   };
 
-  const _handleDeleteLead = async (leadId: string) => {
-    try {
-      await deleteLeadMutation.mutateAsync(leadId);
-    } catch (error) {
-      console.error('Failed to delete lead:', error);
-    }
-  };
+  const { contacted, conversions, conversionRate, revenue } = metrics;
 
-  const _handleUpdateLead = async (
-    leadId: string,
-    data: Partial<Tables<'leads'>['Row']>,
-  ) => {
-    try {
-      await updateLeadMutation.mutateAsync({ id: leadId, ...data });
-    } catch (error) {
-      console.error('Failed to update lead:', error);
-    }
-  };
+  // const onDeleted = async () => router.push('/home/campaigns');
 
-  // Campaign status handlers
-  const handleActivateCampaign = async () => {
-    if (!campaign) return;
+  // lead mutations not in this component anymore
 
-    try {
-      setIsUpdatingStatus(true);
-      const resp = await fetch(`/api/campaigns/${campaignId}/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const json = await resp.json();
-      if (!resp.ok || !json?.success) {
-        throw new Error(json?.error || `Failed (${resp.status})`);
-      }
-      toast.success('Campaign activated');
-    } catch (error) {
-      console.error('Failed to activate campaign:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to activate campaign',
-      );
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
-
-  const handlePauseCampaign = async () => {
-    if (!campaign) return;
-
-    try {
-      setIsUpdatingStatus(true);
-      const resp = await fetch(`/api/campaigns/${campaignId}/stop`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const json = await resp.json();
-      if (!resp.ok || !json?.success) {
-        throw new Error(json?.error || `Failed (${resp.status})`);
-      }
-      toast.success('Campaign paused');
-    } catch (error) {
-      console.error('Failed to pause campaign:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to pause campaign',
-      );
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
-
-  // Removed campaign-level simulate call handler
+  // Campaign status handlers handled in hook
 
   // Show loading state while fetching campaign data
   if (loadingCampaign) {
@@ -408,13 +149,6 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Success Notification */}
-      {saveSuccess && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-          <p className="text-sm font-medium text-green-800">{saveSuccess}</p>
-        </div>
-      )}
-
       {/* Header */}
       <CampaignHeader
         campaign={campaign}
@@ -425,14 +159,14 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         onPause={handlePauseCampaign}
         onDelete={handleDeleteCampaign}
         isUpdatingStatus={isUpdatingStatus}
-        isDeleting={deleteCampaignMutation.isPending}
+        isDeleting={false}
       />
 
       {/* Metrics Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Leads"
-          value={campaignLeads.length.toLocaleString()}
+          value={leads.length.toLocaleString()}
           subtitle="Donors in campaign"
           icon={Users}
         />
@@ -480,6 +214,43 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <p className="text-muted-foreground mt-1 text-xs">
                 Shown in dashboards and reports.
               </p>
+              {campaignName !== (campaign?.name || '') && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveField('name', campaignName)}
+                    disabled={savingField === 'name'}
+                  >
+                    {savingField === 'name' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                Description
+              </label>
+              <Input
+                value={campaignDescription}
+                onChange={(e) => setCampaignDescription(e.target.value)}
+                placeholder="Brief description of the campaign"
+              />
+              <p className="text-muted-foreground mt-1 text-xs">
+                Internal notes about the campaign.
+              </p>
+              {campaignDescription !== (campaign?.description || '') && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      handleSaveField('description', campaignDescription)
+                    }
+                    disabled={savingField === 'description'}
+                  >
+                    {savingField === 'description' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -503,8 +274,34 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <p className="text-muted-foreground mt-1 text-xs">
                 We&apos;ll optimize call summaries and analytics for this KPI.
               </p>
+              {(() => {
+                // determine if changed vs campaign.goal_metric (api value)
+                const uiToApi = (v: typeof goalMetric) =>
+                  v === 'avg-gift'
+                    ? 'average_gift'
+                    : v === 'total-donations'
+                      ? 'total_donations'
+                      : 'pledge_rate';
+                const changed =
+                  uiToApi(goalMetric) !==
+                  (campaign.goal_metric ?? 'pledge_rate');
+                return (
+                  changed && (
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleSaveField('goal_metric', uiToApi(goalMetric))
+                        }
+                        disabled={savingField === 'goal_metric'}
+                      >
+                        {savingField === 'goal_metric' ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                  )
+                );
+              })()}
             </div>
-            {/* TODO: Add back disclosure line when needed (currently conflicts with agent's first message) */}
             <div>
               <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
                 Call Window
@@ -531,166 +328,237 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </p>
               {hasCallWindowChanges && (
                 <div className="mt-2 flex justify-end">
-                  <Button
-                    size="sm"
-                    onClick={handleSaveCallWindow}
-                    disabled={updateCampaignMutation.isPending}
-                  >
-                    {updateCampaignMutation.isPending ? 'Saving...' : 'Save'}
+                  <Button size="sm" onClick={handleSaveCallWindow}>
+                    Save
                   </Button>
                 </div>
               )}
-              {/* TODO: Add back caller ID when multiple Twilio numbers are available */}
             </div>
-            {/* Simulate call UI removed; use Agent page for test calls */}
+            <div>
+              <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                Max Attempts
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                value={maxAttempts}
+                onChange={(e) => setMaxAttempts(e.target.value)}
+                placeholder="3"
+              />
+              <p className="text-muted-foreground mt-1 text-xs">
+                Maximum number of call attempts per lead.
+              </p>
+              {maxAttempts !== (campaign?.max_attempts?.toString() || '') && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveField('max_attempts', maxAttempts)}
+                    disabled={savingField === 'max_attempts'}
+                  >
+                    {savingField === 'max_attempts' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                Daily Call Cap
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max="10000"
+                value={dailyCallCap}
+                onChange={(e) => setDailyCallCap(e.target.value)}
+                placeholder="100"
+              />
+              <p className="text-muted-foreground mt-1 text-xs">
+                Maximum calls per day for this campaign.
+              </p>
+              {dailyCallCap !==
+                (campaign?.daily_call_cap?.toString() || '') && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      handleSaveField('daily_call_cap', dailyCallCap)
+                    }
+                    disabled={savingField === 'daily_call_cap'}
+                  >
+                    {savingField === 'daily_call_cap' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="audience" className="space-y-5">
             <TooltipProvider>
-              <div className="px-0 pt-0 text-base font-medium">Audience</div>
-              <div className="rounded-md p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4" />
-                    <p className="text-sm font-medium">Upload CSV</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        /* TODO: template */
-                      }}
-                    >
-                      <FileDown className="mr-2 h-4 w-4" /> Template
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        /* TODO: connect CRM */
-                      }}
-                    >
-                      Connect CRM
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Required headers: first_name, phone. Optional: last_name,
-                  email, timezone, opt_in.
-                </p>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                  <CsvDropzone
-                    disabled={!campaignId}
-                    onFileSelected={() => {
-                      /* TODO */
-                    }}
-                  >
-                    Drop CSV here or click to choose
-                  </CsvDropzone>
-                  <div className="rounded-lg bg-white/50 p-3 text-xs ring-1 ring-black/5 dark:bg-zinc-900/50 dark:ring-white/10">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="font-medium">Headers detected</span>
-                      <AlertCircle className="h-3.5 w-3.5 opacity-60" />
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {[
-                        'first_name',
-                        'last_name',
-                        'phone',
-                        'email',
-                        'timezone',
-                        'opt_in',
-                      ].map((h) => (
-                        <Badge key={h} variant={'outline'} className="gap-1">
-                          {h}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={true} onCheckedChange={() => {}} />
-                    <span className="text-sm">Dedupe by phone</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 cursor-help text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          Remove duplicate contacts with the same phone number
-                          to avoid calling the same person multiple times
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={true} onCheckedChange={() => {}} />
-                    <span className="text-sm">Exclude DNC list</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 cursor-help text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          Automatically exclude contacts on the Do Not Call
-                          registry to ensure compliance with telemarketing
-                          regulations
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
+              <div className="mb-4 px-0 pt-0 text-lg font-bold text-gray-900 dark:text-gray-100">
+                Audience
+              </div>
+              <div className="space-y-4 rounded-md p-4">
+                <ExistingAudienceCard campaignId={campaignId} />
+                <AudienceImportCard campaignId={campaignId} />
               </div>
             </TooltipProvider>
           </TabsContent>
 
           <TabsContent value="voice" className="space-y-5">
             <div className="mb-4 px-0 pt-0 text-lg font-bold text-gray-900 dark:text-gray-100">
-              Voice & Script Configuration
+              Voice & Script
             </div>
-            <p className="text-muted-foreground text-sm">
-              Voice selection, speaking pace, and script editing live on the
-              Agent page. This campaign will use the assigned agent&apos;s
-              current voice and script.
-            </p>
-            {assignedAgent ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(`/home/agents/${assignedAgent.id}?tab=voice`)
-                  }
-                >
-                  Go to Agent voice & script
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(`/home/agents/${assignedAgent.id}`)
-                  }
-                >
-                  Open Agent
-                </Button>
+            {/* Agent selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Agent</label>
+              <Select
+                value={selectedAgentId ?? ''}
+                onValueChange={async (id) => {
+                  setSelectedAgentId(id);
+                  await handleSaveField('agent_id', id);
+                  toast.message(
+                    "Agent updated. Using the agent's caller ID, disclosure, and script for this campaign.",
+                  );
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name ?? 'Unnamed Agent'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!selectedAgentId && (
+                <p className="text-muted-foreground text-xs">
+                  Required to activate a campaign.
+                </p>
+              )}
+            </div>
+
+            {/* Read-only preview */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-md border p-3">
+                <div className="mb-2 text-sm font-medium">Caller ID</div>
+                <div className="text-sm">{maskE164(campaign.caller_id)}</div>
               </div>
-            ) : (
-              <p className="text-sm">
-                No agent assigned. Assign an agent to control voice & script.
-              </p>
-            )}
+              <div className="rounded-md border p-3">
+                <div className="mb-2 text-sm font-medium">Disclosure line</div>
+                <div className="text-muted-foreground text-sm">
+                  {(
+                    assignedAgent?.starting_message as string | undefined
+                  )?.slice(0, 120) || '—'}
+                </div>
+              </div>
+              <div className="rounded-md border p-3 md:col-span-2">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-sm font-medium">Script preview</div>
+                  {assignedAgent?.script_template && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsScriptDialogOpen(true)}
+                    >
+                      View full script
+                    </Button>
+                  )}
+                </div>
+                <pre className="bg-muted max-h-48 overflow-auto rounded p-3 text-xs whitespace-pre-wrap">
+                  {String(assignedAgent?.faqs ?? '—')
+                    .split('\n')
+                    .slice(0, 12)
+                    .join('\n')}
+                </pre>
+              </div>
+            </div>
+
+            {/* Health panel */}
+            <div className="rounded-md border p-3">
+              <div className="mb-2 text-sm font-medium">Agent readiness</div>
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={agentReadiness.hasScript ? 'default' : 'destructive'}
+                >
+                  Script {agentReadiness.hasScript ? 'ready' : 'missing'}
+                </Badge>
+                <Badge
+                  variant={
+                    agentReadiness.hasDisclosure ? 'default' : 'destructive'
+                  }
+                >
+                  Disclosure{' '}
+                  {agentReadiness.hasDisclosure ? 'ready' : 'missing'}
+                </Badge>
+                <Badge
+                  variant={
+                    agentReadiness.hasCallerId ? 'default' : 'destructive'
+                  }
+                >
+                  Caller ID {agentReadiness.hasCallerId ? 'ready' : 'missing'}
+                </Badge>
+              </div>
+              {assignedAgent && (
+                <div className="mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      router.push(`/home/agents/${assignedAgent.id}`)
+                    }
+                  >
+                    Manage agent
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Campaign setting: retry logic */}
+            <div>
+              <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                Retry logic
+              </label>
+              <Input
+                value={retryLogicValue}
+                onChange={(e) => setRetryLogicValue(e.target.value)}
+                placeholder="e.g., 3 attempts, 6h apart, only within call window"
+                disabled={campaign.status === 'completed'}
+              />
+              {retryLogicValue !== (campaign.retry_logic ?? '') && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      handleSaveField('retry_logic', retryLogicValue)
+                    }
+                    disabled={savingField === 'retry_logic'}
+                  >
+                    {savingField === 'retry_logic' ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Script dialog */}
+            <Dialog
+              open={isScriptDialogOpen}
+              onOpenChange={setIsScriptDialogOpen}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Agent script</DialogTitle>
+                </DialogHeader>
+                <pre className="bg-muted max-h-[60vh] overflow-auto rounded p-3 text-sm whitespace-pre-wrap">
+                  {String(assignedAgent?.script_template ?? '—')}
+                </pre>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
 }
-
-// Note: LeadsTable removed to avoid unused component warnings. If needed later,
-// re-introduce it from version control history.
-
-// Removed obsolete _EditableLeadRow component (unused)
-
-// Removed obsolete AgentCard component (unused)
-
-// Removed obsolete SettingsCard component (previously unused here)

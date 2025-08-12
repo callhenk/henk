@@ -1,17 +1,19 @@
 import { PageBody, PageHeader } from '@kit/ui/page';
 
-import { IntegrationsList } from './_components/integrations-list';
+import { ClientController } from './_components/ClientController';
 
 export default function IntegrationsPage() {
   return (
     <>
       <PageHeader
         title="Integrations"
-        description="Connect your favorite tools to streamline your fundraising workflow"
+        description="Connect your favorite tools to streamline your fundraising workflow."
       />
       <PageBody>
-        <IntegrationsList />
+        <ClientController />
       </PageBody>
     </>
   );
 }
+
+// ClientController is in separate client file
