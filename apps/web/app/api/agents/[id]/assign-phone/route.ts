@@ -51,6 +51,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const payload = bodySchema.parse(await request.json());
+    console.log('[assign-phone] request', {
+      agentId: id,
+      hasPhoneNumberId: Boolean(payload.phone_number_id),
+      hasCallerId: Boolean(payload.caller_id),
+    });
 
     // Load agent to get elevenlabs_agent_id
     const { data: agentRow, error } = await supabase
@@ -79,15 +84,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       agentRow.elevenlabs_agent_id,
       phoneNumberId,
     );
+    console.log(
+      '[assign-phone] elevenlabs assign result preview',
+      JSON.stringify(result).slice(0, 400),
+    );
 
     const updatePayload: Record<string, unknown> = {
       caller_id: phoneNumberId,
     };
 
-    await supabase.from('agents').update(updatePayload).eq('id', id);
+    const { error: persistError } = await supabase
+      .from('agents')
+      .update(updatePayload)
+      .eq('id', id);
+    if (persistError) {
+      console.error('[assign-phone] persist caller_id failed', persistError);
+      return NextResponse.json(
+        { success: false, error: 'Persist failed', details: persistError },
+        { status: 400, headers: corsHeaders },
+      );
+    }
 
     return NextResponse.json(
-      { success: true, data: result },
+      { success: true, data: { elevenlabs: result, caller_id: phoneNumberId } },
       { headers: corsHeaders },
     );
   } catch (err) {

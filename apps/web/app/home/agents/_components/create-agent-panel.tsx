@@ -59,48 +59,57 @@ export function CreateAgentPanel({
     setIsSubmitting(true);
 
     try {
-      // 1) Create ElevenLabs agent first (same flow as AgentForm)
-      const elevenLabsAgentConfig = {
+      // 1) Create ElevenLabs agent first: minimal required payload (no conversation_flow)
+      const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
-        description: description.trim(),
-        voice_id: voiceId || '',
-        llm_model: 'gpt-4o',
-        voice_settings: {},
-        context_data: {
-          organization_info: '',
-          donor_context: '',
-          faqs: {},
-        },
-        conversation_flow: {
-          greeting: `Hello! I'm ${name.trim()}, and I'm here to help with your fundraising needs.`,
-          introduction:
-            'I can assist you with donation campaigns, donor outreach, and fundraising strategies.',
-          value_proposition:
-            'Our organization is committed to making a difference, and your support helps us achieve our mission.',
-          closing:
-            'Thank you for your time and consideration. Your support means the world to us.',
-        },
-        prompts: {
-          fundraising:
-            'I help organizations raise funds through effective donor outreach and campaign management.',
-        },
-        status: 'active',
-        account_id: user.id,
+        conversation_config: {},
       };
+      if (voiceId && voiceId !== 'none') {
+        elevenLabsAgentConfig.voice_id = voiceId;
+      }
+
+      console.log('[create-agent] Sending to /api/elevenlabs-agent:', {
+        name: elevenLabsAgentConfig.name,
+        hasConversationConfig:
+          typeof elevenLabsAgentConfig.conversation_config === 'object',
+        hasVoiceId: Boolean(
+          (elevenLabsAgentConfig as { voice_id?: string }).voice_id,
+        ),
+      });
 
       const resp = await fetch('/api/elevenlabs-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', ...elevenLabsAgentConfig }),
+        body: JSON.stringify({ agentConfig: elevenLabsAgentConfig }),
       });
 
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err?.error || 'Failed to create ElevenLabs agent');
+      const raw = await resp.text();
+      let elevenlabsData: unknown = {};
+      try {
+        elevenlabsData = raw ? JSON.parse(raw) : {};
+      } catch {
+        // ignore JSON parse error
       }
-      const elevenlabsData = await resp.json();
-      const elevenlabsAgentId: string | null =
-        elevenlabsData?.data?.agent_id || null;
+
+      if (!resp.ok) {
+        console.error('[create-agent] ElevenLabs agent creation failed:', {
+          status: resp.status,
+          body: raw?.slice(0, 500),
+          parsed: elevenlabsData,
+        });
+        throw new Error(
+          ((elevenlabsData as Record<string, unknown>)?.error as
+            | string
+            | undefined) || 'Failed to create ElevenLabs agent',
+        );
+      }
+      const elevenlabsAgentId: string | null = (() => {
+        const root = elevenlabsData as Record<string, unknown>;
+        const data = root?.data as Record<string, unknown> | undefined;
+        const idFromData = (data?.agent_id as string | undefined) ?? null;
+        const idFromRoot = (root?.agent_id as string | undefined) ?? null;
+        return idFromData ?? idFromRoot;
+      })();
 
       // 2) Create agent record in DB
       const created = await createAgentMutation.mutateAsync({
@@ -112,6 +121,35 @@ export function CreateAgentPanel({
         status: 'active',
         elevenlabs_agent_id: elevenlabsAgentId,
       });
+
+      // 3) Assign default phone to agent (caller_id)
+      const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
+      if (created?.id) {
+        console.log('[create-agent] assign-phone start', {
+          agentId: created.id,
+          phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
+        });
+        try {
+          const resp = await fetch(`/api/agents/${created.id}/assign-phone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
+          }).catch((e) => {
+            console.warn('[create-agent] assign-phone network error', e);
+            return undefined as unknown as Response;
+          });
+          if (resp) {
+            const raw = await resp.text().catch(() => '');
+            console.log('[create-agent] assign-phone response', {
+              status: resp.status,
+              ok: resp.ok,
+              bodyPreview: raw?.slice(0, 300),
+            });
+          }
+        } catch (err) {
+          console.warn('[create-agent] assign-phone failed', err);
+        }
+      }
 
       toast.success('Agent created');
       onOpenChange(false);

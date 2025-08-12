@@ -7,6 +7,9 @@ type Agent = Tables<'agents'>['Row'];
 type CreateAgentData = Omit<TablesInsert<'agents'>, 'business_id'>;
 type UpdateAgentData = TablesUpdate<'agents'> & { id: string };
 
+// Default outbound phone number id for ElevenLabs
+const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
+
 export function useCreateAgent() {
   const supabase = useSupabase();
   const queryClient = useQueryClient();
@@ -46,37 +49,7 @@ export function useCreateAgent() {
         throw new Error(`Failed to create agent: ${error.message}`);
       }
 
-      // Try to automatically attach a caller ID using the first available outbound number
-      // This is best-effort and failures are non-fatal
-      try {
-        // 1) Fetch available phone numbers
-        const phoneResp = await fetch('/api/voice/phone-numbers');
-        const phoneJson = await phoneResp.json().catch(() => ({}));
-        if (
-          phoneResp.ok &&
-          phoneJson?.success &&
-          Array.isArray(phoneJson.data) &&
-          phoneJson.data.length > 0
-        ) {
-          const firstOutbound = (
-            phoneJson.data as Array<{
-              phone_number: string;
-              supports_outbound?: boolean;
-            }>
-          ).find((n) => n.supports_outbound === true)?.phone_number;
-
-          if (firstOutbound) {
-            // 2) Assign caller ID to the newly created agent
-            await fetch(`/api/agents/${agent.id}/assign-phone`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ caller_id: firstOutbound }),
-            }).catch(() => undefined);
-          }
-        }
-      } catch {
-        // ignore auto-attach errors
-      }
+      // Note: Caller ID assignment is now triggered by the caller (UI) after agent creation
 
       return agent;
     },

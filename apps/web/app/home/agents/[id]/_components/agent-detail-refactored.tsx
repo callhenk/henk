@@ -210,12 +210,28 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       );
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch agent details: ${response.statusText}`,
+          `Failed to fetch agent details: ${response.status} ${response.statusText}`,
         );
       }
-      const data = await response.json();
-      setElevenLabsAgentDetails(data.data);
-      toast.success('Agent details fetched successfully');
+      const raw = await response.text();
+      let parsed: unknown = {};
+      try {
+        parsed = raw ? JSON.parse(raw) : {};
+      } catch {
+        // ignore
+      }
+      const details =
+        (parsed as Record<string, unknown>)?.data ?? parsed ?? null;
+      setElevenLabsAgentDetails(details as Record<string, unknown> | null);
+      const keys =
+        details && typeof details === 'object'
+          ? Object.keys(details as Record<string, unknown>).length
+          : 0;
+      console.log('[agent-details] fetched', {
+        keys,
+        preview: JSON.stringify(details).slice(0, 400),
+      });
+      toast.success(keys > 0 ? 'Agent details loaded' : 'No details returned');
     } catch (error) {
       console.error('Error fetching ElevenLabs agent details:', error);
       toast.error(

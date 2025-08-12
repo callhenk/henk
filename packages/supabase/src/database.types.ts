@@ -64,6 +64,7 @@ export type Database = {
           knowledge_base: Json | null;
           workflow_config: Json | null;
           elevenlabs_agent_id: string | null;
+          caller_id: string | null;
           created_at: string | null;
           updated_at: string | null;
           created_by: string | null;
@@ -83,6 +84,7 @@ export type Database = {
           script_template?: string | null;
           organization_info?: string | null;
           donor_context?: string | null;
+          caller_id?: string | null;
           starting_message?: string | null;
           faqs?: Json | null;
           knowledge_base?: Json | null;
@@ -106,6 +108,7 @@ export type Database = {
           personality?: string | null;
           script_template?: string | null;
           organization_info?: string | null;
+          caller_id?: string | null;
           donor_context?: string | null;
           starting_message?: string | null;
           faqs?: Json | null;
@@ -343,7 +346,6 @@ export type Database = {
           disclosure_line: string | null;
           call_window_start: string | null; // time with time zone -> string
           call_window_end: string | null; // time with time zone -> string
-          caller_id: string | null;
 
           // New: Audience
           audience_list_id: string | null; // uuid
@@ -377,7 +379,6 @@ export type Database = {
           disclosure_line?: string | null;
           call_window_start?: string | null;
           call_window_end?: string | null;
-          caller_id?: string | null;
 
           // New: Audience
           audience_list_id?: string | null;
@@ -411,7 +412,6 @@ export type Database = {
           disclosure_line?: string | null;
           call_window_start?: string | null;
           call_window_end?: string | null;
-          caller_id?: string | null;
 
           // New: Audience
           audience_list_id?: string | null;

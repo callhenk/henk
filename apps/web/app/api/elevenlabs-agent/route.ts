@@ -31,14 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, ...agentConfig } = body;
-
-    if (action !== 'create') {
-      return NextResponse.json(
-        { success: false, error: 'Invalid action' },
-        { status: 400, headers: corsHeaders },
-      );
-    }
+    const { agentConfig } = body ?? {};
 
     // Get user's business context
     const { data: userBusiness, error: businessError } = await supabase
@@ -57,44 +50,112 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call the ElevenLabs agent Edge Function
-    const edgeFunctionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/elevenlabs-agent/create`;
-
-    const requestBody = {
-      ...agentConfig,
-      account_id: user.id,
-      business_id: userBusiness.business_id,
-    };
-
-    console.log(
-      'Sending to ElevenLabs Edge Function:',
-      JSON.stringify(requestBody, null, 2),
-    );
-
-    const edgeFunctionResponse = await fetch(edgeFunctionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!edgeFunctionResponse.ok) {
-      const errorData = await edgeFunctionResponse.json().catch(() => ({}));
+    // Call ElevenLabs directly per docs: https://elevenlabs.io/docs/api-reference/agents/create?explorer=true
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
-        {
-          success: false,
-          error: errorData.error || 'Failed to create ElevenLabs agent',
-        },
-        { status: edgeFunctionResponse.status, headers: corsHeaders },
+        { success: false, error: 'ELEVENLABS_API_KEY not configured' },
+        { status: 500, headers: corsHeaders },
       );
     }
 
-    const responseData = await edgeFunctionResponse.json();
+    // Build minimal valid payload per ElevenLabs docs
+    // Required: name
+    // Optional: conversation_config/platform_settings/tags
+    if (!agentConfig?.name || typeof agentConfig.name !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'name is required' },
+        { status: 400, headers: corsHeaders },
+      );
+    }
 
+    const payload: Record<string, unknown> = {
+      name: agentConfig.name,
+      conversation_config: agentConfig?.conversation_config ?? {},
+    };
+
+    if (agentConfig?.platform_settings != null) {
+      payload.platform_settings = agentConfig.platform_settings;
+    }
+    if (agentConfig?.tags != null) payload.tags = agentConfig.tags;
+
+    const headers: Record<string, string> = {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    if (process.env.ELEVENLABS_WORKSPACE_ID) {
+      headers['xi-workspace-id'] = process.env.ELEVENLABS_WORKSPACE_ID;
+    }
+
+    // Log minimal request info (no secrets)
+    console.log('[elevenlabs-agent] Creating agent with payload:', {
+      name: payload.name,
+      hasConversationConfig:
+        typeof payload.conversation_config === 'object' &&
+        payload.conversation_config !== null,
+      hasPlatformSettings: Boolean(payload.platform_settings),
+      hasTags: Boolean(payload.tags),
+      hasWorkspaceHeader: Boolean(process.env.ELEVENLABS_WORKSPACE_ID),
+    });
+
+    const resp = await fetch(
+      'https://api.elevenlabs.io/v1/convai/agents/create',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const raw = await resp.text();
+    let json: unknown = {};
+    try {
+      json = raw ? JSON.parse(raw) : {};
+    } catch {
+      // ignore JSON parse error, keep raw for diagnostics
+    }
+    console.log('[elevenlabs-agent] ElevenLabs response:', {
+      status: resp.status,
+      ok: resp.ok,
+      bodyPreview: raw?.slice(0, 500),
+    });
+    if (!resp.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            [
+              (json as Record<string, unknown>)?.detail,
+              (json as Record<string, unknown>)?.error,
+              (json as Record<string, unknown>)?.message,
+              (json as Record<string, unknown>)?.errors,
+            ]
+              .filter(Boolean)
+              .map((e) => (typeof e === 'string' ? e : JSON.stringify(e)))
+              .join(' | ') || 'Failed to create ElevenLabs agent',
+          details: json,
+          raw,
+        },
+        { status: resp.status, headers: corsHeaders },
+      );
+    }
+
+    // Return the agent_id from ElevenLabs, along with minimal context
     return NextResponse.json(
-      { success: true, ...responseData },
+      {
+        success: true,
+        data: {
+          agent_id:
+            (json as Record<string, unknown>)?.agent_id ||
+            (json as Record<string, unknown>)?.id ||
+            (json as { agent?: { agent_id?: string; id?: string } })?.agent
+              ?.agent_id ||
+            (json as { agent?: { agent_id?: string; id?: string } })?.agent?.id,
+        },
+        // Keep business context in response if needed by caller
+        context: { business_id: userBusiness.business_id, account_id: user.id },
+      },
       { headers: corsHeaders },
     );
   } catch (error) {
