@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import { ArrowLeft, CheckCircle, DollarSign, Phone, Users } from 'lucide-react';
@@ -88,6 +90,19 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   };
 
   const { contacted, conversions, conversionRate, revenue } = metrics;
+
+  // Local state for editable campaign dates (YYYY-MM-DD)
+  const initialStart = useMemo(
+    () =>
+      campaign?.start_date ? String(campaign.start_date).slice(0, 10) : '',
+    [campaign?.start_date],
+  );
+  const initialEnd = useMemo(
+    () => (campaign?.end_date ? String(campaign.end_date).slice(0, 10) : ''),
+    [campaign?.end_date],
+  );
+  const [startDate, setStartDate] = useState<string>(initialStart);
+  const [endDate, setEndDate] = useState<string>(initialEnd);
 
   // const onDeleted = async () => router.push('/home/campaigns');
 
@@ -301,6 +316,56 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   )
                 );
               })()}
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                  Start Date
+                </label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Campaign planned start date (optional)
+                </p>
+                {startDate !== (campaign?.start_date?.slice(0, 10) || '') && (
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => handleSaveField('start_date', startDate)}
+                      disabled={savingField === 'start_date'}
+                    >
+                      {savingField === 'start_date' ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
+                  End Date
+                </label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Campaign planned end date (optional)
+                </p>
+                {endDate !== (campaign?.end_date?.slice(0, 10) || '') && (
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => handleSaveField('end_date', endDate)}
+                      disabled={savingField === 'end_date'}
+                    >
+                      {savingField === 'end_date' ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">

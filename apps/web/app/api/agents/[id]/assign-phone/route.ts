@@ -67,29 +67,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const el = new ElevenLabsClient(apiKey);
-    let phoneNumberId = payload.phone_number_id;
+    const phoneNumberId = payload.phone_number_id ?? payload.caller_id;
     if (!phoneNumberId) {
-      if (!payload.caller_id) {
-        return NextResponse.json(
-          { success: false, error: 'Provide phone_number_id or caller_id' },
-          { status: 400, headers: corsHeaders },
-        );
-      }
-      const numbers = await el.listPhoneNumbers();
-      const match = numbers.find((n) => n.phone_number === payload.caller_id);
-      if (!match) {
-        return NextResponse.json(
-          { success: false, error: 'Caller ID not found in ElevenLabs' },
-          { status: 400, headers: corsHeaders },
-        );
-      }
-      phoneNumberId = match.phone_number_id;
+      return NextResponse.json(
+        { success: false, error: 'Provide phone_number_id or caller_id' },
+        { status: 400, headers: corsHeaders },
+      );
     }
 
     const result = await el.assignAgentPhoneNumber(
       agentRow.elevenlabs_agent_id,
       phoneNumberId,
     );
+
+    const updatePayload: Record<string, unknown> = {
+      caller_id: phoneNumberId,
+    };
+
+    await supabase.from('agents').update(updatePayload).eq('id', id);
 
     return NextResponse.json(
       { success: true, data: result },
