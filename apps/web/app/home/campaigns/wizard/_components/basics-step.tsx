@@ -31,7 +31,7 @@ type AgentRow = Tables<'agents'>['Row'];
 
 export interface BasicsFormValues {
   campaign_name: string;
-  fundraising_goal: number;
+  fundraising_goal?: number;
   start_date?: Date;
   end_date?: Date;
   agent_id: string;
@@ -77,48 +77,30 @@ export function BasicsStep({
             name="fundraising_goal"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fundraising goal</FormLabel>
+                <FormLabel>Fundraising goal (optional)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    min={0.01}
+                    min={0}
                     step="0.01"
                     value={
-                      Number.isFinite(field.value as unknown as number)
-                        ? field.value
-                        : 0
+                      field.value === undefined || field.value === null
+                        ? ''
+                        : field.value
                     }
                     onChange={(e) => {
                       const raw = e.target.value ?? '';
-
-                      // Handle empty input
                       if (raw === '') {
-                        field.onChange(0);
+                        field.onChange(undefined);
                         return;
                       }
-
-                      // Allow decimal inputs starting with 0 (like 0.5, 0.25)
-                      if (raw.startsWith('0.')) {
-                        const next = Number(raw);
-                        field.onChange(isNaN(next) ? 0 : next);
-                        return;
-                      }
-
-                      // Remove leading zeros for whole numbers (prevent 01, 02, etc.)
-                      const normalized = raw.replace(/^0+(?=\d)/, '');
-
-                      // Don't allow just "0" - reset to empty
-                      if (normalized === '0') {
-                        field.onChange(0);
-                        return;
-                      }
-
-                      const next = Number(normalized);
-                      field.onChange(isNaN(next) ? 0 : next);
+                      const next = Number(raw);
+                      field.onChange(isNaN(next) ? undefined : next);
                     }}
                     onBlur={onBlurBasics}
                     inputMode="decimal"
                     pattern="^[0-9]+(\.[0-9]{0,2})?$"
+                    placeholder="e.g., 5000"
                   />
                 </FormControl>
                 <FormMessage />

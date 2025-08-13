@@ -1,3 +1,9 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
 # Development Standards
 
 ## 🏗 Architecture Principles

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -28,7 +28,7 @@ import { Skeleton } from '@kit/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { TooltipProvider } from '@kit/ui/tooltip';
 
-import { StatsCard, TimePicker } from '~/components/shared';
+import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 
 import AudienceImportCard from './AudienceImportCard';
 import ExistingAudienceCard from './ExistingAudienceCard';
@@ -91,18 +91,35 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   const { contacted, conversions, conversionRate, revenue } = metrics;
 
-  // Local state for editable campaign dates (YYYY-MM-DD)
+  // Local state for editable campaign dates (Date object)
   const initialStart = useMemo(
-    () =>
-      campaign?.start_date ? String(campaign.start_date).slice(0, 10) : '',
+    () => (campaign?.start_date ? new Date(campaign.start_date) : undefined),
     [campaign?.start_date],
   );
   const initialEnd = useMemo(
-    () => (campaign?.end_date ? String(campaign.end_date).slice(0, 10) : ''),
+    () => (campaign?.end_date ? new Date(campaign.end_date) : undefined),
     [campaign?.end_date],
   );
-  const [startDate, setStartDate] = useState<string>(initialStart);
-  const [endDate, setEndDate] = useState<string>(initialEnd);
+  const [startDate, setStartDate] = useState<Date | undefined>(initialStart);
+  const [endDate, setEndDate] = useState<Date | undefined>(initialEnd);
+  const [savingDates, setSavingDates] = useState(false);
+
+  useEffect(() => {
+    setStartDate(
+      campaign?.start_date ? new Date(campaign.start_date) : undefined,
+    );
+    setEndDate(campaign?.end_date ? new Date(campaign.end_date) : undefined);
+  }, [campaign?.start_date, campaign?.end_date]);
+
+  const formatYMD = (d: Date): string => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const startYMD = startDate ? formatYMD(startDate) : '';
+  const endYMD = endDate ? formatYMD(endDate) : '';
 
   // const onDeleted = async () => router.push('/home/campaigns');
 
@@ -322,51 +339,46 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
                   Start Date
                 </label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
+                <DatePicker value={startDate} onValueChange={setStartDate} />
                 <p className="text-muted-foreground mt-1 text-xs">
                   Campaign planned start date (optional)
                 </p>
-                {startDate !== (campaign?.start_date?.slice(0, 10) || '') && (
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveField('start_date', startDate)}
-                      disabled={savingField === 'start_date'}
-                    >
-                      {savingField === 'start_date' ? 'Saving...' : 'Save'}
-                    </Button>
-                  </div>
-                )}
               </div>
               <div>
                 <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
                   End Date
                 </label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
+                <DatePicker value={endDate} onValueChange={setEndDate} />
                 <p className="text-muted-foreground mt-1 text-xs">
                   Campaign planned end date (optional)
                 </p>
-                {endDate !== (campaign?.end_date?.slice(0, 10) || '') && (
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveField('end_date', endDate)}
-                      disabled={savingField === 'end_date'}
-                    >
-                      {savingField === 'end_date' ? 'Saving...' : 'Save'}
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
+            {(() => {
+              const startOrig = campaign?.start_date?.slice(0, 10) || '';
+              const endOrig = campaign?.end_date?.slice(0, 10) || '';
+              const hasChanges = startYMD !== startOrig || endYMD !== endOrig;
+              if (!hasChanges) return null;
+              return (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        setSavingDates(true);
+                        await handleSaveField('start_date', startYMD || '');
+                        await handleSaveField('end_date', endYMD || '');
+                      } finally {
+                        setSavingDates(false);
+                      }
+                    }}
+                    disabled={savingDates}
+                  >
+                    {savingDates ? 'Saving…' : 'Save'}
+                  </Button>
+                </div>
+              );
+            })()}
             <div>
               <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
                 Call Window
@@ -509,7 +521,9 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-md border p-3">
                 <div className="mb-2 text-sm font-medium">Caller ID</div>
-                <div className="text-sm">{maskE164(campaign.caller_id)}</div>
+                <div className="text-sm">
+                  {maskE164(assignedAgent?.caller_id)}
+                </div>
               </div>
               <div className="rounded-md border p-3">
                 <div className="mb-2 text-sm font-medium">Disclosure line</div>

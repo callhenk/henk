@@ -44,8 +44,9 @@ const basicsSchema = z
     campaign_name: z.string().min(1, 'Campaign name is required'),
     fundraising_goal: z.coerce
       .number()
-      .min(0.01, 'Goal must be greater than 0'),
-    start_date: z.date({ required_error: 'Start date is required' }),
+      .min(0, 'Goal must be positive')
+      .optional(),
+    start_date: z.date().optional(),
     end_date: z.date().optional(),
     agent_id: z.string().min(1, 'Select an agent'),
   })
@@ -99,11 +100,21 @@ export function WizardContainer({
   const totalSteps = 4;
 
   // Forms per step
-  const basicsForm = useForm<z.infer<typeof basicsSchema>>({
+  const basicsForm = useForm<{
+    campaign_name: string;
+    fundraising_goal?: number;
+    start_date?: Date;
+    end_date?: Date;
+    agent_id: string;
+  }>({
     resolver: zodResolver(basicsSchema),
     defaultValues: {
       campaign_name: existingCampaign?.name ?? '',
-      fundraising_goal: Number(existingCampaign?.budget ?? 0) || 0,
+      fundraising_goal:
+        existingCampaign?.budget !== null &&
+        existingCampaign?.budget !== undefined
+          ? Number(existingCampaign?.budget)
+          : undefined,
       start_date: existingCampaign?.start_date
         ? new Date(existingCampaign.start_date)
         : undefined,
@@ -275,7 +286,7 @@ export function WizardContainer({
     if (!currentCampaignId) {
       const created = await createCampaign.mutateAsync({
         name: values.campaign_name,
-        budget: values.fundraising_goal,
+        budget: values.fundraising_goal ?? null,
         agent_id: values.agent_id,
         start_date: values.start_date?.toISOString() ?? null,
         end_date: values.end_date?.toISOString() ?? null,
@@ -293,7 +304,7 @@ export function WizardContainer({
       await updateCampaign.mutateAsync({
         id: currentCampaignId,
         name: values.campaign_name,
-        budget: values.fundraising_goal,
+        budget: values.fundraising_goal ?? null,
         agent_id: values.agent_id,
         start_date: values.start_date?.toISOString() ?? null,
         end_date: values.end_date?.toISOString() ?? null,
@@ -314,7 +325,10 @@ export function WizardContainer({
     if (!currentCampaignId) {
       const created = await createCampaign.mutateAsync({
         name: values.campaign_name,
-        budget: values.fundraising_goal || 0,
+        budget:
+          values.fundraising_goal === undefined
+            ? null
+            : values.fundraising_goal,
         agent_id: values.agent_id || null,
         start_date: values.start_date?.toISOString() ?? null,
         end_date: values.end_date?.toISOString() ?? null,
@@ -331,7 +345,10 @@ export function WizardContainer({
       await updateCampaign.mutateAsync({
         id: currentCampaignId,
         name: values.campaign_name,
-        budget: values.fundraising_goal || 0,
+        budget:
+          values.fundraising_goal === undefined
+            ? null
+            : values.fundraising_goal,
         agent_id: values.agent_id || null,
         start_date: values.start_date?.toISOString() ?? null,
         end_date: values.end_date?.toISOString() ?? null,
@@ -380,9 +397,10 @@ export function WizardContainer({
   const saveBasicsDraft = useCallback(async (): Promise<boolean> => {
     const values = basicsForm.getValues();
     const name = (values.campaign_name || '').trim() || 'Untitled campaign';
-    const budget = Number.isFinite(values.fundraising_goal)
-      ? Number(values.fundraising_goal)
-      : 0;
+    const budget =
+      values.fundraising_goal === undefined || values.fundraising_goal === null
+        ? null
+        : Number(values.fundraising_goal);
     const agentId = values.agent_id ? values.agent_id : null;
     const startDate = values.start_date
       ? values.start_date.toISOString()

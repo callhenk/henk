@@ -13,7 +13,7 @@ type AgentRow = Tables<'agents'>['Row'];
 interface ReviewProps {
   basics: {
     campaign_name: string;
-    fundraising_goal: number;
+    fundraising_goal?: number;
     start_date?: Date;
     end_date?: Date;
     agent_id: string;
@@ -64,7 +64,10 @@ export function ReviewStep({
           {basics.end_date?.toLocaleDateString() || '—'}
         </div>
         <div className="text-sm">
-          Goal: ${basics.fundraising_goal.toLocaleString()}
+          Goal:{' '}
+          {typeof basics.fundraising_goal === 'number'
+            ? `$${basics.fundraising_goal.toLocaleString()}`
+            : '—'}
         </div>
         <div className="text-sm">
           Agent: {agents.find((a) => a.id === basics.agent_id)?.name || '-'}
