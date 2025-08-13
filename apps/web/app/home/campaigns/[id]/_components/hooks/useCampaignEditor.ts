@@ -178,7 +178,14 @@ export function useCampaignEditor(campaignId: string) {
             errorMessage = 'Name too long (max 255 characters)';
           }
         } else if (fieldName === 'start_date' || fieldName === 'end_date') {
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          // Allow clearing the date (optional field)
+          if (value === '' || value == null) {
+            validatedValue = null as unknown as string;
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            // Normalize to midnight UTC to avoid timezone drift
+            const iso = new Date(`${value}T00:00:00Z`).toISOString();
+            validatedValue = iso;
+          } else {
             isValid = false;
             errorMessage = 'Invalid date format (YYYY-MM-DD)';
           }

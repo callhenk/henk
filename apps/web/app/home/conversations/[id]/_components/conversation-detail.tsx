@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import {
@@ -12,6 +14,7 @@ import {
   User,
 } from 'lucide-react';
 
+import { useConversation } from '@kit/supabase/hooks/conversations/use-conversations';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -25,92 +28,106 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { StatsCard } from '~/components/shared';
 
-interface Conversation {
-  id: string;
-  donorName: string;
-  phoneNumber: string;
-  campaign: string;
-  agent: string;
-  status: 'completed' | 'in-progress' | 'failed' | 'no-answer';
-  outcome:
-    | 'donated'
-    | 'callback-requested'
-    | 'no-interest'
-    | 'no-answer'
-    | 'busy';
-  duration: number;
-  sentiment: 'positive' | 'neutral' | 'negative';
-  callDate: Date;
-  amount?: number;
-  transcript?: string;
-  aiSummary?: string;
-  keyPoints?: string[];
-  followUpNotes?: string;
-}
+type ElevenTranscriptItem = {
+  role: 'user' | 'assistant' | string;
+  time_in_call_secs?: number;
+  message?: string;
+};
 
-// Mock conversation data
-const mockConversation: Conversation = {
-  id: 'conv_001',
-  donorName: 'Sarah Johnson',
-  phoneNumber: '+1 (555) 123-4567',
-  campaign: 'Summer Fundraiser 2024',
-  agent: 'Sarah',
-  status: 'completed',
-  outcome: 'donated',
-  duration: 245,
-  sentiment: 'positive',
-  callDate: new Date('2024-01-15T10:30:00'),
-  amount: 150,
-  transcript: `Agent: Hello, this is Sarah calling from the Community Foundation. May I speak with Sarah Johnson?
-
-Donor: This is Sarah Johnson speaking.
-
-Agent: Hi Sarah, thank you for taking my call. I'm calling about our Summer Fundraiser campaign that supports local youth programs. How are you doing today?
-
-Donor: I'm doing well, thank you for asking.
-
-Agent: That's great to hear. I wanted to share some exciting news about the impact your previous donations have made. Last year, we were able to provide summer camps for over 200 children in our community.
-
-Donor: That's wonderful! I had no idea the impact was so significant.
-
-Agent: Yes, it's really making a difference. This year, we're hoping to expand our programs to reach even more children. Would you be interested in supporting this year's campaign?
-
-Donor: Absolutely! I'd love to help. How much would you recommend?
-
-Agent: Any amount makes a difference, but we find that $150 provides a full week of summer camp for one child. Would that work for you?
-
-Donor: That sounds perfect. I'd be happy to donate $150.
-
-Agent: That's fantastic! Thank you so much for your generosity. I'll process that donation for you right now. Is there anything specific about our programs you'd like to know more about?
-
-Donor: I'd love to hear more about the different programs you offer.
-
-Agent: Of course! We have several programs including arts and crafts, sports, and educational activities. Each program is designed to keep children engaged and learning throughout the summer.
-
-Donor: That sounds comprehensive. I'm glad my donation will help support these programs.
-
-Agent: Your support means the world to us and the children we serve. Thank you again for your donation of $150. You'll receive a confirmation email shortly. Have a wonderful day!
-
-Donor: Thank you, you too!`,
-  aiSummary:
-    'This was a highly successful call with a positive outcome. The donor was engaged and receptive throughout the conversation. The agent effectively used storytelling to demonstrate impact, which resonated well with the donor. The donor made a $150 donation and showed genuine interest in learning more about the programs. The conversation flowed naturally with good rapport building.',
-  keyPoints: [
-    'Donor was receptive and engaged from the start',
-    'Agent effectively used impact storytelling',
-    'Donor showed genuine interest in programs',
-    'Successful $150 donation secured',
-    'Good rapport building throughout call',
-  ],
-  followUpNotes:
-    'Donor expressed interest in learning more about specific programs. Consider sending follow-up materials about arts and crafts programs.',
+type ElevenConversation = {
+  agent_id?: string;
+  conversation_id: string;
+  status?:
+    | 'initiated'
+    | 'in-progress'
+    | 'processing'
+    | 'done'
+    | 'failed'
+    | string;
+  transcript?: ElevenTranscriptItem[];
+  metadata?: {
+    start_time_unix_secs?: number;
+    call_duration_secs?: number;
+  } | null;
+  has_audio?: boolean;
+  has_user_audio?: boolean;
+  has_response_audio?: boolean;
+  analysis?: unknown | null;
 };
 
 export function ConversationDetail({
-  conversationId: _conversationId,
+  conversationId,
 }: {
   conversationId: string;
 }) {
   const router = useRouter();
+  const [data, setData] = useState<ElevenConversation | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
+  const { data: localConversation } = useConversation(conversationId);
+
+  // Prefer the external ElevenLabs conversation_id stored in our DB
+  const externalConversationId = useMemo<string | null>(() => {
+    return (
+      ((localConversation as unknown as { conversation_id?: string } | null)
+        ?.conversation_id ??
+        null) ||
+      null
+    );
+  }, [localConversation]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        setLoading(true);
+        const idForFetch = externalConversationId || conversationId;
+        const res = await fetch(
+          `/api/elevenlabs/conversations/${encodeURIComponent(idForFetch)}`,
+        );
+        const json = await res.json();
+        if (!res.ok || !json?.success) {
+          const message =
+            typeof json?.error === 'string' ? json.error : json?.error?.message;
+          throw new Error(message || res.statusText);
+        }
+        if (!cancelled) setData(json.data as ElevenConversation);
+      } catch (e) {
+        if (!cancelled)
+          setError(
+            e instanceof Error ? e.message : 'Failed to load conversation',
+          );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId, externalConversationId]);
+
+  const durationSeconds = useMemo(() => {
+    return data?.metadata?.call_duration_secs ?? 0;
+  }, [data]);
+
+  const callDate = useMemo(() => {
+    const ts = data?.metadata?.start_time_unix_secs;
+    return ts ? new Date(ts * 1000) : null;
+  }, [data]);
+
+  const transcriptText = useMemo(() => {
+    if (!data?.transcript?.length) return '';
+    return data.transcript
+      .map(
+        (t) =>
+          `${t.role === 'assistant' ? 'Agent' : 'User'}${t.time_in_call_secs != null ? ` (${t.time_in_call_secs}s)` : ''}: ${t.message ?? ''}`,
+      )
+      .join('\n\n');
+  }, [data]);
 
   const handleBack = () => {
     router.push('/home/conversations');
@@ -133,9 +150,40 @@ export function ConversationDetail({
     });
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBack} size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Conversations
+          </Button>
+        </div>
+        <div className="text-muted-foreground text-sm">
+          Loading conversation…
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBack} size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Conversations
+          </Button>
+        </div>
+        <div className="text-destructive text-sm">{error}</div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
   return (
     <div className="space-y-6">
-      {/* Header with Back Button */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" onClick={handleBack} size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -143,37 +191,34 @@ export function ConversationDetail({
         </Button>
       </div>
 
-      {/* Conversation Overview */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Call Duration"
-          value={formatDuration(mockConversation.duration)}
-          subtitle="4 minutes 5 seconds"
+          value={formatDuration(durationSeconds)}
+          subtitle="Total time"
           icon={Clock}
         />
         <StatsCard
-          title="Donation Amount"
-          value={`$${mockConversation.amount}`}
-          subtitle="Successfully secured"
-          icon={TrendingUp}
-        />
-        <StatsCard
           title="Sentiment"
-          value={mockConversation.sentiment}
-          subtitle="AI analyzed"
+          value={data.status ?? 'unknown'}
+          subtitle="Status from API"
           icon={User}
         />
         <StatsCard
-          title="Call Status"
-          value={mockConversation.status}
-          subtitle={mockConversation.outcome}
+          title="Audio"
+          value={data.has_audio ? 'Available' : 'No'}
+          subtitle="Recording presence"
           icon={Headphones}
+        />
+        <StatsCard
+          title="Conversation ID"
+          value={data.conversation_id}
+          subtitle="Reference"
+          icon={TrendingUp}
         />
       </div>
 
-      {/* Conversation Details */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Main Content */}
         <div className="space-y-6 lg:col-span-2">
           <Card className={'glass-panel'}>
             <CardHeader>
@@ -186,47 +231,42 @@ export function ConversationDetail({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
-                    Donor Name
+                    Agent ID
                   </label>
-                  <p className="text-base">{mockConversation.donorName}</p>
-                </div>
-                <div>
-                  <label className="text-muted-foreground text-sm font-medium">
-                    Phone Number
-                  </label>
-                  <p className="text-base">{mockConversation.phoneNumber}</p>
-                </div>
-                <div>
-                  <label className="text-muted-foreground text-sm font-medium">
-                    Campaign
-                  </label>
-                  <p className="text-base">{mockConversation.campaign}</p>
-                </div>
-                <div>
-                  <label className="text-muted-foreground text-sm font-medium">
-                    Agent
-                  </label>
-                  <p className="text-base">{mockConversation.agent}</p>
+                  <p className="text-base">{data.agent_id ?? '-'}</p>
                 </div>
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
                     Call Date
                   </label>
                   <p className="text-base">
-                    {formatDate(mockConversation.callDate)}
+                    {callDate ? formatDate(callDate) : 'Unknown'}
                   </p>
                 </div>
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
-                    Call ID
+                    Status
                   </label>
-                  <p className="text-base">{mockConversation.id}</p>
+                  <p className="text-base">{data.status ?? 'Unknown'}</p>
+                </div>
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Conversation ID
+                  </label>
+                  <p className="text-base">{data.conversation_id}</p>
+                </div>
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Recording
+                  </label>
+                  <p className="text-base">
+                    {localConversation?.recording_url ? 'Available' : 'None'}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Transcript and AI Summary */}
           <Tabs defaultValue="transcript" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="transcript">Transcript</TabsTrigger>
@@ -238,24 +278,26 @@ export function ConversationDetail({
               <Card className={'glass-panel'}>
                 <CardHeader>
                   <CardTitle>Call Transcript</CardTitle>
-                  <CardDescription>
-                    Full conversation transcript with speaker identification
-                  </CardDescription>
+                  <CardDescription>Conversation turns</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="max-h-96 space-y-4 overflow-y-auto">
-                    {mockConversation.transcript
+                    {transcriptText
                       ?.split('\n\n')
-                      .map((exchange, index) => (
+                      .filter(Boolean)
+                      .map((exchange, index, arr) => (
                         <div key={index} className="space-y-2">
                           <div className="text-muted-foreground text-sm">
                             {exchange}
                           </div>
-                          {index <
-                            mockConversation.transcript!.split('\n\n').length -
-                              1 && <Separator />}
+                          {index < arr.length - 1 && <Separator />}
                         </div>
                       ))}
+                    {!transcriptText && (
+                      <div className="text-muted-foreground text-sm">
+                        No transcript available.
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -264,39 +306,12 @@ export function ConversationDetail({
             <TabsContent value="summary" className="mt-6">
               <Card className={'glass-panel'}>
                 <CardHeader>
-                  <CardTitle>AI Analysis Summary</CardTitle>
-                  <CardDescription>
-                    AI-generated analysis of the conversation
-                  </CardDescription>
+                  <CardTitle>AI Analysis</CardTitle>
+                  <CardDescription>Insights (if provided)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
-                    <h4 className="mb-2 font-medium">Summary</h4>
-                    <p className="text-muted-foreground text-sm">
-                      {mockConversation.aiSummary}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="mb-2 font-medium">Key Points</h4>
-                    <ul className="space-y-1">
-                      {mockConversation.keyPoints?.map((point, index) => (
-                        <li
-                          key={index}
-                          className="text-muted-foreground flex items-start gap-2 text-sm"
-                        >
-                          <span className="bg-primary mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"></span>
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="mb-2 font-medium">Follow-up Notes</h4>
-                    <p className="text-muted-foreground text-sm">
-                      {mockConversation.followUpNotes}
-                    </p>
+                  <div className="text-muted-foreground text-sm">
+                    No analysis available.
                   </div>
                 </CardContent>
               </Card>
@@ -306,61 +321,22 @@ export function ConversationDetail({
               <Card className={'glass-panel'}>
                 <CardHeader>
                   <CardTitle>Call Analytics</CardTitle>
-                  <CardDescription>
-                    Detailed metrics and insights from the conversation
-                  </CardDescription>
+                  <CardDescription>Metrics from metadata</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="mb-2 font-medium">Conversation Flow</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Opening</span>
-                            <span className="text-green-600">Strong</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Engagement</span>
-                            <span className="text-green-600">High</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Objection Handling</span>
-                            <span className="text-blue-600">Effective</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Closing</span>
-                            <span className="text-green-600">Successful</span>
-                          </div>
-                        </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Talk Time</span>
+                        <span>{formatDuration(durationSeconds)}</span>
                       </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="mb-2 font-medium">
-                          Performance Metrics
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Talk Time</span>
-                            <span>
-                              {formatDuration(mockConversation.duration)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Donation Secured</span>
-                            <span className="text-green-600">Yes</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Follow-up Required</span>
-                            <span className="text-blue-600">Yes</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Sentiment Score</span>
-                            <span className="text-green-600">9.2/10</span>
-                          </div>
-                        </div>
+                      <div className="flex justify-between text-sm">
+                        <span>User Audio</span>
+                        <span>{data.has_user_audio ? 'Yes' : 'No'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Response Audio</span>
+                        <span>{data.has_response_audio ? 'Yes' : 'No'}</span>
                       </div>
                     </div>
                   </div>
@@ -370,30 +346,92 @@ export function ConversationDetail({
           </Tabs>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Actions */}
           <Card className={'glass-panel'}>
             <CardHeader>
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full" variant="outline">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={async () => {
+                  const url = localConversation?.recording_url ?? null;
+                  if (!url) return;
+                  try {
+                    if (!audioRef.current) {
+                      audioRef.current = new Audio(url);
+                    }
+                    if (isPlaying) {
+                      audioRef.current.pause();
+                      setIsPlaying(false);
+                    } else {
+                      await audioRef.current.play();
+                      setIsPlaying(true);
+                      audioRef.current.onended = () => setIsPlaying(false);
+                    }
+                  } catch (_e) {
+                    setIsPlaying(false);
+                  }
+                }}
+                disabled={!localConversation?.recording_url}
+              >
                 <Play className="mr-2 h-4 w-4" />
-                Listen to Call
+                {isPlaying ? 'Pause' : 'Listen to Call'}
               </Button>
-              <Button className="w-full" variant="outline">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => {
+                  const text =
+                    transcriptText ||
+                    (localConversation?.transcript as unknown as string) ||
+                    '';
+                  const blob = new Blob([text], {
+                    type: 'text/plain;charset=utf-8',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `conversation-${conversationId}-transcript.txt`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                }}
+                disabled={!transcriptText && !localConversation?.transcript}
+              >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Download Transcript
               </Button>
-              <Button className="w-full" variant="outline">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => {
+                  const payload = {
+                    conversation_id: data.conversation_id,
+                    elevenlabs: data,
+                    local: localConversation ?? null,
+                  };
+                  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                    type: 'application/json',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `conversation-${conversationId}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                }}
+              >
                 <Headphones className="mr-2 h-4 w-4" />
                 Export Summary
               </Button>
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
           <Card className={'glass-panel'}>
             <CardHeader>
               <CardTitle>Quick Stats</CardTitle>
@@ -401,23 +439,21 @@ export function ConversationDetail({
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">
-                  Words Spoken
+                  Duration (s)
                 </span>
-                <span className="text-sm font-medium">247</span>
+                <span className="text-sm font-medium">{durationSeconds}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground text-sm">Has Audio</span>
+                <span className="text-sm font-medium">
+                  {data.has_audio ? 'Yes' : 'No'}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">Turns</span>
-                <span className="text-sm font-medium">12</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">Pauses</span>
-                <span className="text-sm font-medium">3</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">
-                  Interruptions
+                <span className="text-sm font-medium">
+                  {data.transcript?.length ?? 0}
                 </span>
-                <span className="text-sm font-medium">0</span>
               </div>
             </CardContent>
           </Card>
