@@ -23,7 +23,7 @@ export function CsvDropzone({
   const [isDragOver, setIsDragOver] = useState(false);
 
   const openFileDialog = () => {
-    if (disabled) return;
+    if (disabled || isDragOver) return;
     inputRef.current?.click();
   };
 
@@ -49,6 +49,17 @@ export function CsvDropzone({
           : 'border-black/10 dark:border-white/10',
         className,
       )}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
+      onClick={openFileDialog}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openFileDialog();
+        }
+      }}
     >
       <input
         ref={inputRef}

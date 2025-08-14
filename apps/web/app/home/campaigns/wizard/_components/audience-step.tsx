@@ -37,13 +37,11 @@ export function AudienceStep({
   isUploading,
   hasCampaignId,
   onTemplateDownload,
-  onConnectCrm,
   onDropCsv,
   onUploadCsv,
   form,
   onBlurAudience,
   onBack,
-  onSaveDraft,
   onNext,
 }: {
   csvHeaders: string[];
@@ -52,13 +50,11 @@ export function AudienceStep({
   isUploading: boolean;
   hasCampaignId: boolean;
   onTemplateDownload: () => void;
-  onConnectCrm: () => void;
   onDropCsv: (file: File) => void;
   onUploadCsv: () => void | Promise<void>;
   form: UseFormReturn<AudienceFormValues>;
   onBlurAudience: () => void;
   onBack: () => void;
-  onSaveDraft: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
 }) {
   return (
@@ -75,9 +71,6 @@ export function AudienceStep({
               <Button variant="ghost" size="sm" onClick={onTemplateDownload}>
                 <FileDown className="mr-2 h-4 w-4" /> Template
               </Button>
-              <Button variant="ghost" size="sm" onClick={onConnectCrm}>
-                Connect CRM
-              </Button>
             </div>
           </div>
           <p className="text-muted-foreground mt-1 text-xs">
@@ -85,7 +78,7 @@ export function AudienceStep({
             timezone, opt_in.
           </p>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
-            <CsvDropzone disabled={!hasCampaignId} onFileSelected={onDropCsv}>
+            <CsvDropzone disabled={false} onFileSelected={onDropCsv}>
               Drop CSV here or click to choose
             </CsvDropzone>
             <div className="rounded-lg bg-white/50 p-3 text-xs ring-1 ring-black/5 dark:bg-zinc-900/50 dark:ring-white/10">
@@ -200,11 +193,8 @@ export function AudienceStep({
             Back
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => void onSaveDraft()}>
-              Save as draft
-            </Button>
             <Button onClick={() => void onNext()} className="min-w-36">
-              Save & continue
+              Next
             </Button>
           </div>
         </div>

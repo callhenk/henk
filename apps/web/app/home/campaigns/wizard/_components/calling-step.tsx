@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { ExternalLink, Save } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 
 import { Button } from '@kit/ui/button';
@@ -39,14 +39,12 @@ export function CallingStep({
   form,
   _twilioNumbers, // TODO: Re-enable caller ID selection when multiple Twilio numbers are available
   onBlurCalling,
-  onSaveDraft,
   onNext,
   onBack,
 }: {
   form: UseFormReturn<CallingFormValues>;
   _twilioNumbers: string[]; // TODO: Rename back to twilioNumbers when caller ID field is restored
   onBlurCalling: () => void;
-  onSaveDraft: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
   onBack: () => void;
 }) {
@@ -193,11 +191,8 @@ export function CallingStep({
           Back
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void onSaveDraft()}>
-            <Save className="mr-2 h-4 w-4" /> Save as draft
-          </Button>
           <Button onClick={() => void onNext()} className="min-w-36">
-            Save & continue
+            Next
           </Button>
         </div>
       </div>

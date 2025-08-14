@@ -379,10 +379,8 @@ export function CampaignsList() {
       </AlertDialog>
 
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
-        <DialogContent className="max-w-4xl border-none bg-transparent p-0 shadow-none">
-          <div className="glass-panel">
-            <WizardContainer onClose={() => setShowWizard(false)} />
-          </div>
+        <DialogContent className="max-w-2xl p-0">
+          <WizardContainer onClose={() => setShowWizard(false)} />
         </DialogContent>
       </Dialog>
     </div>

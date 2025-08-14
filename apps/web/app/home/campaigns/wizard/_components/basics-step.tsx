@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import { Save } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 
 import { Tables } from '@kit/supabase/database';
@@ -41,13 +40,11 @@ export function BasicsStep({
   form,
   agents,
   onBlurBasics,
-  onSaveDraft,
   onNext,
 }: {
   form: UseFormReturn<BasicsFormValues>;
   agents: AgentRow[];
   onBlurBasics: () => void;
-  onSaveDraft: () => void | Promise<void>;
   onNext: () => void | Promise<void>;
 }) {
   return (
@@ -189,11 +186,8 @@ export function BasicsStep({
           <Link href="/home/campaigns">Cancel</Link>
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void onSaveDraft()}>
-            <Save className="mr-2 h-4 w-4" /> Save as draft
-          </Button>
           <Button onClick={() => void onNext()} className="min-w-36">
-            Save & continue
+            Next
           </Button>
         </div>
       </div>

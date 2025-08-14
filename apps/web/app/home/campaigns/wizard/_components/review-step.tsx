@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { Pause, Play, Save } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { Tables } from '@kit/supabase/database';
 import { Button } from '@kit/ui/button';
@@ -33,7 +33,7 @@ interface ReviewProps {
   isActing: boolean;
   onBack: () => void;
   onEditStep: (step: 1 | 2 | 3) => void;
-  onSetStatus: (status: 'active' | 'draft' | 'paused') => void | Promise<void>;
+  onCreate: () => void | Promise<void>;
 }
 
 export function ReviewStep({
@@ -45,7 +45,7 @@ export function ReviewStep({
   isActing,
   onBack,
   onEditStep,
-  onSetStatus,
+  onCreate,
 }: ReviewProps) {
   return (
     <div className="space-y-5">
@@ -130,13 +130,10 @@ export function ReviewStep({
       {!canActivate && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
           <div className="text-sm text-amber-800 dark:text-amber-200">
-            <strong>Cannot activate campaign:</strong>
+            <strong>Missing required fields:</strong>
             <ul className="mt-1 list-inside list-disc space-y-1">
               {!basics.campaign_name && <li>Campaign name is required</li>}
               {!basics.agent_id && <li>Agent must be selected</li>}
-              {audience.audience_contact_count < 1 && (
-                <li>At least 1 contact must be uploaded</li>
-              )}
             </ul>
           </div>
         </div>
@@ -146,22 +143,12 @@ export function ReviewStep({
           Back
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void onSetStatus('draft')}>
-            <Save className="mr-2 h-4 w-4" /> Save as draft
-          </Button>
           <Button
             disabled={!canActivate || isActing}
-            onClick={() => void onSetStatus('active')}
+            onClick={() => void onCreate()}
             className="min-w-36"
           >
-            <Play className="mr-2 h-4 w-4" /> Activate campaign
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => void onSetStatus('paused')}
-            disabled={isActing}
-          >
-            <Pause className="mr-2 h-4 w-4" /> Pause
+            <Plus className="mr-2 h-4 w-4" /> Create campaign
           </Button>
         </div>
       </div>

@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import Papa from 'papaparse';
@@ -19,7 +21,7 @@ import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { Spinner } from '@kit/ui/spinner';
 
-import AudienceStep, { AudienceFormValues } from './_components/audience-step';
+import type { AudienceFormValues } from './_components/audience-step';
 import BasicsStep, { BasicsFormValues } from './_components/basics-step';
 import CallingStep, { CallingFormValues } from './_components/calling-step';
 import ReviewStep from './_components/review-step';
@@ -87,6 +89,7 @@ export function WizardContainer({
   const [currentCampaignId, setCurrentCampaignId] = useState<string | null>(
     campaignId,
   );
+  const router = useRouter();
 
   const { data: agents = [] } = useAgents();
   const { data: existingCampaign, isLoading: loadingCampaign } = useCampaign(
@@ -97,7 +100,7 @@ export function WizardContainer({
   const updateCampaign = useUpdateCampaign();
   const bulkCreateLeads = useBulkCreateLeads();
 
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   // Forms per step
   const basicsForm = useForm<{
@@ -147,28 +150,29 @@ export function WizardContainer({
   const audienceForm = useForm<z.infer<typeof audienceSchema>>({
     resolver: zodResolver(audienceSchema),
     defaultValues: {
-      audience_list_id: existingCampaign?.audience_list_id ?? undefined,
-      dedupe_by_phone: existingCampaign?.dedupe_by_phone ?? true,
-      exclude_dnc: existingCampaign?.exclude_dnc ?? true,
-      audience_contact_count: existingCampaign?.audience_contact_count ?? 0,
+      audience_list_id: undefined,
+      dedupe_by_phone: true,
+      exclude_dnc: true,
+      audience_contact_count: 0,
     },
   });
 
   // CSV parsing state (Step 3)
   type CsvRow = Record<string, string>;
-  const [csvRows, setCsvRows] = useState<CsvRow[]>([]);
-  const [csvErrors, setCsvErrors] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  // Audience import disabled for now
+  const [_csvRows, _setCsvRows] = useState<CsvRow[]>([]);
+  const [_csvErrors, _setCsvErrors] = useState<string[]>([]);
+  const [_isUploading, _setIsUploading] = useState(false);
+  const [_csvHeaders, _setCsvHeaders] = useState<string[]>([]);
 
   const validateE164 = (phone: string): boolean => {
     const cleaned = phone.trim();
     return /^\+?[1-9]\d{1,14}$/.test(cleaned);
   };
 
-  const handleCsvChange = (file: File | null) => {
-    setCsvErrors([]);
-    setCsvRows([]);
+  const _handleCsvChange = (file: File | null) => {
+    _setCsvErrors([]);
+    _setCsvRows([]);
     if (!file) return;
     Papa.parse<CsvRow>(file, {
       header: true,
@@ -178,7 +182,7 @@ export function WizardContainer({
         const errors: string[] = [];
         // Required headers
         const headers = results.meta.fields || [];
-        setCsvHeaders(headers);
+        _setCsvHeaders(headers);
         const required = ['first_name', 'phone'];
         for (const h of required) {
           if (!headers.includes(h))
@@ -213,21 +217,21 @@ export function WizardContainer({
             opt_in: (r.opt_in || '').trim(),
           });
         }
-        setCsvErrors(errors);
-        setCsvRows(validRows);
+        _setCsvErrors(errors);
+        _setCsvRows(validRows);
         audienceForm.setValue('audience_contact_count', validRows.length);
         onBlurAudience();
       },
     });
   };
 
-  const uploadCsv = async () => {
+  const _uploadCsv = async () => {
     if (!currentCampaignId) return;
-    if (csvErrors.length > 0) return;
-    if (csvRows.length === 0) return;
-    setIsUploading(true);
+    if (_csvErrors.length > 0) return;
+    if (_csvRows.length === 0) return;
+    _setIsUploading(true);
     try {
-      const leadsPayload = csvRows.map((r) => ({
+      const leadsPayload = _csvRows.map((r) => ({
         name: `${r.first_name}${r.last_name ? ' ' + r.last_name : ''}`.trim(),
         phone: r.phone as string,
         email: r.email || null,
@@ -248,12 +252,12 @@ export function WizardContainer({
         audience_list_id: listId ?? null,
       } as { id: string } & Partial<WizardCampaign>);
     } finally {
-      setIsUploading(false);
+      _setIsUploading(false);
     }
   };
 
   // Helper to download CSV template
-  const downloadCsvTemplate = useCallback(() => {
+  const _downloadCsvTemplate = useCallback(() => {
     const csvContent =
       'first_name,last_name,phone,email,timezone,opt_in\nJane,Doe,+14155550142,jane@example.org,America/Los_Angeles,true';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -269,7 +273,7 @@ export function WizardContainer({
   const autosave = useRef<{ timer: ReturnType<typeof setTimeout> | null }>({
     timer: null,
   });
-  const triggerAutosave = useCallback((fn: () => Promise<unknown>) => {
+  const _triggerAutosave = useCallback((fn: () => Promise<unknown>) => {
     if (autosave.current.timer) clearTimeout(autosave.current.timer);
     autosave.current.timer = setTimeout(() => {
       void fn();
@@ -280,42 +284,13 @@ export function WizardContainer({
   const saveBasics = useCallback(async (): Promise<boolean> => {
     const valid = await basicsForm.trigger();
     if (!valid) return false;
-
-    const values = basicsForm.getValues();
-
-    if (!currentCampaignId) {
-      const created = await createCampaign.mutateAsync({
-        name: values.campaign_name,
-        budget: values.fundraising_goal ?? null,
-        agent_id: values.agent_id,
-        start_date: values.start_date?.toISOString() ?? null,
-        end_date: values.end_date?.toISOString() ?? null,
-        description: '',
-        status: 'draft',
-        max_attempts: 3,
-        daily_call_cap: 100,
-        script: 'Default campaign script', // TODO: Get from agent or allow customization
-        retry_logic: 'Wait 24 hours before retry',
-      } as Parameters<typeof createCampaign.mutateAsync>[0]);
-      setCurrentCampaignId(created.id);
-      setStep(2);
-      return true;
-    } else {
-      await updateCampaign.mutateAsync({
-        id: currentCampaignId,
-        name: values.campaign_name,
-        budget: values.fundraising_goal ?? null,
-        agent_id: values.agent_id,
-        start_date: values.start_date?.toISOString() ?? null,
-        end_date: values.end_date?.toISOString() ?? null,
-        status: 'draft',
-      } as { id: string } & Partial<WizardCampaign>);
-      return true;
-    }
-  }, [basicsForm, currentCampaignId, createCampaign, updateCampaign]);
+    // Defer persistence until final action to avoid duplicates
+    setStep(2);
+    return true;
+  }, [basicsForm]);
 
   // Autosave basics (without navigation)
-  const saveBasicsAutosave = useCallback(async (): Promise<boolean> => {
+  const _saveBasicsAutosave = useCallback(async (): Promise<boolean> => {
     // Don't validate for autosave - just save what we have
     const values = basicsForm.getValues();
 
@@ -360,41 +335,22 @@ export function WizardContainer({
 
   // Save Step 2
   const saveCalling = useCallback(async (): Promise<boolean> => {
-    if (!currentCampaignId) return false;
     const valid = await callingForm.trigger();
     if (!valid) return false;
-    const v = callingForm.getValues();
-    await updateCampaign.mutateAsync({
-      id: currentCampaignId,
-      goal_metric: v.goal_metric,
-
-      call_window_start: `${v.call_window_start}:00`,
-      call_window_end: `${v.call_window_end}:00`,
-
-      status: 'draft',
-    } as { id: string } & Partial<WizardCampaign>);
+    // Persistence deferred until final action
     return true;
-  }, [callingForm, currentCampaignId, updateCampaign]);
+  }, [callingForm]);
 
   // Save Step 3 (only metadata; CSV upload handled below)
-  const saveAudience = useCallback(async (): Promise<boolean> => {
-    if (!currentCampaignId) return false;
+  const _saveAudience = useCallback(async (): Promise<boolean> => {
     const valid = await audienceForm.trigger();
     if (!valid) return false;
-    const v = audienceForm.getValues();
-    await updateCampaign.mutateAsync({
-      id: currentCampaignId,
-      audience_list_id: v.audience_list_id ?? null,
-      dedupe_by_phone: v.dedupe_by_phone,
-      exclude_dnc: v.exclude_dnc,
-      audience_contact_count: v.audience_contact_count,
-      status: 'draft',
-    } as { id: string } & Partial<WizardCampaign>);
+    // Persistence deferred until final action
     return true;
-  }, [audienceForm, currentCampaignId, updateCampaign]);
+  }, [audienceForm]);
 
   // Draft saves (no blocking validation)
-  const saveBasicsDraft = useCallback(async (): Promise<boolean> => {
+  const _saveBasicsDraft = useCallback(async (): Promise<boolean> => {
     const values = basicsForm.getValues();
     const name = (values.campaign_name || '').trim() || 'Untitled campaign';
     const budget =
@@ -437,7 +393,7 @@ export function WizardContainer({
     }
   }, [basicsForm, currentCampaignId, createCampaign, updateCampaign]);
 
-  const saveCallingDraft = useCallback(async (): Promise<boolean> => {
+  const _saveCallingDraft = useCallback(async (): Promise<boolean> => {
     if (!currentCampaignId) return false;
     const v = callingForm.getValues();
     await updateCampaign.mutateAsync({
@@ -454,7 +410,7 @@ export function WizardContainer({
     return true;
   }, [callingForm, currentCampaignId, updateCampaign]);
 
-  const saveAudienceDraft = useCallback(async (): Promise<boolean> => {
+  const _saveAudienceDraft = useCallback(async (): Promise<boolean> => {
     if (!currentCampaignId) return false;
     const v = audienceForm.getValues();
     await updateCampaign.mutateAsync({
@@ -480,17 +436,11 @@ export function WizardContainer({
       const ok = await saveCalling();
       if (!ok) return;
     }
-    if (step === 3) {
-      const ok = await saveAudience();
-      if (!ok) return;
-    }
     let nextStep: Step;
     if (step === 1) {
       nextStep = 2;
-    } else if (step === 2) {
-      nextStep = 3;
     } else {
-      nextStep = 4;
+      nextStep = 3;
     }
     setStep(nextStep);
   };
@@ -501,9 +451,7 @@ export function WizardContainer({
 
   const goBack = () => {
     let prevStep: Step;
-    if (step === (4 as Step)) {
-      prevStep = 3;
-    } else if (step === (3 as Step)) {
+    if (step === (3 as Step)) {
       prevStep = 2;
     } else {
       prevStep = 1;
@@ -511,15 +459,15 @@ export function WizardContainer({
     setStep(prevStep);
   };
 
-  // Autosave on blur
-  const onBlurBasics = () => triggerAutosave(saveBasicsAutosave);
-  const onBlurCalling = () => triggerAutosave(saveCalling);
-  const onBlurAudience = () => triggerAutosave(saveAudience);
+  // Disable autosave; avoid creating or updating drafts during the flow
+  const onBlurBasics = () => void 0;
+  const onBlurCalling = () => void 0;
+  const onBlurAudience = () => void 0;
 
   // Activate / Pause from Step 4
   const campaignName = basicsForm.watch('campaign_name');
   const agentId = basicsForm.watch('agent_id');
-  const audienceContactCount = audienceForm.watch('audience_contact_count');
+  const audienceContactCount = 1; // Audience step removed; don't block creation
 
   const canActivate = useMemo(() => {
     const hasBasics = Boolean(campaignName?.trim() && agentId?.trim());
@@ -529,43 +477,89 @@ export function WizardContainer({
   }, [campaignName, agentId, audienceContactCount]);
 
   const [isActing, setIsActing] = useState(false);
-  const setStatus = async (status: 'active' | 'draft' | 'paused') => {
-    if (!currentCampaignId) return;
+  const setStatus = async (
+    status: 'active' | 'draft' | 'paused',
+  ): Promise<string | null> => {
     try {
       setIsActing(true);
+      // Ensure campaign is created and fully persisted before status change
+      const basics = basicsForm.getValues();
+      const calling = callingForm.getValues();
+
+      let id = currentCampaignId;
+      if (!id) {
+        const created = await createCampaign.mutateAsync({
+          name: basics.campaign_name,
+          budget:
+            basics.fundraising_goal === undefined
+              ? null
+              : basics.fundraising_goal,
+          agent_id: basics.agent_id || null,
+          start_date: basics.start_date?.toISOString() ?? null,
+          end_date: basics.end_date?.toISOString() ?? null,
+          description: '',
+          status: 'draft',
+          max_attempts: 3,
+          daily_call_cap: 100,
+          script: 'Default campaign script',
+          retry_logic: 'Wait 24 hours before retry',
+        } as Parameters<typeof createCampaign.mutateAsync>[0]);
+        id = created.id;
+        setCurrentCampaignId(id);
+      }
+
+      // Persist all form data
+      await updateCampaign.mutateAsync({
+        id: id!,
+        name: basics.campaign_name,
+        budget:
+          basics.fundraising_goal === undefined
+            ? null
+            : basics.fundraising_goal,
+        agent_id: basics.agent_id || null,
+        start_date: basics.start_date?.toISOString() ?? null,
+        end_date: basics.end_date?.toISOString() ?? null,
+        goal_metric: calling.goal_metric as
+          | 'pledge_rate'
+          | 'average_gift'
+          | 'total_donations',
+        call_window_start: calling.call_window_start
+          ? `${calling.call_window_start}:00`
+          : null,
+        call_window_end: calling.call_window_end
+          ? `${calling.call_window_end}:00`
+          : null,
+        // Audience fields intentionally skipped for now
+        status,
+      } as { id: string } & Partial<WizardCampaign>);
+
       if (status === 'active') {
-        const resp = await fetch(`/api/campaigns/${currentCampaignId}/start`, {
+        const resp = await fetch(`/api/campaigns/${id}/start`, {
           method: 'POST',
         });
         if (!resp.ok) {
           const j = await resp.json().catch(() => ({}));
-          console.error('Campaign start error:', j);
           const errorMessage =
             j?.error || `Failed to start campaign (${resp.status})`;
-          alert(`Error: ${errorMessage}`); // Temporary alert to see the actual error
           throw new Error(errorMessage);
         }
         onClose?.();
-        return;
+        return id;
       }
 
       if (status === 'paused') {
-        const resp = await fetch(`/api/campaigns/${currentCampaignId}/stop`, {
+        const resp = await fetch(`/api/campaigns/${id}/stop`, {
           method: 'POST',
         });
         if (!resp.ok) {
           const j = await resp.json().catch(() => ({}));
           throw new Error(j?.error || 'Failed to pause campaign');
         }
-        return;
       }
-
-      await updateCampaign.mutateAsync({ id: currentCampaignId, status } as {
-        id: string;
-        status: 'active' | 'draft' | 'paused';
-      });
+      return id;
     } catch (e) {
       console.error('Set status error:', e);
+      return null;
     } finally {
       setIsActing(false);
     }
@@ -583,70 +577,63 @@ export function WizardContainer({
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-5">
-      <WizardTopBar
-        step={step}
-        totalSteps={totalSteps}
-        status={existingCampaign?.status}
-        onClose={onClose}
-      />
+    <div className="max-w-2xl">
+      <WizardTopBar step={step} totalSteps={totalSteps} />
 
       {/* Step content */}
-      {step === 1 && (
-        <BasicsStep
-          form={basicsForm as unknown as UseFormReturn<BasicsFormValues>}
-          agents={agents}
-          onBlurBasics={onBlurBasics}
-          onSaveDraft={() => void saveBasicsDraft()}
-          onNext={() => void goNext()}
-        />
-      )}
+      <div key={step} className="animate-in fade-in-0 zoom-in-95 duration-200">
+        {step === 1 && (
+          <div className="px-6 py-6">
+            <BasicsStep
+              form={basicsForm as unknown as UseFormReturn<BasicsFormValues>}
+              agents={agents}
+              onBlurBasics={onBlurBasics}
+              onNext={() => void goNext()}
+            />
+          </div>
+        )}
 
-      {step === 2 && (
-        <CallingStep
-          form={callingForm as unknown as UseFormReturn<CallingFormValues>}
-          _twilioNumbers={_twilioNumbers}
-          onBlurCalling={onBlurCalling}
-          onSaveDraft={() => void saveCallingDraft()}
-          onNext={() => void goNext()}
-          onBack={goBack}
-        />
-      )}
+        {step === 2 && (
+          <div className="px-6 py-6">
+            <CallingStep
+              form={callingForm as unknown as UseFormReturn<CallingFormValues>}
+              _twilioNumbers={_twilioNumbers}
+              onBlurCalling={onBlurCalling}
+              onNext={() => void goNext()}
+              onBack={goBack}
+            />
+          </div>
+        )}
 
-      {step === 3 && (
-        <AudienceStep
-          csvHeaders={csvHeaders}
-          csvErrors={csvErrors}
-          csvRows={csvRows}
-          isUploading={isUploading}
-          hasCampaignId={Boolean(currentCampaignId)}
-          onTemplateDownload={downloadCsvTemplate}
-          onConnectCrm={() =>
-            window.open('/home/integrations', '_blank', 'noopener,noreferrer')
-          }
-          onDropCsv={(file) => handleCsvChange(file)}
-          onUploadCsv={() => void uploadCsv()}
-          form={audienceForm as unknown as UseFormReturn<AudienceFormValues>}
-          onBlurAudience={onBlurAudience}
-          onBack={goBack}
-          onSaveDraft={() => void saveAudienceDraft()}
-          onNext={() => void goNext()}
-        />
-      )}
-
-      {step === 4 && (
-        <ReviewStep
-          basics={basicsForm.getValues() as BasicsFormValues}
-          calling={callingForm.getValues() as CallingFormValues}
-          audience={audienceForm.getValues() as AudienceFormValues}
-          agents={agents}
-          canActivate={canActivate}
-          isActing={isActing}
-          onBack={goBack}
-          onEditStep={(s: 1 | 2 | 3) => goToStep(s)}
-          onSetStatus={(s: 'active' | 'draft' | 'paused') => void setStatus(s)}
-        />
-      )}
+        {step === 3 && (
+          <div className="px-6 py-6">
+            <ReviewStep
+              basics={basicsForm.getValues() as BasicsFormValues}
+              calling={callingForm.getValues() as CallingFormValues}
+              audience={
+                {
+                  audience_contact_count: 0,
+                  dedupe_by_phone: true,
+                  exclude_dnc: true,
+                } as AudienceFormValues
+              }
+              agents={agents}
+              canActivate={canActivate}
+              isActing={isActing}
+              onBack={goBack}
+              onEditStep={(s: 1 | 2 | 3) => goToStep(s)}
+              onCreate={async () => {
+                const id = await setStatus('draft');
+                const campaignIdToOpen = id || currentCampaignId;
+                if (campaignIdToOpen) {
+                  router.push(`/home/campaigns/${campaignIdToOpen}`);
+                  onClose?.();
+                }
+              }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
