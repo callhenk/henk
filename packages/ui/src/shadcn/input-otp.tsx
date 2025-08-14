@@ -45,7 +45,7 @@ const InputOTPSlot: React.FC<
   return (
     <div
       className={cn(
-        'border-input relative flex h-9 w-9 items-center justify-center border-y border-r text-sm shadow-xs transition-all first:rounded-l-md first:border-l last:rounded-r-md',
+        'border-input relative flex h-9 w-9 items-center justify-center border-y border-r text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md',
         isActive && 'ring-ring z-10 ring-1',
         className,
       )}
@@ -71,4 +71,4 @@ const InputOTPSeparator: React.FC<React.ComponentPropsWithoutRef<'div'>> = ({
 );
 InputOTPSeparator.displayName = 'InputOTPSeparator';
 
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
+export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot };

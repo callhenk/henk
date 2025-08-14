@@ -81,7 +81,7 @@ function BusinessSelectionSkeleton() {
           {Array.from({ length: 3 }).map((_, index) => (
             <Card
               key={index}
-              className="glass-panel cursor-pointer transition-all hover:shadow-md"
+              className="glass-panel cursor-pointer transition-all"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -297,7 +297,7 @@ export function TeamSettingsContainer({
             {businesses?.map((business) => (
               <Card
                 key={business.id}
-                className={`glass-panel cursor-pointer transition-all hover:shadow-md ${
+                className={`glass-panel cursor-pointer transition-all ${
                   selectedBusiness?.id === business.id
                     ? 'ring-primary ring-2'
                     : ''

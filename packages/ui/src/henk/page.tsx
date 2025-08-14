@@ -77,7 +77,7 @@ function PageWithHeader(props: PageProps) {
             // Mobile: floating glass header (Big Sur/iOS-style)
             'glass-panel mx-2 mt-2 flex h-12 items-center justify-between px-3',
             // Desktop: align and flatten
-            'md:h-14 md:px-4 lg:mx-0 lg:mt-0 lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-xs',
+            'md:h-14 md:px-4 lg:mx-0 lg:mt-0 lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent',
             {
               'sticky top-2 z-40': props.sticky ?? true,
             },

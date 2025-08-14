@@ -278,7 +278,7 @@ const Sidebar: React.FC<
           className={cn(
             'bg-sidebar flex h-full w-full flex-col',
             // Floating variant: solid surface (no translucency/blur)
-            'group-data-[variant=floating]:bg-card group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:shadow-lg',
+            'group-data-[variant=floating]:bg-card group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border',
             {
               'bg-transparent': variant === 'ghost',
             },
@@ -361,7 +361,7 @@ const SidebarInset: React.FC<React.ComponentProps<'main'>> = ({
     <main
       className={cn(
         'bg-background relative flex min-h-svh flex-1 flex-col',
-        'peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+        'peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
         className,
       )}
       {...props}

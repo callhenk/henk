@@ -4,7 +4,14 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { User, Volume2, X } from 'lucide-react';
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Volume2,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useCreateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
@@ -12,6 +19,14 @@ import { useUser } from '@kit/supabase/hooks/use-user';
 import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Button } from '@kit/ui/button';
 // Removed @kit/ui/form usage in favor of plain markup since we're not using react-hook-form context
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@kit/ui/dialog';
 import { Input } from '@kit/ui/input';
 import {
   Select,
@@ -20,13 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@kit/ui/sheet';
 import { Spinner } from '@kit/ui/spinner';
 import { Textarea } from '@kit/ui/textarea';
 
@@ -51,6 +59,42 @@ export function CreateAgentPanel({
   );
   const [voiceId, setVoiceId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<0 | 1 | 2>(0);
+
+  const steps: Array<{
+    key: 'info' | 'voice' | 'review';
+    title: string;
+    description?: string;
+  }> = [
+    {
+      key: 'info',
+      title: 'Agent Information',
+      description: 'Name and description',
+    },
+    {
+      key: 'voice',
+      title: 'Voice',
+      description: 'Choose voice type and voice',
+    },
+    { key: 'review', title: 'Review', description: 'Confirm and create' },
+  ];
+
+  const canProceed = () => {
+    if (step === 0) return Boolean(name.trim());
+    if (step === 1)
+      return voiceType === 'ai_generated'
+        ? Boolean(voiceId) || voices.length === 0
+        : true;
+    return true;
+  };
+
+  const goNext = () => {
+    if (step < 2 && canProceed()) setStep((s) => (s + 1) as 0 | 1 | 2);
+  };
+
+  const goBack = () => {
+    if (step > 0) setStep((s) => (s - 1) as 0 | 1 | 2);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,38 +209,60 @@ export function CreateAgentPanel({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="bg-card m-4 flex max-h-[calc(100vh-2rem)] min-h-fit w-full max-w-full flex-col overflow-hidden rounded-2xl border !p-0 sm:m-6 sm:max-h-[calc(100vh-3rem)] sm:w-[480px] md:w-[640px] lg:m-8 lg:w-[720px] [&>button]:hidden"
-        style={{
-          boxShadow: '0 32px 64px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <SheetHeader className="bg-card sticky top-0 z-10 border-b px-6 py-6">
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) setStep(0);
+      }}
+    >
+      <DialogContent className="max-w-2xl p-0">
+        <DialogHeader className="border-b px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              <DialogTitle className="text-xl font-semibold">
                 Create Agent
-              </SheetTitle>
-              <SheetDescription className="text-sm text-gray-600 dark:text-gray-300">
+              </DialogTitle>
+              <DialogDescription>
                 Set up a new AI voice agent for your campaigns
-              </SheetDescription>
+              </DialogDescription>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="bg-muted hover:bg-muted/80 rounded-full border"
+              className="rounded-full border"
             >
-              <X className="h-4 w-4 text-gray-700 dark:text-gray-200" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
-        </SheetHeader>
 
+          {/* Step indicator */}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {steps.map((s, idx) => (
+              <div
+                key={s.key}
+                className={
+                  idx <= step
+                    ? 'bg-primary text-primary-foreground rounded-md px-3 py-2 text-xs'
+                    : 'rounded-md border px-3 py-2 text-xs'
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span className="bg-background text-foreground inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px]">
+                    {idx < step ? <Check className="h-3 w-3" /> : idx + 1}
+                  </span>
+                  <span className="font-medium">{s.title}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogHeader>
+
+        {/* Body */}
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="overflow-y-auto px-6 py-6">
-            <form id="agent-form" onSubmit={handleSubmit} className="space-y-8">
+            {step === 0 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-blue-500" />
@@ -230,7 +296,9 @@ export function CreateAgentPanel({
                   </p>
                 </div>
               </div>
+            )}
 
+            {step === 1 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Volume2 className="h-5 w-5 text-purple-500" />
@@ -282,36 +350,72 @@ export function CreateAgentPanel({
                   </Select>
                 </div>
               </div>
-            </form>
-          </div>
+            )}
 
-          {/* Submit Buttons */}
-          <div className="bg-card mt-auto border-t px-6 py-6">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="submit"
-                form="agent-form"
-                disabled={isSubmitting}
-                className="w-full bg-blue-500/80 hover:bg-blue-600/80 sm:w-auto sm:flex-1"
-              >
-                {isSubmitting ? (
-                  <Spinner className="h-4 w-4" />
-                ) : (
-                  'Create Agent'
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="w-full border-red-400/30 bg-red-500/10 hover:bg-red-500/20 sm:w-auto dark:hover:bg-red-500/20"
-              >
-                Cancel
-              </Button>
-            </div>
+            {step === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Review</h3>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <div className="text-muted-foreground text-xs">Name</div>
+                    <div className="font-medium">{name || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">
+                      Description
+                    </div>
+                    <div className="font-medium">{description || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">
+                      Voice Type
+                    </div>
+                    <div className="font-medium">
+                      {voiceType === 'ai_generated' ? 'AI Generated' : 'Custom'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Voice</div>
+                    <div className="font-medium">
+                      {voices.find((v) => v.voice_id === voiceId)?.name || '—'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+
+        <DialogFooter className="border-t px-6 py-4">
+          <div className="flex w-full items-center justify-between gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={goBack} disabled={step === 0}>
+                <ChevronLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              {step < 2 ? (
+                <Button onClick={goNext} disabled={!canProceed()}>
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !canProceed()}
+                  className="bg-blue-500/80 hover:bg-blue-600/80"
+                >
+                  {isSubmitting ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    'Create Agent'
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

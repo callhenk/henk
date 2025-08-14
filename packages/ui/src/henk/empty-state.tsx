@@ -60,7 +60,7 @@ const EmptyState: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   return (
     <div
       className={cn(
-        'flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-xs',
+        'flex flex-1 items-center justify-center rounded-lg border border-dashed',
         className,
       )}
       {...props}
@@ -76,4 +76,4 @@ const EmptyState: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 };
 EmptyState.displayName = 'EmptyState';
 
-export { EmptyState, EmptyStateHeading, EmptyStateText, EmptyStateButton };
+export { EmptyState, EmptyStateButton, EmptyStateHeading, EmptyStateText };

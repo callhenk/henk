@@ -157,7 +157,7 @@ export function RealtimeVoiceChat({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <Card className="relative w-full max-w-md border shadow-lg">
+      <Card className="relative w-full max-w-md border">
         {/* Header */}
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-4">
           <div className="space-y-1">

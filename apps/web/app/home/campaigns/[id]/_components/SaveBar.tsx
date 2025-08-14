@@ -52,7 +52,7 @@ export function SaveBar({
 
   return (
     <div className="fixed inset-x-0 bottom-2 z-40 flex justify-center px-3 sm:px-4">
-      <div className="bg-card text-foreground ring-border flex w-full max-w-3xl items-center justify-between gap-3 rounded-xl px-3 py-2 shadow-sm ring-1">
+      <div className="bg-card text-foreground ring-border flex w-full max-w-3xl items-center justify-between gap-3 rounded-xl px-3 py-2 ring-1">
         <div aria-live="polite" className="text-sm">
           {statusText}
         </div>

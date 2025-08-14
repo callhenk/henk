@@ -26,7 +26,7 @@ const TabsTrigger: React.FC<
 > = ({ className, ...props }) => (
   <TabsPrimitive.Trigger
     className={cn(
-      'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background/50 data-[state=active]:text-foreground inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-xs hover:bg-background/30',
+      'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background/50 data-[state=active]:text-foreground hover:bg-background/30 inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50',
       className,
     )}
     {...props}
@@ -47,4 +47,4 @@ const TabsContent: React.FC<
 );
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+export { Tabs, TabsContent, TabsList, TabsTrigger };
