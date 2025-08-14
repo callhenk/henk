@@ -4,14 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Volume2,
-  X,
-} from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, User, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useCreateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
@@ -227,14 +220,6 @@ export function CreateAgentPanel({
                 Set up a new AI voice agent for your campaigns
               </DialogDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="rounded-full border"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Step indicator */}
@@ -403,7 +388,6 @@ export function CreateAgentPanel({
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting || !canProceed()}
-                  className="bg-blue-500/80 hover:bg-blue-600/80"
                 >
                   {isSubmitting ? (
                     <Spinner className="h-4 w-4" />
