@@ -176,6 +176,7 @@ export function AgentKnowledge({
               <FAQEditor
                 value={faqs}
                 agentId={agent.id}
+                onSaveField={onSaveField}
                 onSaveSuccess={() => {
                   onSaveSuccess('FAQs saved successfully!');
                 }}

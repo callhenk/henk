@@ -50,39 +50,54 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Transform updates to match ElevenLabs API structure
-    let transformedUpdates = updates || {};
+    // We'll gradually build a single payload instead of overwriting
+    const transformedUpdates: Record<string, unknown> = {};
+
+    type ConversationConfig = {
+      tts?: { voice_id?: string };
+      agent?: {
+        first_message?: string;
+        prompt?: Record<string, unknown>;
+      };
+    };
+
+    // Always pass through context_data if provided
+    if (updates && updates.context_data) {
+      transformedUpdates.context_data = updates.context_data;
+    }
+
+    // Voice update → conversation_config.tts.voice_id
     if (updates && updates.voice_id) {
-      transformedUpdates = {
-        conversation_config: {
-          tts: {
-            voice_id: updates.voice_id,
-          },
+      const currentConfig =
+        (transformedUpdates.conversation_config as ConversationConfig) || {};
+      transformedUpdates.conversation_config = {
+        ...currentConfig,
+        tts: {
+          ...currentConfig.tts,
+          voice_id: updates.voice_id,
         },
       };
-      // Remove voice_id from root level if it exists
-      delete transformedUpdates.voice_id;
+      delete updates.voice_id;
     }
 
+    // Starting message → conversation_config.agent.first_message
     if (updates && updates.starting_message) {
-      transformedUpdates = {
-        conversation_config: {
-          agent: {
-            first_message: updates.starting_message,
-          },
+      const currentConfig =
+        (transformedUpdates.conversation_config as ConversationConfig) || {};
+      transformedUpdates.conversation_config = {
+        ...currentConfig,
+        agent: {
+          ...currentConfig.agent,
+          first_message: updates.starting_message,
         },
       };
-      // Remove starting_message from root level if it exists
-      delete transformedUpdates.starting_message;
+      delete updates.starting_message;
     }
 
-    // Handle knowledge base linking (array of objects)
-    if (knowledge_base_objects) {
-      console.log('Linking knowledge base objects to agent:', {
-        agent_id,
-        knowledge_base_objects,
-      });
-
-      // First get current agent configuration
+    // We may need current agent prompt to merge safely when updating prompt/knowledge base
+    let currentPrompt: Record<string, unknown> | null = null;
+    const ensureCurrentPrompt = async () => {
+      if (currentPrompt) return currentPrompt;
       const agentResponse = await fetch(
         `https://api.elevenlabs.io/v1/convai/agents/${agent_id}`,
         {
@@ -91,27 +106,146 @@ export async function PATCH(request: NextRequest) {
           },
         },
       );
-
       if (!agentResponse.ok) {
         throw new Error(
           `Failed to fetch agent details: ${agentResponse.statusText}`,
         );
       }
-
       const agentData = await agentResponse.json();
-      const currentPrompt = agentData.conversation_config?.agent?.prompt || {};
+      currentPrompt = agentData.conversation_config?.agent?.prompt || {};
+      return currentPrompt;
+    };
 
-      transformedUpdates = {
-        conversation_config: {
-          agent: {
-            prompt: {
-              ...currentPrompt,
-              knowledge_base: knowledge_base_objects,
-            },
+    // If donor_context is provided (either at root or within context_data),
+    // update the agent LLM prompt text and concatenate existing FAQs from database.
+    const donorContextFromRoot = updates?.donor_context as string | undefined;
+    const donorContextFromContextData = updates?.context_data?.donor_context as
+      | string
+      | undefined;
+    const newPromptText = donorContextFromRoot || donorContextFromContextData;
+    if (newPromptText && typeof newPromptText === 'string') {
+      const promptObj = await ensureCurrentPrompt();
+
+      // Get existing FAQs from database (not from ElevenLabs prompt)
+      // We need to fetch the current agent data from our database to get FAQs
+      let faqSection = '';
+      if (agent_id) {
+        try {
+          // Get agent data from Supabase to access current FAQs
+          const { data: agentData } = await supabase
+            .from('agents')
+            .select('faqs')
+            .eq('elevenlabs_agent_id', agent_id)
+            .single();
+
+          if (agentData?.faqs && Array.isArray(agentData.faqs)) {
+            faqSection = '\n\nFrequently Asked Questions:\n';
+            (
+              agentData.faqs as Array<{ question: string; answer: string }>
+            ).forEach((faq, index) => {
+              if (faq.question && faq.answer) {
+                faqSection += `Q${index + 1}: ${faq.question}\nA${index + 1}: ${faq.answer}\n\n`;
+              }
+            });
+          }
+        } catch (error) {
+          console.log('Could not fetch existing FAQs:', error);
+        }
+      }
+
+      // Combine new prompt text with existing FAQ section from database
+      const updatedPrompt = newPromptText + faqSection;
+
+      const currentConfig =
+        (transformedUpdates.conversation_config as ConversationConfig) || {};
+      transformedUpdates.conversation_config = {
+        ...currentConfig,
+        agent: {
+          ...currentConfig.agent,
+          prompt: {
+            ...promptObj,
+            prompt: updatedPrompt,
           },
         },
       };
+      // Keep donor_context available in context_data for reference as well
+      transformedUpdates.context_data = {
+        ...(transformedUpdates.context_data || {}),
+        donor_context: newPromptText,
+      };
+      if (updates?.donor_context) delete updates.donor_context;
+    }
 
+    // Handle FAQs - concatenate them with existing context prompt from database
+    if (updates && updates.faqs && Array.isArray(updates.faqs)) {
+      const promptObj = await ensureCurrentPrompt();
+
+      // Get existing context prompt from database (donor_context)
+      let contextPrompt = '';
+      if (agent_id) {
+        try {
+          // Get agent data from Supabase to access current donor_context
+          const { data: agentData } = await supabase
+            .from('agents')
+            .select('donor_context')
+            .eq('elevenlabs_agent_id', agent_id)
+            .single();
+
+          contextPrompt = agentData?.donor_context || '';
+        } catch (error) {
+          console.log('Could not fetch existing context prompt:', error);
+        }
+      }
+
+      // Build FAQ section for the prompt
+      let faqSection = '';
+      if (updates.faqs.length > 0) {
+        faqSection = '\n\nFrequently Asked Questions:\n';
+        updates.faqs.forEach(
+          (faq: { question: string; answer: string }, index: number) => {
+            if (faq.question && faq.answer) {
+              faqSection += `Q${index + 1}: ${faq.question}\nA${index + 1}: ${faq.answer}\n\n`;
+            }
+          },
+        );
+      }
+
+      // Combine context prompt with new FAQ section
+      const updatedPrompt = contextPrompt + faqSection;
+
+      const currentConfig =
+        (transformedUpdates.conversation_config as ConversationConfig) || {};
+      transformedUpdates.conversation_config = {
+        ...currentConfig,
+        agent: {
+          ...currentConfig.agent,
+          prompt: {
+            ...promptObj,
+            prompt: updatedPrompt,
+          },
+        },
+      };
+    }
+
+    // Handle knowledge base linking
+    if (knowledge_base_objects) {
+      console.log('Linking knowledge base objects to agent:', {
+        agent_id,
+        knowledge_base_objects,
+      });
+      const promptObj = await ensureCurrentPrompt();
+      const currentConfig =
+        (transformedUpdates.conversation_config as ConversationConfig) || {};
+      transformedUpdates.conversation_config = {
+        ...currentConfig,
+        agent: {
+          ...currentConfig.agent,
+          prompt: {
+            ...promptObj,
+            knowledge_base: knowledge_base_objects,
+          },
+        },
+      };
       console.log(
         'Transformed updates for knowledge base:',
         transformedUpdates,
@@ -132,7 +266,11 @@ export async function PATCH(request: NextRequest) {
           'xi-api-key': apiKey,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(transformedUpdates),
+        body: JSON.stringify(
+          Object.keys(transformedUpdates).length
+            ? transformedUpdates
+            : updates || {},
+        ),
       },
     );
 

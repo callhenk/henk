@@ -18,10 +18,16 @@ interface FAQ {
 interface FAQEditorProps {
   value: string;
   agentId: string;
+  onSaveField?: (fieldName: string, value: string) => Promise<void>;
   onSaveSuccess?: () => void;
 }
 
-export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
+export function FAQEditor({
+  value,
+  agentId,
+  onSaveField,
+  onSaveSuccess,
+}: FAQEditorProps) {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingFAQ, setEditingFAQ] = useState<FAQ>({
@@ -41,11 +47,16 @@ export function FAQEditor({ value, agentId, onSaveSuccess }: FAQEditorProps) {
       );
       const faqsData = JSON.parse(JSON.stringify(validFaqs));
 
-      // Save to database
-      await updateAgentMutation.mutateAsync({
-        id: agentId,
-        faqs: faqsData,
-      });
+      // Use onSaveField if available (goes through proper flow that updates ElevenLabs)
+      if (onSaveField) {
+        await onSaveField('faqs', JSON.stringify(faqsData));
+      } else {
+        // Fallback to direct database save
+        await updateAgentMutation.mutateAsync({
+          id: agentId,
+          faqs: faqsData,
+        });
+      }
 
       onSaveSuccess?.();
     } catch {

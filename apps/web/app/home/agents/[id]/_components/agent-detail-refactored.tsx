@@ -457,6 +457,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           }),
           ...(fieldName === 'donor_context' && { donor_context: value }),
           ...(fieldName === 'voice_type' && { voice_type: value }),
+          ...(fieldName === 'faqs' && { faqs: JSON.parse(value) }),
         };
 
         await updateAgentMutation.mutateAsync(updateData);
@@ -484,6 +485,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             }
             if (fieldName === 'starting_message') {
               elevenLabsUpdates.starting_message = value;
+            }
+            if (fieldName === 'faqs') {
+              elevenLabsUpdates.faqs = JSON.parse(value);
             }
 
             if (Object.keys(elevenLabsUpdates).length > 0) {
