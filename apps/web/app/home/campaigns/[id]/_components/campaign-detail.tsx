@@ -475,7 +475,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <div className="mb-4 px-0 pt-0 text-lg font-bold text-gray-900 dark:text-gray-100">
                 Audience
               </div>
-              <div className="space-y-4 rounded-md p-4">
+              <div className="space-y-4 rounded-md">
                 <ExistingAudienceCard campaignId={campaignId} />
                 <AudienceImportCard campaignId={campaignId} />
               </div>
