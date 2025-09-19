@@ -95,6 +95,7 @@ export function CampaignsList() {
     useState<EnhancedCampaign | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showWizard, setShowWizard] = useState(false);
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
@@ -380,9 +381,30 @@ export function CampaignsList() {
 
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
         <DialogContent className="max-w-2xl p-0">
-          <WizardContainer onClose={() => setShowWizard(false)} />
+          <WizardContainer 
+            onClose={() => setShowWizard(false)} 
+            onLoadingChange={setIsCreatingCampaign}
+          />
         </DialogContent>
       </Dialog>
+      
+      {/* Loading overlay during campaign creation */}
+      {isCreatingCampaign && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm pointer-events-none animate-in fade-in duration-300 z-[100]">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-3 text-center px-4">
+              <div className="relative">
+                <div className="w-8 h-8 border-2 border-primary/30 rounded-full"></div>
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Creating your campaign...</p>
+                <p className="text-xs text-muted-foreground">This will only take a moment</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

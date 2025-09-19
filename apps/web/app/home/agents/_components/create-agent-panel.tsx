@@ -188,11 +188,13 @@ export function CreateAgentPanel({
         }
       }
 
-      toast.success('Agent created');
-      onOpenChange(false);
       if (created?.id) {
+        // Navigate immediately to prevent any gap
         router.push(`/home/agents/${created.id}`);
+        // Close modal after navigation starts
+        onOpenChange(false);
       }
+      toast.success('Agent created');
     } catch (err) {
       console.error('Failed to create agent', err);
       toast.error('Failed to create agent');
@@ -202,14 +204,15 @@ export function CreateAgentPanel({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        onOpenChange(o);
-        if (!o) setStep(0);
-      }}
-    >
-      <DialogContent className="max-w-2xl p-0">
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          onOpenChange(o);
+          if (!o) setStep(0);
+        }}
+      >
+        <DialogContent className="max-w-2xl p-0">
         <DialogHeader className="border-b px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -399,7 +402,26 @@ export function CreateAgentPanel({
             </div>
           </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Loading overlay during agent creation */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm pointer-events-none animate-in fade-in duration-300 z-[100]">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-3 text-center px-4">
+              <div className="relative">
+                <div className="w-8 h-8 border-2 border-primary/30 rounded-full"></div>
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Creating your agent...</p>
+                <p className="text-xs text-muted-foreground">This will only take a moment</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

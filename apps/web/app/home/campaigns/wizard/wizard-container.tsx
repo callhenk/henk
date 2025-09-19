@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -78,9 +78,11 @@ const audienceSchema = z.object({
 export function WizardContainer({
   initialCampaignId,
   onClose,
+  onLoadingChange,
 }: {
   initialCampaignId?: string;
   onClose?: () => void;
+  onLoadingChange?: (isLoading: boolean) => void;
 } = {}) {
   const initialStep = 1 as Step;
   const campaignId = initialCampaignId ?? null;
@@ -477,6 +479,11 @@ export function WizardContainer({
   }, [campaignName, agentId, audienceContactCount]);
 
   const [isActing, setIsActing] = useState(false);
+  
+  // Notify parent of loading state changes
+  useEffect(() => {
+    onLoadingChange?.(isActing);
+  }, [isActing, onLoadingChange]);
   const setStatus = async (
     status: 'active' | 'draft' | 'paused',
   ): Promise<string | null> => {
@@ -636,24 +643,6 @@ export function WizardContainer({
           </div>
         )}
       </div>
-      
-      {/* Loading overlay during campaign creation */}
-      {isActing && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm pointer-events-none animate-in fade-in duration-300 z-10">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center space-y-3 text-center px-4">
-              <div className="relative">
-                <div className="w-8 h-8 border-2 border-primary/30 rounded-full"></div>
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Creating your campaign...</p>
-                <p className="text-xs text-muted-foreground">This will only take a moment</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
