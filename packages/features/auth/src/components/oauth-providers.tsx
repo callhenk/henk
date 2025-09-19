@@ -1,12 +1,10 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import type { Provider } from '@supabase/supabase-js';
 
 import { useSignInWithProvider } from '@kit/supabase/hooks/use-sign-in-with-provider';
-import { If } from '@kit/ui/if';
-import { LoadingOverlay } from '@kit/ui/loading-overlay';
 import { Trans } from '@kit/ui/trans';
 
 import { AuthErrorAlert } from './auth-error-alert';
@@ -36,16 +34,31 @@ export function OauthProviders(props: {
   };
 }) {
   const signInWithProviderMutation = useSignInWithProvider();
+  const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null);
+  const [redirectingProvider, setRedirectingProvider] =
+    useState<Provider | null>(null);
 
   // we make the UI "busy" until the next page is fully loaded
   const loading = signInWithProviderMutation.isPending;
 
   const onSignInWithProvider = useCallback(
-    async (signInRequest: () => Promise<unknown>) => {
-      const credential = await signInRequest();
+    async (provider: Provider, signInRequest: () => Promise<unknown>) => {
+      try {
+        setLoadingProvider(provider);
+        const credential = await signInRequest();
 
-      if (!credential) {
-        return Promise.reject(new Error('Failed to sign in with provider'));
+        if (!credential) {
+          return Promise.reject(new Error('Failed to sign in with provider'));
+        }
+
+        // OAuth successful - set redirecting state to maintain loading during redirect
+        setLoadingProvider(null);
+        setRedirectingProvider(provider);
+      } catch (error) {
+        // Only clear loading on error
+        setLoadingProvider(null);
+        setRedirectingProvider(null);
+        throw error;
       }
     },
     [],
@@ -58,11 +71,7 @@ export function OauthProviders(props: {
   }
 
   return (
-    <>
-      <If condition={loading}>
-        <LoadingOverlay />
-      </If>
-
+    <div className="relative">
       <div className={'flex w-full flex-1 flex-col space-y-3'}>
         <div className={'flex-col space-y-2'}>
           {enabledProviders.map((provider) => {
@@ -70,6 +79,11 @@ export function OauthProviders(props: {
               <AuthProviderButton
                 key={provider}
                 providerId={provider}
+                loading={
+                  loadingProvider === provider ||
+                  redirectingProvider === provider
+                }
+                disabled={loading || redirectingProvider !== null}
                 onClick={() => {
                   const origin = window.location.origin;
                   const queryParams = new URLSearchParams();
@@ -95,7 +109,7 @@ export function OauthProviders(props: {
                     },
                   };
 
-                  return onSignInWithProvider(() =>
+                  return onSignInWithProvider(provider, () =>
                     signInWithProviderMutation.mutateAsync(credentials),
                   );
                 }}
@@ -113,7 +127,31 @@ export function OauthProviders(props: {
 
         <AuthErrorAlert error={signInWithProviderMutation.error} />
       </div>
-    </>
+
+      {/* Enhanced loading overlay */}
+      {(loading || redirectingProvider !== null) && (
+        <div className="bg-background/80 animate-in fade-in pointer-events-none absolute inset-0 z-10 backdrop-blur-md duration-300">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-3 px-4 text-center">
+              <div className="relative">
+                <div className="border-primary/30 h-8 w-8 rounded-full border-2"></div>
+                <div className="border-primary absolute inset-0 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-foreground text-sm font-medium">
+                  {redirectingProvider
+                    ? `Redirecting to ${getProviderName(redirectingProvider)}...`
+                    : 'Connecting...'}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  Please wait a moment
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -32,7 +32,10 @@ export function SignInMethodsContainer(props: {
     : '';
 
   const onSignIn = () => {
-    router.replace(nextPath);
+    // Use a slight delay to ensure loading states are maintained during navigation
+    setTimeout(() => {
+      router.replace(nextPath);
+    }, 100);
   };
 
   return (
