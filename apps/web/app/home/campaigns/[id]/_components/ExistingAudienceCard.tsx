@@ -283,14 +283,18 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
             </Select>
           </div>
           <div className="flex items-center gap-2 sm:ml-auto">
-            <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => setAddOpen(true)}
+              disabled={isBulkDeleting}
+            >
               Add
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={openEditForSelected}
-              disabled={selectedIds.size !== 1}
+              disabled={selectedIds.size !== 1 || isBulkDeleting}
             >
               Edit
             </Button>
@@ -298,9 +302,16 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
               size="sm"
               variant="outline"
               onClick={() => setConfirmOpen(true)}
-              disabled={selectedIds.size === 0}
+              disabled={selectedIds.size === 0 || isBulkDeleting}
             >
-              Delete
+              {isBulkDeleting ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Deleting...
+                </div>
+              ) : (
+                'Delete'
+              )}
             </Button>
           </div>
         </div>
@@ -316,7 +327,9 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
             No leads yet. Upload a CSV to add contacts.
           </div>
         ) : (
-          <div className="max-h-64 overflow-auto overflow-x-auto rounded-md border">
+          <div
+            className={`max-h-64 overflow-auto overflow-x-auto rounded-md border ${isBulkDeleting ? 'pointer-events-none opacity-50' : ''}`}
+          >
             <table className="w-full text-sm">
               <thead className="bg-muted sticky top-0">
                 <tr>
@@ -326,6 +339,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                       aria-label="Select all"
                       checked={isAllSelected}
                       onChange={toggleSelectAll}
+                      disabled={isBulkDeleting}
                     />
                   </th>
                   <th className="p-2 text-left">Name</th>
@@ -356,6 +370,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                           })
                         }
                         aria-label={`Select ${l.name ?? 'lead'}`}
+                        disabled={isBulkDeleting}
                       />
                     </td>
                     <td className="p-2">{l.name ?? '-'}</td>
@@ -503,7 +518,14 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 setConfirmOpen(false);
               }}
             >
-              {isBulkDeleting ? 'Deleting…' : 'Delete'}
+              {isBulkDeleting ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Deleting…
+                </div>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
