@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { Plus } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 
 import { Tables } from '@kit/supabase/database';
 import { Button } from '@kit/ui/button';
@@ -148,7 +148,17 @@ export function ReviewStep({
             onClick={() => void onCreate()}
             className="min-w-36"
           >
-            <Plus className="mr-2 h-4 w-4" /> Create campaign
+            {isActing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating campaign...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Create campaign
+              </>
+            )}
           </Button>
         </div>
       </div>
