@@ -61,6 +61,28 @@ export function useCampaignEditor(campaignId: string) {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isScriptDialogOpen, setIsScriptDialogOpen] = useState(false);
 
+  // Derived - use the same normalization logic for comparison
+  const normalizeTime = useCallback((value?: string | null): string => {
+    if (!value) return '';
+    if (/^\d{2}:\d{2}$/.test(value)) return value;
+    if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format('HH:mm') : '';
+  }, []);
+
+  const hasCallWindowChanges = useMemo(() => {
+    const originalStart = normalizeTime(campaign?.call_window_start) || '09:00';
+    const originalEnd = normalizeTime(campaign?.call_window_end) || '17:00';
+
+    return callWindowStart !== originalStart || callWindowEnd !== originalEnd;
+  }, [
+    callWindowStart,
+    callWindowEnd,
+    campaign?.call_window_start,
+    campaign?.call_window_end,
+    normalizeTime,
+  ]);
+
   // Init when campaign changes
   useEffect(() => {
     if (!campaign) return;
@@ -79,14 +101,6 @@ export function useCampaignEditor(campaignId: string) {
       }
     };
 
-    const normalizeTime = (value?: string | null): string => {
-      if (!value) return '';
-      if (/^\d{2}:\d{2}$/.test(value)) return value;
-      if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
-      const parsed = dayjs(value);
-      return parsed.isValid() ? parsed.format('HH:mm') : '';
-    };
-
     setCampaignName(campaign.name || '');
     setCampaignDescription(campaign.description || '');
     setCallWindowStart(normalizeTime(campaign.call_window_start) || '09:00');
@@ -96,18 +110,7 @@ export function useCampaignEditor(campaignId: string) {
     setRetryLogicValue(campaign.retry_logic ?? '');
     setSelectedAgentId(campaign.agent_id ?? null);
     setGoalMetric(apiToUiGoal(campaign.goal_metric));
-  }, [campaign]);
-
-  // Derived
-  const hasCallWindowChanges =
-    callWindowStart !==
-      (campaign?.call_window_start
-        ? dayjs(campaign.call_window_start).format('HH:mm')
-        : '09:00') ||
-    callWindowEnd !==
-      (campaign?.call_window_end
-        ? dayjs(campaign.call_window_end).format('HH:mm')
-        : '17:00');
+  }, [campaign, normalizeTime]);
 
   const campaignLeads = useMemo(
     () => leads.filter((l) => l.campaign_id === campaignId),
@@ -185,6 +188,35 @@ export function useCampaignEditor(campaignId: string) {
             // Normalize to midnight UTC to avoid timezone drift
             const iso = new Date(`${value}T00:00:00Z`).toISOString();
             validatedValue = iso;
+
+            // Cross-field validation: ensure start_date <= end_date
+            if (fieldName === 'start_date') {
+              const endDate = campaign?.end_date;
+              if (endDate) {
+                const startDateOnly = new Date(iso);
+                const endDateOnly = new Date(endDate);
+                startDateOnly.setHours(0, 0, 0, 0);
+                endDateOnly.setHours(0, 0, 0, 0);
+                if (startDateOnly > endDateOnly) {
+                  isValid = false;
+                  errorMessage =
+                    'Start date must be before or equal to end date';
+                }
+              }
+            } else if (fieldName === 'end_date') {
+              const startDate = campaign?.start_date;
+              if (startDate) {
+                const startDateOnly = new Date(startDate);
+                const endDateOnly = new Date(iso);
+                startDateOnly.setHours(0, 0, 0, 0);
+                endDateOnly.setHours(0, 0, 0, 0);
+                if (startDateOnly > endDateOnly) {
+                  isValid = false;
+                  errorMessage =
+                    'End date must be after or equal to start date';
+                }
+              }
+            }
           } else {
             isValid = false;
             errorMessage = 'Invalid date format (YYYY-MM-DD)';
@@ -329,6 +361,45 @@ export function useCampaignEditor(campaignId: string) {
     }
   }, [campaign, campaignId]);
 
+  const handleSaveDates = useCallback(
+    async (startDateValue: string, endDateValue: string) => {
+      if (!campaign) return;
+      try {
+        // Validate both dates together before saving
+        if (startDateValue && endDateValue) {
+          const startDate = new Date(`${startDateValue}T00:00:00Z`);
+          const endDate = new Date(`${endDateValue}T00:00:00Z`);
+
+          if (startDate > endDate) {
+            throw new Error('Start date must be before or equal to end date');
+          }
+        }
+
+        // Save both dates in a single API call
+        const updateData: Partial<Tables<'campaigns'>['Update']> & {
+          id: string;
+        } = {
+          id: campaignId,
+          start_date: startDateValue
+            ? new Date(`${startDateValue}T00:00:00Z`).toISOString()
+            : null,
+          end_date: endDateValue
+            ? new Date(`${endDateValue}T00:00:00Z`).toISOString()
+            : null,
+        };
+
+        await updateCampaignMutation.mutateAsync(updateData);
+        toast.success('Dates saved successfully!');
+      } catch (error) {
+        console.error('Failed to save dates:', error);
+        toast.error(
+          `Failed to save dates: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      }
+    },
+    [campaign, campaignId, updateCampaignMutation],
+  );
+
   return {
     // data
     campaign,
@@ -370,6 +441,7 @@ export function useCampaignEditor(campaignId: string) {
     // handlers
     handleSaveField,
     handleSaveCallWindow,
+    handleSaveDates,
     handleDeleteCampaign,
     handleActivateCampaign,
     handlePauseCampaign,

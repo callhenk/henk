@@ -13,6 +13,7 @@ interface DatePickerProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  minDate?: Date;
 }
 
 export function DatePicker({
@@ -21,6 +22,7 @@ export function DatePicker({
   placeholder = 'Pick a date',
   disabled = false,
   className,
+  minDate,
 }: DatePickerProps) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -51,6 +53,21 @@ export function DatePicker({
           mode="single"
           selected={value}
           onSelect={onValueChange}
+          disabled={(date) => {
+            if (!minDate) return false;
+            // Compare dates only (ignore time) to avoid timezone issues
+            const dateOnly = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate(),
+            );
+            const minDateOnly = new Date(
+              minDate.getFullYear(),
+              minDate.getMonth(),
+              minDate.getDate(),
+            );
+            return dateOnly < minDateOnly;
+          }}
           initialFocus
         />
       </PopoverContent>

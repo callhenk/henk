@@ -75,6 +75,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     hasCallWindowChanges,
     handleSaveField,
     handleSaveCallWindow,
+    handleSaveDates,
     handleDeleteCampaign,
     handleActivateCampaign,
     handlePauseCampaign,
@@ -348,7 +349,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 <label className="mb-2 block text-base font-semibold text-gray-900 dark:text-gray-100">
                   End Date
                 </label>
-                <DatePicker value={endDate} onValueChange={setEndDate} />
+                <DatePicker
+                  value={endDate}
+                  onValueChange={setEndDate}
+                  minDate={startDate}
+                />
                 <p className="text-muted-foreground mt-1 text-xs">
                   Campaign planned end date (optional)
                 </p>
@@ -366,8 +371,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                     onClick={async () => {
                       try {
                         setSavingDates(true);
-                        await handleSaveField('start_date', startYMD || '');
-                        await handleSaveField('end_date', endYMD || '');
+                        await handleSaveDates(startYMD || '', endYMD || '');
                       } finally {
                         setSavingDates(false);
                       }

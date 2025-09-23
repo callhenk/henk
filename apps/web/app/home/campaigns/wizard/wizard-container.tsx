@@ -53,7 +53,7 @@ const basicsSchema = z
     agent_id: z.string().min(1, 'Select an agent'),
   })
   .superRefine((val, ctx) => {
-    if (val.end_date && val.start_date && val.end_date < val.start_date) {
+    if (val.end_date && val.start_date && val.start_date > val.end_date) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'End date must be after start date',

@@ -137,6 +137,7 @@ export function BasicsStep({
                         field.onChange(d);
                         onBlurBasics();
                       }}
+                      minDate={form.watch('start_date')}
                     />
                   </FormControl>
                   <FormMessage />
