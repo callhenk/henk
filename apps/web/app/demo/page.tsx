@@ -315,7 +315,7 @@ export default function TestCallPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Phone Number</label>
                   <Input
-                    placeholder="Enter your phone number (e.g. +1 555-123-4567)"
+                    placeholder="(e.g. +1 555-123-4567)"
                     value={testToNumber}
                     onChange={(e) => setTestToNumber(e.target.value)}
                     type="tel"
