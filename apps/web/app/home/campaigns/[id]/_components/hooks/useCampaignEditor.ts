@@ -126,14 +126,10 @@ export function useCampaignEditor(campaignId: string) {
   );
 
   const agentReadiness = useMemo(() => {
-    const hasScript = Boolean(
-      assignedAgent?.donor_context &&
-        String(assignedAgent.donor_context).trim().length > 0,
-    );
-    const hasDisclosure = Boolean(
-      assignedAgent?.starting_message &&
-        String(assignedAgent.starting_message).trim().length > 0,
-    );
+    const donorContext = assignedAgent?.donor_context ?? '';
+    const startingMessage = assignedAgent?.starting_message ?? '';
+    const hasScript = String(donorContext).trim().length > 0;
+    const hasDisclosure = String(startingMessage).trim().length > 0;
     // Caller ID is automatically assigned for new agents
     const hasCallerId = true;
     return { hasScript, hasDisclosure, hasCallerId } as const;

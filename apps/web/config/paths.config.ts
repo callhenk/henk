@@ -17,6 +17,7 @@ const PathsSchema = z.object({
     conversations: z.string().min(1),
     integrations: z.string().min(1),
     analytics: z.string().min(1),
+    demo: z.string().min(1),
   }),
 });
 
@@ -37,6 +38,7 @@ const pathsConfig = PathsSchema.parse({
     conversations: '/home/conversations',
     integrations: '/home/integrations',
     analytics: '/home/analytics',
+    demo: '/demo',
   },
 } satisfies z.infer<typeof PathsSchema>);
 

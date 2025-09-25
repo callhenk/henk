@@ -4,6 +4,7 @@ import {
   Home,
   MessageSquare,
   Phone,
+  PhoneCall,
   User,
   Users,
 } from 'lucide-react';
@@ -34,6 +35,11 @@ const routes = [
         label: 'Agents',
         path: pathsConfig.app.agents,
         Icon: <Users className={iconClasses} />,
+      },
+      {
+        label: 'Demo',
+        path: pathsConfig.app.demo,
+        Icon: <PhoneCall className={iconClasses} />,
       },
       {
         label: 'Conversations',
