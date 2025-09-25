@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
-import { useSupabase } from '@kit/supabase/hooks/use-supabase';
-import { useSignInWithEmailPassword } from '@kit/supabase/hooks/use-sign-in-with-email-password';
-
 import { Phone, PhoneCall } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Import the useAgents hook from the correct location
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useSignInWithEmailPassword } from '@kit/supabase/hooks/use-sign-in-with-email-password';
+import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
@@ -25,9 +26,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { verifyDemoToken } from '~/lib/demo-auth';
 
 import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voice-chat';
-
-// Import the useAgents hook from the correct location
-import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 
 export default function TestCallPage() {
   const searchParams = useSearchParams();
@@ -77,19 +75,22 @@ export default function TestCallPage() {
       setTokenError(null);
 
       // Auto-login with demo credentials using proper sign-in hook
-      signInMutation.mutateAsync({
-        email: credentials.email,
-        password: credentials.password,
-      }).then(() => {
-        toast.success('Signed in to demo');
-        setIsSigningIn(false);
-      }).catch((error) => {
-        console.error('Demo login failed:', error);
-        setTokenError('Authentication failed with demo credentials');
-        toast.error('Demo login failed');
-        setHasValidToken(false);
-        setIsSigningIn(false);
-      });
+      signInMutation
+        .mutateAsync({
+          email: credentials.email,
+          password: credentials.password,
+        })
+        .then(() => {
+          toast.success('Signed in to demo');
+          setIsSigningIn(false);
+        })
+        .catch((error) => {
+          console.error('Demo login failed:', error);
+          setTokenError('Authentication failed with demo credentials');
+          toast.error('Demo login failed');
+          setHasValidToken(false);
+          setIsSigningIn(false);
+        });
     } catch (error) {
       // Token parsing/decryption failed
       setTokenError('Malformed or corrupted demo token');
@@ -121,7 +122,7 @@ export default function TestCallPage() {
         // ignore
       }
     })();
-  }, []);
+  }, [isSigningIn]);
 
   // Set default agent if available
   useEffect(() => {
@@ -176,12 +177,13 @@ export default function TestCallPage() {
 
   // Show access denied screen if no valid token
   if (!hasValidToken && !isSigningIn) {
-    const isInvalidToken = tokenError && tokenError !== 'No access token provided';
+    const isInvalidToken =
+      tokenError && tokenError !== 'No access token provided';
 
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="max-w-md text-center">
-          <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
             <span className="text-2xl">{isInvalidToken ? '❌' : '🔒'}</span>
           </div>
           <h1 className="mb-4 text-2xl font-bold">
@@ -189,7 +191,7 @@ export default function TestCallPage() {
           </h1>
 
           {tokenError && (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-4">
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
                 Error: {tokenError}
               </p>
@@ -199,15 +201,16 @@ export default function TestCallPage() {
           <p className="text-muted-foreground mb-6">
             {isInvalidToken
               ? 'The demo token you provided is not valid. Please check your link or contact our team for a new demo token.'
-              : 'This demo requires a valid access token. Please contact our team to get access to the demonstration.'
-            }
+              : 'This demo requires a valid access token. Please contact our team to get access to the demonstration.'}
           </p>
 
-          <div className="rounded-lg border bg-muted/50 p-4 text-left">
-            <h3 className="font-medium mb-2">
-              {isInvalidToken ? 'To get a new demo link:' : 'To access this demo:'}
+          <div className="bg-muted/50 rounded-lg border p-4 text-left">
+            <h3 className="mb-2 font-medium">
+              {isInvalidToken
+                ? 'To get a new demo link:'
+                : 'To access this demo:'}
             </h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
+            <ul className="text-muted-foreground space-y-1 text-sm">
               <li>• Contact our sales team</li>
               <li>• Request a {isInvalidToken ? 'new ' : ''}demo link</li>
               <li>• Use the provided secure URL</li>
