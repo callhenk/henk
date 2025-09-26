@@ -184,15 +184,82 @@ export function PerformanceChart({
           </div>
         ) : (
           <>
-            <div className="bg-muted/50 flex h-64 items-center justify-center rounded-lg border">
-              <div className="space-y-2 text-center">
-                <BarChart3 className="text-muted-foreground mx-auto h-12 w-12" />
-                <p className="text-muted-foreground text-sm">
-                  Performance chart will be implemented with chart library
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  Selected metrics: {selectedMetrics.join(', ')}
-                </p>
+            <div className="bg-muted/20 rounded-lg border p-4">
+              <div className="h-64 flex items-end justify-between space-x-1">
+                {performanceData.slice(-7).map((data, index) => {
+                  // Calculate max value for each selected metric
+                  const maxCalls = Math.max(...performanceData.map(d => d.calls));
+                  const maxConversions = Math.max(...performanceData.map(d => d.conversions));
+                  const maxRevenue = Math.max(...performanceData.map(d => d.revenue));
+
+                  return (
+                    <div key={index} className="flex-1 flex flex-col items-center">
+                      <div className="h-48 flex items-end justify-center space-x-0.5">
+                        {selectedMetrics.includes('calls') && (
+                          <div className="flex flex-col items-center">
+                            <div
+                              className="w-4 bg-blue-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              style={{
+                                height: `${Math.max((data.calls / maxCalls) * 180, 4)}px`
+                              }}
+                              title={`${data.calls} calls on ${new Date(data.date).toLocaleDateString()}`}
+                            />
+                          </div>
+                        )}
+                        {selectedMetrics.includes('conversions') && (
+                          <div className="flex flex-col items-center">
+                            <div
+                              className="w-4 bg-green-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              style={{
+                                height: `${Math.max((data.conversions / maxConversions) * 180, 4)}px`
+                              }}
+                              title={`${data.conversions} conversions on ${new Date(data.date).toLocaleDateString()}`}
+                            />
+                          </div>
+                        )}
+                        {selectedMetrics.includes('revenue') && (
+                          <div className="flex flex-col items-center">
+                            <div
+                              className="w-4 bg-purple-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              style={{
+                                height: `${Math.max((data.revenue / maxRevenue) * 180, 4)}px`
+                              }}
+                              title={`$${data.revenue} revenue on ${new Date(data.date).toLocaleDateString()}`}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground text-center mt-2">
+                        {new Date(data.date).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-4 flex justify-center space-x-6 text-xs">
+                {selectedMetrics.includes('calls') && (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <span>Calls</span>
+                  </div>
+                )}
+                {selectedMetrics.includes('conversions') && (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Conversions</span>
+                  </div>
+                )}
+                {selectedMetrics.includes('revenue') && (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-purple-500 rounded"></div>
+                    <span>Revenue</span>
+                  </div>
+                )}
               </div>
             </div>
 
