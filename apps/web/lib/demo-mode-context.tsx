@@ -58,37 +58,47 @@ function generateMockData() {
       id: 'agent-1',
       name: 'Sarah Mitchell',
       status: 'active',
-      created_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
     },
     {
       id: 'agent-2',
       name: 'Michael Rodriguez',
       status: 'active',
-      created_at: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 14 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 45 * 60 * 1000).toISOString(),
     },
     {
       id: 'agent-3',
       name: 'Emma Thompson',
       status: 'paused',
-      created_at: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 21 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'agent-4',
       name: 'David Chen',
       status: 'active',
-      created_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 15 * 60 * 1000).toISOString(),
     },
     {
       id: 'agent-5',
       name: 'Lisa Johnson',
       status: 'inactive',
-      created_at: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 30 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ];
 
   const mockCampaigns: MockCampaign[] = [
@@ -96,30 +106,40 @@ function generateMockData() {
       id: 'campaign-1',
       name: 'Annual Giving Campaign 2024',
       status: 'active',
-      created_at: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 30 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'campaign-2',
       name: 'Emergency Relief Fund',
       status: 'active',
-      created_at: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 15 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'campaign-3',
       name: 'Education Support Initiative',
       status: 'paused',
-      created_at: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 45 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      updated_at: new Date(
+        now.getTime() - 5 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
     },
     {
       id: 'campaign-4',
       name: 'Healthcare Access Program',
       status: 'active',
-      created_at: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 20 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       updated_at: new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ];
 
   // Generate conversations across multiple days with realistic patterns
@@ -142,16 +162,29 @@ function generateMockData() {
       const callTime = new Date(dayDate);
       callTime.setHours(hour, minute, second);
 
-      const outcomes: Array<'donated' | 'callback requested' | 'no_answer' | 'not_interested'> = ['donated', 'callback requested', 'no_answer', 'not_interested'];
-      const statuses: Array<'completed' | 'in_progress' | 'failed'> = ['completed', 'failed'];
+      const outcomes = [
+        'donated',
+        'callback requested',
+        'no_answer',
+        'not_interested',
+      ] as const;
 
       // Higher success rate for demo
-      const outcome = Math.random() < 0.35 ? 'donated' : outcomes[Math.floor(Math.random() * outcomes.length)];
-      const status: 'completed' | 'in_progress' | 'failed' = outcome === 'donated' || outcome === 'callback requested' ? 'completed' :
-                   Math.random() < 0.8 ? 'completed' : 'failed';
+      const outcome: MockConversation['outcome'] =
+        Math.random() < 0.35
+          ? 'donated'
+          : outcomes[Math.floor(Math.random() * outcomes.length)]!;
+      const status: 'completed' | 'in_progress' | 'failed' =
+        outcome === 'donated' || outcome === 'callback requested'
+          ? 'completed'
+          : Math.random() < 0.8
+            ? 'completed'
+            : 'failed';
 
-      const selectedAgent = mockAgents[Math.floor(Math.random() * mockAgents.length)];
-      const selectedCampaign = mockCampaigns[Math.floor(Math.random() * mockCampaigns.length)];
+      const selectedAgent =
+        mockAgents[Math.floor(Math.random() * mockAgents.length)];
+      const selectedCampaign =
+        mockCampaigns[Math.floor(Math.random() * mockCampaigns.length)];
 
       if (selectedAgent && selectedCampaign) {
         mockConversations.push({
@@ -170,7 +203,10 @@ function generateMockData() {
   }
 
   // Sort conversations by created_at descending (most recent first)
-  mockConversations.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  mockConversations.sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 
   return { mockAgents, mockCampaigns, mockConversations };
 }
@@ -190,10 +226,11 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      const isCallHenk = hostname === 'callhenk.com' ||
-                        hostname === 'www.callhenk.com' ||
-                        hostname === 'localhost' || // Allow localhost for development
-                        hostname === '127.0.0.1';
+      const isCallHenk =
+        hostname === 'callhenk.com' ||
+        hostname === 'www.callhenk.com' ||
+        hostname === 'localhost' || // Allow localhost for development
+        hostname === '127.0.0.1';
       setIsCallHenkDomain(isCallHenk);
 
       const checkDemoMode = () => {
