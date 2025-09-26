@@ -32,7 +32,9 @@ export interface MockConversation {
 
 interface DemoModeContextType {
   isDemoMode: boolean;
-  isCallHenkDomain: boolean;
+  isDemoVisible: boolean;
+  toggleDemoMode: () => void;
+  toggleDemoVisibility: () => void;
   mockAgents: MockAgent[];
   mockCampaigns: MockCampaign[];
   mockConversations: MockConversation[];
@@ -219,56 +221,46 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
     }
     return false;
   });
-  const [isCallHenkDomain, setIsCallHenkDomain] = useState(false);
+  const [isDemoVisible, setIsDemoVisible] = useState(() => {
+    // Check localStorage for popup visibility
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('demo-popup-hidden') !== 'true';
+    }
+    return true;
+  });
   const [mockData] = useState(generateMockData());
 
-  // Check URL parameters and domain
-  React.useEffect(() => {
+  const toggleDemoMode = () => {
+    const newDemoMode = !isDemoMode;
+    setIsDemoMode(newDemoMode);
+
     if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const isCallHenk =
-        hostname === 'callhenk.com' ||
-        hostname === 'www.callhenk.com' ||
-        hostname === 'localhost' || // Allow localhost for development
-        hostname === '127.0.0.1';
-      setIsCallHenkDomain(isCallHenk);
-
-      const checkDemoMode = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const demoParam = urlParams.get('demo');
-
-        if (isCallHenk && demoParam === 'true') {
-          // Activate demo mode and persist it
-          setIsDemoMode(true);
-          localStorage.setItem('demo-mode-active', 'true');
-        } else if (demoParam === 'false') {
-          // Explicitly deactivate demo mode
-          setIsDemoMode(false);
-          localStorage.removeItem('demo-mode-active');
-        }
-        // If no demo parameter, keep current state (don't change)
-      };
-
-      // Check on initial load
-      checkDemoMode();
-
-      // Listen for navigation changes (for client-side routing)
-      const handleLocationChange = () => {
-        checkDemoMode();
-      };
-
-      // Listen for popstate events (back/forward navigation)
-      window.addEventListener('popstate', handleLocationChange);
-
-      return () => {
-        window.removeEventListener('popstate', handleLocationChange);
-      };
+      if (newDemoMode) {
+        localStorage.setItem('demo-mode-active', 'true');
+      } else {
+        localStorage.removeItem('demo-mode-active');
+      }
     }
-  }, []);
+  };
+
+  const toggleDemoVisibility = () => {
+    const newVisibility = !isDemoVisible;
+    setIsDemoVisible(newVisibility);
+
+    if (typeof window !== 'undefined') {
+      if (newVisibility) {
+        localStorage.removeItem('demo-popup-hidden');
+      } else {
+        localStorage.setItem('demo-popup-hidden', 'true');
+      }
+    }
+  };
 
   const contextValue: DemoModeContextType = {
     isDemoMode,
-    isCallHenkDomain,
+    isDemoVisible,
+    toggleDemoMode,
+    toggleDemoVisibility,
     mockAgents: mockData.mockAgents,
     mockCampaigns: mockData.mockCampaigns,
     mockConversations: mockData.mockConversations,

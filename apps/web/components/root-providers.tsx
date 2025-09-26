@@ -12,6 +12,7 @@ import { If } from '@kit/ui/if';
 import { VersionUpdater } from '@kit/ui/version-updater';
 
 import { AuthProvider } from '~/components/auth-provider';
+import { DemoPopup } from '~/components/demo-popup';
 import appConfig from '~/config/app.config';
 import authConfig from '~/config/auth.config';
 import featuresFlagConfig from '~/config/feature-flags.config';
@@ -61,6 +62,7 @@ export function RootProviders({
                 enableColorScheme={false}
               >
                 {children}
+                <DemoPopup />
               </ThemeProvider>
             </DemoModeProvider>
           </AuthProvider>
