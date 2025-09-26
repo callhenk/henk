@@ -25,6 +25,7 @@ import {
 } from '@kit/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
 import { AgentHeader } from './agent-header';
 import { AgentKnowledge } from './agent-knowledge';
@@ -37,6 +38,7 @@ import { WorkflowBuilder } from './workflow-builder/index';
 export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isDemoMode, mockAgents, mockConversations, mockCampaigns } = useDemoMode();
 
   // Get the default tab from URL parameter
   const defaultTab = searchParams.get('tab') || 'overview';
@@ -45,9 +47,14 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Fetch real data
-  const { data: agent, isLoading: loadingAgent, refetch } = useAgent(agentId);
-  const { data: conversations = [] } = useConversations();
-  const { data: campaigns = [] } = useCampaigns();
+  const { data: realAgent, isLoading: loadingAgent, refetch } = useAgent(agentId);
+  const { data: realConversations = [] } = useConversations();
+  const { data: realCampaigns = [] } = useCampaigns();
+
+  // Use demo data if demo mode is active
+  const agent = isDemoMode ? mockAgents.find(a => a.id === agentId) || mockAgents[0] : realAgent;
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const campaigns = isDemoMode ? (mockCampaigns as any) : realCampaigns;
   const { data: voices = [] } = useVoices();
 
   // Update mutation

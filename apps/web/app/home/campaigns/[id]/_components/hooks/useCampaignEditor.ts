@@ -16,6 +16,7 @@ import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { validateReadyForActive } from '../schemas';
 
 const callWindowSchema = z
@@ -33,12 +34,20 @@ const callWindowSchema = z
   );
 
 export function useCampaignEditor(campaignId: string) {
+  const { isDemoMode, mockCampaigns, mockConversations, mockAgents } = useDemoMode();
+
   // Fetch data
-  const { data: campaign, isLoading: loadingCampaign } =
+  const { data: realCampaign, isLoading: loadingCampaign } =
     useCampaign(campaignId);
-  const { data: leads = [] } = useLeads();
-  const { data: conversations = [] } = useConversations();
-  const { data: agents = [] } = useAgents();
+  const { data: realLeads = [] } = useLeads();
+  const { data: realConversations = [] } = useConversations();
+  const { data: realAgents = [] } = useAgents();
+
+  // Use demo data if demo mode is active
+  const campaign = isDemoMode ? (mockCampaigns.find(c => c.id === campaignId) || mockCampaigns[0]) as any : realCampaign;
+  const leads = isDemoMode ? [] : realLeads; // Demo leads can be empty for now
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const agents = isDemoMode ? mockAgents : realAgents;
 
   // Mutations
   const deleteCampaignMutation = useDeleteCampaign();
