@@ -166,7 +166,7 @@ export function ExportControls({ filters }: ExportControlsProps) {
               onClick={() => handleExport('png', 'charts')}
               className="flex items-center space-x-2"
             >
-              <Image alt="Export icon" className="h-4 w-4" />
+              <Image className="h-4 w-4" />
               <span>Export Charts</span>
             </Button>
           </div>

@@ -5,6 +5,8 @@ import { useMemo } from 'react';
 import { BarChart3, DollarSign, Phone, TrendingUp } from 'lucide-react';
 
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
@@ -24,18 +26,26 @@ interface PerformanceChartProps {
 }
 
 const metricOptions = [
-  { key: 'calls', label: 'Calls', icon: Phone, color: 'text-blue-500' },
+  {
+    key: 'calls',
+    label: 'Calls',
+    icon: Phone,
+    selectedClass: 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500',
+    unselectedClass: 'border-blue-200 text-blue-600 hover:bg-blue-50'
+  },
   {
     key: 'conversions',
     label: 'Conversions',
     icon: TrendingUp,
-    color: 'text-green-500',
+    selectedClass: 'bg-green-500 hover:bg-green-600 text-white border-green-500',
+    unselectedClass: 'border-green-200 text-green-600 hover:bg-green-50'
   },
   {
     key: 'revenue',
     label: 'Revenue',
     icon: DollarSign,
-    color: 'text-purple-500',
+    selectedClass: 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500',
+    unselectedClass: 'border-purple-200 text-purple-600 hover:bg-purple-50'
   },
 ];
 
@@ -44,12 +54,16 @@ export function PerformanceChart({
   selectedMetrics,
   onMetricsChange,
 }: PerformanceChartProps) {
-  const { data: conversations = [] } = useConversations();
+  const { isDemoMode, mockConversations } = useDemoMode();
+  const { data: realConversations = [] } = useConversations();
+
+  // Use demo data if demo mode is active
+  const conversations = isDemoMode ? mockConversations : realConversations;
 
   // Generate performance data based on real conversations
   const performanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
-    const filteredConversations = conversations.filter((conv) => {
+    const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&
@@ -68,8 +82,10 @@ export function PerformanceChart({
 
     // Group conversations by date
     const groupedByDate = filteredConversations.reduce(
-      (acc, conv) => {
+      (acc: Record<string, { calls: number; conversions: number; revenue: number }>, conv: any) => {
         const date = new Date(conv.created_at).toISOString().split('T')[0];
+        if (!date) return acc;
+
         if (!acc[date]) {
           acc[date] = {
             calls: 0,
@@ -78,13 +94,13 @@ export function PerformanceChart({
           };
         }
 
-        acc[date].calls += 1;
+        acc[date]!.calls += 1;
 
         if (conv.outcome === 'donated' || conv.status === 'completed') {
-          acc[date].conversions += 1;
+          acc[date]!.conversions += 1;
         }
 
-        acc[date].revenue += conv.donated_amount || 0;
+        acc[date]!.revenue += (conv as any).donated_amount || 0;
 
         return acc;
       },
@@ -138,11 +154,11 @@ export function PerformanceChart({
               return (
                 <Button
                   key={option.key}
-                  variant={isSelected ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
                   onClick={() => toggleMetric(option.key)}
-                  className={`flex items-center space-x-1 ${
-                    isSelected ? option.color : ''
+                  className={`flex items-center space-x-1 transition-all duration-200 ${
+                    isSelected ? option.selectedClass : option.unselectedClass
                   }`}
                 >
                   <Icon className="h-4 w-4" />

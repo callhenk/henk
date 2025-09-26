@@ -16,6 +16,8 @@ import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 
+import { useDemoMode } from '~/lib/demo-mode-context';
+
 import { StatsCard } from '~/components/shared';
 
 interface AnalyticsMetricsProps {
@@ -32,16 +34,22 @@ interface AnalyticsMetricsProps {
 }
 
 export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
+  const { isDemoMode, mockConversations, mockAgents } = useDemoMode();
+
   // Fetch real data
-  const { data: conversations = [] } = useConversations();
+  const { data: realConversations = [] } = useConversations();
   const { data: _campaigns = [] } = useCampaigns();
-  const { data: agents = [] } = useAgents();
+  const { data: realAgents = [] } = useAgents();
   const { data: _leads = [] } = useLeads();
+
+  // Use demo data if demo mode is active
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const agents = isDemoMode ? mockAgents : realAgents;
 
   // Calculate metrics based on filters and real data
   const metrics = useMemo(() => {
     // Filter conversations based on date range
-    const filteredConversations = conversations.filter((conv) => {
+    const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       return (
         convDate >= filters.dateRange.startDate &&
@@ -80,7 +88,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
       totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
     const totalRevenue = filteredData.reduce((sum, conv) => {
-      return sum + (conv.donated_amount || 0);
+      return sum + ((conv as any).donated_amount || 0);
     }, 0);
 
     const totalDuration = filteredData.reduce((sum, conv) => {
@@ -126,7 +134,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
     previousPeriodStart.setTime(previousPeriodStart.getTime() - periodLength);
     previousPeriodEnd.setTime(previousPeriodEnd.getTime() - periodLength);
 
-    const previousPeriodConversations = conversations.filter((conv) => {
+    const previousPeriodConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       return convDate >= previousPeriodStart && convDate <= previousPeriodEnd;
     });

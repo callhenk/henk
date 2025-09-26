@@ -5,6 +5,8 @@ import { useMemo } from 'react';
 import { Clock } from 'lucide-react';
 
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
 interface TimeOfDayChartProps {
@@ -21,12 +23,16 @@ interface TimeOfDayChartProps {
 }
 
 export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
-  const { data: conversations = [] } = useConversations();
+  const { isDemoMode, mockConversations } = useDemoMode();
+  const { data: realConversations = [] } = useConversations();
+
+  // Use demo data if demo mode is active
+  const conversations = isDemoMode ? mockConversations : realConversations;
 
   // Calculate time-of-day data based on real conversations
   const timeOfDayData = useMemo(() => {
     // Filter conversations based on date range and other filters
-    const filteredConversations = conversations.filter((conv) => {
+    const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&
@@ -45,7 +51,7 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
 
     // Group conversations by hour
     const hourlyData = Array.from({ length: 24 }, (_, hour) => {
-      const hourConversations = filteredConversations.filter((conv) => {
+      const hourConversations = filteredConversations.filter((conv: any) => {
         const convHour = new Date(conv.created_at).getHours();
         return convHour === hour;
       });

@@ -26,6 +26,7 @@ export interface MockConversation {
   status: 'completed' | 'in_progress' | 'failed';
   outcome: 'donated' | 'callback requested' | 'no_answer' | 'not_interested';
   duration_seconds: number;
+  donated_amount?: number;
   created_at: string;
   updated_at: string;
 }
@@ -189,6 +190,11 @@ function generateMockData() {
         mockCampaigns[Math.floor(Math.random() * mockCampaigns.length)];
 
       if (selectedAgent && selectedCampaign) {
+        // Generate realistic donation amounts for successful outcomes
+        const donatedAmount = outcome === 'donated'
+          ? Math.floor(Math.random() * 500) + 50 // $50-$550
+          : undefined;
+
         mockConversations.push({
           id: `conv-${day}-${call}`,
           agent_id: selectedAgent.id,
@@ -197,6 +203,7 @@ function generateMockData() {
           status,
           outcome,
           duration_seconds: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
+          donated_amount: donatedAmount,
           created_at: callTime.toISOString(),
           updated_at: callTime.toISOString(),
         });

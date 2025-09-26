@@ -2,7 +2,11 @@
 
 import { Calendar, Filter } from 'lucide-react';
 
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   Select,
   SelectContent,
@@ -25,18 +29,6 @@ interface AnalyticsFiltersProps {
   onFiltersChange: (filters: AnalyticsFiltersProps['filters']) => void;
 }
 
-// Mock data - replace with actual API calls
-const mockCampaigns = [
-  { id: '1', name: 'Summer Fundraiser 2024' },
-  { id: '2', name: 'Holiday Campaign' },
-  { id: '3', name: 'Emergency Relief' },
-];
-
-const mockAgents = [
-  { id: '1', name: 'Sarah Johnson' },
-  { id: '2', name: 'Mike Chen' },
-  { id: '3', name: 'Emma Davis' },
-];
 
 const datePresets = [
   { value: '7d', label: 'Last 7 Days' },
@@ -50,6 +42,13 @@ export function AnalyticsFilters({
   filters,
   onFiltersChange,
 }: AnalyticsFiltersProps) {
+  const { isDemoMode, mockCampaigns, mockAgents } = useDemoMode();
+  const { data: realCampaigns = [] } = useCampaigns();
+  const { data: realAgents = [] } = useAgents();
+
+  // Use demo data if demo mode is active
+  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
+  const agents = isDemoMode ? mockAgents : realAgents;
   const handleFilterChange = (key: string, value: string) => {
     onFiltersChange({
       ...filters,
@@ -110,7 +109,7 @@ export function AnalyticsFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All campaigns</SelectItem>
-                {mockCampaigns.map((campaign) => (
+                {campaigns.map((campaign) => (
                   <SelectItem key={campaign.id} value={campaign.id}>
                     {campaign.name}
                   </SelectItem>
@@ -131,7 +130,7 @@ export function AnalyticsFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All agents</SelectItem>
-                {mockAgents.map((agent) => (
+                {agents.map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     {agent.name}
                   </SelectItem>
