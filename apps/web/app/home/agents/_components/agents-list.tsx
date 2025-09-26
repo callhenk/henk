@@ -29,6 +29,8 @@ import { useDeleteAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+// Import demo mode
+import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -388,9 +390,18 @@ export function AgentsList() {
   );
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
-  const { data: agents = [], isLoading: loadingAgents } = useAgents();
-  const { data: conversations = [] } = useConversations();
-  const { data: campaigns = [] } = useCampaigns();
+  // Get demo mode state and mock data
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+
+  // Fetch real data using our hooks
+  const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
+  const { data: realConversations = [] } = useConversations();
+  const { data: realCampaigns = [] } = useCampaigns();
+
+  // Use mock data if demo mode is enabled, otherwise use real data
+  const agents = isDemoMode ? mockAgents : realAgents;
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
 
   const deleteAgentMutation = useDeleteAgent();
 
@@ -538,7 +549,7 @@ export function AgentsList() {
     };
   }, [enhancedAgents, campaigns]);
 
-  if (loadingAgents) {
+  if (!isDemoMode && loadingAgents) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

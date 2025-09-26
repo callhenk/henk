@@ -17,6 +17,7 @@ import authConfig from '~/config/auth.config';
 import featuresFlagConfig from '~/config/feature-flags.config';
 import { i18nResolver } from '~/lib/i18n/i18n.resolver';
 import { getI18nSettings } from '~/lib/i18n/i18n.settings';
+import { DemoModeProvider } from '~/lib/demo-mode-context';
 
 import { ReactQueryProvider } from './react-query-provider';
 
@@ -51,15 +52,17 @@ export function RootProviders({
           <CaptchaTokenSetter siteKey={captchaSiteKey} />
 
           <AuthProvider>
-            <ThemeProvider
-              attribute="class"
-              enableSystem
-              disableTransitionOnChange
-              defaultTheme={theme}
-              enableColorScheme={false}
-            >
-              {children}
-            </ThemeProvider>
+            <DemoModeProvider>
+              <ThemeProvider
+                attribute="class"
+                enableSystem
+                disableTransitionOnChange
+                defaultTheme={theme}
+                enableColorScheme={false}
+              >
+                {children}
+              </ThemeProvider>
+            </DemoModeProvider>
           </AuthProvider>
         </CaptchaProvider>
 

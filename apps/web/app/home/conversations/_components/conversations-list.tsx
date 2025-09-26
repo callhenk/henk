@@ -21,6 +21,8 @@ import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
+// Import demo mode
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -73,12 +75,20 @@ interface EnhancedConversation extends Conversation {
 export function ConversationsList() {
   const _router = useRouter();
 
+  // Get demo mode state and mock data
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+
   // Fetch real data using our hooks
-  const { data: conversations = [], isLoading: conversationsLoading } =
+  const { data: realConversations = [], isLoading: conversationsLoading } =
     useConversations();
-  const { data: campaigns = [] } = useCampaigns();
-  const { data: agents = [] } = useAgents();
+  const { data: realCampaigns = [] } = useCampaigns();
+  const { data: realAgents = [] } = useAgents();
   const { data: leads = [] } = useLeads();
+
+  // Use mock data if demo mode is enabled, otherwise use real data
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
+  const agents = isDemoMode ? mockAgents : realAgents;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState('All Campaigns');
@@ -224,8 +234,8 @@ export function ConversationsList() {
     });
   }, [filteredConversations, sortBy, sortOrder]);
 
-  // Show loading state if data is still loading
-  if (conversationsLoading) {
+  // Show loading state if data is still loading and not in demo mode
+  if (!isDemoMode && conversationsLoading) {
     return (
       <div className="space-y-6">
         {/* Loading Stats */}

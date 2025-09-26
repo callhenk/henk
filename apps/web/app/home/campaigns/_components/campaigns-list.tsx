@@ -27,6 +27,8 @@ import { useDeleteCampaign } from '@kit/supabase/hooks/campaigns/use-campaign-mu
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
+// Import demo mode
+import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,11 +83,19 @@ interface EnhancedCampaign extends Campaign {
 }
 
 export function CampaignsList() {
+  // Get demo mode state and mock data
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+
   // Fetch real data using our hooks
-  const { data: campaigns = [], isLoading: campaignsLoading } = useCampaigns();
+  const { data: realCampaigns = [], isLoading: campaignsLoading } = useCampaigns();
   const { data: leads = [] } = useLeads();
-  const { data: conversations = [] } = useConversations();
-  const { data: agents = [] } = useAgents();
+  const { data: realConversations = [] } = useConversations();
+  const { data: realAgents = [] } = useAgents();
+
+  // Use mock data if demo mode is enabled, otherwise use real data
+  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
+  const conversations = isDemoMode ? mockConversations : realConversations;
+  const agents = isDemoMode ? mockAgents : realAgents;
 
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,8 +139,8 @@ export function CampaignsList() {
     });
   }, [campaigns, leads, conversations, agents]);
 
-  // Show loading state if data is still loading
-  if (campaignsLoading) {
+  // Show loading state if data is still loading and not in demo mode
+  if (!isDemoMode && campaignsLoading) {
     return (
       <div className="space-y-6">
         {/* Loading Stats */}

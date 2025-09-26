@@ -26,6 +26,8 @@ import type { Tables } from '@kit/supabase/database';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+// Import demo mode context
+import { useDemoMode } from '~/lib/demo-mode-context';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -56,11 +58,19 @@ type Campaign = Tables<'campaigns'>['Row'];
 type Conversation = Tables<'conversations'>['Row'];
 
 export default function DashboardDemo() {
+  // Get demo mode state and mock data
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+
   // Fetch real data using our hooks
-  const { data: agents = [], isLoading: agentsLoading } = useAgents();
-  const { data: campaigns = [], isLoading: campaignsLoading } = useCampaigns();
-  const { data: conversations = [], isLoading: conversationsLoading } =
+  const { data: realAgents = [], isLoading: agentsLoading } = useAgents();
+  const { data: realCampaigns = [], isLoading: campaignsLoading } = useCampaigns();
+  const { data: realConversations = [], isLoading: conversationsLoading } =
     useConversations();
+
+  // Use mock data if demo mode is enabled, otherwise use real data
+  const agents = isDemoMode ? mockAgents : realAgents;
+  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
+  const conversations = isDemoMode ? mockConversations : realConversations;
 
   // Calculate metrics from real data
   const callMetrics = useMemo(() => {
@@ -242,8 +252,8 @@ export default function DashboardDemo() {
     };
   }, [agents, conversations]);
 
-  // Show loading state if any data is still loading
-  if (agentsLoading || campaignsLoading || conversationsLoading) {
+  // Show loading state if any data is still loading and not in demo mode
+  if (!isDemoMode && (agentsLoading || campaignsLoading || conversationsLoading)) {
     return (
       <div className="animate-in fade-in flex flex-col space-y-4 duration-500">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
