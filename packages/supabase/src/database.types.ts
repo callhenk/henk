@@ -25,7 +25,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           email?: string | null;
-          id: string;
+          id?: string;
           name: string;
           picture_url?: string | null;
           public_data?: Json;
@@ -43,7 +43,22 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'accounts_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'accounts_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       agents: {
         Row: {
@@ -484,6 +499,7 @@ export type Database = {
           updated_at: string | null;
           created_by: string | null;
           updated_by: string | null;
+          conversation_id: string | null;
         };
         Insert: {
           id?: string;
@@ -505,6 +521,7 @@ export type Database = {
           updated_at?: string | null;
           created_by?: string | null;
           updated_by?: string | null;
+          conversation_id?: string | null;
         };
         Update: {
           id?: string;
@@ -526,6 +543,7 @@ export type Database = {
           updated_at?: string | null;
           created_by?: string | null;
           updated_by?: string | null;
+          conversation_id?: string | null;
         };
         Relationships: [
           {
@@ -653,6 +671,8 @@ export type Database = {
           updated_at: string | null;
           created_by: string | null;
           updated_by: string | null;
+          timezone: string | null;
+          dnc: boolean;
         };
         Insert: {
           id?: string;
@@ -671,6 +691,8 @@ export type Database = {
           updated_at?: string | null;
           created_by?: string | null;
           updated_by?: string | null;
+          timezone?: string | null;
+          dnc?: boolean;
         };
         Update: {
           id?: string;
@@ -689,6 +711,8 @@ export type Database = {
           updated_at?: string | null;
           created_by?: string | null;
           updated_by?: string | null;
+          timezone?: string | null;
+          dnc?: boolean;
         };
         Relationships: [
           {
