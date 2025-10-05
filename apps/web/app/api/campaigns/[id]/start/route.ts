@@ -12,14 +12,53 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-
     const supabase = getSupabaseServerClient();
 
-    // First, get the campaign to check its current status
+    // 1. Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
+    // 2. Get user's business context
+    const { data: teamMember, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, role, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMember) {
+      return NextResponse.json(
+        { success: false, error: 'No active business membership found' },
+        { status: 403 },
+      );
+    }
+
+    // 3. Check permissions (members can start campaigns)
+    if (teamMember.role === 'viewer') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient permissions to start campaigns',
+        },
+        { status: 403 },
+      );
+    }
+
+    // 4. Get the campaign and verify business ownership
     const { data: campaign, error: fetchError } = await supabase
       .from('campaigns')
       .select('*')
       .eq('id', id)
+      .eq('business_id', teamMember.business_id)
       .single();
 
     if (fetchError || !campaign) {
@@ -36,13 +75,14 @@ export async function POST(
       );
     }
 
-    // Update campaign status to active
+    // 5. Update campaign status to active
     const { data: updatedCampaign, error: updateError } = await supabase
       .from('campaigns')
       .update({
         status: 'active',
         start_date: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        updated_by: user.id,
       })
       .eq('id', id)
       .select()

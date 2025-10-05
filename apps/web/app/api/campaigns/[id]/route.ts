@@ -12,13 +12,42 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-
     const supabase = getSupabaseServerClient();
 
+    // 1. Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
+    // 2. Get user's business context
+    const { data: teamMember, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, role, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMember) {
+      return NextResponse.json(
+        { success: false, error: 'No active business membership found' },
+        { status: 403 },
+      );
+    }
+
+    // 3. Get campaign with business validation
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .select('*')
       .eq('id', id)
+      .eq('business_id', teamMember.business_id)
       .single();
 
     if (error || !campaign) {
@@ -33,9 +62,19 @@ export async function GET(
       data: campaign,
     });
   } catch (error) {
-    console.error(`GET /api/campaigns/${id} error:`, error);
+    const requestId = request.headers.get('x-correlation-id');
+    console.error('API Error:', {
+      path: `/api/campaigns/[id]`,
+      method: 'GET',
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch campaign' },
+      {
+        success: false,
+        error: 'Failed to fetch campaign',
+        requestId,
+      },
       { status: 500 },
     );
   }
@@ -47,9 +86,53 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-
     const supabase = getSupabaseServerClient();
+
+    // 1. Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
+    // 2. Get user's business context
+    const { data: teamMember, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, role, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMember) {
+      return NextResponse.json(
+        { success: false, error: 'No active business membership found' },
+        { status: 403 },
+      );
+    }
+
+    // 3. Verify campaign belongs to user's business
+    const { data: existingCampaign, error: campaignCheckError } = await supabase
+      .from('campaigns')
+      .select('id')
+      .eq('id', id)
+      .eq('business_id', teamMember.business_id)
+      .single();
+
+    if (campaignCheckError || !existingCampaign) {
+      return NextResponse.json(
+        { success: false, error: 'Campaign not found' },
+        { status: 404 },
+      );
+    }
+
+    // 4. Parse and update campaign
+    const body = await request.json();
 
     const { data: campaign, error } = await supabase
       .from('campaigns')
@@ -76,6 +159,7 @@ export async function PUT(
         audience_contact_count: body.audience_contact_count,
         status: body.status,
         updated_at: new Date().toISOString(),
+        updated_by: user.id,
       })
       .eq('id', id)
       .select()
@@ -94,9 +178,19 @@ export async function PUT(
       data: campaign,
     });
   } catch (error) {
-    console.error(`PUT /api/campaigns/${id} error:`, error);
+    const requestId = request.headers.get('x-correlation-id');
+    console.error('API Error:', {
+      path: `/api/campaigns/[id]`,
+      method: 'PUT',
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     return NextResponse.json(
-      { success: false, error: 'Failed to update campaign' },
+      {
+        success: false,
+        error: 'Failed to update campaign',
+        requestId,
+      },
       { status: 500 },
     );
   }
@@ -108,10 +202,53 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-
     const supabase = getSupabaseServerClient();
 
-    const { error } = await supabase.from('campaigns').delete().eq('id', id);
+    // 1. Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
+    // 2. Get user's business context
+    const { data: teamMember, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, role, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMember) {
+      return NextResponse.json(
+        { success: false, error: 'No active business membership found' },
+        { status: 403 },
+      );
+    }
+
+    // 3. Check user has permission to delete (admin or owner)
+    if (teamMember.role !== 'owner' && teamMember.role !== 'admin') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient permissions to delete campaigns',
+        },
+        { status: 403 },
+      );
+    }
+
+    // 4. Delete campaign (with business validation via RLS or explicit check)
+    const { error } = await supabase
+      .from('campaigns')
+      .delete()
+      .eq('id', id)
+      .eq('business_id', teamMember.business_id);
 
     if (error) {
       console.error(`DELETE /api/campaigns/${id} error:`, error);
@@ -126,9 +263,19 @@ export async function DELETE(
       message: 'Campaign deleted successfully',
     });
   } catch (error) {
-    console.error(`DELETE /api/campaigns/${id} error:`, error);
+    const requestId = request.headers.get('x-correlation-id');
+    console.error('API Error:', {
+      path: `/api/campaigns/[id]`,
+      method: 'DELETE',
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     return NextResponse.json(
-      { success: false, error: 'Failed to delete campaign' },
+      {
+        success: false,
+        error: 'Failed to delete campaign',
+        requestId,
+      },
       { status: 500 },
     );
   }

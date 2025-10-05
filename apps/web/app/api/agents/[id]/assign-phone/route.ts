@@ -30,6 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const supabase = getSupabaseServerClient();
 
+    // 1. Verify authentication
     const {
       data: { user },
       error: authError,
@@ -39,6 +40,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401, headers: corsHeaders },
+      );
+    }
+
+    // 2. Get user's business context
+    const { data: teamMember, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, role')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMember) {
+      return NextResponse.json(
+        { success: false, error: 'No active business membership found' },
+        { status: 403, headers: corsHeaders },
+      );
+    }
+
+    // 3. Check permissions (viewers cannot assign phone numbers)
+    if (teamMember.role === 'viewer') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient permissions to assign phone numbers',
+        },
+        { status: 403, headers: corsHeaders },
       );
     }
 
@@ -57,17 +84,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       hasCallerId: Boolean(payload.caller_id),
     });
 
-    // Load agent to get elevenlabs_agent_id
+    // 4. Load agent and verify business ownership
     const { data: agentRow, error } = await supabase
       .from('agents')
-      .select('id, elevenlabs_agent_id')
+      .select('id, elevenlabs_agent_id, business_id')
       .eq('id', id)
+      .eq('business_id', teamMember.business_id)
       .single();
 
     if (error || !agentRow?.elevenlabs_agent_id) {
       return NextResponse.json(
-        { success: false, error: 'Agent does not have elevenlabs_agent_id' },
-        { status: 400, headers: corsHeaders },
+        { success: false, error: 'Agent not found or unauthorized' },
+        { status: 404, headers: corsHeaders },
       );
     }
 

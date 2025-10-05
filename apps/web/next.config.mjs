@@ -51,9 +51,9 @@ const config = {
       transform: 'lodash/{{member}}',
     },
   },
-  /** We already do linting and typechecking as separate tasks in CI */
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  /** Enable linting and typechecking during builds for safety */
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
 };
 
 export default config;
