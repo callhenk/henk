@@ -479,7 +479,7 @@ export function WizardContainer({
   }, [campaignName, agentId, audienceContactCount]);
 
   const [isActing, setIsActing] = useState(false);
-  
+
   // Notify parent of loading state changes
   useEffect(() => {
     onLoadingChange?.(isActing);
@@ -550,7 +550,7 @@ export function WizardContainer({
             j?.error || `Failed to start campaign (${resp.status})`;
           throw new Error(errorMessage);
         }
-        onClose?.();
+        // Don't close modal - let navigation handle the transition
         return id;
       }
 
@@ -633,10 +633,8 @@ export function WizardContainer({
                 const id = await setStatus('draft');
                 const campaignIdToOpen = id || currentCampaignId;
                 if (campaignIdToOpen) {
-                  // Navigate immediately to prevent any gap
+                  // Navigate to details page - modal stays open with loading state until page loads
                   router.push(`/home/campaigns/${campaignIdToOpen}`);
-                  // Close modal after navigation starts
-                  onClose?.();
                 }
               }}
             />
