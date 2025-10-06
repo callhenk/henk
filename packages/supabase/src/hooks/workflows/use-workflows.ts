@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Workflow = Tables<'workflows'>['Row'];
@@ -21,13 +22,27 @@ export interface WorkflowsFilters {
 
 export function useWorkflows(filters?: WorkflowsFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['workflows', filters],
+    queryKey: ['workflows', filters, businessContext?.business_id],
     queryFn: async (): Promise<Workflow[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
+      // Workflows are scoped by agent, which is scoped by business
+      // Filter through agents to ensure business isolation
       let query = supabase
         .from('workflows')
-        .select('*')
+        .select(
+          `
+          *,
+          agent:agents!inner(business_id)
+        `,
+        )
+        .eq('agent.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -55,21 +70,39 @@ export function useWorkflows(filters?: WorkflowsFilters) {
         throw new Error(`Failed to fetch workflows: ${error.message}`);
       }
 
-      return data || [];
+      // Remove the agent object from the response
+      return (
+        data?.map(
+          ({ agent: _, ...workflow }) => workflow as unknown as Workflow,
+        ) || []
+      );
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useWorkflow(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['workflow', id],
+    queryKey: ['workflow', id, businessContext?.business_id],
     queryFn: async (): Promise<Workflow | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('workflows')
-        .select('*')
+        .select(
+          `
+          *,
+          agent:agents!inner(business_id)
+        `,
+        )
         .eq('id', id)
+        .eq('agent.business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -79,23 +112,37 @@ export function useWorkflow(id: string) {
         throw new Error(`Failed to fetch workflow: ${error.message}`);
       }
 
-      return data;
+      // Remove the agent object from the response
+      const { agent: _, ...workflow } = data as any;
+      return workflow as Workflow;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
 export function useWorkflowWithDetails(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['workflow', id, 'details'],
+    queryKey: ['workflow', id, 'details', businessContext?.business_id],
     queryFn: async (): Promise<WorkflowWithDetails | null> => {
-      // Fetch workflow
-      const { data: workflow, error: workflowError } = await supabase
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
+      // Fetch workflow with business validation
+      const { data: workflowData, error: workflowError } = await supabase
         .from('workflows')
-        .select('*')
+        .select(
+          `
+          *,
+          agent:agents!inner(business_id)
+        `,
+        )
         .eq('id', id)
+        .eq('agent.business_id', businessContext.business_id)
         .single();
 
       if (workflowError) {
@@ -104,6 +151,9 @@ export function useWorkflowWithDetails(id: string) {
         }
         throw new Error(`Failed to fetch workflow: ${workflowError.message}`);
       }
+
+      // Remove the agent object from the response
+      const { agent: _, ...workflow } = workflowData as any;
 
       // Fetch nodes
       const { data: nodes, error: nodesError } = await supabase
@@ -132,25 +182,37 @@ export function useWorkflowWithDetails(id: string) {
       }
 
       return {
-        ...workflow,
+        ...(workflow as Workflow),
         nodes: nodes || [],
         edges: edges || [],
       };
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
 export function useWorkflowsByAgent(agentId: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['workflows', 'agent', agentId],
+    queryKey: ['workflows', 'agent', agentId, businessContext?.business_id],
     queryFn: async (): Promise<Workflow[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('workflows')
-        .select('*')
+        .select(
+          `
+          *,
+          agent:agents!inner(business_id)
+        `,
+        )
         .eq('agent_id', agentId)
+        .eq('agent.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -159,8 +221,13 @@ export function useWorkflowsByAgent(agentId: string) {
         );
       }
 
-      return data || [];
+      // Remove the agent object from the response
+      return (
+        data?.map(
+          ({ agent: _, ...workflow }) => workflow as unknown as Workflow,
+        ) || []
+      );
     },
-    enabled: !!agentId,
+    enabled: !!agentId && !!businessContext?.business_id,
   });
 }

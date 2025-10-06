@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Lead = Tables<'leads'>['Row'];
@@ -15,13 +16,27 @@ export interface LeadsFilters {
 
 export function useLeads(filters?: LeadsFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['leads', filters],
+    queryKey: ['leads', filters, businessContext?.business_id],
     queryFn: async (): Promise<Lead[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
+      // Leads are scoped by campaign, which is scoped by business
+      // We need to filter through campaigns to ensure business isolation
       let query = supabase
         .from('leads')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
+        .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -53,21 +68,37 @@ export function useLeads(filters?: LeadsFilters) {
         throw new Error(`Failed to fetch leads: ${error.message}`);
       }
 
-      return data || [];
+      // Remove the campaign object from the response since we only used it for filtering
+      return (
+        data?.map(({ campaign: _, ...lead }) => lead as unknown as Lead) || []
+      );
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useLead(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['lead', id],
+    queryKey: ['lead', id, businessContext?.business_id],
     queryFn: async (): Promise<Lead | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('leads')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
         .eq('id', id)
+        .eq('campaign.business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -77,30 +108,48 @@ export function useLead(id: string) {
         throw new Error(`Failed to fetch lead: ${error.message}`);
       }
 
-      return data;
+      // Remove the campaign object from the response
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { campaign, ...lead } = data;
+      return lead as Lead;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
 export function useLeadsByCampaign(campaignId: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['leads', 'campaign', campaignId],
+    queryKey: ['leads', 'campaign', campaignId, businessContext?.business_id],
     queryFn: async (): Promise<Lead[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('leads')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
         .eq('campaign_id', campaignId)
+        .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(`Failed to fetch leads for campaign: ${error.message}`);
       }
 
-      return data || [];
+      // Remove the campaign object from the response
+      return (
+        data?.map(({ campaign: _, ...lead }) => lead as unknown as Lead) || []
+      );
     },
-    enabled: !!campaignId,
+    enabled: !!campaignId && !!businessContext?.business_id,
   });
 }

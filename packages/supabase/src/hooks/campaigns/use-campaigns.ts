@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Campaign = Tables<'campaigns'>['Row'];
@@ -17,13 +18,20 @@ export interface CampaignsFilters {
 
 export function useCampaigns(filters?: CampaignsFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['campaigns', filters],
+    queryKey: ['campaigns', filters, businessContext?.business_id],
     queryFn: async (): Promise<Campaign[]> => {
+      // Return empty array if no business context (not authenticated or no business membership)
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       let query = supabase
         .from('campaigns')
         .select('*')
+        .eq('business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -55,19 +63,28 @@ export function useCampaigns(filters?: CampaignsFilters) {
 
       return data || [];
     },
+    // Only fetch when we have business context
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useCampaign(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['campaign', id],
+    queryKey: ['campaign', id, businessContext?.business_id],
     queryFn: async (): Promise<Campaign | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', id)
+        .eq('business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -79,6 +96,6 @@ export function useCampaign(id: string) {
 
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }

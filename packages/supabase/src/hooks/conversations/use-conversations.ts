@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Conversation = Tables<'conversations'>['Row'];
@@ -18,13 +19,27 @@ export interface ConversationsFilters {
 
 export function useConversations(filters?: ConversationsFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['conversations', filters],
+    queryKey: ['conversations', filters, businessContext?.business_id],
     queryFn: async (): Promise<Conversation[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
+      // Conversations are scoped by campaign, which is scoped by business
+      // We need to filter through campaigns to ensure business isolation
       let query = supabase
         .from('conversations')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
+        .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -56,21 +71,40 @@ export function useConversations(filters?: ConversationsFilters) {
         throw new Error(`Failed to fetch conversations: ${error.message}`);
       }
 
-      return data || [];
+      // Remove the campaign object from the response
+      return (
+        data?.map(
+          ({ campaign: _, ...conversation }) =>
+            conversation as unknown as Conversation,
+        ) || []
+      );
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useConversation(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['conversation', id],
+    queryKey: ['conversation', id, businessContext?.business_id],
     queryFn: async (): Promise<Conversation | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('conversations')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
         .eq('id', id)
+        .eq('campaign.business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -80,22 +114,41 @@ export function useConversation(id: string) {
         throw new Error(`Failed to fetch conversation: ${error.message}`);
       }
 
-      return data;
+      // Remove the campaign object from the response
+      const { campaign: _, ...conversation } = data as any;
+      return conversation as Conversation;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
 export function useConversationsByCampaign(campaignId: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['conversations', 'campaign', campaignId],
+    queryKey: [
+      'conversations',
+      'campaign',
+      campaignId,
+      businessContext?.business_id,
+    ],
     queryFn: async (): Promise<Conversation[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('conversations')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
         .eq('campaign_id', campaignId)
+        .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -104,22 +157,40 @@ export function useConversationsByCampaign(campaignId: string) {
         );
       }
 
-      return data || [];
+      // Remove the campaign object from the response
+      return (
+        data?.map(
+          ({ campaign: _, ...conversation }) =>
+            conversation as unknown as Conversation,
+        ) || []
+      );
     },
-    enabled: !!campaignId,
+    enabled: !!campaignId && !!businessContext?.business_id,
   });
 }
 
 export function useConversationsByLead(leadId: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['conversations', 'lead', leadId],
+    queryKey: ['conversations', 'lead', leadId, businessContext?.business_id],
     queryFn: async (): Promise<Conversation[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('conversations')
-        .select('*')
+        .select(
+          `
+          *,
+          campaign:campaigns!inner(business_id)
+        `,
+        )
         .eq('lead_id', leadId)
+        .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -128,8 +199,14 @@ export function useConversationsByLead(leadId: string) {
         );
       }
 
-      return data || [];
+      // Remove the campaign object from the response
+      return (
+        data?.map(
+          ({ campaign: _, ...conversation }) =>
+            conversation as unknown as Conversation,
+        ) || []
+      );
     },
-    enabled: !!leadId,
+    enabled: !!leadId && !!businessContext?.business_id,
   });
 }

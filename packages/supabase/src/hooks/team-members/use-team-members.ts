@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type TeamMember = Tables<'team_members'>['Row'];
@@ -14,20 +15,23 @@ export interface TeamMembersFilters {
 
 export function useTeamMembers(filters?: TeamMembersFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['team-members', filters],
+    queryKey: ['team-members', filters, businessContext?.business_id],
     queryFn: async (): Promise<TeamMember[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       let query = supabase
         .from('team_members')
         .select('*')
+        .eq('business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
-      // Apply filters
-      if (filters?.business_id) {
-        query = query.eq('business_id', filters.business_id);
-      }
-
+      // Apply additional filters (business_id filter is always applied from context)
       if (filters?.role) {
         query = query.eq('role', filters.role);
       }
@@ -48,19 +52,27 @@ export function useTeamMembers(filters?: TeamMembersFilters) {
 
       return data || [];
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useTeamMember(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['team-member', id],
+    queryKey: ['team-member', id, businessContext?.business_id],
     queryFn: async (): Promise<TeamMember | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
         .eq('id', id)
+        .eq('business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -72,16 +84,30 @@ export function useTeamMember(id: string) {
 
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
 export function useTeamMembersByBusiness(businessId: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['team-members', 'business', businessId],
+    queryKey: [
+      'team-members',
+      'business',
+      businessId,
+      businessContext?.business_id,
+    ],
     queryFn: async (): Promise<TeamMember[]> => {
+      // Return empty array if no business context or trying to access different business
+      if (
+        !businessContext?.business_id ||
+        businessId !== businessContext.business_id
+      ) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
@@ -96,7 +122,7 @@ export function useTeamMembersByBusiness(businessId: string) {
 
       return data || [];
     },
-    enabled: !!businessId,
+    enabled: !!businessId && !!businessContext?.business_id,
   });
 }
 

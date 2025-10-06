@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Agent = Tables<'agents'>['Row'];
@@ -13,13 +14,20 @@ export interface AgentsFilters {
 
 export function useAgents(filters?: AgentsFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['agents', filters],
+    queryKey: ['agents', filters, businessContext?.business_id],
     queryFn: async (): Promise<Agent[]> => {
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       let query = supabase
         .from('agents')
         .select('*')
+        .eq('business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -45,19 +53,27 @@ export function useAgents(filters?: AgentsFilters) {
 
       return data || [];
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useAgent(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['agent', id],
+    queryKey: ['agent', id, businessContext?.business_id],
     queryFn: async (): Promise<Agent | null> => {
+      // Return null if no business context
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('agents')
         .select('*')
         .eq('id', id)
+        .eq('business_id', businessContext.business_id)
         .single();
 
       if (error) {
@@ -69,6 +85,6 @@ export function useAgent(id: string) {
 
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }

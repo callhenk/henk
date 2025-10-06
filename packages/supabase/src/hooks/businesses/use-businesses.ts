@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Tables } from '../../database.types';
+import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
 type Business = Tables<'businesses'>['Row'];
@@ -12,14 +13,21 @@ export interface BusinessesFilters {
 
 export function useBusinesses(filters?: BusinessesFilters) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['businesses', filters],
+    queryKey: ['businesses', filters, businessContext?.business_id],
     queryFn: async (): Promise<Business[]> => {
+      // Users can only access their own business
+      // Return empty array if no business context
+      if (!businessContext?.business_id) {
+        return [];
+      }
+
       let query = supabase
         .from('businesses')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('id', businessContext.business_id);
 
       // Apply filters
       if (filters?.status) {
@@ -40,15 +48,23 @@ export function useBusinesses(filters?: BusinessesFilters) {
 
       return data || [];
     },
+    enabled: !!businessContext?.business_id,
   });
 }
 
 export function useBusiness(id: string) {
   const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
 
   return useQuery({
-    queryKey: ['business', id],
+    queryKey: ['business', id, businessContext?.business_id],
     queryFn: async (): Promise<Business | null> => {
+      // Users can only access their own business
+      // Return null if trying to access a different business
+      if (!businessContext?.business_id || id !== businessContext.business_id) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
@@ -64,7 +80,7 @@ export function useBusiness(id: string) {
 
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!businessContext?.business_id,
   });
 }
 
