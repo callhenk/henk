@@ -17,6 +17,7 @@ import { useConversations } from '@kit/supabase/hooks/conversations/use-conversa
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 
 import { useDemoMode } from '~/lib/demo-mode-context';
+
 import { validateReadyForActive } from '../schemas';
 
 const callWindowSchema = z
@@ -34,7 +35,8 @@ const callWindowSchema = z
   );
 
 export function useCampaignEditor(campaignId: string) {
-  const { isDemoMode, mockCampaigns, mockConversations, mockAgents } = useDemoMode();
+  const { isDemoMode, mockCampaigns, mockConversations, mockAgents } =
+    useDemoMode();
 
   // Fetch data
   const { data: realCampaign, isLoading: loadingCampaign } =
@@ -44,7 +46,10 @@ export function useCampaignEditor(campaignId: string) {
   const { data: realAgents = [] } = useAgents();
 
   // Use demo data if demo mode is active
-  const campaign = isDemoMode ? (mockCampaigns.find(c => c.id === campaignId) || mockCampaigns[0]) as any : realCampaign;
+  const campaign = isDemoMode
+    ? ((mockCampaigns.find((c) => c.id === campaignId) ||
+        mockCampaigns[0]) as Tables<'campaigns'>['Row'])
+    : realCampaign;
   const leads = isDemoMode ? [] : realLeads; // Demo leads can be empty for now
   const conversations = isDemoMode ? mockConversations : realConversations;
   const agents = isDemoMode ? mockAgents : realAgents;
