@@ -10,6 +10,11 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ELEVENLABS_API_KEY=your_elevenlabs_api_key
 NEXT_PUBLIC_ELEVENLABS_API_KEY=your_elevenlabs_api_key
 
+# Salesforce Configuration
+SALESFORCE_CLIENT_ID=your_salesforce_client_id
+SALESFORCE_CLIENT_SECRET=your_salesforce_client_secret
+SALESFORCE_REDIRECT_URI=https://yourapp.com/api/integrations/salesforce/callback
+
 # Other Configuration
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000 

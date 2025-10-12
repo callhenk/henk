@@ -68,6 +68,27 @@ nano .env.local
 2. Go to Profile → API Key
 3. Copy your API key
 
+### Salesforce Configuration (CRM Integration)
+
+| Variable                   | Description                     | Example                                                    | Required |
+| -------------------------- | ------------------------------- | ---------------------------------------------------------- | -------- |
+| `SALESFORCE_CLIENT_ID`     | Salesforce Connected App ID     | `3MVG9Y6d_Btp4xp5n9uQa...`                                 | ✅       |
+| `SALESFORCE_CLIENT_SECRET` | Salesforce Connected App Secret | `1234567890ABCDEF...`                                      | ✅       |
+| `SALESFORCE_REDIRECT_URI`  | OAuth redirect URI              | `https://yourapp.com/api/integrations/salesforce/callback` | ✅       |
+
+**How to get these values**:
+
+1. Log into your Salesforce org as an administrator
+2. Go to Setup → Apps → App Manager
+3. Click "New Connected App"
+4. Fill in basic information (App Name, Contact Email)
+5. Enable "Enable OAuth Settings"
+6. Set callback URL to: `https://yourapp.com/api/integrations/salesforce/callback`
+7. Select OAuth scopes:
+   - "Access and manage your data (api)"
+   - "Perform requests on your behalf at any time (refresh_token, offline_access)"
+8. Save and copy the Consumer Key (Client ID) and Consumer Secret
+
 ### Application Configuration
 
 | Variable                   | Description      | Example                 | Required |
@@ -135,6 +156,11 @@ TWILIO_CALLER_ID=+1234567890
 
 # ElevenLabs Configuration
 ELEVENLABS_API_KEY=1234567890abcdef...
+
+# Salesforce Configuration
+SALESFORCE_CLIENT_ID=3MVG9Y6d_Btp4xp5n9uQa...
+SALESFORCE_CLIENT_SECRET=1234567890ABCDEF...
+SALESFORCE_REDIRECT_URI=https://yourapp.com/api/integrations/salesforce/callback
 
 # Application Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
