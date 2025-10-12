@@ -77,11 +77,9 @@ const audienceSchema = z.object({
 
 export function WizardContainer({
   initialCampaignId,
-  onClose,
   onLoadingChange,
 }: {
   initialCampaignId?: string;
-  onClose?: () => void;
   onLoadingChange?: (isLoading: boolean) => void;
 } = {}) {
   const initialStep = 1 as Step;
@@ -566,10 +564,11 @@ export function WizardContainer({
       return id;
     } catch (e) {
       console.error('Set status error:', e);
-      return null;
-    } finally {
+      // Only stop loading on error
       setIsActing(false);
+      return null;
     }
+    // Don't stop loading on success - let the navigation handle the transition
   };
 
   // TODO: Re-enable when multiple Twilio numbers are available

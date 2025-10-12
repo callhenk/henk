@@ -193,10 +193,11 @@ export function CreateAgentPanel({
         router.push(`/home/agents/${created.id}`);
       }
       toast.success('Agent created');
+      // Don't stop loading - let the navigation handle the transition
     } catch (err) {
       console.error('Failed to create agent', err);
       toast.error('Failed to create agent');
-    } finally {
+      // Only stop loading on error
       setIsSubmitting(false);
     }
   };
