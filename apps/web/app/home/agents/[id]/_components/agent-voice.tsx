@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Mic, Play, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -50,6 +50,11 @@ export function AgentVoice({
 }: AgentVoiceProps) {
   const supabase = useSupabase();
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [isLoadingSample, setIsLoadingSample] = useState(false);
+  const [lastPlayedTime, setLastPlayedTime] = useState<number>(0);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
+    null,
+  );
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -57,6 +62,16 @@ export function AgentVoice({
   );
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isPlayingRecording, setIsPlayingRecording] = useState(false);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+    };
+  }, [currentAudio]);
 
   // Function to get cached voice sample URL
   const getCachedVoiceSample = async (voiceId: string) => {
@@ -220,14 +235,32 @@ export function AgentVoice({
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={isPlayingPreview}
+                      disabled={isPlayingPreview || isLoadingSample}
                       onClick={async () => {
+                        // Prevent spam - enforce 2 second cooldown
+                        const now = Date.now();
+                        if (now - lastPlayedTime < 2000) {
+                          toast.error('Please wait before playing again');
+                          return;
+                        }
+
+                        // Stop any currently playing audio
+                        if (currentAudio) {
+                          currentAudio.pause();
+                          currentAudio.currentTime = 0;
+                          setCurrentAudio(null);
+                        }
+
+                        setIsLoadingSample(true);
+                        setIsPlayingPreview(false);
+
                         try {
                           const voiceId = agent.voice_id;
                           if (!voiceId) {
                             toast.error('No voice selected for preview');
                             return;
                           }
+
                           let cachedUrl = await getCachedVoiceSample(voiceId);
                           if (!cachedUrl) {
                             toast.info(
@@ -256,22 +289,44 @@ export function AgentVoice({
                               throw new Error('No audio URL returned');
                             }
                           }
+
                           const audio = new Audio(cachedUrl);
+                          setCurrentAudio(audio);
+                          setIsLoadingSample(false);
                           setIsPlayingPreview(true);
-                          audio.onended = () => setIsPlayingPreview(false);
+                          setLastPlayedTime(now);
+
+                          audio.onended = () => {
+                            setIsPlayingPreview(false);
+                            setCurrentAudio(null);
+                          };
                           audio.onerror = () => {
                             setIsPlayingPreview(false);
+                            setCurrentAudio(null);
                             toast.error('Failed to play voice preview.');
                           };
+
                           await audio.play();
                           toast.success('Playing voice preview...');
                         } catch (error) {
                           console.error('Voice preview error:', error);
-                          toast.error('Failed to play voice preview.');
+                          setIsLoadingSample(false);
+                          setIsPlayingPreview(false);
+                          setCurrentAudio(null);
+                          toast.error(
+                            error instanceof Error
+                              ? error.message
+                              : 'Failed to play voice preview.',
+                          );
                         }
                       }}
                     >
-                      {isPlayingPreview ? (
+                      {isLoadingSample ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                          <span>Loading...</span>
+                        </>
+                      ) : isPlayingPreview ? (
                         <>
                           <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
                           <span>Playing...</span>

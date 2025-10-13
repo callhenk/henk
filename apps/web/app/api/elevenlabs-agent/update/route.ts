@@ -281,8 +281,19 @@ export async function PATCH(request: NextRequest) {
         statusText: response.statusText,
         errorData,
       });
-      throw new Error(
-        `ElevenLabs API error: ${errorData.detail || response.statusText}`,
+
+      // Return structured error response
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            errorData.detail?.message ||
+            errorData.detail ||
+            response.statusText,
+          errorCode: errorData.detail?.status || 'unknown_error',
+          statusCode: response.status,
+        },
+        { status: response.status, headers: corsHeaders },
       );
     }
 

@@ -26,6 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { useDemoMode } from '~/lib/demo-mode-context';
+
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
 import { AgentHeader } from './agent-header';
 import { AgentKnowledge } from './agent-knowledge';
@@ -38,7 +39,8 @@ import { WorkflowBuilder } from './workflow-builder/index';
 export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isDemoMode, mockAgents, mockConversations, mockCampaigns } = useDemoMode();
+  const { isDemoMode, mockAgents, mockConversations, mockCampaigns } =
+    useDemoMode();
 
   // Get the default tab from URL parameter
   const defaultTab = searchParams.get('tab') || 'overview';
@@ -47,14 +49,25 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Fetch real data
-  const { data: realAgent, isLoading: loadingAgent, refetch } = useAgent(agentId);
+  const {
+    data: realAgent,
+    isLoading: loadingAgent,
+    refetch,
+  } = useAgent(agentId);
   const { data: realConversations = [] } = useConversations();
   const { data: realCampaigns = [] } = useCampaigns();
 
   // Use demo data if demo mode is active
-  const agent = isDemoMode ? mockAgents.find(a => a.id === agentId) || mockAgents[0] : realAgent;
+  const agent = isDemoMode
+    ? mockAgents.find((a) => a.id === agentId) || mockAgents[0]
+    : realAgent;
   const conversations = isDemoMode ? mockConversations : realConversations;
-  const campaigns = isDemoMode ? (mockCampaigns as any) : realCampaigns;
+  const campaignsData = isDemoMode ? mockCampaigns : realCampaigns;
+  // Ensure campaigns match the expected type structure
+  const campaigns = campaignsData.map((c) => ({
+    ...c,
+    agent_id: c.agent_id ?? null,
+  }));
   const { data: voices = [] } = useVoices();
 
   // Update mutation
@@ -146,9 +159,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         voice_id: pendingVoiceUpdate.value,
       };
 
+      // First, update the local database
       await updateAgentMutation.mutateAsync(updateData);
 
-      // Update ElevenLabs agent
+      // Try to update ElevenLabs agent if it exists
       if (agent?.elevenlabs_agent_id) {
         try {
           const result = await updateElevenLabsAgent(
@@ -159,28 +173,57 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           );
 
           if (!result.success) {
-            console.error(
-              'ElevenLabs agent voice update failed:',
-              result.error,
-            );
-          }
+            // Check if the error is because the agent doesn't exist
+            const errorData = result.data as
+              | Record<string, unknown>
+              | undefined;
+            const errorCode = errorData?.errorCode as string | undefined;
+            const statusCode = errorData?.statusCode as number | undefined;
+            const errorMessage = result.error?.toString() || '';
+            const isAgentNotFound =
+              errorCode === 'agent_not_found' ||
+              errorMessage.includes('agent_not_found') ||
+              errorMessage.includes('404') ||
+              statusCode === 404;
 
-          // Refresh agent data to get the updated voice_id
-          await refetch();
+            if (isAgentNotFound) {
+              console.warn(
+                'ElevenLabs agent not found, clearing invalid agent ID',
+              );
+              // Clear the invalid elevenlabs_agent_id from the database
+              await updateAgentMutation.mutateAsync({
+                id: agentId,
+                elevenlabs_agent_id: null,
+              });
+              toast.error(
+                'Voice updated locally. ElevenLabs agent was not found and has been unlinked.',
+              );
+            } else {
+              console.error(
+                'ElevenLabs agent voice update failed:',
+                result.error,
+              );
+              toast.error('Voice updated locally, but ElevenLabs sync failed.');
+            }
+          }
         } catch (elevenLabsError) {
           console.error(
             'Failed to update ElevenLabs agent voice:',
             elevenLabsError,
           );
+          toast.error('Voice updated locally, but ElevenLabs sync failed.');
         }
       }
+
+      // Refresh agent data to get the updated voice_id
+      await refetch();
 
       // Show success message
       setSaveSuccess('Voice updated successfully!');
       setTimeout(() => setSaveSuccess(null), 3000);
     } catch (error) {
       console.error('Failed to save voice changes:', error);
-      alert(
+      toast.error(
         `Failed to save voice: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     } finally {

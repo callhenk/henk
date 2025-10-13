@@ -170,22 +170,46 @@ export class ElevenLabsClient {
   }
 
   /**
-   * Get all available voices
+   * Get all available voices (handles pagination)
    */
   async getVoices(): Promise<Voice[]> {
-    const response = await fetch(`${this.voicesBaseUrl}/voices`, {
-      headers: {
-        'xi-api-key': this.apiKey,
-        'Content-Type': 'application/json',
-      },
-    });
+    const allVoices: Voice[] = [];
+    let nextPageToken: string | null = null;
+    let hasMore = true;
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch voices: ${response.statusText}`);
+    // Keep fetching until we have all voices
+    while (hasMore) {
+      const url = new URL(`${this.voicesBaseUrl}/voices`);
+      url.searchParams.set('page_size', '100'); // Max page size
+
+      if (nextPageToken) {
+        url.searchParams.set('page', nextPageToken);
+      }
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'xi-api-key': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch voices: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const voices = data.voices || [];
+
+      allVoices.push(...voices);
+
+      // Check if there are more pages
+      nextPageToken =
+        data.next_page_token || data.pagination?.next_page_token || null;
+      hasMore = !!nextPageToken && voices.length > 0;
     }
 
-    const data = await response.json();
-    return data.voices || [];
+    console.log(`Fetched ${allVoices.length} voices from ElevenLabs`);
+    return allVoices;
   }
 
   /**

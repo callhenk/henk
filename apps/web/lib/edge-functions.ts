@@ -63,14 +63,21 @@ async function callApiRoute(
     ...options,
   });
 
+  const data = await response.json().catch(() => ({
+    success: false,
+    error: 'Failed to parse response',
+  }));
+
+  // If the response is not ok, return the error in a structured format
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ error: 'Unknown error' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+    return {
+      success: false,
+      error: data.error || data.message || `HTTP ${response.status}`,
+      data: data,
+    };
   }
 
-  return response.json();
+  return data;
 }
 
 /**
