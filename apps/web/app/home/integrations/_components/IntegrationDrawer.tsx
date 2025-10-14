@@ -1,13 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
-import { Input } from '@kit/ui/input';
-import { Label } from '@kit/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@kit/ui/sheet';
 
@@ -70,7 +68,7 @@ export function IntegrationDrawer({
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await mockAsync(() => true, 700);
+    await mockAsync(() => true, 700);
     setSaving(false);
     setCopiable(false);
     const ok = tested?.success ?? true; // if not tested, assume ok

@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';

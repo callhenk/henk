@@ -9,7 +9,6 @@ import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
 
 import type { FieldDefinition } from './types';
-import { maskSecret } from './types';
 
 export function CredentialsForm({
   fields,

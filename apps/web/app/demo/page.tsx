@@ -84,21 +84,21 @@ export default function TestCallPage() {
           toast.success('Signed in to demo');
           setIsSigningIn(false);
         })
-        .catch((error) => {
-          console.error('Demo login failed:', error);
+        .catch(() => {
+          console.error('Demo login failed:');
           setTokenError('Authentication failed with demo credentials');
           toast.error('Demo login failed');
           setHasValidToken(false);
           setIsSigningIn(false);
         });
-    } catch (error) {
+    } catch {
       // Token parsing/decryption failed
       setTokenError('Malformed or corrupted demo token');
       toast.error('Invalid token format');
       setIsSigningIn(false);
       setHasValidToken(false);
     }
-  }, [searchParams, supabase]);
+  }, [searchParams, supabase, signInMutation]);
 
   // Load phone numbers
   useEffect(() => {
@@ -215,7 +215,7 @@ export default function TestCallPage() {
               <li>• Request a {isInvalidToken ? 'new ' : ''}demo link</li>
               <li>• Use the provided secure URL</li>
               {isInvalidToken && (
-                <li>• Check that you're using the complete URL</li>
+                <li>• Check that you&apos;re using the complete URL</li>
               )}
             </ul>
           </div>
@@ -321,7 +321,8 @@ export default function TestCallPage() {
                     type="tel"
                   />
                   <p className="text-muted-foreground text-xs">
-                    We'll call this number to demonstrate our AI voice assistant
+                    We&apos;ll call this number to demonstrate our AI voice
+                    assistant
                   </p>
                 </div>
 

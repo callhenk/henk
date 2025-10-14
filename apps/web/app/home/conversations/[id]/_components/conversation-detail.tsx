@@ -134,9 +134,23 @@ export function ConversationDetail({
   };
 
   const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${remainingSeconds}s`;
+    }
+
+    if (remainingSeconds > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+
+    return `${minutes}m`;
   };
 
   const formatDate = (date: Date) => {
@@ -370,7 +384,7 @@ export function ConversationDetail({
                       setIsPlaying(true);
                       audioRef.current.onended = () => setIsPlaying(false);
                     }
-                  } catch (_e) {
+                  } catch {
                     setIsPlaying(false);
                   }
                 }}
