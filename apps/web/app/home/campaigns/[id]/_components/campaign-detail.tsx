@@ -409,8 +409,12 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </p>
               {hasCallWindowChanges && (
                 <div className="mt-2 flex justify-end">
-                  <Button size="sm" onClick={handleSaveCallWindow}>
-                    Save
+                  <Button
+                    size="sm"
+                    onClick={handleSaveCallWindow}
+                    disabled={savingField === 'call_window'}
+                  >
+                    {savingField === 'call_window' ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
               )}

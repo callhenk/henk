@@ -80,6 +80,8 @@ export function useCampaignEditor(campaignId: string) {
     if (!value) return '';
     if (/^\d{2}:\d{2}$/.test(value)) return value;
     if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.slice(0, 5);
+    // Handle PostgreSQL timetz format (HH:MM:SS+00 or HH:MM:SS-00)
+    if (/^\d{2}:\d{2}:\d{2}[+-]\d{2}$/.test(value)) return value.slice(0, 5);
     const parsed = dayjs(value);
     return parsed.isValid() ? parsed.format('HH:mm') : '';
   }, []);
@@ -281,6 +283,7 @@ export function useCampaignEditor(campaignId: string) {
       toast.error(errorMessage);
       return;
     }
+    setSavingField('call_window');
     try {
       await updateCampaignMutation.mutateAsync({
         id: campaignId,
@@ -293,6 +296,8 @@ export function useCampaignEditor(campaignId: string) {
       toast.error(
         `Failed to save call window: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
+    } finally {
+      setSavingField(null);
     }
   }, [callWindowStart, callWindowEnd, campaignId, updateCampaignMutation]);
 
