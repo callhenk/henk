@@ -2,11 +2,14 @@
 
 import React, { createContext, useContext, useState } from 'react';
 
+import type { Json } from '@kit/supabase/database';
+
 interface VoiceSettings {
   stability?: number;
   similarity_boost?: number;
   style?: number;
   use_speaker_boost?: boolean;
+  [key: string]: number | boolean | undefined;
 }
 
 export interface MockAgent {
@@ -15,39 +18,57 @@ export interface MockAgent {
   status: 'active' | 'paused' | 'inactive' | 'agent_paused';
   created_at: string;
   updated_at: string;
-  elevenlabs_agent_id?: string | null;
-  description?: string | null;
-  voice_type?: string | null;
-  starting_message?: string | null;
-  organization_info?: string | null;
-  donor_context?: string | null;
-  faqs?: string | null;
-  script_template?: string | null;
-  system_prompt?: string | null;
-  speaking_tone?: string | null;
-  voice_settings?: VoiceSettings | null;
-  caller_id?: string | null;
-  call_opening?: string | null;
-  call_closing?: string | null;
-  objection_handling?: string | null;
-  donation_tiers?: string | null;
-  voice_id?: string | null;
+  elevenlabs_agent_id: string | null;
+  description: string | null;
+  voice_type: string;
+  starting_message: string | null;
+  organization_info: string | null;
+  donor_context: string | null;
+  faqs: string | null;
+  script_template: string | null;
+  system_prompt: string | null;
+  speaking_tone: string;
+  voice_settings: VoiceSettings | null;
+  caller_id: string | null;
+  call_opening: string | null;
+  call_closing: string | null;
+  objection_handling: string | null;
+  donation_tiers: string | null;
+  voice_id: string | null;
+  personality: string | null;
+  knowledge_base: Json | null;
+  workflow_config: Json | null;
+  created_by: string | null;
+  updated_by: string | null;
+  business_id: string;
 }
 
 export interface MockCampaign {
   id: string;
   name: string;
-  status: 'active' | 'paused' | 'completed';
-  created_at: string;
-  updated_at: string;
-  agent_id?: string | null;
-  call_window_start?: string | null;
-  call_window_end?: string | null;
-  description?: string | null;
-  goal_amount?: number | null;
-  raised_amount?: number | null;
-  target_demographic?: string | null;
-  campaign_messaging?: string | null;
+  description: string | null;
+  status: string;
+  agent_id: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  goal_metric: string | null;
+  disclosure_line: string | null;
+  call_window_start: string | null;
+  call_window_end: string | null;
+  audience_list_id: string | null;
+  dedupe_by_phone: boolean;
+  exclude_dnc: boolean;
+  audience_contact_count: number;
+  max_attempts: number;
+  daily_call_cap: number;
+  script: string;
+  retry_logic: string;
+  budget: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  business_id: string;
 }
 
 export interface MockConversation {
@@ -61,6 +82,17 @@ export interface MockConversation {
   donated_amount?: number;
   created_at: string;
   updated_at: string;
+  call_sid: string | null;
+  recording_url: string | null;
+  transcript: string | null;
+  sentiment_score: number | null;
+  key_points: string | null;
+  notes: string | null;
+  started_at: string | null;
+  ended_at: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  conversation_id: string | null;
 }
 
 interface DemoModeContextType {
@@ -127,6 +159,14 @@ function generateMockData() {
       donation_tiers:
         '$50 - Provides school supplies for one child for a full semester, $100 - Covers medical checkup and basic care for a family, $250 - Sponsors a week of after-school tutoring for 10 students, $500 - Funds a scholarship application and college prep support, $1000 - Provides comprehensive support for one family for three months',
       voice_id: 'voice_sarah_001',
+      script_template: null,
+      caller_id: '+15551234567',
+      personality: null,
+      knowledge_base: null,
+      workflow_config: null,
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'agent-2',
@@ -166,6 +206,14 @@ function generateMockData() {
       donation_tiers:
         '$25 - Provides emergency food for one family for 3 days, $75 - Supplies emergency shelter materials for one family, $150 - Covers basic emergency supplies for a family of four, $300 - Provides comprehensive emergency aid including food, shelter, and clothing, $500 - Supports rapid response deployment to disaster zones',
       voice_id: 'voice_michael_002',
+      script_template: null,
+      caller_id: '+15551234568',
+      personality: null,
+      knowledge_base: null,
+      workflow_config: null,
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'agent-3',
@@ -205,6 +253,14 @@ function generateMockData() {
       donation_tiers:
         '$1,000 - Leadership Circle member with quarterly impact updates, $5,000 - Program Champion with annual site visit and detailed reporting, $10,000 - Visionary Partner with program advisory role, $25,000 - Transformational Leader with naming recognition, $50,000+ - Legacy Builder with comprehensive partnership benefits',
       voice_id: 'voice_emma_003',
+      script_template: null,
+      caller_id: '+15551234569',
+      personality: null,
+      knowledge_base: null,
+      workflow_config: null,
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'agent-4',
@@ -244,6 +300,14 @@ function generateMockData() {
       donation_tiers:
         '$100 - Data Supporter with quarterly impact reports and dashboard access, $250 - Analytics Partner with monthly webinars and direct program updates, $500 - Innovation Advocate with beta access to new tools and platforms, $1,000 - Technology Leader with annual strategy sessions and advisory input, $2,500+ - Digital Visionary with executive briefings and platform development input',
       voice_id: 'voice_david_004',
+      script_template: null,
+      caller_id: '+15551234570',
+      personality: null,
+      knowledge_base: null,
+      workflow_config: null,
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'agent-5',
@@ -283,6 +347,14 @@ function generateMockData() {
       donation_tiers:
         '$25 - Community Friend with volunteer appreciation events, $50 - Neighborhood Partner with volunteer toolkit and resources, $100 - Community Champion with leadership training opportunities, $250 - Local Leader with program planning input, $500+ - Community Builder with recognition and advisory role',
       voice_id: 'voice_lisa_005',
+      script_template: null,
+      caller_id: '+15551234571',
+      personality: null,
+      knowledge_base: null,
+      workflow_config: null,
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
   ];
 
@@ -290,84 +362,148 @@ function generateMockData() {
     {
       id: 'campaign-1',
       name: 'Annual Giving Campaign 2024',
+      description:
+        'Our flagship annual campaign focused on sustainable funding for core programs and services.',
       status: 'active',
+      agent_id: 'agent-1',
+      start_date: new Date(
+        now.getTime() - 30 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      end_date: new Date(
+        now.getTime() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      goal_metric: 'total_donations',
+      disclosure_line:
+        'This call may be recorded for quality assurance purposes.',
+      call_window_start: '09:00',
+      call_window_end: '17:00',
+      audience_list_id: null,
+      dedupe_by_phone: false,
+      exclude_dnc: true,
+      audience_contact_count: 0,
+      max_attempts: 3,
+      daily_call_cap: 100,
+      script:
+        'Thank you for your continued support. Would you consider making a gift today?',
+      retry_logic: 'retry_3_times',
+      budget: 500000,
       created_at: new Date(
         now.getTime() - 30 * 24 * 60 * 60 * 1000,
       ).toISOString(),
       updated_at: new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString(),
-      agent_id: 'agent-1',
-      call_window_start: '09:00',
-      call_window_end: '17:00',
-      description:
-        'Our flagship annual campaign focused on sustainable funding for core programs and services.',
-      goal_amount: 500000,
-      raised_amount: 342750,
-      target_demographic:
-        'Previous donors, alumni, and community leaders aged 35-65 with demonstrated philanthropic interests',
-      campaign_messaging:
-        'This year, your annual gift powers transformation in our community. From scholarships that open doors to healthcare that saves lives, your partnership creates lasting change. Join us in building a stronger tomorrow, together.',
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'campaign-2',
       name: 'Emergency Relief Fund',
+      description:
+        'Urgent fundraising campaign to support disaster relief efforts and emergency response.',
       status: 'active',
+      agent_id: 'agent-2',
+      start_date: new Date(
+        now.getTime() - 15 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      end_date: new Date(
+        now.getTime() + 15 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      goal_metric: 'pledge_rate',
+      disclosure_line:
+        'This call may be recorded for quality assurance purposes.',
+      call_window_start: '10:00',
+      call_window_end: '18:00',
+      audience_list_id: null,
+      dedupe_by_phone: false,
+      exclude_dnc: true,
+      audience_contact_count: 0,
+      max_attempts: 3,
+      daily_call_cap: 150,
+      script:
+        'In times of crisis, your emergency gift can save lives. Will you help today?',
+      retry_logic: 'retry_3_times',
+      budget: 200000,
       created_at: new Date(
         now.getTime() - 15 * 24 * 60 * 60 * 1000,
       ).toISOString(),
       updated_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
-      agent_id: 'agent-2',
-      call_window_start: '10:00',
-      call_window_end: '18:00',
-      description:
-        'Urgent fundraising campaign to support disaster relief efforts and emergency response.',
-      goal_amount: 200000,
-      raised_amount: 156890,
-      target_demographic:
-        'Compassionate donors who respond to emergency needs, ages 25-70, history of disaster relief giving',
-      campaign_messaging:
-        'When disaster strikes, families need help NOW. Your emergency gift provides immediate shelter, food, and hope to families facing their darkest hour. Every minute counts - will you help us reach them?',
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'campaign-3',
       name: 'Education Support Initiative',
+      description:
+        'Supporting educational opportunities and scholarships for underserved communities.',
       status: 'paused',
+      agent_id: 'agent-3',
+      start_date: new Date(
+        now.getTime() - 45 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      end_date: new Date(
+        now.getTime() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      goal_metric: 'average_gift',
+      disclosure_line:
+        'This call may be recorded for quality assurance purposes.',
+      call_window_start: '08:00',
+      call_window_end: '16:00',
+      audience_list_id: null,
+      dedupe_by_phone: false,
+      exclude_dnc: true,
+      audience_contact_count: 0,
+      max_attempts: 2,
+      daily_call_cap: 75,
+      script:
+        'Education transforms lives. Would you consider supporting a student today?',
+      retry_logic: 'retry_2_times',
+      budget: 150000,
       created_at: new Date(
         now.getTime() - 45 * 24 * 60 * 60 * 1000,
       ).toISOString(),
       updated_at: new Date(
         now.getTime() - 5 * 24 * 60 * 60 * 1000,
       ).toISOString(),
-      agent_id: 'agent-3',
-      call_window_start: '08:00',
-      call_window_end: '16:00',
-      description:
-        'Supporting educational opportunities and scholarships for underserved communities.',
-      goal_amount: 150000,
-      raised_amount: 89250,
-      target_demographic:
-        'Education advocates, parents, teachers, and professionals who value learning opportunities',
-      campaign_messaging:
-        'Education unlocks potential and transforms communities. Your support provides scholarships, mentoring, and resources that help students achieve their dreams. Invest in the future - invest in education.',
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
     {
       id: 'campaign-4',
       name: 'Healthcare Access Program',
+      description:
+        'Expanding access to quality healthcare services in rural and underserved areas.',
       status: 'active',
+      agent_id: 'agent-4',
+      start_date: new Date(
+        now.getTime() - 20 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      end_date: new Date(
+        now.getTime() + 40 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      goal_metric: 'total_donations',
+      disclosure_line:
+        'This call may be recorded for quality assurance purposes.',
+      call_window_start: '09:30',
+      call_window_end: '17:30',
+      audience_list_id: null,
+      dedupe_by_phone: false,
+      exclude_dnc: true,
+      audience_contact_count: 0,
+      max_attempts: 3,
+      daily_call_cap: 125,
+      script:
+        'Healthcare is a right, not a privilege. Will you help us expand access?',
+      retry_logic: 'retry_3_times',
+      budget: 350000,
       created_at: new Date(
         now.getTime() - 20 * 24 * 60 * 60 * 1000,
       ).toISOString(),
       updated_at: new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString(),
-      agent_id: 'agent-4',
-      call_window_start: '09:30',
-      call_window_end: '17:30',
-      description:
-        'Expanding access to quality healthcare services in rural and underserved areas.',
-      goal_amount: 350000,
-      raised_amount: 198750,
-      target_demographic:
-        'Healthcare professionals, rural community supporters, and advocates for healthcare equity',
-      campaign_messaging:
-        'Healthcare is a human right, not a privilege. Your gift brings quality medical care to communities that need it most, ensuring no one goes without essential health services. Together, we can build healthier communities.',
+      created_by: null,
+      updated_by: null,
+      business_id: 'demo-business-id',
     },
   ];
 
@@ -433,6 +569,17 @@ function generateMockData() {
           donated_amount: donatedAmount,
           created_at: callTime.toISOString(),
           updated_at: callTime.toISOString(),
+          call_sid: null,
+          recording_url: null,
+          transcript: null,
+          sentiment_score: null,
+          key_points: null,
+          notes: null,
+          started_at: callTime.toISOString(),
+          ended_at: callTime.toISOString(),
+          created_by: null,
+          updated_by: null,
+          conversation_id: null,
         });
       }
     }

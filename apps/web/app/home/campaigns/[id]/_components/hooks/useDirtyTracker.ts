@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 
 function deepEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
@@ -9,7 +9,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
     const ak = Object.keys(a as object);
     const bk = Object.keys(b as object);
     if (ak.length !== bk.length) return false;
-    return ak.every((k) => deepEqual((a as any)[k], (b as any)[k]));
+    return ak.every((k) => deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
   }
   return false;
 }
@@ -26,7 +26,7 @@ export function useDirtyTracker<T extends Record<string, unknown>>(initial: T) {
     keys.forEach((k) => {
       const key = k as keyof T;
       if (!deepEqual(initialRef.current[key], current[key])) {
-        (patch as any)[key] = current[key];
+        patch[key] = current[key];
       }
     });
     return patch;
@@ -39,7 +39,7 @@ export function useDirtyTracker<T extends Record<string, unknown>>(initial: T) {
     initialRef.current = next;
   };
 
-  return useMemo(() => ({ computePatch, isDirty, reset }), []);
+  return { computePatch, isDirty, reset };
 }
 
 export default useDirtyTracker;

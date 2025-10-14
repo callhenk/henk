@@ -19,7 +19,9 @@ export function getCorsHeaders(origin: string | null) {
   const isAllowed = origin && allowedOrigins.includes(origin);
 
   return {
-    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Origin': isAllowed
+      ? origin
+      : (allowedOrigins[0] ?? 'http://localhost:3000'),
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers':
       'Content-Type, Authorization, x-captcha-token, x-correlation-id',

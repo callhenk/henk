@@ -1,7 +1,5 @@
 'use client';
 
-import { Fragment } from 'react';
-
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Skeleton } from '@kit/ui/skeleton';
 

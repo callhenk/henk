@@ -46,7 +46,7 @@ interface ScenarioTestingProps {
   agentName: string;
 }
 
-export function ScenarioTesting({ agentId, agentName }: ScenarioTestingProps) {
+export function ScenarioTesting({ agentId }: ScenarioTestingProps) {
   // Scenario testing state
   const [scenarioResults, setScenarioResults] = useState<{
     [scenarioId: string]: ScenarioResult;
@@ -90,7 +90,7 @@ export function ScenarioTesting({ agentId, agentName }: ScenarioTestingProps) {
 
   const evaluateResponseQuality = (
     response: string,
-    scenario: TestScenario,
+    _scenario: TestScenario,
   ): 'excellent' | 'good' | 'fair' | 'poor' => {
     const responseLength = response.length;
     const hasKeywords =
@@ -126,7 +126,7 @@ export function ScenarioTesting({ agentId, agentName }: ScenarioTestingProps) {
         <CardHeader>
           <CardTitle>Test Scenarios</CardTitle>
           <CardDescription>
-            Pre-defined scenarios to test your agent's responses
+            Pre-defined scenarios to test your agent&apos;s responses
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   BookOpen,
@@ -95,7 +95,7 @@ export function EnhancedKnowledgeBase({
   const [unlinkingDocs, setUnlinkingDocs] = useState<string[]>([]);
 
   // Fetch linked documents from agent configuration
-  const fetchLinkedDocuments = async () => {
+  const fetchLinkedDocuments = useCallback(async () => {
     if (!elevenlabsAgentId) return;
 
     setLoadingLinkedDocs(true);
@@ -126,7 +126,7 @@ export function EnhancedKnowledgeBase({
     } finally {
       setLoadingLinkedDocs(false);
     }
-  };
+  }, [elevenlabsAgentId]);
 
   // Check if a document is linked to the agent
   const isDocumentLinked = (docId: string) => {
@@ -161,7 +161,7 @@ export function EnhancedKnowledgeBase({
     if (elevenlabsAgentId) {
       fetchLinkedDocuments();
     }
-  }, [elevenlabsAgentId]);
+  }, [elevenlabsAgentId, fetchLinkedDocuments]);
 
   // Auto-select linked documents when they are loaded
   useEffect(() => {

@@ -22,7 +22,6 @@ import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 // Import demo mode
-import { useDemoMode } from '~/lib/demo-mode-context';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -56,6 +55,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 type Conversation = Tables<'conversations'>['Row'];
 type _Campaign = Tables<'campaigns'>['Row'];
@@ -76,7 +76,8 @@ export function ConversationsList() {
   const _router = useRouter();
 
   // Get demo mode state and mock data
-  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } =
+    useDemoMode();
 
   // Fetch real data using our hooks
   const { data: realConversations = [], isLoading: conversationsLoading } =

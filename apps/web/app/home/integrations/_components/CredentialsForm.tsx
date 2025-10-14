@@ -18,14 +18,14 @@ export function CredentialsForm({
   disableCopy,
 }: {
   fields: FieldDefinition[];
-  value: Record<string, any>;
-  onChange: (next: Record<string, any>) => void;
+  value: Record<string, unknown>;
+  onChange: (next: Record<string, unknown>) => void;
   readOnly?: boolean;
   disableCopy?: boolean; // after first save
 }) {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
-  const setField = (k: string, v: any) => onChange({ ...value, [k]: v });
+  const setField = (k: string, v: unknown) => onChange({ ...value, [k]: v });
 
   const copy = async (k: string) => {
     if (disableCopy) return;

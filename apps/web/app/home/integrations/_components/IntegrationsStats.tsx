@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, CheckCircle2, Flame, Puzzle } from 'lucide-react';
+import { BarChart3, CheckCircle2, Puzzle } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 

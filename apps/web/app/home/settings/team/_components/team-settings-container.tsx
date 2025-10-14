@@ -577,9 +577,11 @@ export function TeamSettingsContainer({
                             <CardContent>
                               <p className="text-muted-foreground text-sm">
                                 Joined{' '}
-                                {new Date(
-                                  member.created_at,
-                                ).toLocaleDateString()}
+                                {member.created_at
+                                  ? new Date(
+                                      member.created_at,
+                                    ).toLocaleDateString()
+                                  : 'Unknown'}
                               </p>
                             </CardContent>
                           </Card>
@@ -622,9 +624,11 @@ export function TeamSettingsContainer({
                             <CardContent>
                               <p className="text-muted-foreground text-sm">
                                 Invited{' '}
-                                {new Date(
-                                  member.created_at,
-                                ).toLocaleDateString()}
+                                {member.created_at
+                                  ? new Date(
+                                      member.created_at,
+                                    ).toLocaleDateString()
+                                  : 'Unknown'}
                               </p>
                             </CardContent>
                           </Card>

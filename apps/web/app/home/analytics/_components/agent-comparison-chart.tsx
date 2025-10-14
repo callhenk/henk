@@ -50,6 +50,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   // Calculate agent performance data based on real conversations
   const agentPerformanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       const inDateRange =
@@ -91,7 +92,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
             : 0;
 
         const revenue = agentConversations.reduce(
-          (sum, conv) => sum + ((conv as any).donated_amount || 0),
+          (sum, conv) => sum + ((conv as { donated_amount?: number }).donated_amount || 0),
           0,
         );
 

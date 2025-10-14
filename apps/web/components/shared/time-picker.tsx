@@ -31,6 +31,7 @@ export function TimePicker({
     if (!time) return '';
     // Convert 24-hour format to 12-hour format for display
     const [hours, minutes] = time.split(':');
+    if (!hours || !minutes) return time;
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;

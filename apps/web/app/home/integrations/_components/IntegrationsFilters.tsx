@@ -4,9 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { Filter, Search, SortAsc, SortDesc } from 'lucide-react';
-
-import { Button } from '@kit/ui/button';
+import { Filter, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
@@ -57,10 +55,10 @@ export function useQueryFilters(): [IntegrationsFiltersState, (next: Partial<Int
   const state: IntegrationsFiltersState = useMemo(
     () => ({
       search: searchParams.get('search') ?? '',
-      type: (searchParams.get('type') as any) ?? 'all',
-      status: (searchParams.get('status') as any) ?? 'all',
-      sortBy: (searchParams.get('sortBy') as any) ?? 'name',
-      sortOrder: (searchParams.get('sortOrder') as any) ?? 'asc',
+      type: (searchParams.get('type') as IntegrationsFiltersState['type']) ?? 'all',
+      status: (searchParams.get('status') as IntegrationsFiltersState['status']) ?? 'all',
+      sortBy: (searchParams.get('sortBy') as IntegrationsFiltersState['sortBy']) ?? 'name',
+      sortOrder: (searchParams.get('sortOrder') as IntegrationsFiltersState['sortOrder']) ?? 'asc',
     }),
     [searchParams],
   );
@@ -120,7 +118,7 @@ export function IntegrationsFilters({
 
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={value.type} onValueChange={(v) => onChange({ type: v as any })}>
+            <Select value={value.type} onValueChange={(v) => onChange({ type: v as IntegrationsFiltersState['type'] })}>
               <SelectTrigger>
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
@@ -136,7 +134,7 @@ export function IntegrationsFilters({
 
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select value={value.status} onValueChange={(v) => onChange({ status: v as any })}>
+            <Select value={value.status} onValueChange={(v) => onChange({ status: v as IntegrationsFiltersState['status'] })}>
               <SelectTrigger>
                 <SelectValue placeholder="All status" />
               </SelectTrigger>
@@ -153,7 +151,7 @@ export function IntegrationsFilters({
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <Label>Sort by</Label>
-              <Select value={value.sortBy} onValueChange={(v) => onChange({ sortBy: v as any })}>
+              <Select value={value.sortBy} onValueChange={(v) => onChange({ sortBy: v as IntegrationsFiltersState['sortBy'] })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Name" />
                 </SelectTrigger>
@@ -168,7 +166,7 @@ export function IntegrationsFilters({
             </div>
             <div className="space-y-2">
               <Label>Order</Label>
-              <Select value={value.sortOrder} onValueChange={(v) => onChange({ sortOrder: v as any })}>
+              <Select value={value.sortOrder} onValueChange={(v) => onChange({ sortOrder: v as IntegrationsFiltersState['sortOrder'] })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Asc" />
                 </SelectTrigger>

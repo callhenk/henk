@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 // Helper function to get user's business context
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getUserBusinessContext(supabase: any) {
   const {
     data: { user },
@@ -40,6 +41,7 @@ async function getUserBusinessContext(supabase: any) {
 }
 
 // Helper function to validate agent belongs to user's business
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function validateAgentBusinessAccess(supabase: any, agentId: string, businessId: string) {
   const { data: agent, error } = await supabase
     .from('agents')

@@ -45,7 +45,7 @@ export function IntegrationsController({
   const [data, setData] = useState<UiIntegration[]>(
     items ?? SEED_INTEGRATIONS(businessId),
   );
-  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [_loadingAction, setLoadingAction] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null); // drawer
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [logsOpenFor, setLogsOpenFor] = useState<string | null>(null);

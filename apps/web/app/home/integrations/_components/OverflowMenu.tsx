@@ -1,4 +1,4 @@
-import { EllipsisVertical, Link2, Play, PlugZap, Power, ScrollText } from 'lucide-react';
+import { EllipsisVertical, Play, PlugZap, Power, ScrollText } from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import {

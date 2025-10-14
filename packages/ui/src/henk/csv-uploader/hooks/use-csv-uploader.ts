@@ -55,6 +55,13 @@ export function useCSVUploader<T extends CSVRow = CSVRow>({
     validationErrors: [],
     parseError: null,
     uploadResult: null,
+    headers: [],
+    fieldMapping: {},
+    showFieldMapping: false,
+    deduplicateByPhone: false,
+    excludeDnc: true,
+    duplicatesRemoved: 0,
+    dncExcluded: 0,
   });
 
   const selectFile = useCallback(
@@ -141,6 +148,13 @@ export function useCSVUploader<T extends CSVRow = CSVRow>({
       validationErrors: [],
       parseError: null,
       uploadResult: null,
+      headers: [],
+      fieldMapping: {},
+      showFieldMapping: false,
+      deduplicateByPhone: false,
+      excludeDnc: true,
+      duplicatesRemoved: 0,
+      dncExcluded: 0,
     });
   }, []);
 

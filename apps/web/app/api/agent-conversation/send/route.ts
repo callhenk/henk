@@ -77,21 +77,8 @@ export async function POST(request: NextRequest) {
 
     const messageResponse = await response.json();
 
-    // Store message in local database
-    const { error: dbError } = await supabase
-      .from('conversation_messages')
-      .insert({
-        conversation_id,
-        message,
-        account_id,
-        timestamp: new Date().toISOString(),
-        message_type: 'user',
-      });
-
-    if (dbError) {
-      console.error('Error storing message in database:', dbError);
-      // Don't fail the entire operation if database storage fails
-    }
+    // Note: Message storage would require a conversation_messages table
+    // Currently messages are stored in ElevenLabs only
 
     return NextResponse.json(
       {

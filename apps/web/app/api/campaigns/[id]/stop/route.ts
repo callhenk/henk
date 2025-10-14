@@ -10,8 +10,9 @@ export async function POST(
   request: NextRequest,
   { params }: CampaignStopRouteParams,
 ) {
+  const { id } = await params;
+
   try {
-    const { id } = await params;
     const supabase = getSupabaseServerClient();
 
     // 1. Verify authentication

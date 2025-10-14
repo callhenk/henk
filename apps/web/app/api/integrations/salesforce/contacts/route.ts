@@ -281,6 +281,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapSalesforceContacts(records: any[]): any[] {
   return records.map(record => ({
     id: record.Id,
@@ -293,6 +294,7 @@ function mapSalesforceContacts(records: any[]): any[] {
   }));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function refreshSalesforceToken(integration: any, supabase: any) {
   try {
     const credentials = integration.credentials as {

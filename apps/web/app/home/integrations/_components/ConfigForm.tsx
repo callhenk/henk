@@ -19,11 +19,11 @@ export function ConfigForm({
   readOnly,
 }: {
   fields: FieldDefinition[];
-  value: Record<string, any>;
-  onChange: (next: Record<string, any>) => void;
+  value: Record<string, unknown>;
+  onChange: (next: Record<string, unknown>) => void;
   readOnly?: boolean;
 }) {
-  const setField = (k: string, v: any) => onChange({ ...value, [k]: v });
+  const setField = (k: string, v: unknown) => onChange({ ...value, [k]: v });
 
   return (
     <div className="space-y-4">

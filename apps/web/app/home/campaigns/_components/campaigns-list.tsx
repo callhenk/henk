@@ -391,8 +391,7 @@ export function CampaignsList() {
 
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
         <DialogContent className="max-w-2xl p-0">
-          <WizardContainer 
-            onClose={() => setShowWizard(false)} 
+          <WizardContainer
             onLoadingChange={setIsCreatingCampaign}
           />
         </DialogContent>

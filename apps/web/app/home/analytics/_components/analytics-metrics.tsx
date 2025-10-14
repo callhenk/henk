@@ -49,6 +49,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
   // Calculate metrics based on filters and real data
   const metrics = useMemo(() => {
     // Filter conversations based on date range
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       return (
@@ -88,6 +89,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
       totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0;
 
     const totalRevenue = filteredData.reduce((sum, conv) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return sum + ((conv as any).donated_amount || 0);
     }, 0);
 
@@ -134,6 +136,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
     previousPeriodStart.setTime(previousPeriodStart.getTime() - periodLength);
     previousPeriodEnd.setTime(previousPeriodEnd.getTime() - periodLength);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const previousPeriodConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       return convDate >= previousPeriodStart && convDate <= previousPeriodEnd;

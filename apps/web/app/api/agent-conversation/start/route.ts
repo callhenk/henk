@@ -87,25 +87,8 @@ export async function POST(request: NextRequest) {
 
     const conversation = await response.json();
 
-    // Store conversation in local database
-    const { data: conversationRecord, error: dbError } = await supabase
-      .from('conversations')
-      .insert({
-        id: conversation.conversation_id,
-        agent_id,
-        account_id,
-        business_id,
-        status: 'active',
-        started_at: new Date().toISOString(),
-        conversation_type: conversation_type || 'voice',
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error('Error storing conversation in database:', dbError);
-      // Don't fail the entire operation if database storage fails
-    }
+    // Note: Conversation storage in local database requires campaign_id and lead_id
+    // This endpoint is for direct agent conversations without campaign context
 
     return NextResponse.json(
       {

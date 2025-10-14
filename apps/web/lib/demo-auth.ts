@@ -8,7 +8,7 @@ function simpleEncrypt(text: string, key: string): string {
   const result = Buffer.alloc(textBytes.length);
 
   for (let i = 0; i < textBytes.length; i++) {
-    result[i] = textBytes[i] ^ keyBytes[i % keyBytes.length];
+    result[i] = textBytes[i]! ^ keyBytes[i % keyBytes.length]!;
   }
 
   return result.toString('hex');
@@ -20,7 +20,7 @@ function simpleDecrypt(encrypted: string, key: string): string {
   const result = Buffer.alloc(encryptedBytes.length);
 
   for (let i = 0; i < encryptedBytes.length; i++) {
-    result[i] = encryptedBytes[i] ^ keyBytes[i % keyBytes.length];
+    result[i] = encryptedBytes[i]! ^ keyBytes[i % keyBytes.length]!;
   }
 
   return result.toString('utf8');

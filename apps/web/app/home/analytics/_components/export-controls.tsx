@@ -166,6 +166,7 @@ export function ExportControls({ filters }: ExportControlsProps) {
               onClick={() => handleExport('png', 'charts')}
               className="flex items-center space-x-2"
             >
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image className="h-4 w-4" />
               <span>Export Charts</span>
             </Button>

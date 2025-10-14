@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildTrainingContext(agent: any, business: any) {
   return {
     agent_id: agent.id,
@@ -112,6 +113,7 @@ function buildTrainingContext(agent: any, business: any) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildElevenLabsAgentConfig(agent: any, trainingContext: any) {
   return {
     agent_id: agent.id,
@@ -131,6 +133,7 @@ function buildElevenLabsAgentConfig(agent: any, trainingContext: any) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildConversationFlow(agent: any) {
   return {
     greeting: agent.workflow_config?.conversation_flow?.greeting || '',

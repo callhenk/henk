@@ -12,7 +12,7 @@ interface AgentChatPageProps {
   }>;
 }
 
-export default function AgentChatPage({ params }: AgentChatPageProps) {
+export default function AgentChatPage({ params: _params }: AgentChatPageProps) {
   const [showVoiceChat, setShowVoiceChat] = useState(true);
 
   return (
@@ -27,7 +27,6 @@ export default function AgentChatPage({ params }: AgentChatPageProps) {
           <RealtimeVoiceChat
             agentId="default"
             agentName="Your AI Agent"
-            voiceId="default"
             elevenlabsAgentId="default"
             onClose={() => setShowVoiceChat(false)}
           />

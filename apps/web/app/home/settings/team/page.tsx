@@ -24,7 +24,7 @@ function TeamSettingsPage() {
       />
       <PageBody>
         <div className={'w-full max-w-5xl'}>
-          <TeamSettingsContainer userId={user.id} hideHeader />
+          <TeamSettingsContainer _userId={user.id} hideHeader />
         </div>
       </PageBody>
     </>

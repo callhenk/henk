@@ -15,7 +15,7 @@ declare module 'react-file-drop' {
     onFrameDrop?: (event: DragEvent) => void;
     onDragOver?: ReactDragEventHandler<HTMLDivElement>;
     onDragLeave?: ReactDragEventHandler<HTMLDivElement>;
-    onDrop?: (files: FileList | null, event: ReactDragEvent<HTMLDivElement>) => any;
+    onDrop?: (files: FileList | null, event: ReactDragEvent<HTMLDivElement>) => void;
     onTargetClick?: ReactEventHandler<HTMLDivElement>;
     dropEffect?: DropEffects;
   }

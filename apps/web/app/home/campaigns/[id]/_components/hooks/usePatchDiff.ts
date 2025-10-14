@@ -2,7 +2,9 @@
 
 export type Primitive = string | number | boolean | null | undefined;
 
-export type Patch = Record<string, Primitive | Record<string, Primitive>>;
+export type PatchValue = Primitive | { [key: string]: PatchValue };
+
+export type Patch = Record<string, PatchValue>;
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -18,12 +20,12 @@ export function diffPatch<T extends Record<string, unknown>>(
     const av = a[k as keyof T] as unknown;
     const bv = b[k as keyof T] as unknown;
     if (isObject(av) && isObject(bv)) {
-      const nested = diffPatch(av as any, bv as any);
+      const nested = diffPatch(av as Record<string, unknown>, bv as Record<string, unknown>);
       if (Object.keys(nested).length > 0) {
-        (patch as any)[k] = nested;
+        patch[k] = nested;
       }
     } else if (av !== bv) {
-      (patch as any)[k] = bv as any;
+      patch[k] = bv as Primitive;
     }
   });
   return patch;

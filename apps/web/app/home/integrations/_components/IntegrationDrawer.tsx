@@ -31,11 +31,11 @@ export function IntegrationDrawer({
 }) {
   const [step, setStep] = useState<Step>('overview');
   const [mode, setMode] = useState<'oauth' | 'api'>('api');
-  const [credentials, setCredentials] = useState<Record<string, any>>(
-    (item.credentials as Record<string, any>) ?? {},
+  const [credentials, setCredentials] = useState<Record<string, unknown>>(
+    (item.credentials as Record<string, unknown>) ?? {},
   );
-  const [config, setConfig] = useState<Record<string, any>>(
-    (item.config as Record<string, any>) ?? {},
+  const [config, setConfig] = useState<Record<string, unknown>>(
+    (item.config as Record<string, unknown>) ?? {},
   );
   const [saving, setSaving] = useState(false);
   const [tested, setTested] = useState<TestConnectionResult | null>(null);

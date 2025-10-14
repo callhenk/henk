@@ -63,6 +63,7 @@ export function PerformanceChart({
   // Generate performance data based on real conversations
   const performanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filteredConversations = conversations.filter((conv: any) => {
       const convDate = new Date(conv.created_at);
       const inDateRange =
@@ -82,6 +83,7 @@ export function PerformanceChart({
 
     // Group conversations by date
     const groupedByDate = filteredConversations.reduce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (acc: Record<string, { calls: number; conversions: number; revenue: number }>, conv: any) => {
         const date = new Date(conv.created_at).toISOString().split('T')[0];
         if (!date) return acc;
@@ -100,6 +102,7 @@ export function PerformanceChart({
           acc[date]!.conversions += 1;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         acc[date]!.revenue += (conv as any).donated_amount || 0;
 
         return acc;

@@ -34,7 +34,7 @@ export class StorageClient {
       const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
 
       // Upload to Supabase storage
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.supabase.storage
         .from('audio')
         .upload(fileName, blob, {
           contentType: 'audio/mpeg',
@@ -73,7 +73,7 @@ export class StorageClient {
     try {
       const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
 
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.supabase.storage
         .from('audio')
         .upload(filePath, blob, {
           contentType: 'audio/mpeg',
