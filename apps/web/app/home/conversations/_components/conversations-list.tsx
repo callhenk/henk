@@ -66,6 +66,7 @@ type _Lead = Tables<'leads'>['Row'];
 interface EnhancedConversation extends Conversation {
   donorName: string;
   phoneNumber: string;
+  timezone: string;
   campaignName: string;
   agentName: string;
   amount?: number;
@@ -123,6 +124,7 @@ export function ConversationsList() {
         ...conversation,
         donorName: lead?.name || `Donor ${conversation.lead_id?.slice(0, 8)}`,
         phoneNumber: lead?.phone || 'N/A',
+        timezone: lead?.timezone || 'UTC',
         campaignName: campaign?.name || 'Unknown Campaign',
         agentName: agent?.name || 'Unknown Agent',
         amount,
@@ -578,6 +580,7 @@ function ConversationsTable({
         <TableHeader>
           <TableRow>
             <TableHead>Donor</TableHead>
+            <TableHead>Timezone</TableHead>
             <TableHead>Campaign</TableHead>
             <TableHead>Agent</TableHead>
             <TableHead>Status</TableHead>
@@ -599,6 +602,9 @@ function ConversationsTable({
                     {conversation.phoneNumber}
                   </div>
                 </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm">{conversation.timezone}</div>
               </TableCell>
               <TableCell>{conversation.campaignName}</TableCell>
               <TableCell>{conversation.agentName}</TableCell>

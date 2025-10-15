@@ -62,6 +62,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     phone: string | null;
     email: string | null;
     company: string | null;
+    timezone: string | null;
     status: string;
   } | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -72,6 +73,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     phone: string;
     email: string;
     company: string;
+    timezone: string;
     status: string;
     notes: string;
     attempts: number;
@@ -83,6 +85,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     phone: '',
     email: '',
     company: '',
+    timezone: '',
     status: 'new',
     notes: '',
     attempts: 0,
@@ -94,15 +97,13 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const [status, setStatus] = useState<
     | 'all'
     | 'new'
-    | 'queued'
-    | 'in_progress'
     | 'contacted'
-    | 'unreachable'
-    | 'bad_number'
-    | 'do_not_call'
+    | 'interested'
     | 'pledged'
     | 'donated'
-    | 'completed'
+    | 'not_interested'
+    | 'unreachable'
+    | 'failed'
   >('all');
 
   const filtered = useMemo(() => {
@@ -166,6 +167,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       phone: lead.phone,
       email: lead.email,
       company: lead.company,
+      timezone: lead.timezone,
       status: lead.status,
     });
     setEditOpen(true);
@@ -173,6 +175,15 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
 
   const saveEdit = async () => {
     if (!editForm) return;
+
+    // Validate and default timezone
+    const validateTimezone = (tz: string | null | undefined): string => {
+      if (!tz || tz.trim() === '') return 'UTC';
+      const trimmed = tz.trim();
+      const timezoneRegex = /^([A-Z][a-z]+\/[A-Z][a-z_]+|UTC)$/;
+      return timezoneRegex.test(trimmed) ? trimmed : 'UTC';
+    };
+
     try {
       await updateLead.mutateAsync({
         id: editForm.id,
@@ -180,6 +191,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
         phone: editForm.phone ?? undefined,
         email: editForm.email ?? undefined,
         company: editForm.company ?? undefined,
+        timezone: validateTimezone(editForm.timezone),
         status: editForm.status,
       });
       await queryClient.invalidateQueries({
@@ -199,6 +211,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       phone: l.phone,
       email: l.email,
       company: l.company,
+      timezone: l.timezone,
       status: l.status,
       // dnc may not exist on the Row type; omit from export to keep type-safe
       attempts: l.attempts,
@@ -265,15 +278,13 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 {[
                   'all',
                   'new',
-                  'queued',
-                  'in_progress',
                   'contacted',
-                  'unreachable',
-                  'bad_number',
-                  'do_not_call',
+                  'interested',
                   'pledged',
                   'donated',
-                  'completed',
+                  'not_interested',
+                  'unreachable',
+                  'failed',
                 ].map((s) => (
                   <SelectItem key={s} value={s} className="capitalize">
                     {s.replaceAll('_', ' ')}
@@ -346,6 +357,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                   <th className="p-2 text-left">Phone</th>
                   <th className="p-2 text-left">Email</th>
                   <th className="p-2 text-left">Company</th>
+                  <th className="p-2 text-left">Timezone</th>
                   <th className="p-2 text-left">Status</th>
                   <th className="p-2 text-left">Attempts</th>
                   <th className="p-2 text-left">Pledged</th>
@@ -377,6 +389,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                     <td className="p-2">{l.phone ?? '-'}</td>
                     <td className="p-2">{l.email ?? '-'}</td>
                     <td className="p-2">{l.company ?? '-'}</td>
+                    <td className="p-2">{l.timezone ?? '-'}</td>
                     <td className="p-2">
                       <Badge
                         variant="outline"
@@ -447,6 +460,21 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                   }
                 />
               </div>
+              <div>
+                <Label>Timezone</Label>
+                <Input
+                  placeholder="e.g. America/New_York or UTC"
+                  value={editForm.timezone ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) =>
+                      f ? { ...f, timezone: e.target.value } : f,
+                    )
+                  }
+                />
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Leave empty for UTC. Use IANA format (e.g., America/New_York)
+                </p>
+              </div>
               <div className="sm:col-span-2">
                 <Label>Status</Label>
                 <Select
@@ -461,15 +489,13 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                   <SelectContent>
                     {[
                       'new',
-                      'queued',
-                      'in_progress',
                       'contacted',
-                      'unreachable',
-                      'bad_number',
-                      'do_not_call',
+                      'interested',
                       'pledged',
                       'donated',
-                      'completed',
+                      'not_interested',
+                      'unreachable',
+                      'failed',
                     ].map((s) => (
                       <SelectItem key={s} value={s} className="capitalize">
                         {s.replaceAll('_', ' ')}
@@ -574,6 +600,19 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 }
               />
             </div>
+            <div>
+              <Label>Timezone</Label>
+              <Input
+                placeholder="e.g. America/New_York or UTC"
+                value={addForm.timezone}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, timezone: e.target.value }))
+                }
+              />
+              <p className="text-muted-foreground mt-1 text-xs">
+                Leave empty for UTC. Use IANA format (e.g., America/New_York)
+              </p>
+            </div>
             <div className="sm:col-span-2">
               <Label>Status</Label>
               <Select
@@ -586,15 +625,13 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 <SelectContent>
                   {[
                     'new',
-                    'queued',
-                    'in_progress',
                     'contacted',
-                    'unreachable',
-                    'bad_number',
-                    'do_not_call',
+                    'interested',
                     'pledged',
                     'donated',
-                    'completed',
+                    'not_interested',
+                    'unreachable',
+                    'failed',
                   ].map((s) => (
                     <SelectItem key={s} value={s} className="capitalize">
                       {s.replaceAll('_', ' ')}
@@ -679,6 +716,21 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                     toast.error('Name and phone are required');
                     return;
                   }
+
+                  // Validate and default timezone
+                  const validateTimezone = (tz: string): string => {
+                    if (!tz || tz.trim() === '') return 'UTC';
+                    const trimmed = tz.trim();
+                    const timezoneRegex = /^([A-Z][a-z]+\/[A-Z][a-z_]+|UTC)$/;
+                    if (!timezoneRegex.test(trimmed)) {
+                      toast.warning(
+                        'Invalid timezone format, defaulting to UTC',
+                      );
+                      return 'UTC';
+                    }
+                    return trimmed;
+                  };
+
                   try {
                     await createLead.mutateAsync({
                       campaign_id: campaignId,
@@ -686,6 +738,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                       phone: addForm.phone,
                       email: addForm.email || null,
                       company: addForm.company || null,
+                      timezone: validateTimezone(addForm.timezone),
                       status: addForm.status,
                       notes: addForm.notes || null,
                       attempts: addForm.attempts,
@@ -711,6 +764,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                       phone: '',
                       email: '',
                       company: '',
+                      timezone: '',
                       status: 'new',
                       notes: '',
                       attempts: 0,

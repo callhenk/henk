@@ -32,6 +32,7 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
         phone: lead.phone.trim(),
         email: lead.email?.trim() || null,
         company: lead.company?.trim() || null,
+        timezone: lead.timezone?.trim() || 'UTC',
         status: 'new' as const,
         attempts: 0,
       }));

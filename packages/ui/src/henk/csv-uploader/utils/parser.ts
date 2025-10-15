@@ -132,7 +132,8 @@ export async function parseCSVFile<T extends CSVRow>(
               metadata: {
                 totalRows: processedResult.metadata?.totalRows ?? 0,
                 validRows: processedResult.metadata?.validRows ?? 0,
-                duplicatesRemoved: processedResult.metadata?.duplicatesRemoved ?? 0,
+                duplicatesRemoved:
+                  processedResult.metadata?.duplicatesRemoved ?? 0,
                 parseTime,
               },
             });
@@ -321,7 +322,8 @@ export async function parseCSVString<T extends CSVRow>(
             metadata: {
               totalRows: processedResult.metadata?.totalRows ?? 0,
               validRows: processedResult.metadata?.validRows ?? 0,
-              duplicatesRemoved: processedResult.metadata?.duplicatesRemoved ?? 0,
+              duplicatesRemoved:
+                processedResult.metadata?.duplicatesRemoved ?? 0,
               parseTime,
             },
           });
@@ -383,6 +385,8 @@ function getSampleValue(fieldName: string): string {
   if (lowerField.includes('phone')) return '+1234567890';
   if (lowerField.includes('email')) return 'john@example.com';
   if (lowerField.includes('company')) return 'Acme Corp';
+  if (lowerField.includes('timezone') || lowerField.includes('time_zone'))
+    return 'America/New_York';
   if (lowerField.includes('address')) return '123 Main St';
   if (lowerField.includes('city')) return 'New York';
   if (lowerField.includes('state')) return 'NY';
@@ -390,7 +394,9 @@ function getSampleValue(fieldName: string): string {
   if (lowerField.includes('country')) return 'USA';
   if (lowerField.includes('date')) return '2024-01-01';
   if (lowerField.includes('amount')) return '100.00';
-  if (lowerField.includes('status')) return 'active';
+  if (lowerField.includes('status')) return 'new';
+  if (lowerField.includes('attempts')) return '0';
+  if (lowerField.includes('notes')) return 'Optional notes';
 
   return 'Sample Value';
 }
