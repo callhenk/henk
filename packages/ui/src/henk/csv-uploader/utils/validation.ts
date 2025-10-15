@@ -395,8 +395,9 @@ export function sanitizeCSVData<T extends CSVRow>(data: T[]): T[] {
 
       if (typeof value === 'string') {
         // Remove potentially harmful characters and normalize whitespace
+
         (sanitized as Record<string, unknown>)[key] = value
-          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+          .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
           .replace(/\s+/g, ' ') // Normalize whitespace
           .trim();
       }

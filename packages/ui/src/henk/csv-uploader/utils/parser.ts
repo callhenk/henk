@@ -84,16 +84,6 @@ export async function parseCSVFile<T extends CSVRow>(
                 });
                 return;
               }
-
-              // Non-critical errors become warnings
-              const warnings: ValidationError[] = results.errors
-                .slice(0, 10) // Limit warnings
-                .map((err) => ({
-                  row: err.row || 0,
-                  field: 'parsing',
-                  message: err.message,
-                  severity: 'warning' as const,
-                }));
             }
 
             // Validate data array
@@ -143,9 +133,17 @@ export async function parseCSVFile<T extends CSVRow>(
             });
           }
         },
-        error: (error: any) => {
+        error: (error: unknown) => {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : typeof error === 'object' &&
+                  error !== null &&
+                  'message' in error
+                ? String(error.message)
+                : 'Unknown parsing error';
           resolveOnce({
-            error: `CSV parsing failed: ${error.message || 'Unknown parsing error'}. Please check that your file is a valid CSV format.`,
+            error: `CSV parsing failed: ${errorMessage}. Please check that your file is a valid CSV format.`,
           });
         },
       });
@@ -265,8 +263,9 @@ function applyFieldMappings<T extends CSVRow>(
   // Apply mappings
   Object.entries(headerMapping).forEach(([standardField, originalHeader]) => {
     if (originalHeader in mappedRow && standardField !== originalHeader) {
-      (mappedRow as any)[standardField] = mappedRow[originalHeader];
-      delete (mappedRow as any)[originalHeader];
+      const rowAsRecord = mappedRow as Record<string, unknown>;
+      rowAsRecord[standardField] = mappedRow[originalHeader];
+      delete rowAsRecord[originalHeader];
     }
   });
 
@@ -328,8 +327,16 @@ export async function parseCSVString<T extends CSVRow>(
             },
           });
         },
-        error: (error: any) => {
-          resolve({ error: `CSV parsing failed: ${error.message}` });
+        error: (error: unknown) => {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : typeof error === 'object' &&
+                  error !== null &&
+                  'message' in error
+                ? String(error.message)
+                : 'Unknown error';
+          resolve({ error: `CSV parsing failed: ${errorMessage}` });
         },
       });
     } catch (error) {
