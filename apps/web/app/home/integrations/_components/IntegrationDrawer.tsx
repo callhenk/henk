@@ -141,7 +141,28 @@ export function IntegrationDrawer({
                     </p>
                     <Button
                       type="button"
-                      onClick={() => setTested({ success: true })}
+                      onClick={async () => {
+                        if (item.id === 'salesforce') {
+                          // Call Salesforce authorize endpoint
+                          try {
+                            const response = await fetch('/api/integrations/salesforce/authorize');
+                            const data = await response.json();
+                            if (data.success && data.authorization_url) {
+                              // Redirect to Salesforce OAuth
+                              window.location.href = data.authorization_url;
+                            } else {
+                              console.error('Failed to get authorization URL:', data.error);
+                              setTested({ success: false, message: data.error || 'Failed to start OAuth flow' });
+                            }
+                          } catch (error) {
+                            console.error('Error initiating OAuth:', error);
+                            setTested({ success: false, message: 'Failed to connect to server' });
+                          }
+                        } else {
+                          // Mock for other providers
+                          setTested({ success: true });
+                        }
+                      }}
                       disabled={!canEdit}
                     >
                       Continue to provider <ExternalLink className="ml-2 h-4 w-4" />
