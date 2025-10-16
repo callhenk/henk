@@ -50,10 +50,11 @@ Navigate to `/generate-token` in your browser:
 https://your-domain.com/generate-token
 ```
 
-### Step 2: Enter Credentials
+### Step 2: Configure Demo
 
-The token generator needs demo account credentials:
+Enter the demo configuration:
 
+- **Demo Name (Optional)**: Add a custom name to identify this demo (e.g., "Acme Corp Demo", "John Smith Presentation")
 - **Email**: Enter a valid demo user email (e.g., `demo@callhenk.com`)
 - **Password**: Enter the corresponding password (e.g., `demo123`)
 

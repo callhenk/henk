@@ -4,8 +4,7 @@ import { createDemoToken } from '~/lib/demo-auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, allowedAgentIds, demoName } =
-      await request.json();
+    const { email, password, allowedAgentIds, demoName } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(

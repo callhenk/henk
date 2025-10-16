@@ -154,7 +154,7 @@ export default function GenerateTokenPage() {
                 {token && (
                   <>
                     {generatedDemoName && (
-                      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                      <div className="border-primary/20 bg-primary/5 rounded-lg border p-3">
                         <p className="text-muted-foreground text-xs font-medium">
                           Demo Name
                         </p>
