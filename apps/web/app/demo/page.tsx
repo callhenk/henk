@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 // Import the useAgents hook from the correct location
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useSignInWithEmailPassword } from '@kit/supabase/hooks/use-sign-in-with-email-password';
-import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
@@ -29,12 +28,12 @@ import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voic
 
 export default function TestCallPage() {
   const searchParams = useSearchParams();
-  const supabase = useSupabase();
   const { data: agents = [] } = useAgents();
   const signInMutation = useSignInWithEmailPassword();
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [hasValidToken, setHasValidToken] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [loginAttempted, setLoginAttempted] = useState(false);
 
   // Phone numbers (used for test calls)
   const [availableCallerIds, setAvailableCallerIds] = useState<string[]>([]);
@@ -49,12 +48,16 @@ export default function TestCallPage() {
 
   // Auto-login with demo token credentials
   useEffect(() => {
+    // Prevent multiple login attempts
+    if (loginAttempted) return;
+
     const token = searchParams.get('token');
     if (!token) {
       // No token means unauthorized access
       setIsSigningIn(false);
       setHasValidToken(false);
       setTokenError('No access token provided');
+      setLoginAttempted(true);
       return;
     }
 
@@ -66,6 +69,7 @@ export default function TestCallPage() {
         toast.error('Invalid demo token');
         setIsSigningIn(false);
         setHasValidToken(false);
+        setLoginAttempted(true);
         return;
       }
 
@@ -73,6 +77,7 @@ export default function TestCallPage() {
       setHasValidToken(true);
       setIsSigningIn(true);
       setTokenError(null);
+      setLoginAttempted(true);
 
       // Auto-login with demo credentials using proper sign-in hook
       signInMutation
@@ -97,8 +102,10 @@ export default function TestCallPage() {
       toast.error('Invalid token format');
       setIsSigningIn(false);
       setHasValidToken(false);
+      setLoginAttempted(true);
     }
-  }, [searchParams, supabase, signInMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Load phone numbers
   useEffect(() => {

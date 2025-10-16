@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -37,6 +38,8 @@ const callWindowSchema = z
 export function useCampaignEditor(campaignId: string) {
   const { isDemoMode, mockCampaigns, mockConversations, mockAgents } =
     useDemoMode();
+
+  const queryClient = useQueryClient();
 
   // Fetch data
   const { data: realCampaign, isLoading: loadingCampaign } =
@@ -334,6 +337,13 @@ export function useCampaignEditor(campaignId: string) {
       if (!resp.ok || !json?.success) {
         throw new Error(json?.error || `Failed (${resp.status})`);
       }
+
+      // Invalidate campaign query to refetch updated data
+      await queryClient.invalidateQueries({
+        queryKey: ['campaign', campaignId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
       toast.success('Campaign activated');
     } catch (error) {
       console.error('Failed to activate campaign:', error);
@@ -351,6 +361,7 @@ export function useCampaignEditor(campaignId: string) {
     callWindowEnd,
     campaignLeads.length,
     campaignId,
+    queryClient,
   ]);
 
   const handlePauseCampaign = useCallback(async () => {
@@ -365,6 +376,13 @@ export function useCampaignEditor(campaignId: string) {
       if (!resp.ok || !json?.success) {
         throw new Error(json?.error || `Failed (${resp.status})`);
       }
+
+      // Invalidate campaign query to refetch updated data
+      await queryClient.invalidateQueries({
+        queryKey: ['campaign', campaignId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
       toast.success('Campaign paused');
     } catch (error) {
       console.error('Failed to pause campaign:', error);
@@ -374,7 +392,7 @@ export function useCampaignEditor(campaignId: string) {
     } finally {
       setIsUpdatingStatus(false);
     }
-  }, [campaign, campaignId]);
+  }, [campaign, campaignId, queryClient]);
 
   const handleSaveDates = useCallback(
     async (startDateValue: string, endDateValue: string) => {
