@@ -28,12 +28,16 @@ import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voic
 
 export default function TestCallPage() {
   const searchParams = useSearchParams();
-  const { data: agents = [] } = useAgents();
+  const { data: allAgents = [] } = useAgents();
   const signInMutation = useSignInWithEmailPassword();
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [hasValidToken, setHasValidToken] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [loginAttempted, setLoginAttempted] = useState(false);
+  const [allowedAgentIds, setAllowedAgentIds] = useState<string[] | undefined>(
+    undefined,
+  );
+  const [demoName, setDemoName] = useState<string | undefined>(undefined);
 
   // Phone numbers (used for test calls)
   const [availableCallerIds, setAvailableCallerIds] = useState<string[]>([]);
@@ -79,6 +83,19 @@ export default function TestCallPage() {
       setTokenError(null);
       setLoginAttempted(true);
 
+      // Set allowed agent IDs if provided in token
+      if (
+        credentials.allowedAgentIds &&
+        credentials.allowedAgentIds.length > 0
+      ) {
+        setAllowedAgentIds(credentials.allowedAgentIds);
+      }
+
+      // Set demo name if provided in token
+      if (credentials.demoName) {
+        setDemoName(credentials.demoName);
+      }
+
       // Auto-login with demo credentials using proper sign-in hook
       signInMutation
         .mutateAsync({
@@ -86,7 +103,6 @@ export default function TestCallPage() {
           password: credentials.password,
         })
         .then(() => {
-          toast.success('Signed in to demo');
           setIsSigningIn(false);
         })
         .catch(() => {
@@ -130,6 +146,11 @@ export default function TestCallPage() {
       }
     })();
   }, [isSigningIn]);
+
+  // Filter agents based on allowedAgentIds from token
+  const agents = allowedAgentIds
+    ? allAgents.filter((agent) => allowedAgentIds.includes(agent.id))
+    : allAgents;
 
   // Set default agent if available
   useEffect(() => {
@@ -253,6 +274,14 @@ export default function TestCallPage() {
               Live Demo Available
             </span>
           </div>
+          {demoName && (
+            <div className="border-primary/20 bg-primary/5 mb-3 inline-block rounded-lg border px-3 py-1">
+              <span className="text-muted-foreground text-xs font-medium">
+                Demo:{' '}
+              </span>
+              <span className="text-sm font-semibold">{demoName}</span>
+            </div>
+          )}
           <h1 className="text-3xl font-bold tracking-tight">
             AI Voice Assistant
           </h1>

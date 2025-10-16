@@ -63,6 +63,21 @@ The token generator needs demo account credentials:
 - Proper permissions to view campaigns
 - Phone numbers configured for outbound calling
 
+### Step 2.5: Select Available Agents (Optional)
+
+Choose which agents will be available in the demo:
+
+- **Select Specific Agents**: Check the agents you want to include in the demo
+- **Select All**: Click "Select All" to include all agents
+- **Clear All**: Click "Clear All" to deselect all agents
+- **Show All**: Leave all agents unchecked to show all agents (default behavior)
+
+**Why restrict agents?**
+- Customize demo for specific use cases
+- Hide agents that are still in development
+- Show only relevant agents for the client's industry
+- Simplify the demo experience with fewer options
+
 ### Step 3: Generate Token
 
 Click **"Generate Demo Token"** to create:
@@ -131,10 +146,13 @@ Provides browser-based voice conversation:
 ### Token Generation (`/lib/demo-auth.ts`)
 
 ```typescript
-export function createDemoToken(data: {
+export interface DemoTokenData {
   email: string;
   password: string;
-}): string {
+  allowedAgentIds?: string[];
+}
+
+export function createDemoToken(data: DemoTokenData): string {
   const payload = JSON.stringify(data);
   const encrypted = simpleEncrypt(payload, DEMO_SECRET);
   const timestamp = Date.now().toString();
@@ -146,14 +164,12 @@ export function createDemoToken(data: {
 ### Token Verification
 
 ```typescript
-export function verifyDemoToken(
-  token: string,
-): { email: string; password: string } | null {
+export function verifyDemoToken(token: string): DemoTokenData | null {
   try {
     const combined = Buffer.from(token, 'base64').toString('utf8');
     const [timestampStr, encrypted] = combined.split(':');
     const decrypted = simpleDecrypt(encrypted, DEMO_SECRET);
-    return JSON.parse(decrypted);
+    return JSON.parse(decrypted) as DemoTokenData;
   } catch (error) {
     return null;
   }
@@ -173,6 +189,11 @@ useEffect(() => {
   const credentials = verifyDemoToken(token);
 
   if (credentials) {
+    // Set allowed agent IDs if provided in token
+    if (credentials.allowedAgentIds && credentials.allowedAgentIds.length > 0) {
+      setAllowedAgentIds(credentials.allowedAgentIds);
+    }
+
     // Auto-login with extracted credentials
     signInMutation.mutateAsync({
       email: credentials.email,
@@ -180,6 +201,11 @@ useEffect(() => {
     });
   }
 }, [searchParams]);
+
+// Filter agents based on allowedAgentIds from token
+const agents = allowedAgentIds
+  ? allAgents.filter((agent) => allowedAgentIds.includes(agent.id))
+  : allAgents;
 ```
 
 ## Environment Requirements
@@ -310,7 +336,8 @@ Generates encrypted demo token.
 ```json
 {
   "email": "demo@callhenk.com",
-  "password": "demo123"
+  "password": "demo123",
+  "allowedAgentIds": ["agent-1", "agent-2"]  // Optional: omit or empty array to show all agents
 }
 ```
 
@@ -356,11 +383,12 @@ Before sharing demo links, ensure:
 
 - [ ] Demo account created in Supabase Auth
 - [ ] At least one agent configured with ElevenLabs
+- [ ] Select which agents to include in demo (or leave empty for all)
 - [ ] Twilio phone number configured for outbound calls
 - [ ] Environment variables properly set
 - [ ] Test demo link yourself first
 - [ ] Verify both Phone Demo and Voice Chat tabs work
-- [ ] Check that agent selection displays correctly
+- [ ] Check that only selected agents are displayed
 - [ ] Confirm calls/conversations connect successfully
 
 ## Usage Analytics

@@ -26,10 +26,14 @@ function simpleDecrypt(encrypted: string, key: string): string {
   return result.toString('utf8');
 }
 
-export function createDemoToken(data: {
+export interface DemoTokenData {
   email: string;
   password: string;
-}): string {
+  allowedAgentIds?: string[];
+  demoName?: string;
+}
+
+export function createDemoToken(data: DemoTokenData): string {
   const payload = JSON.stringify(data);
   const encrypted = simpleEncrypt(payload, DEMO_SECRET);
   // Add a timestamp and some randomness to make tokens unique
@@ -38,9 +42,7 @@ export function createDemoToken(data: {
   return Buffer.from(combined).toString('base64');
 }
 
-export function verifyDemoToken(
-  token: string,
-): { email: string; password: string } | null {
+export function verifyDemoToken(token: string): DemoTokenData | null {
   try {
     const combined = Buffer.from(token, 'base64').toString('utf8');
     const [timestampStr, encrypted] = combined.split(':');
@@ -50,7 +52,7 @@ export function verifyDemoToken(
     }
 
     const decrypted = simpleDecrypt(encrypted, DEMO_SECRET);
-    const data = JSON.parse(decrypted);
+    const data = JSON.parse(decrypted) as DemoTokenData;
 
     return data;
   } catch (error) {
