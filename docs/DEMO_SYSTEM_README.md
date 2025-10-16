@@ -73,7 +73,15 @@ Choose which agents will be available in the demo:
 - **Clear All**: Click "Clear All" to deselect all agents
 - **Show All**: Leave all agents unchecked to show all agents (default behavior)
 
+**Why use a custom demo name?**
+
+- Easily identify which client or prospect the demo is for
+- Track multiple demo links for different presentations
+- Organize demo links by campaign, event, or salesperson
+- Display the customer name prominently in the demo interface
+
 **Why restrict agents?**
+
 - Customize demo for specific use cases
 - Hide agents that are still in development
 - Show only relevant agents for the client's industry
@@ -338,7 +346,8 @@ Generates encrypted demo token.
 {
   "email": "demo@callhenk.com",
   "password": "demo123",
-  "allowedAgentIds": ["agent-1", "agent-2"]  // Optional: omit or empty array to show all agents
+  "demoName": "Acme Corp Demo", // Optional: custom identifier
+  "allowedAgentIds": ["agent-1", "agent-2"] // Optional: omit or empty array to show all agents
 }
 ```
 
@@ -348,7 +357,8 @@ Generates encrypted demo token.
 {
   "success": true,
   "token": "MTcyOTI2MTIwMDAwMDpkYWRiZGRiZmJm...",
-  "url": "https://your-domain.com/demo?token=MTcyOTI2MTIwMDAwMDpkYWRiZGRiZmJm..."
+  "url": "https://your-domain.com/demo?token=MTcyOTI2MTIwMDAwMDpkYWRiZGRiZmJm...",
+  "demoName": "Acme Corp Demo"
 }
 ```
 
@@ -400,6 +410,16 @@ Track demo usage by monitoring:
 2. **Call Logs**: Review Twilio call history for demo numbers
 3. **Agent Usage**: Check which agents are used most in demos
 4. **Conversion Tracking**: Monitor if demos lead to sign-ups
+5. **Demo Name Tracking**: Identify which client demos are being used by the demo name in the token
+
+**Tip**: Keep a spreadsheet of demo links with:
+
+- Demo name
+- Client/Prospect name
+- Date generated
+- Selected agents
+- Demo URL
+- Usage metrics
 
 ## Future Enhancements
 

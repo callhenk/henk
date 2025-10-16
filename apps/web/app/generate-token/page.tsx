@@ -35,8 +35,10 @@ export default function GenerateTokenPage() {
           email,
           password,
           allowedAgentIds:
-            selectedAgentIds.length > 0 ? selectedAgentIds : undefined,
-          demoName: demoName.trim() || undefined,
+            selectedAgentIds && selectedAgentIds.length > 0
+              ? selectedAgentIds
+              : undefined,
+          demoName: demoName && demoName.trim() ? demoName.trim() : undefined,
         }),
       });
 

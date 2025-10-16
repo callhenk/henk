@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
     const token = createDemoToken({
       email,
       password,
-      allowedAgentIds: allowedAgentIds || undefined,
+      allowedAgentIds:
+        allowedAgentIds && allowedAgentIds.length > 0
+          ? allowedAgentIds
+          : undefined,
       demoName: demoName || undefined,
     });
     const demoUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/demo?token=${token}`;

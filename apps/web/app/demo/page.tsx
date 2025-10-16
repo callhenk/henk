@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 // Import the useAgents hook from the correct location
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useSignInWithEmailPassword } from '@kit/supabase/hooks/use-sign-in-with-email-password';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
@@ -28,7 +29,8 @@ import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voic
 
 export default function TestCallPage() {
   const searchParams = useSearchParams();
-  const { data: allAgents = [] } = useAgents();
+  const { isLoading: isLoadingBusinessContext } = useBusinessContext();
+  const { data: allAgents = [], isLoading: isLoadingAgents } = useAgents();
   const signInMutation = useSignInWithEmailPassword();
   const [isSigningIn, setIsSigningIn] = useState(true);
   const [hasValidToken, setHasValidToken] = useState(false);
@@ -83,9 +85,10 @@ export default function TestCallPage() {
       setTokenError(null);
       setLoginAttempted(true);
 
-      // Set allowed agent IDs if provided in token
+      // Set allowed agent IDs if provided in token (only if non-empty array)
       if (
         credentials.allowedAgentIds &&
+        Array.isArray(credentials.allowedAgentIds) &&
         credentials.allowedAgentIds.length > 0
       ) {
         setAllowedAgentIds(credentials.allowedAgentIds);
@@ -147,17 +150,21 @@ export default function TestCallPage() {
     })();
   }, [isSigningIn]);
 
-  // Filter agents based on allowedAgentIds from token
-  const agents = allowedAgentIds
-    ? allAgents.filter((agent) => allowedAgentIds.includes(agent.id))
-    : allAgents;
+  // Check if we're still loading (business context OR agents)
+  const isLoading = isLoadingBusinessContext || isLoadingAgents;
 
-  // Set default agent if available
+  // Filter agents based on allowedAgentIds from token
+  const agents =
+    allowedAgentIds && allowedAgentIds.length > 0
+      ? allAgents.filter((agent) => allowedAgentIds.includes(agent.id))
+      : allAgents;
+
+  // Set default agent if available (wait for sign-in and data to load)
   useEffect(() => {
-    if (!selectedAgentId && agents.length > 0) {
+    if (!isSigningIn && !isLoading && !selectedAgentId && agents.length > 0) {
       setSelectedAgentId(agents[0]?.id ?? '');
     }
-  }, [selectedAgentId, agents]);
+  }, [isSigningIn, isLoading, selectedAgentId, agents]);
 
   const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
@@ -327,6 +334,7 @@ export default function TestCallPage() {
                   <Select
                     value={selectedAgentId}
                     onValueChange={setSelectedAgentId}
+                    disabled={isLoading}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select an AI assistant for your demonstration" />
@@ -366,6 +374,7 @@ export default function TestCallPage() {
                   onClick={handlePlaceTestCall}
                   disabled={
                     isPlacingTestCall ||
+                    isLoading ||
                     !testToNumber ||
                     !availableCallerIds.length ||
                     !selectedAgent
@@ -398,7 +407,18 @@ export default function TestCallPage() {
                   </div>
                 )}
 
-                {!agents.length && (
+                {isLoading && (
+                  <div className="bg-muted/50 rounded-lg border p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                      <p className="text-muted-foreground text-sm">
+                        Loading AI assistants...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!isLoading && !agents.length && (
                   <div className="bg-muted/50 rounded-lg border p-4">
                     <p className="font-medium">No AI Assistants Available</p>
                     <p className="text-muted-foreground text-sm">
@@ -431,6 +451,7 @@ export default function TestCallPage() {
                   <Select
                     value={selectedAgentId}
                     onValueChange={setSelectedAgentId}
+                    disabled={isLoading}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select an AI assistant for voice conversation" />
@@ -487,7 +508,7 @@ export default function TestCallPage() {
 
                 <Button
                   onClick={handleStartDirectCall}
-                  disabled={!selectedAgent}
+                  disabled={!selectedAgent || isLoading}
                   className="w-full"
                   size="lg"
                 >
@@ -495,7 +516,18 @@ export default function TestCallPage() {
                   Start Voice Conversation
                 </Button>
 
-                {!agents.length && (
+                {isLoading && (
+                  <div className="bg-muted/50 rounded-lg border p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
+                      <p className="text-muted-foreground text-sm">
+                        Loading AI assistants...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!isLoading && !agents.length && (
                   <div className="bg-muted/50 rounded-lg border p-4">
                     <p className="font-medium">No AI Assistants Available</p>
                     <p className="text-muted-foreground text-sm">
