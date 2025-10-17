@@ -117,31 +117,45 @@ export function IntegrationDrawer({
                     <p className="text-sm">
                       Connect your Salesforce account to import contacts and create targeted campaigns.
                     </p>
-                    <div className="bg-green-50 dark:bg-green-950 rounded-md p-3 text-sm">
-                      <p className="text-green-900 dark:text-green-100">
-                        <strong>✓ No setup required!</strong> Just click Continue to connect your Salesforce account.
+                    <div className="bg-amber-50 dark:bg-amber-950 rounded-md p-3 text-sm space-y-2">
+                      <p className="text-amber-900 dark:text-amber-100">
+                        <strong>⚠️ First-Time Setup Required</strong>
+                      </p>
+                      <p className="text-amber-900 dark:text-amber-100 text-xs">
+                        Before connecting, a Salesforce administrator needs to install our app in your Salesforce org (one-time setup).
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium">How it works:</h4>
-                      <ol className="ml-4 list-decimal text-sm space-y-1">
-                        <li>Click &quot;Connect to Salesforce&quot; in the next step</li>
-                        <li>Sign in to your Salesforce account</li>
-                        <li>Approve access to import your contacts</li>
-                        <li>You&apos;re done! Start creating targeted campaigns</li>
+                      <h4 className="text-sm font-medium">Setup Steps (First Time Only):</h4>
+                      <ol className="ml-4 list-decimal text-sm space-y-2">
+                        <li>
+                          <strong>Admin installs the app</strong> in your Salesforce org
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Contact your Salesforce administrator or see our installation guide
+                          </p>
+                        </li>
+                        <li>
+                          <strong>You connect</strong> by clicking &quot;Connect to Salesforce&quot;
+                        </li>
+                        <li>
+                          <strong>Authorize</strong> access to your Salesforce data
+                        </li>
+                        <li>
+                          <strong>Done!</strong> Start importing contacts
+                        </li>
                       </ol>
                     </div>
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">What you&apos;ll need:</h4>
                       <ul className="ml-4 list-disc text-sm space-y-1">
+                        <li>Salesforce administrator to install the app (first time)</li>
                         <li>A Salesforce account (Production or Sandbox)</li>
-                        <li>Permission to authorize third-party applications</li>
                         <li>&quot;API Enabled&quot; permission in your user profile</li>
                       </ul>
                     </div>
                     <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
                       <p className="text-blue-900 dark:text-blue-100 text-xs">
-                        <strong>Note:</strong> You can revoke access at any time from your Salesforce settings.
+                        <strong>Need help?</strong> If you get an error saying &quot;External client app is not installed&quot;, the app hasn&apos;t been installed in your Salesforce org yet. Contact your administrator or reach out to our support team.
                       </p>
                     </div>
                   </div>

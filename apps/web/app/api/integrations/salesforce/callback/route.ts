@@ -19,21 +19,39 @@ export async function GET(request: NextRequest) {
     // Initialize Supabase client early to ensure session is maintained
     const supabase = getSupabaseServerClient();
 
+    // Try to refresh the session to prevent logout
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error('[Salesforce Callback] Session error:', sessionError);
+    }
+
     // Verify user is still authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       console.error('[Salesforce Callback] User not authenticated:', authError);
-      // User session was lost, redirect to sign in with return URL
+      console.log('[Salesforce Callback] Session data:', { hasSession: !!session });
+
+      // If there's an error param, still try to redirect to integrations page
+      // The middleware might let them through if cookies are still valid
+      if (error) {
+        const errorDescription = searchParams.get('error_description') || '';
+        return NextResponse.redirect(
+          new URL(`/home/integrations?error=oauth_error&error_description=${encodeURIComponent(errorDescription || 'Authentication failed')}`, request.url)
+        );
+      }
+
+      // Otherwise, redirect to sign in
       return NextResponse.redirect(
         new URL(`/auth/sign-in?next=/home/integrations&error=session_expired`, request.url)
       );
     }
 
-    // Handle OAuth errors
+    // Handle OAuth errors (but user is authenticated)
     if (error) {
       const errorDescription = searchParams.get('error_description') || '';
-      console.error('Salesforce OAuth error:', error, errorDescription);
+      console.error('[Salesforce Callback] Salesforce OAuth error:', error, errorDescription);
 
       // Map common Salesforce errors to user-friendly messages
       let errorMessage = 'oauth_error';
@@ -45,9 +63,23 @@ export async function GET(request: NextRequest) {
         errorMessage = 'invalid_client_id';
       }
 
-      return NextResponse.redirect(
+      // Create redirect response that preserves session
+      const redirectResponse = NextResponse.redirect(
         new URL(`/home/integrations?error=${errorMessage}&error_description=${encodeURIComponent(errorDescription)}`, request.url)
       );
+
+      // Copy session cookies from request to response to maintain auth
+      const cookies = request.cookies.getAll();
+      cookies.forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        });
+      });
+
+      return redirectResponse;
     }
 
     if (!code || !state) {
@@ -140,13 +172,42 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.redirect(
+    // Create success redirect response that preserves session
+    const successResponse = NextResponse.redirect(
       new URL('/home/integrations?success=salesforce_connected', request.url)
     );
+
+    // Copy session cookies from request to response to maintain auth
+    const cookies = request.cookies.getAll();
+    cookies.forEach(cookie => {
+      successResponse.cookies.set(cookie.name, cookie.value, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    });
+
+    return successResponse;
   } catch (error) {
     console.error('Salesforce callback error:', error);
-    return NextResponse.redirect(
+
+    // Create error redirect response that preserves session
+    const errorResponse = NextResponse.redirect(
       new URL('/home/integrations?error=internal_error', request.url)
     );
+
+    // Copy session cookies from request to response to maintain auth
+    const cookies = request.cookies.getAll();
+    cookies.forEach(cookie => {
+      errorResponse.cookies.set(cookie.name, cookie.value, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    });
+
+    return errorResponse;
   }
 }
