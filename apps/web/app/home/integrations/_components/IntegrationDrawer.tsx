@@ -115,7 +115,7 @@ export function IntegrationDrawer({
                       Connect your Salesforce account to import contacts and create targeted campaigns.
                     </p>
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium">What you'll need:</h4>
+                      <h4 className="text-sm font-medium">What you&apos;ll need:</h4>
                       <ul className="ml-4 list-disc text-sm space-y-1">
                         <li>A Salesforce account with appropriate permissions</li>
                         <li>Access to your Salesforce Connected App settings</li>
@@ -133,7 +133,7 @@ export function IntegrationDrawer({
                     </div>
                     <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm space-y-2">
                       <p className="text-blue-900 dark:text-blue-100">
-                        <strong>Tip:</strong> Make sure you have the "API Enabled" permission in your Salesforce user profile.
+                        <strong>Tip:</strong> Make sure you have the &quot;API Enabled&quot; permission in your Salesforce user profile.
                       </p>
                       <p className="text-blue-900 dark:text-blue-100">
                         <strong>Need help?</strong> See our{' '}
@@ -183,7 +183,7 @@ export function IntegrationDrawer({
                         <div className="space-y-2">
                           <h4 className="text-sm font-medium">Salesforce OAuth Authentication</h4>
                           <p className="text-sm text-muted-foreground">
-                            You'll be securely redirected to Salesforce to approve access. This allows us to:
+                            You&apos;ll be securely redirected to Salesforce to approve access. This allows us to:
                           </p>
                           <ul className="ml-4 list-disc text-sm text-muted-foreground space-y-1">
                             <li>Read your contact records</li>
