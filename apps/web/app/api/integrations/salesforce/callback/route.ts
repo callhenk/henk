@@ -20,38 +20,56 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseServerClient();
 
     // Try to refresh the session to prevent logout
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
     if (sessionError) {
       console.error('[Salesforce Callback] Session error:', sessionError);
     }
 
     // Verify user is still authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       console.error('[Salesforce Callback] User not authenticated:', authError);
-      console.log('[Salesforce Callback] Session data:', { hasSession: !!session });
+      console.log('[Salesforce Callback] Session data:', {
+        hasSession: !!session,
+      });
 
       // If there's an error param, still try to redirect to integrations page
       // The middleware might let them through if cookies are still valid
       if (error) {
         const errorDescription = searchParams.get('error_description') || '';
         return NextResponse.redirect(
-          new URL(`/home/integrations?error=oauth_error&error_description=${encodeURIComponent(errorDescription || 'Authentication failed')}`, request.url)
+          new URL(
+            `/home/integrations?error=oauth_error&error_description=${encodeURIComponent(errorDescription || 'Authentication failed')}`,
+            request.url,
+          ),
         );
       }
 
       // Otherwise, redirect to sign in
       return NextResponse.redirect(
-        new URL(`/auth/sign-in?next=/home/integrations&error=session_expired`, request.url)
+        new URL(
+          `/auth/sign-in?next=/home/integrations&error=session_expired`,
+          request.url,
+        ),
       );
     }
 
     // Handle OAuth errors (but user is authenticated)
     if (error) {
       const errorDescription = searchParams.get('error_description') || '';
-      console.error('[Salesforce Callback] Salesforce OAuth error:', error, errorDescription);
+      console.error(
+        '[Salesforce Callback] Salesforce OAuth error:',
+        error,
+        errorDescription,
+      );
 
       // Map common Salesforce errors to user-friendly messages
       let errorMessage = 'oauth_error';
@@ -65,12 +83,15 @@ export async function GET(request: NextRequest) {
 
       // Create redirect response that preserves session
       const redirectResponse = NextResponse.redirect(
-        new URL(`/home/integrations?error=${errorMessage}&error_description=${encodeURIComponent(errorDescription)}`, request.url)
+        new URL(
+          `/home/integrations?error=${errorMessage}&error_description=${encodeURIComponent(errorDescription)}`,
+          request.url,
+        ),
       );
 
       // Copy session cookies from request to response to maintain auth
       const cookies = request.cookies.getAll();
-      cookies.forEach(cookie => {
+      cookies.forEach((cookie) => {
         redirectResponse.cookies.set(cookie.name, cookie.value, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -84,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/home/integrations?error=missing_parameters', request.url)
+        new URL('/home/integrations?error=missing_parameters', request.url),
       );
     }
 
@@ -94,7 +115,7 @@ export async function GET(request: NextRequest) {
       stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
     } catch {
       return NextResponse.redirect(
-        new URL('/home/integrations?error=invalid_state', request.url)
+        new URL('/home/integrations?error=invalid_state', request.url),
       );
     }
 
@@ -105,7 +126,7 @@ export async function GET(request: NextRequest) {
 
     if (!clientId || !clientSecret || !redirectUri) {
       return NextResponse.redirect(
-        new URL('/home/integrations?error=configuration_error', request.url)
+        new URL('/home/integrations?error=configuration_error', request.url),
       );
     }
 
@@ -127,9 +148,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
-      console.error('Salesforce token exchange failed:', await tokenResponse.text());
+      console.error(
+        'Salesforce token exchange failed:',
+        await tokenResponse.text(),
+      );
       return NextResponse.redirect(
-        new URL('/home/integrations?error=token_exchange_failed', request.url)
+        new URL('/home/integrations?error=token_exchange_failed', request.url),
       );
     }
 
@@ -140,9 +164,10 @@ export async function GET(request: NextRequest) {
       id: crypto.randomUUID(),
       business_id: stateData.business_id,
       name: 'Salesforce',
-      description: 'Import contacts from Salesforce to create targeted campaigns.',
+      description:
+        'Import contacts from Salesforce to create targeted campaigns.',
       type: 'crm',
-      status: 'active', // Valid values: 'active' | 'inactive' | 'error'
+      status: 'active', // Valid values: active, inactive, error, pending
       config: {
         instanceUrl: tokenData.instance_url,
         apiVersion: 'v61.0',
@@ -163,23 +188,31 @@ export async function GET(request: NextRequest) {
 
     if (insertError) {
       console.error('Failed to save Salesforce integration:', insertError);
-      console.error('Integration data:', JSON.stringify(integrationData, null, 2));
+      console.error(
+        'Integration data:',
+        JSON.stringify(integrationData, null, 2),
+      );
 
       // Pass more detailed error info
-      const errorDetail = encodeURIComponent(insertError.message || 'Unknown database error');
+      const errorDetail = encodeURIComponent(
+        insertError.message || 'Unknown database error',
+      );
       return NextResponse.redirect(
-        new URL(`/home/integrations?error=save_failed&error_description=${errorDetail}`, request.url)
+        new URL(
+          `/home/integrations?error=save_failed&error_description=${errorDetail}`,
+          request.url,
+        ),
       );
     }
 
     // Create success redirect response that preserves session
     const successResponse = NextResponse.redirect(
-      new URL('/home/integrations?success=salesforce_connected', request.url)
+      new URL('/home/integrations?success=salesforce_connected', request.url),
     );
 
     // Copy session cookies from request to response to maintain auth
     const cookies = request.cookies.getAll();
-    cookies.forEach(cookie => {
+    cookies.forEach((cookie) => {
       successResponse.cookies.set(cookie.name, cookie.value, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -194,12 +227,12 @@ export async function GET(request: NextRequest) {
 
     // Create error redirect response that preserves session
     const errorResponse = NextResponse.redirect(
-      new URL('/home/integrations?error=internal_error', request.url)
+      new URL('/home/integrations?error=internal_error', request.url),
     );
 
     // Copy session cookies from request to response to maintain auth
     const cookies = request.cookies.getAll();
-    cookies.forEach(cookie => {
+    cookies.forEach((cookie) => {
       errorResponse.cookies.set(cookie.name, cookie.value, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
