@@ -21,6 +21,8 @@ function get(status: IntegrationStatus): { variant: BadgeVariant; label: string 
       return { variant: 'destructive', label: 'Error' };
     case 'deprecated':
       return { variant: 'outline', label: 'Deprecated' };
+    case 'coming_soon':
+      return { variant: 'secondary', label: 'Coming Soon' };
     case 'disconnected':
     default:
       return { variant: 'secondary', label: 'Disconnected' };

@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-import { Info } from 'lucide-react';
+import { AlertCircle, Info, XCircle } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@kit/ui/alert';
 import {
@@ -41,6 +42,7 @@ export function IntegrationsController({
   canEdit = true,
   items,
 }: IntegrationsControllerProps) {
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useQueryFilters();
   const [data, setData] = useState<UiIntegration[]>(
     items ?? SEED_INTEGRATIONS(businessId),
@@ -49,6 +51,10 @@ export function IntegrationsController({
   const [activeId, setActiveId] = useState<string | null>(null); // drawer
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [logsOpenFor, setLogsOpenFor] = useState<string | null>(null);
+  const [oauthError, setOauthError] = useState<{
+    error: string;
+    description?: string;
+  } | null>(null);
   const [logs, setLogs] = useState<
     Record<
       string,
@@ -61,6 +67,27 @@ export function IntegrationsController({
       }[]
     >
   >({});
+
+  // Check for OAuth callback errors
+  useEffect(() => {
+    const error = searchParams?.get('error');
+    const errorDescription = searchParams?.get('error_description');
+    const success = searchParams?.get('success');
+
+    if (error) {
+      setOauthError({
+        error,
+        description: errorDescription || undefined,
+      });
+    } else if (success === 'salesforce_connected') {
+      // Show success message
+      appendLog('salesforce', {
+        level: 'success',
+        event: 'oauth',
+        message: 'Successfully connected to Salesforce',
+      });
+    }
+  }, [searchParams]);
 
   const filtered = useMemo(() => applyFilters(data, filters), [data, filters]);
 
@@ -169,6 +196,22 @@ export function IntegrationsController({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {oauthError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>OAuth Connection Failed</AlertTitle>
+              <AlertDescription>
+                {getErrorMessage(oauthError.error, oauthError.description)}
+                <button
+                  onClick={() => setOauthError(null)}
+                  className="ml-2 underline"
+                >
+                  Dismiss
+                </button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertTitle>Coming soon</AlertTitle>
@@ -293,5 +336,33 @@ function statusRank(s: UiIntegration['status']): number {
       return 3;
     case 'deprecated':
       return 4;
+    case 'coming_soon':
+      return 5;
+  }
+}
+
+function getErrorMessage(error: string, description?: string): string {
+  switch (error) {
+    case 'access_denied':
+      return 'You denied access to Salesforce. Please try again and approve the connection.';
+    case 'redirect_uri_mismatch':
+      return 'OAuth configuration error: The redirect URI does not match. Please contact support.';
+    case 'invalid_client_id':
+      return 'OAuth configuration error: Invalid client ID. Please contact support.';
+    case 'token_exchange_failed':
+      return 'Failed to exchange authorization code for access token. Please try again.';
+    case 'missing_parameters':
+      return 'OAuth callback missing required parameters. Please try again.';
+    case 'invalid_state':
+      return 'Invalid OAuth state parameter. Please try again.';
+    case 'configuration_error':
+      return 'Server configuration error. Please contact support.';
+    case 'save_failed':
+      return 'Successfully connected to Salesforce but failed to save the integration. Please try again.';
+    case 'internal_error':
+      return 'An internal error occurred. Please try again or contact support.';
+    case 'oauth_error':
+    default:
+      return description || 'An OAuth error occurred. Please try again or contact support if the issue persists.';
   }
 }

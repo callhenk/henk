@@ -109,11 +109,41 @@ export function IntegrationDrawer({
                 <CardTitle className="text-base">Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="ml-4 list-disc text-sm">
-                  <li>Securely authenticate using OAuth or API keys.</li>
-                  <li>Configure environment, region, and webhooks.</li>
-                  <li>Run a test before saving.</li>
-                </ul>
+                {item.id === 'salesforce' ? (
+                  <div className="space-y-4">
+                    <p className="text-sm">
+                      Connect your Salesforce account to import contacts and create targeted campaigns.
+                    </p>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">What you'll need:</h4>
+                      <ul className="ml-4 list-disc text-sm space-y-1">
+                        <li>A Salesforce account with appropriate permissions</li>
+                        <li>Access to your Salesforce Connected App settings</li>
+                        <li>Permission to authorize third-party applications</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Integration steps:</h4>
+                      <ul className="ml-4 list-disc text-sm space-y-1">
+                        <li>Authenticate using OAuth 2.0 for secure access</li>
+                        <li>Configure your Salesforce environment (Production or Sandbox)</li>
+                        <li>Select which contact fields to sync</li>
+                        <li>Test the connection before saving</li>
+                      </ul>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
+                      <p className="text-blue-900 dark:text-blue-100">
+                        <strong>Tip:</strong> Make sure you have the "API Enabled" permission in your Salesforce user profile.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <ul className="ml-4 list-disc text-sm">
+                    <li>Securely authenticate using OAuth or API keys.</li>
+                    <li>Configure environment, region, and webhooks.</li>
+                    <li>Run a test before saving.</li>
+                  </ul>
+                )}
               </CardContent>
             </Card>
             <div className="flex justify-end gap-2">
@@ -136,37 +166,63 @@ export function IntegrationDrawer({
                 </TabsList>
                 {canUseOAuth && (
                   <TabsContent value="oauth" className="space-y-4">
-                    <p className="text-sm">
-                      You will be redirected to the provider to approve access.
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        if (item.id === 'salesforce') {
-                          // Call Salesforce authorize endpoint
-                          try {
-                            const response = await fetch('/api/integrations/salesforce/authorize');
-                            const data = await response.json();
-                            if (data.success && data.authorization_url) {
-                              // Redirect to Salesforce OAuth
-                              window.location.href = data.authorization_url;
-                            } else {
-                              console.error('Failed to get authorization URL:', data.error);
-                              setTested({ success: false, message: data.error || 'Failed to start OAuth flow' });
+                    {item.id === 'salesforce' ? (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium">Salesforce OAuth Authentication</h4>
+                          <p className="text-sm text-muted-foreground">
+                            You'll be securely redirected to Salesforce to approve access. This allows us to:
+                          </p>
+                          <ul className="ml-4 list-disc text-sm text-muted-foreground space-y-1">
+                            <li>Read your contact records</li>
+                            <li>Access basic account information</li>
+                            <li>Sync data in real-time</li>
+                          </ul>
+                        </div>
+                        <div className="bg-amber-50 dark:bg-amber-950 rounded-md p-3 text-sm">
+                          <p className="text-amber-900 dark:text-amber-100">
+                            <strong>Note:</strong> You can revoke access at any time from your Salesforce Connected Apps settings.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/integrations/salesforce/authorize');
+                              const data = await response.json();
+                              if (data.success && data.authorization_url) {
+                                // Redirect to Salesforce OAuth
+                                window.location.href = data.authorization_url;
+                              } else {
+                                console.error('Failed to get authorization URL:', data.error);
+                                setTested({ success: false, message: data.error || 'Failed to start OAuth flow' });
+                              }
+                            } catch (error) {
+                              console.error('Error initiating OAuth:', error);
+                              setTested({ success: false, message: 'Failed to connect to server' });
                             }
-                          } catch (error) {
-                            console.error('Error initiating OAuth:', error);
-                            setTested({ success: false, message: 'Failed to connect to server' });
-                          }
-                        } else {
-                          // Mock for other providers
-                          setTested({ success: true });
-                        }
-                      }}
-                      disabled={!canEdit}
-                    >
-                      Continue to provider <ExternalLink className="ml-2 h-4 w-4" />
-                    </Button>
+                          }}
+                          disabled={!canEdit}
+                        >
+                          Connect to Salesforce <ExternalLink className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm">
+                          You will be redirected to the provider to approve access.
+                        </p>
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            setTested({ success: true });
+                          }}
+                          disabled={!canEdit}
+                        >
+                          Continue to provider <ExternalLink className="ml-2 h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </TabsContent>
                 )}
                 {canUseApiKey && (

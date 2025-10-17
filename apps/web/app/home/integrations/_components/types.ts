@@ -17,7 +17,8 @@ export type IntegrationStatus =
   | 'disconnected'
   | 'needs_attention'
   | 'error'
-  | 'deprecated';
+  | 'deprecated'
+  | 'coming_soon';
 
 export interface IntegrationBase {
   id: string;

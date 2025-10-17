@@ -9,11 +9,30 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
 
+    console.log('[Salesforce Callback] Received callback with params:', {
+      hasCode: !!code,
+      hasState: !!state,
+      hasError: !!error,
+      url: request.url,
+    });
+
     // Handle OAuth errors
     if (error) {
-      console.error('Salesforce OAuth error:', error);
+      const errorDescription = searchParams.get('error_description') || '';
+      console.error('Salesforce OAuth error:', error, errorDescription);
+
+      // Map common Salesforce errors to user-friendly messages
+      let errorMessage = 'oauth_error';
+      if (error === 'access_denied') {
+        errorMessage = 'access_denied';
+      } else if (error === 'redirect_uri_mismatch') {
+        errorMessage = 'redirect_uri_mismatch';
+      } else if (errorDescription.includes('invalid_client_id')) {
+        errorMessage = 'invalid_client_id';
+      }
+
       return NextResponse.redirect(
-        new URL('/home/integrations?error=oauth_error', request.url)
+        new URL(`/home/integrations?error=${errorMessage}&error_description=${encodeURIComponent(errorDescription)}`, request.url)
       );
     }
 

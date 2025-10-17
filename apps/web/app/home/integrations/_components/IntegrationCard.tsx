@@ -32,9 +32,10 @@ export function IntegrationCard({
 }) {
   const Icon = item.icon;
   const showManage = item.status === 'connected' || item.status === 'needs_attention';
+  const isComingSoon = item.status === 'coming_soon';
 
   return (
-    <Card className={'glass-panel'}>
+    <Card className={`glass-panel ${isComingSoon ? 'opacity-75' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -56,7 +57,7 @@ export function IntegrationCard({
             onSync={onSync}
             onDisconnect={onDisconnect}
             onLogs={onLogs}
-            disabled={!canEdit || busy}
+            disabled={!canEdit || busy || isComingSoon}
           />
         </div>
       </CardHeader>
@@ -66,7 +67,7 @@ export function IntegrationCard({
         </p>
         <div className="flex items-center justify-between text-xs">
           <div className="text-muted-foreground">Last sync: {formatRelativeTime(item.last_sync_at)}</div>
-          {canEdit && (
+          {canEdit && !isComingSoon && (
             showManage ? (
               <Button size="sm" variant="outline" onClick={onManage} disabled={busy}>
                 Manage
