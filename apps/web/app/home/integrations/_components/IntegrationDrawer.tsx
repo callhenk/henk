@@ -30,7 +30,15 @@ export function IntegrationDrawer({
   canEdit?: boolean;
 }) {
   const [step, setStep] = useState<Step>('overview');
-  const [mode, setMode] = useState<'oauth' | 'api'>('api');
+
+  const schema: ProviderSchema = item.schema;
+  const canUseOAuth = schema.supportsOAuth;
+  const canUseApiKey = schema.supportsApiKey;
+
+  // Default to OAuth if only OAuth is supported, otherwise default to API key
+  const defaultMode: 'oauth' | 'api' = canUseOAuth && !canUseApiKey ? 'oauth' : 'api';
+  const [mode, setMode] = useState<'oauth' | 'api'>(defaultMode);
+
   const [credentials, setCredentials] = useState<Record<string, unknown>>(
     (item.credentials as Record<string, unknown>) ?? {},
   );
@@ -40,11 +48,6 @@ export function IntegrationDrawer({
   const [saving, setSaving] = useState(false);
   const [tested, setTested] = useState<TestConnectionResult | null>(null);
   const [copiable, setCopiable] = useState(true); // disable copying after first save
-
-  const schema: ProviderSchema = item.schema;
-
-  const canUseOAuth = schema.supportsOAuth;
-  const canUseApiKey = schema.supportsApiKey;
 
   const validateCredentials = () => {
     const required = (schema.credentials ?? []).filter((f) => f.required);

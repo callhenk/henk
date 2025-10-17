@@ -118,6 +118,19 @@ If successful, you should see the Salesforce integration status change to "Conne
 
 ## Troubleshooting
 
+### Error: "External client app is not installed in this org"
+
+**Problem**: The Connected App hasn't been created yet in your Salesforce organization, or you're using the wrong Client ID.
+
+**Solutions**:
+1. **You haven't created the Connected App yet**: Follow Part 1 of this guide to create a new Connected App in Salesforce
+2. **Wrong Salesforce Org**: Make sure you're logging into the correct Salesforce organization where you created the Connected App
+   - If you created it in Production, use `https://login.salesforce.com`
+   - If you created it in a Sandbox, use `https://test.salesforce.com`
+3. **Wrong Client ID**: Verify that your `SALESFORCE_CLIENT_ID` environment variable matches the **Consumer Key** from your Connected App (not the Consumer Secret)
+4. **Wait for propagation**: After creating a Connected App, wait 2-10 minutes before testing
+5. **Connected App is disabled**: In Salesforce Setup → App Manager → Your Connected App → Edit Policies, ensure it's not blocked or disabled
+
 ### Error: "redirect_uri_mismatch"
 
 **Problem**: The callback URL in your application doesn't match what's configured in Salesforce.

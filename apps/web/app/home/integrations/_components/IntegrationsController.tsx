@@ -356,13 +356,26 @@ function statusRank(s: UiIntegration['status']): number {
 }
 
 function getErrorMessage(error: string, description?: string): string {
+  // Check for specific error descriptions
+  if (description) {
+    if (description.includes('External client app is not installed')) {
+      return 'The Salesforce Connected App is not properly configured in your Salesforce organization. Please follow the setup guide to create and configure the Connected App in Salesforce Setup → App Manager.';
+    }
+    if (description.includes('redirect_uri_mismatch') || description.includes('redirect_uri')) {
+      return `OAuth configuration error: The redirect URI does not match. Expected callback URL must be configured in your Salesforce Connected App. ${description}`;
+    }
+    if (description.includes('invalid_client_id') || description.includes('client_id')) {
+      return `Invalid Client ID. Please verify your SALESFORCE_CLIENT_ID environment variable matches the Consumer Key from your Connected App. ${description}`;
+    }
+  }
+
   switch (error) {
     case 'access_denied':
       return 'You denied access to Salesforce. Please try again and approve the connection.';
     case 'redirect_uri_mismatch':
-      return 'OAuth configuration error: The redirect URI does not match. Please contact support.';
+      return 'OAuth configuration error: The redirect URI does not match. Please verify your callback URL is correctly configured in your Salesforce Connected App.';
     case 'invalid_client_id':
-      return 'OAuth configuration error: Invalid client ID. Please contact support.';
+      return 'OAuth configuration error: Invalid client ID. Please verify your Consumer Key in the Connected App settings.';
     case 'token_exchange_failed':
       return 'Failed to exchange authorization code for access token. Please try again.';
     case 'missing_parameters':
@@ -370,7 +383,7 @@ function getErrorMessage(error: string, description?: string): string {
     case 'invalid_state':
       return 'Invalid OAuth state parameter. Please try again.';
     case 'configuration_error':
-      return 'Server configuration error. Please contact support.';
+      return 'Server configuration error. Please verify your environment variables are set correctly.';
     case 'save_failed':
       return 'Successfully connected to Salesforce but failed to save the integration. Please try again.';
     case 'internal_error':
