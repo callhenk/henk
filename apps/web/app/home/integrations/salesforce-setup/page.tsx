@@ -70,34 +70,42 @@ export default function SalesforceSetupPage() {
 
                 <div className="pl-4 space-y-3 border-l-2 border-blue-200">
                   <div>
-                    <p className="text-sm font-medium mb-1">1. Contact our support team</p>
+                    <p className="text-sm font-medium mb-1">1. Request installation access</p>
                     <p className="text-sm text-muted-foreground">
-                      Email <a href="mailto:support@callhenk.com" className="text-blue-600 hover:underline">support@callhenk.com</a> to
-                      request the Salesforce Connected App installation URL.
+                      Contact <a href="mailto:support@callhenk.com" className="text-blue-600 hover:underline">support@callhenk.com</a> to
+                      request access to install the Henk Connected App in your Salesforce organization.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium mb-1">2. Install the Connected App</p>
+                    <p className="text-sm font-medium mb-1">2. Install the package</p>
                     <p className="text-sm text-muted-foreground">
-                      Click the installation URL we provide and approve the app installation in your Salesforce org.
+                      We&apos;ll provide you with an installation link. Click it while logged into your Salesforce org to begin installation.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium mb-1">3. Configure permissions</p>
+                    <p className="text-sm font-medium mb-1">3. Approve the installation</p>
                     <p className="text-sm text-muted-foreground">
-                      Select &quot;Install for All Users&quot; to allow everyone in your organization to connect.
+                      Select &quot;Install for All Users&quot; to allow everyone in your organization to use the integration.
                     </p>
                   </div>
 
                   <div>
                     <p className="text-sm font-medium mb-1">4. Notify your team</p>
                     <p className="text-sm text-muted-foreground">
-                      Once installed, all users can connect their Salesforce accounts from the Integrations page.
+                      Once installed, all users can connect their individual Salesforce accounts from the Integrations page.
                     </p>
                   </div>
                 </div>
+
+                <Alert className="mt-4">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    <strong>Technical Note:</strong> This installs a pre-configured Connected App that allows
+                    secure OAuth authentication. Each user will authorize access to their own Salesforce data.
+                  </AlertDescription>
+                </Alert>
               </div>
 
               <Alert>
