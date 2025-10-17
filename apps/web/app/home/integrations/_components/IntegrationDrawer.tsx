@@ -117,38 +117,31 @@ export function IntegrationDrawer({
                     <p className="text-sm">
                       Connect your Salesforce account to import contacts and create targeted campaigns.
                     </p>
+                    <div className="bg-green-50 dark:bg-green-950 rounded-md p-3 text-sm">
+                      <p className="text-green-900 dark:text-green-100">
+                        <strong>✓ No setup required!</strong> Just click Continue to connect your Salesforce account.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">How it works:</h4>
+                      <ol className="ml-4 list-decimal text-sm space-y-1">
+                        <li>Click &quot;Connect to Salesforce&quot; in the next step</li>
+                        <li>Sign in to your Salesforce account</li>
+                        <li>Approve access to import your contacts</li>
+                        <li>You&apos;re done! Start creating targeted campaigns</li>
+                      </ol>
+                    </div>
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">What you&apos;ll need:</h4>
                       <ul className="ml-4 list-disc text-sm space-y-1">
-                        <li>A Salesforce account with appropriate permissions</li>
-                        <li>Access to your Salesforce Connected App settings</li>
+                        <li>A Salesforce account (Production or Sandbox)</li>
                         <li>Permission to authorize third-party applications</li>
+                        <li>&quot;API Enabled&quot; permission in your user profile</li>
                       </ul>
                     </div>
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium">Integration steps:</h4>
-                      <ul className="ml-4 list-disc text-sm space-y-1">
-                        <li>Authenticate using OAuth 2.0 for secure access</li>
-                        <li>Configure your Salesforce environment (Production or Sandbox)</li>
-                        <li>Select which contact fields to sync</li>
-                        <li>Test the connection before saving</li>
-                      </ul>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm space-y-2">
-                      <p className="text-blue-900 dark:text-blue-100">
-                        <strong>Tip:</strong> Make sure you have the &quot;API Enabled&quot; permission in your Salesforce user profile.
-                      </p>
-                      <p className="text-blue-900 dark:text-blue-100">
-                        <strong>Need help?</strong> See our{' '}
-                        <a
-                          href="/SALESFORCE_INTEGRATION_SETUP.md"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline font-medium hover:text-blue-700 dark:hover:text-blue-300"
-                        >
-                          Salesforce setup guide
-                        </a>
-                        {' '}for detailed instructions on configuring your Connected App.
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
+                      <p className="text-blue-900 dark:text-blue-100 text-xs">
+                        <strong>Note:</strong> You can revoke access at any time from your Salesforce settings.
                       </p>
                     </div>
                   </div>
