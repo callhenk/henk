@@ -42,140 +42,89 @@ export default function SalesforceSetupPage() {
           <Alert variant="default" className="border-amber-200 bg-amber-50 dark:bg-amber-950">
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertTitle className="text-amber-900 dark:text-amber-100">
-              One-Time Administrator Setup Required
+              Salesforce Integration Currently in Beta
             </AlertTitle>
             <AlertDescription className="text-amber-800 dark:text-amber-200">
-              Before anyone in your organization can connect to Salesforce, a Salesforce
-              administrator needs to install our app in your Salesforce organization. This only
-              needs to be done once.
+              The Salesforce integration is currently being set up. Please contact{' '}
+              <a href="mailto:support@callhenk.com" className="underline font-medium">support@callhenk.com</a>{' '}
+              if you&apos;re interested in early access.
             </AlertDescription>
           </Alert>
 
-          {/* Step 1: Administrator Setup */}
+          {/* Step 1: How It Will Work */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Step 1: Administrator Installation</CardTitle>
-                  <CardDescription>This step requires Salesforce admin privileges</CardDescription>
-                </div>
-                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-                  One-time only
-                </span>
-              </div>
+              <CardTitle>How It Will Work (Once Available)</CardTitle>
+              <CardDescription>The setup process for when the integration goes live</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <h4 className="font-medium text-sm">For Salesforce Administrators:</h4>
+                <h4 className="font-medium text-sm">Once the integration is ready:</h4>
 
                 <div className="pl-4 space-y-3 border-l-2 border-blue-200">
                   <div>
-                    <p className="text-sm font-medium mb-1">1. Request installation access</p>
+                    <p className="text-sm font-medium mb-1">For Administrators (One-time setup)</p>
                     <p className="text-sm text-muted-foreground">
-                      Contact <a href="mailto:support@callhenk.com" className="text-blue-600 hover:underline">support@callhenk.com</a> to
-                      request access to install the Henk Connected App in your Salesforce organization.
+                      Your Salesforce admin will install the Henk Connected App in your Salesforce organization
+                      using a simple installation link we provide.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium mb-1">2. Install the package</p>
+                    <p className="text-sm font-medium mb-1">For All Users</p>
                     <p className="text-sm text-muted-foreground">
-                      We&apos;ll provide you with an installation link. Click it while logged into your Salesforce org to begin installation.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">3. Approve the installation</p>
-                    <p className="text-sm text-muted-foreground">
-                      Select &quot;Install for All Users&quot; to allow everyone in your organization to use the integration.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">4. Notify your team</p>
-                    <p className="text-sm text-muted-foreground">
-                      Once installed, all users can connect their individual Salesforce accounts from the Integrations page.
+                      After admin setup, any user can click &quot;Connect&quot; on the Salesforce integration card,
+                      sign in to Salesforce, and authorize access - no technical knowledge required.
                     </p>
                   </div>
                 </div>
-
-                <Alert className="mt-4">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    <strong>Technical Note:</strong> This installs a pre-configured Connected App that allows
-                    secure OAuth authentication. Each user will authorize access to their own Salesforce data.
-                  </AlertDescription>
-                </Alert>
               </div>
 
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  <strong>Not an administrator?</strong> Contact your Salesforce administrator or IT team
-                  to complete this setup. Share this guide with them.
+                  <strong>Interested in beta access?</strong> Email{' '}
+                  <a href="mailto:support@callhenk.com" className="text-blue-600 hover:underline">
+                    support@callhenk.com
+                  </a>{' '}
+                  to learn more about early access options.
                 </AlertDescription>
               </Alert>
             </CardContent>
           </Card>
 
-          {/* Step 2: User Connection */}
+          {/* Benefits */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Step 2: Connect Your Account</CardTitle>
-                  <CardDescription>After the administrator has installed the app</CardDescription>
-                </div>
-                <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
-                  Easy setup
-                </span>
-              </div>
+              <CardTitle>Why Connect Salesforce?</CardTitle>
+              <CardDescription>Benefits of the Salesforce integration</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="space-y-3">
-                <h4 className="font-medium text-sm">For All Users:</h4>
-
-                <div className="pl-4 space-y-3 border-l-2 border-green-200">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium mb-1">1. Go to Integrations page</p>
+                    <p className="text-sm font-medium">Import Contacts Seamlessly</p>
                     <p className="text-sm text-muted-foreground">
-                      Navigate to <a href="/home/integrations" className="text-blue-600 hover:underline">Integrations</a> in
-                      your dashboard.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">2. Click Connect on Salesforce</p>
-                    <p className="text-sm text-muted-foreground">
-                      Find the Salesforce integration card and click the &quot;Connect&quot; button.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">3. Authorize access</p>
-                    <p className="text-sm text-muted-foreground">
-                      You&apos;ll be redirected to Salesforce. Sign in and click &quot;Allow&quot; to grant access.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">4. You&apos;re connected!</p>
-                    <p className="text-sm text-muted-foreground">
-                      You&apos;ll be redirected back and can start importing your Salesforce contacts.
+                      Sync your Salesforce contacts directly into Henk campaigns without manual data entry.
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-green-50 dark:bg-green-950 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                <div className="flex gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                      No API keys or technical setup needed!
+                    <p className="text-sm font-medium">Keep Data Up-to-Date</p>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically sync contact information and campaign results back to Salesforce.
                     </p>
-                    <p className="text-sm text-green-800 dark:text-green-200 mt-1">
-                      Just sign in to Salesforce and approve - we handle all the technical details.
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Secure OAuth Authentication</p>
+                    <p className="text-sm text-muted-foreground">
+                      Industry-standard OAuth 2.0 means no sharing passwords or API keys.
                     </p>
                   </div>
                 </div>

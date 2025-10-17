@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       name: 'Salesforce',
       description: 'Import contacts from Salesforce to create targeted campaigns.',
       type: 'crm',
-      status: 'connected',
+      status: 'active', // Valid values: 'active' | 'inactive' | 'error'
       config: {
         instanceUrl: tokenData.instance_url,
         apiVersion: 'v61.0',
