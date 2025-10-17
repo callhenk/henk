@@ -33,11 +33,27 @@ export function ClientController() {
       );
 
       if (dbIntegration) {
+        // Map database status to UI status
+        const mapStatus = (dbStatus: string): UiIntegration['status'] => {
+          switch (dbStatus) {
+            case 'active':
+              return 'connected';
+            case 'inactive':
+              return 'disconnected';
+            case 'error':
+              return 'error';
+            case 'pending':
+              return 'needs_attention';
+            default:
+              return 'disconnected';
+          }
+        };
+
         // Merge database data with seed data (keeping UI properties like icon and schema)
         return {
           ...seed,
           id: dbIntegration.id,
-          status: dbIntegration.status,
+          status: mapStatus(dbIntegration.status),
           config: dbIntegration.config,
           credentials: dbIntegration.credentials,
           last_sync_at: dbIntegration.last_sync_at,
