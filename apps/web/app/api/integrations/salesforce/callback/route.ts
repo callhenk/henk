@@ -16,6 +16,20 @@ export async function GET(request: NextRequest) {
       url: request.url,
     });
 
+    // Initialize Supabase client early to ensure session is maintained
+    const supabase = getSupabaseServerClient();
+
+    // Verify user is still authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('[Salesforce Callback] User not authenticated:', authError);
+      // User session was lost, redirect to sign in with return URL
+      return NextResponse.redirect(
+        new URL(`/auth/sign-in?next=/home/integrations&error=session_expired`, request.url)
+      );
+    }
+
     // Handle OAuth errors
     if (error) {
       const errorDescription = searchParams.get('error_description') || '';
@@ -51,8 +65,6 @@ export async function GET(request: NextRequest) {
         new URL('/home/integrations?error=invalid_state', request.url)
       );
     }
-
-    const supabase = getSupabaseServerClient();
 
     // Exchange code for tokens
     const clientId = process.env.SALESFORCE_CLIENT_ID;
@@ -119,8 +131,12 @@ export async function GET(request: NextRequest) {
 
     if (insertError) {
       console.error('Failed to save Salesforce integration:', insertError);
+      console.error('Integration data:', JSON.stringify(integrationData, null, 2));
+
+      // Pass more detailed error info
+      const errorDetail = encodeURIComponent(insertError.message || 'Unknown database error');
       return NextResponse.redirect(
-        new URL('/home/integrations?error=save_failed', request.url)
+        new URL(`/home/integrations?error=save_failed&error_description=${errorDetail}`, request.url)
       );
     }
 

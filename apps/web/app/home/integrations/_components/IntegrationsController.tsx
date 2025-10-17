@@ -370,6 +370,8 @@ function getErrorMessage(error: string, description?: string): string {
   }
 
   switch (error) {
+    case 'session_expired':
+      return 'Your session expired during the OAuth flow. Please sign in again and try connecting to Salesforce.';
     case 'access_denied':
       return 'You denied access to Salesforce. Please try again and approve the connection.';
     case 'redirect_uri_mismatch':
