@@ -131,9 +131,21 @@ export function IntegrationDrawer({
                         <li>Test the connection before saving</li>
                       </ul>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm space-y-2">
                       <p className="text-blue-900 dark:text-blue-100">
                         <strong>Tip:</strong> Make sure you have the "API Enabled" permission in your Salesforce user profile.
+                      </p>
+                      <p className="text-blue-900 dark:text-blue-100">
+                        <strong>Need help?</strong> See our{' '}
+                        <a
+                          href="/SALESFORCE_INTEGRATION_SETUP.md"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline font-medium hover:text-blue-700 dark:hover:text-blue-300"
+                        >
+                          Salesforce setup guide
+                        </a>
+                        {' '}for detailed instructions on configuring your Connected App.
                       </p>
                     </div>
                   </div>

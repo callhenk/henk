@@ -201,13 +201,27 @@ export function IntegrationsController({
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>OAuth Connection Failed</AlertTitle>
               <AlertDescription>
-                {getErrorMessage(oauthError.error, oauthError.description)}
-                <button
-                  onClick={() => setOauthError(null)}
-                  className="ml-2 underline"
-                >
-                  Dismiss
-                </button>
+                <div className="space-y-2">
+                  <p>{getErrorMessage(oauthError.error, oauthError.description)}</p>
+                  <p className="text-sm">
+                    See the{' '}
+                    <a
+                      href="/SALESFORCE_INTEGRATION_SETUP.md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline font-medium"
+                    >
+                      setup guide
+                    </a>
+                    {' '}for troubleshooting steps.
+                    <button
+                      onClick={() => setOauthError(null)}
+                      className="ml-2 underline"
+                    >
+                      Dismiss
+                    </button>
+                  </p>
+                </div>
               </AlertDescription>
             </Alert>
           )}
