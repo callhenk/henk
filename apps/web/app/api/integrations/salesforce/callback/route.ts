@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     // Store integration in database
     const integrationData = {
       id: crypto.randomUUID(),
-      business_id: stateData.business_id,
+      account_id: stateData.business_id, // Note: database uses 'account_id' not 'business_id'
       name: 'Salesforce',
       description: 'Import contacts from Salesforce to create targeted campaigns.',
       type: 'crm',
