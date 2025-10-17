@@ -155,7 +155,16 @@ export function IntegrationDrawer({
                     </div>
                     <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
                       <p className="text-blue-900 dark:text-blue-100 text-xs">
-                        <strong>Need help?</strong> If you get an error saying &quot;External client app is not installed&quot;, the app hasn&apos;t been installed in your Salesforce org yet. Contact your administrator or reach out to our support team.
+                        <strong>Need help?</strong> If you get an error saying &quot;External client app is not installed&quot;, the app hasn&apos;t been installed in your Salesforce org yet.{' '}
+                        <a
+                          href="/home/integrations/salesforce-setup"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline font-medium hover:text-blue-700 dark:hover:text-blue-300"
+                        >
+                          View setup guide
+                        </a>
+                        {' '}or contact your administrator.
                       </p>
                     </div>
                   </div>

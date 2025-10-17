@@ -206,10 +206,8 @@ export function IntegrationsController({
                   <p className="text-sm">
                     See the{' '}
                     <a
-                      href="/SALESFORCE_INTEGRATION_SETUP.md"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline font-medium"
+                      href="/home/integrations/salesforce-setup"
+                      className="underline font-medium hover:text-red-800 dark:hover:text-red-200"
                     >
                       setup guide
                     </a>
