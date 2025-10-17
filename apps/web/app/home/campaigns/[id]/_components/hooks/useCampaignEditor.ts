@@ -53,7 +53,10 @@ export function useCampaignEditor(campaignId: string) {
     ? ((mockCampaigns.find((c) => c.id === campaignId) ||
         mockCampaigns[0]) as Tables<'campaigns'>['Row'])
     : realCampaign;
-  const leads = isDemoMode ? [] : realLeads; // Demo leads can be empty for now
+  const leads = useMemo(
+    () => (isDemoMode ? [] : realLeads),
+    [isDemoMode, realLeads],
+  ); // Demo leads can be empty for now
   const conversations = isDemoMode ? mockConversations : realConversations;
   const agents = isDemoMode ? mockAgents : realAgents;
 

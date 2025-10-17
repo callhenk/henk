@@ -1,67 +1,54 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useMemo } from 'react';
 
+import type { Tables } from '@kit/supabase/database';
+import { useIntegrations } from '@kit/supabase/hooks/integrations/use-integrations';
 import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 
-import { GridSkeleton } from './IntegrationsGrid';
 import { IntegrationsController } from './IntegrationsController';
+import { GridSkeleton } from './IntegrationsGrid';
 import { SEED_INTEGRATIONS } from './mock-data';
 import type { UiIntegration } from './types';
+
+type Integration = Tables<'integrations'>['Row'];
 
 export function ClientController() {
   const { data: businessContext } = useBusinessContext();
   const businessId = businessContext?.business_id ?? 'business_demo';
-  const [items, setItems] = useState<UiIntegration[]>(SEED_INTEGRATIONS(businessId));
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchIntegrations() {
-      try {
-        const response = await fetch('/api/integrations');
-        const data = await response.json();
+  // Fetch integrations from database using React Query
+  const { data: dbIntegrations = [], isLoading } = useIntegrations();
 
-        if (data.success && data.integrations) {
-          // Merge database integrations with seed data
-          const seedIntegrations = SEED_INTEGRATIONS(businessId);
-          const mergedIntegrations = seedIntegrations.map(seed => {
-            const dbIntegration = data.integrations.find(
-              (db: any) => db.name === seed.name || db.type === seed.type && db.name.toLowerCase().includes(seed.id)
-            );
+  // Merge database integrations with seed data (template)
+  const items = useMemo(() => {
+    const seedIntegrations = SEED_INTEGRATIONS(businessId);
 
-            if (dbIntegration) {
-              // Merge database data with seed data
-              return {
-                ...seed,
-                id: dbIntegration.id,
-                status: dbIntegration.status,
-                config: dbIntegration.config,
-                credentials: dbIntegration.credentials,
-                last_sync_at: dbIntegration.last_sync_at,
-              };
-            }
+    return seedIntegrations.map((seed) => {
+      // Find matching integration in database
+      const dbIntegration = dbIntegrations.find(
+        (db: Integration) =>
+          db.name === seed.name ||
+          (db.type === seed.type && db.name.toLowerCase().includes(seed.id)),
+      );
 
-            return seed;
-          });
-
-          setItems(mergedIntegrations);
-        }
-      } catch (error) {
-        console.error('Failed to fetch integrations:', error);
-        // Keep using seed data if fetch fails
-      } finally {
-        setLoading(false);
+      if (dbIntegration) {
+        // Merge database data with seed data (keeping UI properties like icon and schema)
+        return {
+          ...seed,
+          id: dbIntegration.id,
+          status: dbIntegration.status,
+          config: dbIntegration.config,
+          credentials: dbIntegration.credentials,
+          last_sync_at: dbIntegration.last_sync_at,
+        } as UiIntegration;
       }
-    }
 
-    if (businessId !== 'business_demo') {
-      fetchIntegrations();
-    } else {
-      setLoading(false);
-    }
-  }, [businessId]);
+      return seed;
+    });
+  }, [businessId, dbIntegrations]);
 
-  if (loading) {
+  if (isLoading) {
     return <GridSkeleton />;
   }
 
@@ -71,5 +58,3 @@ export function ClientController() {
     </Suspense>
   );
 }
-
-
