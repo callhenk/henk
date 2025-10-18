@@ -41,8 +41,12 @@ import {
 import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
 import { useDeleteLeadList } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
+import type { Database } from '~/lib/database.types';
+
 import { CreateEditLeadListDialog } from './create-edit-lead-list-dialog';
 import { ViewListMembersDialog } from './view-list-members-dialog';
+
+type LeadList = Database['public']['Tables']['lead_lists']['Row'];
 
 interface LeadListsDialogProps {
   open: boolean;
@@ -52,8 +56,8 @@ interface LeadListsDialogProps {
 export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
   const [deleteListId, setDeleteListId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingList, setEditingList] = useState<any>(null);
-  const [viewingList, setViewingList] = useState<any>(null);
+  const [editingList, setEditingList] = useState<LeadList | null>(null);
+  const [viewingList, setViewingList] = useState<LeadList | null>(null);
   const { data: leadLists = [], isLoading } = useLeadLists();
   const deleteList = useDeleteLeadList();
 
@@ -68,7 +72,7 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
     }
   };
 
-  const handleEdit = (list: any) => {
+  const handleEdit = (list: LeadList) => {
     setEditingList(list);
   };
 

@@ -29,10 +29,14 @@ import {
   useUpdateLeadList,
 } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
+import type { Database } from '~/lib/database.types';
+
+type LeadList = Database['public']['Tables']['lead_lists']['Row'];
+
 interface CreateEditLeadListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  list?: any;
+  list?: LeadList | null;
 }
 
 const PRESET_COLORS = [
@@ -66,7 +70,7 @@ export function CreateEditLeadListDialog({
     if (list) {
       setName(list.name || '');
       setDescription(list.description || '');
-      setListType(list.list_type || 'static');
+      setListType((list.list_type as 'static' | 'dynamic' | 'smart') || 'static');
       setColor(list.color || PRESET_COLORS[0]);
     } else {
       setName('');
@@ -112,7 +116,7 @@ export function CreateEditLeadListDialog({
         toast.success('Lead list created successfully');
       }
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toast.error(
         isEditing ? 'Failed to update lead list' : 'Failed to create lead list',
       );
@@ -161,7 +165,7 @@ export function CreateEditLeadListDialog({
           {/* List Type */}
           <div className="space-y-2">
             <Label htmlFor="list-type">List Type</Label>
-            <Select value={listType} onValueChange={(value: any) => setListType(value)}>
+            <Select value={listType} onValueChange={(value) => setListType(value as 'static' | 'dynamic' | 'smart')}>
               <SelectTrigger id="list-type">
                 <SelectValue />
               </SelectTrigger>

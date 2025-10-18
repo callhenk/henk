@@ -32,7 +32,6 @@ import {
   useCampaignLeadLists,
   useUpdateCampaignLeadListPriority,
 } from '@kit/supabase/hooks/campaigns/use-campaign-lead-lists';
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
 import {
@@ -45,14 +44,19 @@ import {
 } from '@kit/ui/dialog';
 import { Skeleton } from '@kit/ui/skeleton';
 
+import type { Database } from '~/lib/database.types';
+
+type CampaignLeadList = Database['public']['Tables']['campaign_lead_lists']['Row'];
+type LeadList = Database['public']['Tables']['lead_lists']['Row'];
+
 interface LeadListSelectorProps {
   campaignId: string;
 }
 
 interface SortableListItemProps {
   id: string;
-  assignedList: any;
-  list: any;
+  assignedList: CampaignLeadList;
+  list: LeadList | undefined;
   index: number;
   totalItems: number;
   onRemove: (listId: string) => void;
@@ -77,6 +81,11 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
   const progressPercentage = assignedList.total_leads
     ? ((assignedList.contacted_leads || 0) / assignedList.total_leads) * 100
     : 0;
+
+  // Handle missing list
+  if (!list) {
+    return null;
+  }
 
   return (
     <div

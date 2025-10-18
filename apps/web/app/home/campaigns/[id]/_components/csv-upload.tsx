@@ -62,7 +62,7 @@ export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
       );
 
       const result = await bulkCreateLeadsMutation.mutateAsync({
-        campaign_id: campaignId,
+        business_id: businessContext.business_id,
         leads: leadsData,
       });
 

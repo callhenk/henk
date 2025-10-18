@@ -248,7 +248,7 @@ export function WizardContainer({
         attempts: 0,
       }));
       const created = await bulkCreateLeads.mutateAsync({
-        campaign_id: currentCampaignId,
+        business_id: businessContext.business_id,
         leads: leadsPayload,
       });
       const listId = crypto?.randomUUID?.() ?? undefined;

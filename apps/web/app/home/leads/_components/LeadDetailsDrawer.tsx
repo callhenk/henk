@@ -28,7 +28,7 @@ import {
 } from '@kit/ui/alert-dialog';
 
 import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import type { Database } from '@/lib/database.types';
+import type { Database } from '~/lib/database.types';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 

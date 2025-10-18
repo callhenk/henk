@@ -26,7 +26,8 @@ import { Badge } from '@kit/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { useUpdateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import { type Database } from '@kit/supabase/database';
+
+import type { Database } from '~/lib/database.types';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 
@@ -123,7 +124,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                     id="first_name"
                     name="first_name"
                     required
-                    defaultValue={lead.first_name}
+                    defaultValue={lead.first_name || ''}
                   />
                 </div>
                 <div className="space-y-2">
@@ -132,7 +133,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                     id="last_name"
                     name="last_name"
                     required
-                    defaultValue={lead.last_name}
+                    defaultValue={lead.last_name || ''}
                   />
                 </div>
               </div>
@@ -144,7 +145,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                   name="email"
                   type="email"
                   required
-                  defaultValue={lead.email}
+                  defaultValue={lead.email || ''}
                 />
               </div>
 

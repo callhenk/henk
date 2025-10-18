@@ -141,7 +141,7 @@ export function BulkActionsBar({
         <AddToListDialog
           open={showAddToListDialog}
           onOpenChange={setShowAddToListDialog}
-          leadId={Array.from(selectedLeadIds)[0]} // Pass first lead ID for now
+          leadId={Array.from(selectedLeadIds)[0] || ''} // Pass first lead ID or empty string
           leadName={`${selectedCount} selected leads`}
           bulkLeadIds={Array.from(selectedLeadIds)}
         />

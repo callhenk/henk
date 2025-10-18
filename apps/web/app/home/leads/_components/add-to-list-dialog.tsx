@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Check, Plus } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import {
@@ -77,7 +77,7 @@ export function AddToListDialog({
       }
       onOpenChange(false);
       setSelectedListId('');
-    } catch (error) {
+    } catch {
       toast.error('Failed to add leads to list');
     }
   };

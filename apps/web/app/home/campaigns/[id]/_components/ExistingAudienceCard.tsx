@@ -84,26 +84,16 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     phone: string;
     email: string;
     company: string;
-    timezone: string;
     status: string;
     notes: string;
-    attempts: number;
-    pledged_amount: number | '';
-    donated_amount: number | '';
-    last_contact_date: string;
   }>({
     first_name: '',
     last_name: '',
     phone: '',
     email: '',
     company: '',
-    timezone: '',
     status: 'new',
     notes: '',
-    attempts: 0,
-    pledged_amount: '',
-    donated_amount: '',
-    last_contact_date: '',
   });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<
@@ -225,13 +215,10 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       phone: l.phone,
       email: l.email,
       company: l.company,
-      timezone: l.timezone,
+      title: l.title,
+      lead_score: l.lead_score,
+      quality_rating: l.quality_rating,
       status: l.status,
-      // dnc may not exist on the Row type; omit from export to keep type-safe
-      attempts: l.attempts,
-      pledged_amount: l.pledged_amount,
-      donated_amount: l.donated_amount,
-      last_contact_date: l.last_contact_date,
       notes: l.notes,
     })) as Array<Record<string, unknown>>;
     const csv = toCSV(rows);
@@ -371,12 +358,10 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                   <th className="p-2 text-left">Phone</th>
                   <th className="p-2 text-left">Email</th>
                   <th className="p-2 text-left">Company</th>
-                  <th className="p-2 text-left">Timezone</th>
+                  <th className="p-2 text-left">Title</th>
                   <th className="p-2 text-left">Status</th>
-                  <th className="p-2 text-left">Attempts</th>
-                  <th className="p-2 text-left">Pledged</th>
-                  <th className="p-2 text-left">Donated</th>
-                  <th className="p-2 text-left">Last contact</th>
+                  <th className="p-2 text-left">Score</th>
+                  <th className="p-2 text-left">Quality</th>
                   <th className="p-2 text-left">Notes</th>
                 </tr>
               </thead>
@@ -403,7 +388,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                     <td className="p-2">{l.phone ?? '-'}</td>
                     <td className="p-2">{l.email ?? '-'}</td>
                     <td className="p-2">{l.company ?? '-'}</td>
-                    <td className="p-2">{l.timezone ?? '-'}</td>
+                    <td className="p-2">{l.title ?? '-'}</td>
                     <td className="p-2">
                       <Badge
                         variant="outline"
@@ -412,10 +397,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                         {l.status}
                       </Badge>
                     </td>
-                    <td className="p-2">{l.attempts}</td>
-                    <td className="p-2">{l.pledged_amount ?? '-'}</td>
-                    <td className="p-2">{l.donated_amount ?? '-'}</td>
-                    <td className="p-2">{l.last_contact_date ?? '-'}</td>
+                    <td className="p-2">{l.lead_score ?? 0}</td>
+                    <td className="p-2">{l.quality_rating ?? '-'}</td>
                     <td className="p-2">{l.notes ?? '-'}</td>
                   </tr>
                 ))}
@@ -635,19 +618,6 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 }
               />
             </div>
-            <div>
-              <Label>Timezone</Label>
-              <Input
-                placeholder="e.g. America/New_York or UTC"
-                value={addForm.timezone}
-                onChange={(e) =>
-                  setAddForm((f) => ({ ...f, timezone: e.target.value }))
-                }
-              />
-              <p className="text-muted-foreground mt-1 text-xs">
-                Leave empty for UTC. Use IANA format (e.g., America/New_York)
-              </p>
-            </div>
             <div className="sm:col-span-2">
               <Label>Status</Label>
               <Select
@@ -675,63 +645,6 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Attempts</Label>
-              <Input
-                type="number"
-                min={0}
-                value={addForm.attempts}
-                onChange={(e) =>
-                  setAddForm((f) => ({
-                    ...f,
-                    attempts: Number(e.target.value) || 0,
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label>Pledged amount</Label>
-              <Input
-                type="number"
-                min={0}
-                value={addForm.pledged_amount}
-                onChange={(e) =>
-                  setAddForm((f) => ({
-                    ...f,
-                    pledged_amount:
-                      e.target.value === '' ? '' : Number(e.target.value),
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label>Donated amount</Label>
-              <Input
-                type="number"
-                min={0}
-                value={addForm.donated_amount}
-                onChange={(e) =>
-                  setAddForm((f) => ({
-                    ...f,
-                    donated_amount:
-                      e.target.value === '' ? '' : Number(e.target.value),
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label>Last contact (YYYY-MM-DD)</Label>
-              <Input
-                placeholder="2025-01-01"
-                value={addForm.last_contact_date}
-                onChange={(e) =>
-                  setAddForm((f) => ({
-                    ...f,
-                    last_contact_date: e.target.value,
-                  }))
-                }
-              />
-            </div>
             <div className="sm:col-span-2">
               <Label>Notes</Label>
               <Input
@@ -757,42 +670,17 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                     return;
                   }
 
-                  // Validate and default timezone
-                  const validateTimezone = (tz: string): string => {
-                    if (!tz || tz.trim() === '') return 'UTC';
-                    const trimmed = tz.trim();
-                    const timezoneRegex = /^([A-Z][a-z]+\/[A-Z][a-z_]+|UTC)$/;
-                    if (!timezoneRegex.test(trimmed)) {
-                      toast.warning(
-                        'Invalid timezone format, defaulting to UTC',
-                      );
-                      return 'UTC';
-                    }
-                    return trimmed;
-                  };
-
                   try {
                     await createLead.mutateAsync({
                       business_id: businessContext.business_id,
-                      campaign_id: campaignId,
                       first_name: addForm.first_name || null,
                       last_name: addForm.last_name || null,
                       phone: addForm.phone,
                       email: addForm.email || null,
                       company: addForm.company || null,
-                      timezone: validateTimezone(addForm.timezone),
                       status: addForm.status,
                       notes: addForm.notes || null,
-                      attempts: addForm.attempts,
-                      pledged_amount:
-                        addForm.pledged_amount === ''
-                          ? null
-                          : Number(addForm.pledged_amount),
-                      donated_amount:
-                        addForm.donated_amount === ''
-                          ? null
-                          : Number(addForm.donated_amount),
-                      last_contact_date: addForm.last_contact_date || null,
+                      source: 'manual',
                     });
                     await queryClient.invalidateQueries({
                       queryKey: ['leads', 'campaign', campaignId],
@@ -805,13 +693,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                       phone: '',
                       email: '',
                       company: '',
-                      timezone: '',
                       status: 'new',
                       notes: '',
-                      attempts: 0,
-                      pledged_amount: '',
-                      donated_amount: '',
-                      last_contact_date: '',
                     });
                   } catch (e) {
                     toast.error(

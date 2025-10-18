@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Upload, Download, Filter, Search, MoreVertical, Trash2, Edit, Users, Database } from 'lucide-react';
+import { Plus, Upload, Download, Filter, Search, MoreVertical, Trash2, Edit, Users, Database as DatabaseIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
@@ -46,7 +46,7 @@ import { BulkActionsBar } from './BulkActionsBar';
 import { LeadListsDialog } from './lead-lists-dialog';
 import { EditLeadDialog } from './edit-lead-dialog';
 
-import type { Database } from '@kit/supabase/database';
+import type { Database } from '~/lib/database.types';
 type Lead = Database['public']['Tables']['leads']['Row'];
 
 export function LeadsList() {
@@ -142,7 +142,7 @@ export function LeadsList() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">From Integrations</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
+            <DatabaseIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, Users } from 'lucide-react';
+import { ChevronRight, Users, Phone, ListChecks } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
 import { Badge } from '@kit/ui/badge';
@@ -49,27 +49,6 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
     const first = firstName?.charAt(0) || '';
     const last = lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || '?';
-  };
-
-  const getStatusBadgeColor = (status?: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
-      case 'queued':
-        return 'bg-purple-500/10 text-purple-700 dark:text-purple-400';
-      case 'calling':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400';
-      case 'contacted':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
-      case 'converted':
-        return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
-      case 'failed':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400';
-      case 'dnc':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
-      default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
-    }
   };
 
   if (assignedLoading) {

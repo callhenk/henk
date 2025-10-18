@@ -4,13 +4,12 @@ import { useState } from 'react';
 
 import { toast } from 'sonner';
 
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { type LeadCSVRow, LeadCSVUploader } from '@kit/ui/henk/csv-uploader';
 
 interface AudienceImportCardProps {
-  campaignId: string;
   onSuccess?: () => void;
 }
 
@@ -18,10 +17,7 @@ interface AudienceImportCardProps {
  * Enhanced Audience Import Card using the reusable CSV uploader system
  * Replaces the original complex implementation with the new modular components
  */
-export function AudienceImportCard({
-  campaignId,
-  onSuccess,
-}: AudienceImportCardProps) {
+export function AudienceImportCard({ onSuccess }: AudienceImportCardProps) {
   const [isUploading, setIsUploading] = useState(false);
   const bulkCreateLeads = useBulkCreateLeads();
   const { data: businessContext } = useBusinessContext();
@@ -41,7 +37,9 @@ export function AudienceImportCard({
       // Transform data to the expected format for database
       const transformedData = data.map((row) => {
         // Split name into first_name and last_name
-        const nameParts = String(row.name || '').trim().split(' ');
+        const nameParts = String(row.name || '')
+          .trim()
+          .split(' ');
         const first_name = nameParts[0] || '';
         const last_name = nameParts.slice(1).join(' ') || '';
 
@@ -79,7 +77,7 @@ export function AudienceImportCard({
 
       // Upload to database
       const result = await bulkCreateLeads.mutateAsync({
-        campaign_id: campaignId,
+        business_id: businessContext.business_id,
         leads: transformedData,
       });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Search, Check, Users } from 'lucide-react';
+import { Plus, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
@@ -22,9 +22,9 @@ import { Skeleton } from '@kit/ui/skeleton';
 import { useLeads, useLeadListMembers } from '@kit/supabase/hooks/leads/use-leads';
 import { useAddLeadToList } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useSupabase } from '@kit/supabase/hooks/use-supabase';
-import type { Database } from '@kit/supabase/database';
 
-type Lead = Database['public']['Tables']['leads']['Row'];
+import type { Database } from '~/lib/database.types';
+
 type LeadList = Database['public']['Tables']['lead_lists']['Row'];
 
 interface AddMembersToListDialogProps {
@@ -186,7 +186,7 @@ export function AddMembersToListDialog({
             ) : filteredLeads.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <p>No leads found matching "{searchQuery}"</p>
+                <p>No leads found matching &ldquo;{searchQuery}&rdquo;</p>
               </div>
             ) : (
               <div className="p-4 space-y-2">

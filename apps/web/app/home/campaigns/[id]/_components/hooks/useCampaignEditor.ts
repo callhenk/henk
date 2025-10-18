@@ -134,10 +134,9 @@ export function useCampaignEditor(campaignId: string) {
     setGoalMetric(apiToUiGoal(campaign.goal_metric));
   }, [campaign, normalizeTime]);
 
-  const campaignLeads = useMemo(
-    () => leads.filter((l) => l.campaign_id === campaignId),
-    [leads, campaignId],
-  );
+  // Note: Leads no longer have a direct campaign_id field
+  // This returns all leads - filtering by campaign would require a join through lead_lists
+  const campaignLeads = useMemo(() => leads, [leads]);
   const campaignConversations = useMemo(
     () => conversations.filter((c) => c.campaign_id === campaignId),
     [conversations, campaignId],

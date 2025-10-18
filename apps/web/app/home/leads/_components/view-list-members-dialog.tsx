@@ -1,39 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+
 import {
-  Users,
-  Search,
-  Mail,
-  Phone,
   Building,
-  MapPin,
-  X,
-  UserMinus,
   ExternalLink,
+  Mail,
+  MapPin,
+  Phone,
   Plus,
+  Search,
+  UserMinus,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@kit/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@kit/ui/dialog';
-import { Input } from '@kit/ui/input';
-import { Badge } from '@kit/ui/badge';
-import { ScrollArea } from '@kit/ui/scroll-area';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@kit/ui/table';
+import { useRemoveLeadFromList } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useLeadListMembers } from '@kit/supabase/hooks/leads/use-leads';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,11 +27,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
+import { Badge } from '@kit/ui/badge';
+import { Button } from '@kit/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@kit/ui/dialog';
+import { Input } from '@kit/ui/input';
+import { ScrollArea } from '@kit/ui/scroll-area';
 import { Skeleton } from '@kit/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@kit/ui/table';
 
-import { useLeadListMembers } from '@kit/supabase/hooks/leads/use-leads';
-import { useRemoveLeadFromList } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import type { Database } from '@kit/supabase/database';
+import type { Database } from '~/lib/database.types';
 
 import { AddMembersToListDialog } from './add-members-to-list-dialog';
 
@@ -96,7 +96,7 @@ export function ViewListMembersDialog({
       });
       toast.success('Lead removed from list');
       setRemovingLeadId(null);
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove lead from list');
     }
   };
@@ -124,31 +124,33 @@ export function ViewListMembersDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-5xl max-h-[90vh]">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
+        <DialogContent className="max-h-[90vh] max-w-5xl">
+          <DialogHeader className="pb-4">
+            <div className="flex items-start justify-between gap-6">
+              <div className="min-w-0 flex-1">
                 <DialogTitle className="flex items-center gap-2">
                   <div
-                    className="h-3 w-3 rounded-full"
+                    className="h-3 w-3 flex-shrink-0 rounded-full"
                     style={{ backgroundColor: list.color }}
                   />
                   {list.name} Members
                 </DialogTitle>
-                <DialogDescription>
-                  {list.description || `Viewing ${filteredMembers.length} leads in this list`}
+                <DialogDescription className="mt-1.5">
+                  {list.description ||
+                    `Viewing ${filteredMembers.length} leads in this list`}
                 </DialogDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  <Users className="mr-2 h-4 w-4" />
+              <div className="flex flex-shrink-0 items-center gap-3">
+                <Badge variant="secondary" className="px-3 py-1.5 text-sm">
+                  <Users className="mr-1.5 h-4 w-4" />
                   {list.lead_count || 0}
                 </Badge>
                 <Button
                   size="sm"
                   onClick={() => setShowAddMembers(true)}
+                  className="gap-2"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   Add Members
                 </Button>
               </div>
@@ -158,7 +160,7 @@ export function ViewListMembersDialog({
           <div className="space-y-4">
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 placeholder="Search by name, email, phone, or company..."
                 value={searchQuery}
@@ -170,11 +172,11 @@ export function ViewListMembersDialog({
             {/* Members Table */}
             <ScrollArea className="h-[500px] rounded-md border">
               {isLoading ? (
-                <div className="p-4 space-y-3">
+                <div className="space-y-3 p-4">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="flex items-center space-x-4">
                       <Skeleton className="h-12 w-12 rounded-full" />
-                      <div className="space-y-2 flex-1">
+                      <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-1/4" />
                         <Skeleton className="h-4 w-1/3" />
                       </div>
@@ -182,17 +184,21 @@ export function ViewListMembersDialog({
                   ))}
                 </div>
               ) : filteredMembers.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
+                <div className="text-muted-foreground p-8 text-center">
                   {searchQuery ? (
                     <>
-                      <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                      <p>No members found matching "{searchQuery}"</p>
+                      <Search className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                      <p>
+                        No members found matching &ldquo;{searchQuery}&rdquo;
+                      </p>
                     </>
                   ) : (
                     <>
-                      <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
                       <p>No members in this list yet</p>
-                      <p className="text-sm mt-2">Add leads to this list from the leads page</p>
+                      <p className="mt-2 text-sm">
+                        Add leads to this list from the leads page
+                      </p>
                     </>
                   )}
                 </div>
@@ -218,7 +224,7 @@ export function ViewListMembersDialog({
                               {lead.first_name} {lead.last_name}
                             </div>
                             {lead.title && (
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-muted-foreground text-sm">
                                 {lead.title}
                               </div>
                             )}
@@ -228,7 +234,7 @@ export function ViewListMembersDialog({
                           <div className="space-y-1">
                             {lead.email && (
                               <div className="flex items-center gap-1 text-sm">
-                                <Mail className="h-3 w-3 text-muted-foreground" />
+                                <Mail className="text-muted-foreground h-3 w-3" />
                                 <a
                                   href={`mailto:${lead.email}`}
                                   className="hover:underline"
@@ -239,7 +245,7 @@ export function ViewListMembersDialog({
                             )}
                             {lead.phone && (
                               <div className="flex items-center gap-1 text-sm">
-                                <Phone className="h-3 w-3 text-muted-foreground" />
+                                <Phone className="text-muted-foreground h-3 w-3" />
                                 <a
                                   href={`tel:${lead.phone}`}
                                   className="hover:underline"
@@ -253,7 +259,7 @@ export function ViewListMembersDialog({
                         <TableCell>
                           {lead.company && (
                             <div className="flex items-center gap-1">
-                              <Building className="h-3 w-3 text-muted-foreground" />
+                              <Building className="text-muted-foreground h-3 w-3" />
                               {lead.company}
                             </div>
                           )}
@@ -261,7 +267,7 @@ export function ViewListMembersDialog({
                         <TableCell>
                           {formatLocation(lead) && (
                             <div className="flex items-center gap-1 text-sm">
-                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              <MapPin className="text-muted-foreground h-3 w-3" />
                               {formatLocation(lead)}
                             </div>
                           )}
@@ -290,7 +296,7 @@ export function ViewListMembersDialog({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive h-8 w-8"
                               onClick={() => setRemovingLeadId(lead.id)}
                             >
                               <UserMinus className="h-4 w-4" />
@@ -306,14 +312,15 @@ export function ViewListMembersDialog({
 
             {/* Tags Summary */}
             {!isLoading && filteredMembers.length > 0 && (
-              <div className="border rounded-lg p-4 bg-muted/50">
-                <h4 className="text-sm font-medium mb-2">Common Tags</h4>
+              <div className="bg-muted/50 rounded-lg border p-4">
+                <h4 className="mb-2 text-sm font-medium">Common Tags</h4>
                 <div className="flex flex-wrap gap-2">
                   {Array.from(
                     new Set(
-                      filteredMembers
-                        .flatMap((lead) => (lead.tags as string[]) || [])
-                    )
+                      filteredMembers.flatMap(
+                        (lead) => (lead.tags as string[]) || [],
+                      ),
+                    ),
                   )
                     .slice(0, 10)
                     .map((tag) => (
@@ -344,7 +351,9 @@ export function ViewListMembersDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Lead from List</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this lead from "{list?.name}"? The lead will not be deleted, only removed from this list.
+              Are you sure you want to remove this lead from &ldquo;{list?.name}
+              &rdquo;? The lead will not be deleted, only removed from this
+              list.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

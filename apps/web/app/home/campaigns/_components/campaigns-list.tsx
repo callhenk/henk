@@ -26,9 +26,7 @@ import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useDeleteCampaign } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 // Import demo mode
-import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +66,7 @@ import {
 // Tabs removed; filters handle status selection
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 import { WizardContainer } from '../wizard/wizard-container';
 
@@ -84,11 +83,12 @@ interface EnhancedCampaign extends Campaign {
 
 export function CampaignsList() {
   // Get demo mode state and mock data
-  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } =
+    useDemoMode();
 
   // Fetch real data using our hooks
-  const { data: realCampaigns = [], isLoading: campaignsLoading } = useCampaigns();
-  const { data: leads = [] } = useLeads();
+  const { data: realCampaigns = [], isLoading: campaignsLoading } =
+    useCampaigns();
   const { data: realConversations = [] } = useConversations();
   const { data: realAgents = [] } = useAgents();
 
@@ -113,9 +113,8 @@ export function CampaignsList() {
   // Enhance campaigns with calculated performance data
   const enhancedCampaigns = useMemo(() => {
     return campaigns.map((campaign) => {
-      const campaignLeads = leads.filter(
-        (lead) => lead.campaign_id === campaign.id,
-      );
+      // Note: Leads no longer have a direct campaign_id field
+      // Would need to join through lead_lists to get accurate count
       const campaignConversations = conversations.filter(
         (conv) => conv.campaign_id === campaign.id,
       );
@@ -130,14 +129,14 @@ export function CampaignsList() {
 
       return {
         ...campaign,
-        leads: campaignLeads.length,
+        leads: 0, // TODO: Calculate from lead_lists join
         contacted,
         conversions,
         revenue,
         agentName: agent?.name || 'Unknown Agent',
       } as EnhancedCampaign;
     });
-  }, [campaigns, leads, conversations, agents]);
+  }, [campaigns, conversations, agents]);
 
   // Show loading state if data is still loading and not in demo mode
   if (!isDemoMode && campaignsLoading) {
@@ -391,24 +390,26 @@ export function CampaignsList() {
 
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
         <DialogContent className="max-w-2xl p-0">
-          <WizardContainer
-            onLoadingChange={setIsCreatingCampaign}
-          />
+          <WizardContainer onLoadingChange={setIsCreatingCampaign} />
         </DialogContent>
       </Dialog>
-      
+
       {/* Loading overlay during campaign creation */}
       {isCreatingCampaign && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm pointer-events-none animate-in fade-in duration-300 z-[100]">
+        <div className="bg-background/80 animate-in fade-in pointer-events-none fixed inset-0 z-[100] backdrop-blur-sm duration-300">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center space-y-3 text-center px-4">
+            <div className="flex flex-col items-center space-y-3 px-4 text-center">
               <div className="relative">
-                <div className="w-8 h-8 border-2 border-primary/30 rounded-full"></div>
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+                <div className="border-primary/30 h-8 w-8 rounded-full border-2"></div>
+                <div className="border-primary absolute inset-0 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Creating your campaign...</p>
-                <p className="text-xs text-muted-foreground">This will only take a moment</p>
+                <p className="text-foreground text-sm font-medium">
+                  Creating your campaign...
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  This will only take a moment
+                </p>
               </div>
             </div>
           </div>
