@@ -25,6 +25,7 @@ import {
 import { Badge } from '@kit/ui/badge';
 
 import { useCreateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 
 interface AddDonorDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const createLead = useCreateLead();
+  const { data: businessContext } = useBusinessContext();
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -51,8 +53,14 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    if (!businessContext?.business_id) {
+      toast.error('Business context not found');
+      return;
+    }
+
     try {
       await createLead.mutateAsync({
+        business_id: businessContext.business_id,
         first_name: formData.get('first_name') as string,
         last_name: formData.get('last_name') as string,
         email: formData.get('email') as string,

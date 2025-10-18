@@ -232,7 +232,8 @@ export function WizardContainer({
     _setIsUploading(true);
     try {
       const leadsPayload = _csvRows.map((r) => ({
-        name: `${r.first_name}${r.last_name ? ' ' + r.last_name : ''}`.trim(),
+        first_name: r.first_name,
+        last_name: r.last_name || '',
         phone: r.phone as string,
         email: r.email || null,
         company: null,

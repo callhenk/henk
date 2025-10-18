@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Upload } from 'lucide-react';
 
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { Button } from '@kit/ui/button';
 import {
@@ -24,18 +25,34 @@ interface CSVUploadProps {
 export function CSVUpload({ campaignId, onSuccess }: CSVUploadProps) {
   const [isOpen, setIsOpen] = useState(false);
   const bulkCreateLeadsMutation = useBulkCreateLeads();
+  const { data: businessContext } = useBusinessContext();
 
   const handleUpload = async (leads: LeadCSVRow[]) => {
+    if (!businessContext?.business_id) {
+      return {
+        success: false,
+        message: 'Business context not loaded. Please try again.',
+      };
+    }
+
     try {
-      const leadsData = leads.map((lead) => ({
-        name: lead.name.trim(),
-        phone: lead.phone.trim(),
-        email: lead.email?.trim() || null,
-        company: lead.company?.trim() || null,
-        timezone: lead.timezone?.trim() || 'UTC',
-        status: 'new' as const,
-        attempts: 0,
-      }));
+      const leadsData = leads.map((lead) => {
+        const nameParts = lead.name.trim().split(' ');
+        const first_name = nameParts[0] || '';
+        const last_name = nameParts.slice(1).join(' ') || '';
+
+        return {
+          business_id: businessContext.business_id,
+          first_name,
+          last_name,
+          phone: lead.phone.trim(),
+          email: lead.email?.trim() || null,
+          company: lead.company?.trim() || null,
+          timezone: lead.timezone?.trim() || 'UTC',
+          status: 'new' as const,
+          attempts: 0,
+        };
+      });
 
       console.log(
         'Uploading leads:',

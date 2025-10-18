@@ -122,7 +122,7 @@ export function ConversationsList() {
 
       return {
         ...conversation,
-        donorName: lead?.name || `Donor ${conversation.lead_id?.slice(0, 8)}`,
+        donorName: lead ? `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || `Donor ${conversation.lead_id?.slice(0, 8)}` : `Donor ${conversation.lead_id?.slice(0, 8)}`,
         phoneNumber: lead?.phone || 'N/A',
         timezone: lead?.timezone || 'UTC',
         campaignName: campaign?.name || 'Unknown Campaign',

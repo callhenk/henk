@@ -241,20 +241,32 @@ export async function POST(request: NextRequest) {
     const contacts = mapSalesforceContacts(salesforceData.records);
 
     // Insert contacts as leads for the specified campaign
-    const leads = contacts.map(contact => ({
-      id: crypto.randomUUID(),
-      campaign_id: campaignId,
-      name: contact.name,
-      email: contact.email,
-      phone: contact.phone || '',
-      company: contact.company,
-      status: 'imported',
-      notes: `Imported from Salesforce. ID: ${contact.id}`,
-      attempts: 0,
-      dnc: false,
-      created_by: user.id,
-      updated_by: user.id,
-    }));
+    const leads = contacts.map(contact => {
+      const nameParts = contact.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      return {
+        id: crypto.randomUUID(),
+        business_id: teamMember.business_id,
+        campaign_id: campaignId,
+        first_name: firstName,
+        last_name: lastName,
+        email: contact.email,
+        phone: contact.phone || null,
+        company: contact.company,
+        title: contact.title,
+        department: contact.department,
+        status: 'imported',
+        notes: `Imported from Salesforce. ID: ${contact.id}`,
+        attempts: 0,
+        dnc: false,
+        source: 'salesforce',
+        source_id: contact.id,
+        created_by: user.id,
+        updated_by: user.id,
+      };
+    });
 
     const { error: insertError } = await supabase
       .from('leads')

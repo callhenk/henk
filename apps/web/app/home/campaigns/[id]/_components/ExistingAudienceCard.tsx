@@ -7,6 +7,7 @@ import { Download, Users } from 'lucide-react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import {
   useCreateLead,
   useDeleteLead,
@@ -47,8 +48,16 @@ function toCSV(rows: Array<Record<string, unknown>>): string {
   return Papa.unparse(rows);
 }
 
+// Helper to get full name from lead
+function getLeadName(lead: { first_name?: string | null; last_name?: string | null }): string {
+  const first = lead.first_name || '';
+  const last = lead.last_name || '';
+  return `${first} ${last}`.trim() || '-';
+}
+
 export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const { data: leads = [], isLoading } = useLeadsByCampaign(campaignId);
+  const { data: businessContext } = useBusinessContext();
   const deleteLead = useDeleteLead();
   const updateLead = useUpdateLead();
   const createLead = useCreateLead();
@@ -58,7 +67,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<{
     id: string;
-    name: string | null;
+    first_name: string | null;
+    last_name: string | null;
     phone: string | null;
     email: string | null;
     company: string | null;
@@ -69,7 +79,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState<{
-    name: string;
+    first_name: string;
+    last_name: string;
     phone: string;
     email: string;
     company: string;
@@ -81,7 +92,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     donated_amount: number | '';
     last_contact_date: string;
   }>({
-    name: '',
+    first_name: '',
+    last_name: '',
     phone: '',
     email: '',
     company: '',
@@ -112,7 +124,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       if (status !== 'all' && l.status !== status) return false;
       if (!q) return true;
       return (
-        (l.name ?? '').toLowerCase().includes(q) ||
+        getLeadName(l).toLowerCase().includes(q) ||
         (l.email ?? '').toLowerCase().includes(q) ||
         (l.phone ?? '').toLowerCase().includes(q) ||
         (l.company ?? '').toLowerCase().includes(q)
@@ -163,7 +175,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     if (!lead) return;
     setEditForm({
       id: lead.id,
-      name: lead.name,
+      first_name: lead.first_name,
+      last_name: lead.last_name,
       phone: lead.phone,
       email: lead.email,
       company: lead.company,
@@ -187,7 +200,8 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
     try {
       await updateLead.mutateAsync({
         id: editForm.id,
-        name: editForm.name ?? undefined,
+        first_name: editForm.first_name ?? undefined,
+        last_name: editForm.last_name ?? undefined,
         phone: editForm.phone ?? undefined,
         email: editForm.email ?? undefined,
         company: editForm.company ?? undefined,
@@ -207,7 +221,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
   const handleExport = () => {
     if (filtered.length === 0) return;
     const rows = filtered.map((l) => ({
-      name: l.name,
+      name: getLeadName(l),
       phone: l.phone,
       email: l.email,
       company: l.company,
@@ -381,11 +395,11 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                             return next;
                           })
                         }
-                        aria-label={`Select ${l.name ?? 'lead'}`}
+                        aria-label={`Select ${getLeadName(l) ?? 'lead'}`}
                         disabled={isBulkDeleting}
                       />
                     </td>
-                    <td className="p-2">{l.name ?? '-'}</td>
+                    <td className="p-2">{getLeadName(l) ?? '-'}</td>
                     <td className="p-2">{l.phone ?? '-'}</td>
                     <td className="p-2">{l.email ?? '-'}</td>
                     <td className="p-2">{l.company ?? '-'}</td>
@@ -419,11 +433,20 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
           {editForm && (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label>Name</Label>
+                <Label>First Name</Label>
                 <Input
-                  value={editForm.name ?? ''}
+                  value={editForm.first_name ?? ''}
                   onChange={(e) =>
-                    setEditForm((f) => (f ? { ...f, name: e.target.value } : f))
+                    setEditForm((f) => (f ? { ...f, first_name: e.target.value } : f))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Last Name</Label>
+                <Input
+                  value={editForm.last_name ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) => (f ? { ...f, last_name: e.target.value } : f))
                   }
                 />
               </div>
@@ -529,7 +552,10 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
           <div className="text-muted-foreground text-xs">
             {Array.from(selectedIds)
               .slice(0, 5)
-              .map((id) => leads.find((l) => l.id === id)?.name || id)
+              .map((id) => {
+                const lead = leads.find((l) => l.id === id);
+                return lead ? getLeadName(lead) : id;
+              })
               .join(', ')}
             {selectedIds.size > 5 ? '…' : ''}
           </div>
@@ -565,11 +591,20 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label>Name</Label>
+              <Label>First Name</Label>
               <Input
-                value={addForm.name}
+                value={addForm.first_name}
                 onChange={(e) =>
-                  setAddForm((f) => ({ ...f, name: e.target.value }))
+                  setAddForm((f) => ({ ...f, first_name: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Last Name</Label>
+              <Input
+                value={addForm.last_name}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, last_name: e.target.value }))
                 }
               />
             </div>
