@@ -579,7 +579,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     [agent, agentId, updateAgentMutation],
   );
 
-  const handleSaveSuccess = (message: string) => {
+  // Prefixed with _ to indicate intentionally unused (for future use when AgentKnowledge is uncommented)
+  const _handleSaveSuccess = (message: string) => {
     setSaveSuccess(message);
     setTimeout(() => setSaveSuccess(null), 3000);
   };
@@ -787,7 +788,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 agent={agent}
                 onSaveField={handleSaveField}
                 savingField={savingField}
-                onSaveSuccess={handleSaveSuccess}
+                onSaveSuccess={_handleSaveSuccess}
               />
             </TabsContent> */}
 

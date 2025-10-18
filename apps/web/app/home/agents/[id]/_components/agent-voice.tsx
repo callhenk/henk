@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { Mic, Play, Volume2 } from 'lucide-react';
+// Mic is prefixed with _ as it's only used in commented code (custom voice recording feature)
+import { Mic as _Mic, Play, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useSupabase } from '@kit/supabase/hooks/use-supabase';
@@ -55,13 +56,14 @@ export function AgentVoice({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null,
   );
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+  // These state variables are prefixed with _ as they're only used in commented code (custom voice recording feature)
+  const [_isRecording, _setIsRecording] = useState(false);
+  const [_recordingTime, _setRecordingTime] = useState(0);
+  const [_mediaRecorder, _setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
-  const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
-  const [isPlayingRecording, setIsPlayingRecording] = useState(false);
+  const [_recordedAudio, _setRecordedAudio] = useState<Blob | null>(null);
+  const [_isPlayingRecording, _setIsPlayingRecording] = useState(false);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -94,8 +96,8 @@ export function AgentVoice({
     }
   };
 
-  // Custom voice recording functions
-  const startRecording = async () => {
+  // Custom voice recording functions (prefixed with _ as they're only used in commented code)
+  const _startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -109,21 +111,21 @@ export function AgentVoice({
 
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/wav' });
-        setRecordedAudio(blob);
+        _setRecordedAudio(blob);
         stream.getTracks().forEach((track) => track.stop());
         toast.success('Recording completed!');
       };
 
       recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setRecordingTime(0);
+      _setMediaRecorder(recorder);
+      _setIsRecording(true);
+      _setRecordingTime(0);
 
       // Start timer
       const timer = setInterval(() => {
-        setRecordingTime((prev) => {
+        _setRecordingTime((prev) => {
           if (prev >= 30) {
-            stopRecording();
+            _stopRecording();
             clearInterval(timer);
             return 30;
           }
@@ -140,32 +142,32 @@ export function AgentVoice({
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
+  const _stopRecording = () => {
+    if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+      _mediaRecorder.stop();
     }
-    setIsRecording(false);
-    setRecordingTime(0);
+    _setIsRecording(false);
+    _setRecordingTime(0);
   };
 
-  const playRecording = () => {
-    if (!recordedAudio) {
+  const _playRecording = () => {
+    if (!_recordedAudio) {
       toast.error('No recording available to play');
       return;
     }
 
-    const audio = new Audio(URL.createObjectURL(recordedAudio));
-    setIsPlayingRecording(true);
+    const audio = new Audio(URL.createObjectURL(_recordedAudio));
+    _setIsPlayingRecording(true);
 
-    audio.onended = () => setIsPlayingRecording(false);
+    audio.onended = () => _setIsPlayingRecording(false);
     audio.onerror = () => {
-      setIsPlayingRecording(false);
+      _setIsPlayingRecording(false);
       toast.error('Failed to play recording.');
     };
 
     audio.play().catch((error) => {
       console.error('Failed to play recording:', error);
-      setIsPlayingRecording(false);
+      _setIsPlayingRecording(false);
       toast.error('Failed to play recording.');
     });
   };
@@ -354,7 +356,7 @@ export function AgentVoice({
             <CardHeader>
               <CardTitle>Voice Type</CardTitle>
               <CardDescription>
-                Select your agent's voice type
+                Select your agent&apos;s voice type
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -401,28 +403,28 @@ export function AgentVoice({
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isPlayingRecording}
+                  onClick={_isRecording ? _stopRecording : _startRecording}
+                  disabled={_isPlayingRecording}
                 >
-                  {isRecording ? (
+                  {_isRecording ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
-                      Recording... ({30 - recordingTime}s)
+                      Recording... ({30 - _recordingTime}s)
                     </>
                   ) : (
                     <>
-                      <Mic className="mr-2 h-4 w-4" />
-                      {recordedAudio ? 'Record Again' : 'Start Recording'}
+                      <_Mic className="mr-2 h-4 w-4" />
+                      {_recordedAudio ? 'Record Again' : 'Start Recording'}
                     </>
                   )}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={playRecording}
-                  disabled={!recordedAudio || isPlayingRecording || isRecording}
+                  onClick={_playRecording}
+                  disabled={!_recordedAudio || _isPlayingRecording || _isRecording}
                 >
-                  {isPlayingRecording ? (
+                  {_isPlayingRecording ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
                       Playing...
@@ -435,7 +437,7 @@ export function AgentVoice({
                   )}
                 </Button>
               </div>
-              {recordedAudio && (
+              {_recordedAudio && (
                 <div className="rounded-lg border p-3">
                   <p className="text-xs">
                     ✓ Recording saved. You can preview or record again.
