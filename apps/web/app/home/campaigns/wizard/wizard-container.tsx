@@ -18,6 +18,7 @@ import {
   useUpdateCampaign,
 } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaign } from '@kit/supabase/hooks/campaigns/use-campaigns';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { Spinner } from '@kit/ui/spinner';
 
@@ -95,6 +96,7 @@ export function WizardContainer({
   const { data: existingCampaign, isLoading: loadingCampaign } = useCampaign(
     currentCampaignId || '',
   );
+  const { data: businessContext } = useBusinessContext();
 
   const createCampaign = useCreateCampaign();
   const updateCampaign = useUpdateCampaign();
@@ -229,9 +231,14 @@ export function WizardContainer({
     if (!currentCampaignId) return;
     if (_csvErrors.length > 0) return;
     if (_csvRows.length === 0) return;
+    if (!businessContext?.business_id) {
+      console.error('Business context not loaded');
+      return;
+    }
     _setIsUploading(true);
     try {
       const leadsPayload = _csvRows.map((r) => ({
+        business_id: businessContext.business_id,
         first_name: r.first_name,
         last_name: r.last_name || '',
         phone: r.phone as string,

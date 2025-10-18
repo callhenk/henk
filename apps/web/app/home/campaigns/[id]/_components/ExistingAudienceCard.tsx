@@ -747,8 +747,13 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
               </Button>
               <Button
                 onClick={async () => {
-                  if (!addForm.name.trim() || !addForm.phone.trim()) {
-                    toast.error('Name and phone are required');
+                  if (!addForm.phone.trim()) {
+                    toast.error('Phone is required');
+                    return;
+                  }
+
+                  if (!businessContext?.business_id) {
+                    toast.error('Business context not loaded. Please try again.');
                     return;
                   }
 
@@ -768,8 +773,10 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
 
                   try {
                     await createLead.mutateAsync({
+                      business_id: businessContext.business_id,
                       campaign_id: campaignId,
-                      name: addForm.name,
+                      first_name: addForm.first_name || null,
+                      last_name: addForm.last_name || null,
                       phone: addForm.phone,
                       email: addForm.email || null,
                       company: addForm.company || null,
@@ -786,16 +793,15 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                           ? null
                           : Number(addForm.donated_amount),
                       last_contact_date: addForm.last_contact_date || null,
-                    } as unknown as Parameters<
-                      typeof createLead.mutateAsync
-                    >[0]);
+                    });
                     await queryClient.invalidateQueries({
                       queryKey: ['leads', 'campaign', campaignId],
                     });
                     toast.success('Lead added');
                     setAddOpen(false);
                     setAddForm({
-                      name: '',
+                      first_name: '',
+                      last_name: '',
                       phone: '',
                       email: '',
                       company: '',

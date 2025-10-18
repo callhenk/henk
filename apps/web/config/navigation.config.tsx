@@ -42,8 +42,8 @@ const routes = [
         Icon: <MessageSquare className={iconClasses} />,
       },
       {
-        label: 'Donors',
-        path: pathsConfig.app.donors,
+        label: 'Leads',
+        path: pathsConfig.app.leads,
         Icon: <UserCircle className={iconClasses} />,
       },
       {

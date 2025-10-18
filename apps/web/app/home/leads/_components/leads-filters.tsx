@@ -13,11 +13,11 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 
-interface DonorsFiltersProps {
+interface LeadsFiltersProps {
   onClose: () => void;
 }
 
-export function DonorsFilters({ onClose }: DonorsFiltersProps) {
+export function LeadsFilters({ onClose }: LeadsFiltersProps) {
   return (
     <Card>
       <CardContent className="pt-6">
@@ -57,7 +57,7 @@ export function DonorsFilters({ onClose }: DonorsFiltersProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All tags</SelectItem>
-                <SelectItem value="major_donor">Major Donor</SelectItem>
+                <SelectItem value="major_lead">Major Lead</SelectItem>
                 <SelectItem value="prospect">Prospect</SelectItem>
                 <SelectItem value="alumni">Alumni</SelectItem>
                 <SelectItem value="board_member">Board Member</SelectItem>

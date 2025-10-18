@@ -30,10 +30,9 @@ import { TooltipProvider } from '@kit/ui/tooltip';
 
 import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 
-import AudienceImportCard from './AudienceImportCard';
-import ExistingAudienceCard from './ExistingAudienceCard';
 import { CampaignHeader } from './campaign-header';
 import useCampaignEditor from './hooks/useCampaignEditor';
+import { LeadListSelector } from './LeadListSelector';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -484,8 +483,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 Audience
               </div>
               <div className="space-y-4 rounded-md">
-                <ExistingAudienceCard campaignId={campaignId} />
-                <AudienceImportCard campaignId={campaignId} />
+                <LeadListSelector campaignId={campaignId} />
               </div>
             </TooltipProvider>
           </TabsContent>

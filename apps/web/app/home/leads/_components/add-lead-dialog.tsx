@@ -27,12 +27,12 @@ import { Badge } from '@kit/ui/badge';
 import { useCreateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 
-interface AddDonorDialogProps {
+interface AddLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
+export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const createLead = useCreateLead();
@@ -81,12 +81,12 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
         source: 'manual',
       });
 
-      toast.success('Donor added successfully');
+      toast.success('Lead added successfully');
       onOpenChange(false);
       // Reset form
       setTags([]);
     } catch (error) {
-      toast.error('Failed to add donor');
+      toast.error('Failed to add lead');
       console.error(error);
     }
   };
@@ -95,9 +95,9 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Donor</DialogTitle>
+          <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>
-            Add a new donor manually to your database
+            Add a new lead manually to your database
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +275,7 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
                       handleAddTag();
                     }
                   }}
-                  placeholder="e.g., major_donor, prospect"
+                  placeholder="e.g., major_lead, prospect"
                 />
                 <Button
                   type="button"
@@ -328,7 +328,7 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={createLead.isPending}>
-              {createLead.isPending ? 'Saving...' : 'Add Donor'}
+              {createLead.isPending ? 'Saving...' : 'Add Lead'}
             </Button>
           </DialogFooter>
         </form>

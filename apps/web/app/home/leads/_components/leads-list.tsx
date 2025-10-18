@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Upload, Download, Filter, Search, MoreVertical, Trash2, Edit, Users } from 'lucide-react';
+import { Plus, Upload, Download, Filter, Search, MoreVertical, Trash2, Edit, Users, Database } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
@@ -37,33 +37,35 @@ import {
 import { useLeads, type LeadsFilters as LeadsFiltersType } from '@kit/supabase/hooks/leads/use-leads';
 import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
-import { AddDonorDialog } from './add-donor-dialog';
-import { ImportDonorsDialog } from './import-donors-dialog';
-import { DonorsFilters } from './donors-filters';
+import { AddLeadDialog } from './add-lead-dialog';
+import { ImportLeadsDialog } from './import-leads-dialog';
+import { LeadsFilters } from './leads-filters';
+import { AddToListDialog } from './add-to-list-dialog';
 
-export function DonorsList() {
+export function LeadsList() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [_filters, _setFilters] = useState<LeadsFiltersType>({});
-  const [deleteDonorId, setDeleteDonorId] = useState<string | null>(null);
+  const [deleteLeadId, setDeleteLeadId] = useState<string | null>(null);
+  const [addToListLead, setAddToListLead] = useState<{ id: string; name: string } | null>(null);
 
-  // Fetch donors from Supabase
-  const { data: donors = [], isLoading } = useLeads({
+  // Fetch leads from Supabase
+  const { data: leads = [], isLoading } = useLeads({
     search: searchQuery,
   });
-  const deleteDonor = useDeleteLead();
+  const deleteLead = useDeleteLead();
 
-  const handleDeleteDonor = async () => {
-    if (!deleteDonorId) return;
+  const handleDeleteLead = async () => {
+    if (!deleteLeadId) return;
 
     try {
-      await deleteDonor.mutateAsync(deleteDonorId);
-      toast.success('Donor deleted successfully');
-      setDeleteDonorId(null);
+      await deleteLead.mutateAsync(deleteLeadId);
+      toast.success('Lead deleted successfully');
+      setDeleteLeadId(null);
     } catch {
-      toast.error('Failed to delete donor');
+      toast.error('Failed to delete lead');
     }
   };
 
@@ -86,11 +88,11 @@ export function DonorsList() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Donors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{donors.length}</div>
+            <div className="text-2xl font-bold">{leads.length}</div>
             <p className="text-xs text-muted-foreground">
               Across all sources
             </p>
@@ -99,34 +101,30 @@ export function DonorsList() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">From Salesforce</CardTitle>
-            <Badge className={getSourceBadgeColor('salesforce')}>
-              SF
-            </Badge>
+            <CardTitle className="text-sm font-medium">From Integrations</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {donors.filter((c) => c.source === 'salesforce').length}
+              {leads.filter((c) => c.source !== 'manual' && c.source !== 'csv_import').length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Synced donors
+              Via Salesforce, HubSpot, etc.
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Manual Entries</CardTitle>
-            <Badge className={getSourceBadgeColor('manual')}>
-              Manual
-            </Badge>
+            <CardTitle className="text-sm font-medium">Manual & CSV</CardTitle>
+            <Upload className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {donors.filter((c) => c.source === 'manual').length}
+              {leads.filter((c) => c.source === 'manual' || c.source === 'csv_import').length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Added by team
+              Added manually or imported
             </p>
           </CardContent>
         </Card>
@@ -137,9 +135,9 @@ export function DonorsList() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Donors</CardTitle>
+              <CardTitle>Leads</CardTitle>
               <CardDescription>
-                Manage and organize your donor database
+                Manage and organize your leads database
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -163,7 +161,7 @@ export function DonorsList() {
                 onClick={() => setAddDialogOpen(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Add Donor
+                Add Lead
               </Button>
             </div>
           </div>
@@ -174,7 +172,7 @@ export function DonorsList() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search donors by name, email, or company..."
+                placeholder="Search leads by name, email, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -192,7 +190,7 @@ export function DonorsList() {
 
           {/* Filters Panel */}
           {filtersOpen && (
-            <DonorsFilters onClose={() => setFiltersOpen(false)} />
+            <LeadsFilters onClose={() => setFiltersOpen(false)} />
           )}
 
           {/* Table */}
@@ -213,44 +211,44 @@ export function DonorsList() {
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      Loading donors...
+                      Loading leads...
                     </TableCell>
                   </TableRow>
-                ) : donors.length === 0 ? (
+                ) : leads.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      {searchQuery ? 'No donors found matching your search' : 'No donors yet. Add your first donor to get started!'}
+                      {searchQuery ? 'No leads found matching your search' : 'No leads yet. Add your first lead to get started!'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  donors.map((donor) => (
-                    <TableRow key={donor.id}>
+                  leads.map((lead) => (
+                    <TableRow key={lead.id}>
                       <TableCell className="font-medium">
-                        {donor.first_name} {donor.last_name}
+                        {lead.first_name} {lead.last_name}
                       </TableCell>
                       <TableCell>
                         <a
-                          href={`mailto:${donor.email}`}
+                          href={`mailto:${lead.email}`}
                           className="text-blue-600 hover:underline dark:text-blue-400"
                         >
-                          {donor.email}
+                          {lead.email}
                         </a>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {donor.phone}
+                        {lead.phone}
                       </TableCell>
-                      <TableCell>{donor.company || '—'}</TableCell>
+                      <TableCell>{lead.company || '—'}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={getSourceBadgeColor(donor.source)}
+                          className={getSourceBadgeColor(lead.source)}
                         >
-                          {donor.source}
+                          {lead.source}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          {Array.isArray(donor.tags) && (donor.tags as string[]).slice(0, 2).map((tag: string) => (
+                          {Array.isArray(lead.tags) && (lead.tags as string[]).slice(0, 2).map((tag: string) => (
                             <Badge
                               key={tag}
                               variant="secondary"
@@ -259,9 +257,9 @@ export function DonorsList() {
                               {tag}
                             </Badge>
                           ))}
-                          {Array.isArray(donor.tags) && (donor.tags as string[]).length > 2 && (
+                          {Array.isArray(lead.tags) && (lead.tags as string[]).length > 2 && (
                             <Badge variant="secondary" className="text-xs">
-                              +{(donor.tags as string[]).length - 2}
+                              +{(lead.tags as string[]).length - 2}
                             </Badge>
                           )}
                         </div>
@@ -274,18 +272,27 @@ export function DonorsList() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => toast.info('Edit coming soon')}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setAddToListLead({
+                                  id: lead.id,
+                                  name: `${lead.first_name} ${lead.last_name}`.trim(),
+                                })
+                              }
+                            >
                               <Users className="mr-2 h-4 w-4" />
                               Add to List
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
-                              onClick={() => setDeleteDonorId(donor.id)}
+                              onClick={() => setDeleteLeadId(lead.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
@@ -303,31 +310,39 @@ export function DonorsList() {
       </Card>
 
       {/* Dialogs */}
-      <AddDonorDialog
+      <AddLeadDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
       />
-      <ImportDonorsDialog
+      <ImportLeadsDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
       />
+      {addToListLead && (
+        <AddToListDialog
+          open={!!addToListLead}
+          onOpenChange={(open) => !open && setAddToListLead(null)}
+          leadId={addToListLead.id}
+          leadName={addToListLead.name}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
-        open={!!deleteDonorId}
-        onOpenChange={(open) => !open && setDeleteDonorId(null)}
+        open={!!deleteLeadId}
+        onOpenChange={(open) => !open && setDeleteLeadId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Donor</AlertDialogTitle>
+            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this donor? This action cannot be undone.
+              Are you sure you want to delete this lead? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteDonor}
+              onClick={handleDeleteLead}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
