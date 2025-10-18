@@ -1445,6 +1445,30 @@ export type Database = {
           records_failed: number;
         }[];
       };
+      add_lead_list_to_campaign: {
+        Args: {
+          p_campaign_id: string;
+          p_lead_list_id: string;
+          p_priority?: number;
+        };
+        Returns: string;
+      };
+      create_lead_list_from_csv: {
+        Args: {
+          p_business_id: string;
+          p_list_name: string;
+          p_leads: Json;
+        };
+        Returns: string;
+      };
+      update_campaign_lead_list_priority: {
+        Args: {
+          p_campaign_id: string;
+          p_lead_list_id: string;
+          p_new_priority: number;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       business_status: 'active' | 'inactive' | 'suspended';
