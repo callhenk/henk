@@ -1149,12 +1149,133 @@ export type Database = {
           },
         ];
       };
+      sync_logs: {
+        Row: {
+          id: string;
+          integration_id: string;
+          business_id: string;
+          sync_type: string;
+          sync_status: string;
+          records_processed: number;
+          records_created: number;
+          records_updated: number;
+          records_failed: number;
+          started_at: string;
+          completed_at: string | null;
+          duration_ms: number | null;
+          error_message: string | null;
+          error_details: Json | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          integration_id: string;
+          business_id: string;
+          sync_type: string;
+          sync_status: string;
+          records_processed?: number;
+          records_created?: number;
+          records_updated?: number;
+          records_failed?: number;
+          started_at?: string;
+          completed_at?: string | null;
+          duration_ms?: number | null;
+          error_message?: string | null;
+          error_details?: Json | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          integration_id?: string;
+          business_id?: string;
+          sync_type?: string;
+          sync_status?: string;
+          records_processed?: number;
+          records_created?: number;
+          records_updated?: number;
+          records_failed?: number;
+          started_at?: string;
+          completed_at?: string | null;
+          duration_ms?: number | null;
+          error_message?: string | null;
+          error_details?: Json | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'sync_logs_integration_id_fkey';
+            columns: ['integration_id'];
+            isOneToOne: false;
+            referencedRelation: 'integrations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'sync_logs_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
-      [_ in never]: never;
+      sync_logs_summary: {
+        Row: {
+          id: string | null;
+          integration_id: string | null;
+          integration_name: string | null;
+          business_id: string | null;
+          business_name: string | null;
+          sync_type: string | null;
+          sync_status: string | null;
+          records_processed: number | null;
+          records_created: number | null;
+          records_updated: number | null;
+          records_failed: number | null;
+          started_at: string | null;
+          completed_at: string | null;
+          duration_ms: number | null;
+          duration_formatted: string | null;
+          error_message: string | null;
+          metadata: Json | null;
+          created_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'sync_logs_integration_id_fkey';
+            columns: ['integration_id'];
+            isOneToOne: false;
+            referencedRelation: 'integrations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'sync_logs_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
-      [_ in never]: never;
+      get_latest_sync_status: {
+        Args: {
+          p_integration_id: string;
+        };
+        Returns: {
+          sync_status: string;
+          last_sync_at: string;
+          records_processed: number;
+          records_created: number;
+          records_updated: number;
+          records_failed: number;
+        }[];
+      };
     };
     Enums: {
       business_status: 'active' | 'inactive' | 'suspended';
