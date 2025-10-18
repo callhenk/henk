@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Upload, Download, Filter, Search, MoreVertical, Trash2, Edit, Users, Database } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
+import { Checkbox } from '@kit/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,21 +42,55 @@ import { AddLeadDialog } from './add-lead-dialog';
 import { ImportLeadsDialog } from './import-leads-dialog';
 import { LeadsFilters } from './leads-filters';
 import { AddToListDialog } from './add-to-list-dialog';
+import { BulkActionsBar } from './BulkActionsBar';
+import { LeadListsDialog } from './lead-lists-dialog';
 
 export function LeadsList() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [listsDialogOpen, setListsDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [_filters, _setFilters] = useState<LeadsFiltersType>({});
   const [deleteLeadId, setDeleteLeadId] = useState<string | null>(null);
   const [addToListLead, setAddToListLead] = useState<{ id: string; name: string } | null>(null);
 
+  // Selection state - using Set for O(1) lookups
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
+
   // Fetch leads from Supabase
   const { data: leads = [], isLoading } = useLeads({
     search: searchQuery,
   });
   const deleteLead = useDeleteLead();
+
+  // Calculate selection state
+  const allLeadIds = useMemo(() => leads.map(lead => lead.id), [leads]);
+  const isAllSelected = leads.length > 0 && selectedLeadIds.size === leads.length;
+  const isIndeterminate = selectedLeadIds.size > 0 && selectedLeadIds.size < leads.length;
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedLeadIds(new Set(allLeadIds));
+    } else {
+      setSelectedLeadIds(new Set());
+    }
+  };
+
+  const handleSelectLead = (leadId: string, checked: boolean) => {
+    const newSelection = new Set(selectedLeadIds);
+    if (checked) {
+      newSelection.add(leadId);
+    } else {
+      newSelection.delete(leadId);
+    }
+    setSelectedLeadIds(newSelection);
+  };
+
+  const clearSelection = () => {
+    setSelectedLeadIds(new Set());
+  };
 
   const handleDeleteLead = async () => {
     if (!deleteLeadId) return;
@@ -144,6 +179,14 @@ export function LeadsList() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setListsDialogOpen(true)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Manage Lists
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setImportDialogOpen(true)}
               >
                 <Upload className="mr-2 h-4 w-4" />
@@ -198,6 +241,14 @@ export function LeadsList() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all leads"
+                      {...(isIndeterminate && { 'data-indeterminate': true })}
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
@@ -210,19 +261,26 @@ export function LeadsList() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       Loading leads...
                     </TableCell>
                   </TableRow>
                 ) : leads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {searchQuery ? 'No leads found matching your search' : 'No leads yet. Add your first lead to get started!'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   leads.map((lead) => (
                     <TableRow key={lead.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedLeadIds.has(lead.id)}
+                          onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                          aria-label={`Select ${lead.first_name} ${lead.last_name}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {lead.first_name} {lead.last_name}
                       </TableCell>
@@ -318,6 +376,10 @@ export function LeadsList() {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
       />
+      <LeadListsDialog
+        open={listsDialogOpen}
+        onOpenChange={setListsDialogOpen}
+      />
       {addToListLead && (
         <AddToListDialog
           open={!!addToListLead}
@@ -350,6 +412,15 @@ export function LeadsList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Actions Bar */}
+      {selectedLeadIds.size > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedLeadIds.size}
+          selectedLeadIds={selectedLeadIds}
+          onClearSelection={clearSelection}
+        />
+      )}
     </div>
   );
 }

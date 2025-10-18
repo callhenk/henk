@@ -12,8 +12,8 @@ type UpdateLeadListData = TablesUpdate<'lead_lists'> & { id: string };
 type CreateLeadListMemberData = TablesInsert<'lead_list_members'>;
 
 export interface BulkCreateLeadsData {
-  campaign_id: string;
-  leads: Omit<CreateLeadData, 'campaign_id'>[];
+  business_id: string;
+  leads: Omit<CreateLeadData, 'business_id'>[];
 }
 
 export function useCreateLead() {
@@ -34,11 +34,8 @@ export function useCreateLead() {
 
       return lead;
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({
-        queryKey: ['leads', 'campaign', data.campaign_id],
-      });
     },
   });
 }
@@ -67,9 +64,6 @@ export function useUpdateLead() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['lead', data.id] });
-      queryClient.invalidateQueries({
-        queryKey: ['leads', 'campaign', data.campaign_id],
-      });
     },
   });
 }
@@ -100,7 +94,7 @@ export function useBulkCreateLeads() {
     mutationFn: async (data: BulkCreateLeadsData): Promise<Lead[]> => {
       const leadsData = data.leads.map((lead) => ({
         ...lead,
-        campaign_id: data.campaign_id,
+        business_id: data.business_id,
       }));
 
       const { data: leads, error } = await supabase
@@ -114,13 +108,8 @@ export function useBulkCreateLeads() {
 
       return leads || [];
     },
-    onSuccess: (data) => {
-      if (data.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['leads'] });
-        queryClient.invalidateQueries({
-          queryKey: ['leads', 'campaign', data[0]?.campaign_id],
-        });
-      }
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
     },
   });
 }

@@ -31,6 +31,7 @@ interface AddToListDialogProps {
   onOpenChange: (open: boolean) => void;
   leadId: string;
   leadName: string;
+  bulkLeadIds?: string[]; // For bulk operations
 }
 
 export function AddToListDialog({
@@ -38,10 +39,14 @@ export function AddToListDialog({
   onOpenChange,
   leadId,
   leadName,
+  bulkLeadIds,
 }: AddToListDialogProps) {
   const [selectedListId, setSelectedListId] = useState<string>('');
   const { data: leadLists = [] } = useLeadLists();
   const addToList = useAddLeadToList();
+
+  const isBulkOperation = bulkLeadIds && bulkLeadIds.length > 1;
+  const totalLeads = isBulkOperation ? bulkLeadIds.length : 1;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,15 +57,28 @@ export function AddToListDialog({
     }
 
     try {
-      await addToList.mutateAsync({
-        lead_list_id: selectedListId,
-        lead_id: leadId,
-      });
-      toast.success(`${leadName} added to list successfully`);
+      if (isBulkOperation) {
+        // Bulk add multiple leads to list
+        const promises = bulkLeadIds.map((id) =>
+          addToList.mutateAsync({
+            lead_list_id: selectedListId,
+            lead_id: id,
+          })
+        );
+        await Promise.all(promises);
+        toast.success(`${totalLeads} leads added to list successfully`);
+      } else {
+        // Single lead add
+        await addToList.mutateAsync({
+          lead_list_id: selectedListId,
+          lead_id: leadId,
+        });
+        toast.success(`${leadName} added to list successfully`);
+      }
       onOpenChange(false);
       setSelectedListId('');
     } catch (error) {
-      toast.error('Failed to add lead to list');
+      toast.error('Failed to add leads to list');
     }
   };
 
@@ -72,7 +90,11 @@ export function AddToListDialog({
         <DialogHeader>
           <DialogTitle>Add to List</DialogTitle>
           <DialogDescription>
-            Add <span className="font-medium">{leadName}</span> to a lead list
+            {isBulkOperation ? (
+              <>Add <span className="font-medium">{totalLeads} leads</span> to a lead list</>
+            ) : (
+              <>Add <span className="font-medium">{leadName}</span> to a lead list</>
+            )}
           </DialogDescription>
         </DialogHeader>
 

@@ -4,8 +4,25 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Plus, Users, X, ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
+import { Plus, Users, X, GripVertical, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
@@ -13,6 +30,7 @@ import {
   useAssignLeadListToCampaign,
   useRemoveLeadListFromCampaign,
   useCampaignLeadLists,
+  useUpdateCampaignLeadListPriority,
 } from '@kit/supabase/hooks/campaigns/use-campaign-lead-lists';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -31,6 +49,86 @@ interface LeadListSelectorProps {
   campaignId: string;
 }
 
+interface SortableListItemProps {
+  id: string;
+  assignedList: any;
+  list: any;
+  index: number;
+  totalItems: number;
+  onRemove: (listId: string) => void;
+}
+
+function SortableListItem({ id, assignedList, list, onRemove }: SortableListItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-3 border rounded-lg bg-background"
+    >
+      <div className="flex items-center gap-3 flex-1">
+        <button
+          className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-accent rounded"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </button>
+
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="font-mono text-xs">#{assignedList.priority}</span>
+        </div>
+
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-medium">{list.name}</span>
+            <Badge variant="secondary" className="text-xs">
+              {assignedList.total_leads || list.lead_count || 0} leads
+            </Badge>
+          </div>
+          {list.description && (
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {list.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <div>
+            <span className="font-medium">{assignedList.contacted_leads || 0}</span> contacted
+          </div>
+          <div>
+            <span className="font-medium">{assignedList.successful_leads || 0}</span> converted
+          </div>
+        </div>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(list.id)}
+        className="text-destructive hover:text-destructive"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
@@ -39,6 +137,14 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
   const { data: assignedLists = [], isLoading: assignedLoading } = useCampaignLeadLists(campaignId);
   const assignList = useAssignLeadListToCampaign();
   const removeList = useRemoveLeadListFromCampaign();
+  const updatePriority = useUpdateCampaignLeadListPriority();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const assignedListIds = new Set(assignedLists.map((al) => al.lead_list_id));
   const availableLists = allLists.filter((list) => !assignedListIds.has(list.id));
@@ -72,9 +178,45 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
     }
   };
 
-  const handleChangePriority = async (listId: string, currentPriority: number, direction: 'up' | 'down') => {
-    // TODO: Implement priority change
-    toast.info('Priority change coming soon');
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const sortedLists = [...assignedLists].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    const oldIndex = sortedLists.findIndex((item) => item.id === active.id);
+    const newIndex = sortedLists.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Reorder the array
+    const reorderedLists = arrayMove(sortedLists, oldIndex, newIndex);
+
+    // Update priorities in the database
+    try {
+      // Update all items that changed position
+      const updates = reorderedLists.map((item, index) => {
+        const newPriority = index + 1;
+        if (item.priority !== newPriority) {
+          return updatePriority.mutateAsync({
+            campaign_id: campaignId,
+            lead_list_id: item.lead_list_id,
+            priority: newPriority,
+          });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(updates);
+      toast.success('List order updated');
+    } catch (error) {
+      toast.error('Failed to update list order');
+      console.error(error);
+    }
   };
 
   if (!businessContext) {
@@ -212,80 +354,37 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            {assignedLists
-              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-              .map((assignedList, index) => {
-                const list = allLists.find((l) => l.id === assignedList.lead_list_id);
-                if (!list) return null;
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={assignedLists.map((al) => al.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {assignedLists
+                  .sort((a, b) => (a.priority || 0) - (b.priority || 0))
+                  .map((assignedList, index) => {
+                    const list = allLists.find((l) => l.id === assignedList.lead_list_id);
+                    if (!list) return null;
 
-                return (
-                  <div
-                    key={assignedList.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0"
-                          onClick={() => handleChangePriority(list.id, assignedList.priority || 0, 'up')}
-                          disabled={index === 0}
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0"
-                          onClick={() => handleChangePriority(list.id, assignedList.priority || 0, 'down')}
-                          disabled={index === assignedLists.length - 1}
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="font-mono text-xs">#{assignedList.priority}</span>
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{list.name}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {assignedList.total_leads || list.lead_count || 0} leads
-                          </Badge>
-                        </div>
-                        {list.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {list.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex gap-4 text-xs text-muted-foreground">
-                        <div>
-                          <span className="font-medium">{assignedList.contacted_leads || 0}</span> contacted
-                        </div>
-                        <div>
-                          <span className="font-medium">{assignedList.successful_leads || 0}</span> converted
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveList(list.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-          </div>
+                    return (
+                      <SortableListItem
+                        key={assignedList.id}
+                        id={assignedList.id}
+                        assignedList={assignedList}
+                        list={list}
+                        index={index}
+                        totalItems={assignedLists.length}
+                        onRemove={handleRemoveList}
+                      />
+                    );
+                  })}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </CardContent>
     </Card>

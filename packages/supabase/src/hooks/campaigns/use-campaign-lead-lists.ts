@@ -40,7 +40,7 @@ export function useAssignLeadListToCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateCampaignLeadListData): Promise<CampaignLeadList> => {
+    mutationFn: async (data: CreateCampaignLeadListData): Promise<string> => {
       // Use the database function to properly assign the list
       const { data: result, error } = await supabase.rpc('add_lead_list_to_campaign', {
         p_campaign_id: data.campaign_id,

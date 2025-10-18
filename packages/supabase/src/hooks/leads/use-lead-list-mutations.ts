@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
+import type { Json, Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
 type LeadList = Tables<'lead_lists'>['Row'];
@@ -171,8 +171,7 @@ export function useCreateLeadListFromCSV() {
       const { data: result, error } = await supabase.rpc('create_lead_list_from_csv', {
         p_business_id: data.business_id,
         p_list_name: data.name,
-        p_list_description: data.description || null,
-        p_leads: data.leads,
+        p_leads: data.leads as unknown as Json,
       });
 
       if (error) {
