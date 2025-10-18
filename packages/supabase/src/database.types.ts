@@ -656,65 +656,147 @@ export type Database = {
       leads: {
         Row: {
           id: string;
-          campaign_id: string;
-          name: string;
+          business_id: string;
+          source: string;
+          source_id: string | null;
+          source_metadata: Json;
+          first_name: string | null;
+          last_name: string | null;
           email: string | null;
-          phone: string;
+          phone: string | null;
+          mobile_phone: string | null;
+          street: string | null;
+          city: string | null;
+          state: string | null;
+          postal_code: string | null;
+          country: string | null;
           company: string | null;
+          title: string | null;
+          department: string | null;
+          lead_source: string | null;
+          description: string | null;
+          owner_id: string | null;
+          do_not_call: boolean;
+          do_not_email: boolean;
+          email_opt_out: boolean;
+          timezone: string | null;
+          preferred_language: string | null;
+          tags: Json;
+          custom_fields: Json;
+          last_synced_at: string | null;
+          sync_status: string;
+          sync_error: string | null;
+          campaign_id: string | null;
           status: string;
-          notes: string | null;
           last_contact_date: string | null;
           attempts: number;
           pledged_amount: number | null;
           donated_amount: number | null;
-          created_at: string | null;
-          updated_at: string | null;
+          notes: string | null;
+          dnc: boolean;
+          created_at: string;
+          updated_at: string;
           created_by: string | null;
           updated_by: string | null;
-          timezone: string | null;
-          dnc: boolean;
         };
         Insert: {
           id?: string;
-          campaign_id: string;
-          name: string;
+          business_id: string;
+          source?: string;
+          source_id?: string | null;
+          source_metadata?: Json;
+          first_name?: string | null;
+          last_name?: string | null;
           email?: string | null;
-          phone: string;
+          phone?: string | null;
+          mobile_phone?: string | null;
+          street?: string | null;
+          city?: string | null;
+          state?: string | null;
+          postal_code?: string | null;
+          country?: string | null;
           company?: string | null;
+          title?: string | null;
+          department?: string | null;
+          lead_source?: string | null;
+          description?: string | null;
+          owner_id?: string | null;
+          do_not_call?: boolean;
+          do_not_email?: boolean;
+          email_opt_out?: boolean;
+          timezone?: string | null;
+          preferred_language?: string | null;
+          tags?: Json;
+          custom_fields?: Json;
+          last_synced_at?: string | null;
+          sync_status?: string;
+          sync_error?: string | null;
+          campaign_id?: string | null;
           status?: string;
-          notes?: string | null;
           last_contact_date?: string | null;
           attempts?: number;
           pledged_amount?: number | null;
           donated_amount?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          notes?: string | null;
+          dnc?: boolean;
+          created_at?: string;
+          updated_at?: string;
           created_by?: string | null;
           updated_by?: string | null;
-          timezone?: string | null;
-          dnc?: boolean;
         };
         Update: {
           id?: string;
-          campaign_id?: string;
-          name?: string;
+          business_id?: string;
+          source?: string;
+          source_id?: string | null;
+          source_metadata?: Json;
+          first_name?: string | null;
+          last_name?: string | null;
           email?: string | null;
-          phone?: string;
+          phone?: string | null;
+          mobile_phone?: string | null;
+          street?: string | null;
+          city?: string | null;
+          state?: string | null;
+          postal_code?: string | null;
+          country?: string | null;
           company?: string | null;
+          title?: string | null;
+          department?: string | null;
+          lead_source?: string | null;
+          description?: string | null;
+          owner_id?: string | null;
+          do_not_call?: boolean;
+          do_not_email?: boolean;
+          email_opt_out?: boolean;
+          timezone?: string | null;
+          preferred_language?: string | null;
+          tags?: Json;
+          custom_fields?: Json;
+          last_synced_at?: string | null;
+          sync_status?: string;
+          sync_error?: string | null;
+          campaign_id?: string | null;
           status?: string;
-          notes?: string | null;
           last_contact_date?: string | null;
           attempts?: number;
           pledged_amount?: number | null;
           donated_amount?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          notes?: string | null;
+          dnc?: boolean;
+          created_at?: string;
+          updated_at?: string;
           created_by?: string | null;
           updated_by?: string | null;
-          timezone?: string | null;
-          dnc?: boolean;
         };
         Relationships: [
+          {
+            foreignKeyName: 'leads_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'leads_campaign_id_fkey';
             columns: ['campaign_id'];
@@ -963,129 +1045,7 @@ export type Database = {
           },
         ];
       };
-      contacts: {
-        Row: {
-          id: string;
-          business_id: string;
-          source: string;
-          source_id: string | null;
-          source_metadata: Json;
-          first_name: string | null;
-          last_name: string | null;
-          email: string | null;
-          phone: string | null;
-          mobile_phone: string | null;
-          street: string | null;
-          city: string | null;
-          state: string | null;
-          postal_code: string | null;
-          country: string | null;
-          company: string | null;
-          title: string | null;
-          department: string | null;
-          lead_source: string | null;
-          description: string | null;
-          owner_id: string | null;
-          do_not_call: boolean;
-          do_not_email: boolean;
-          email_opt_out: boolean;
-          timezone: string | null;
-          preferred_language: string | null;
-          tags: Json;
-          custom_fields: Json;
-          last_synced_at: string | null;
-          sync_status: string;
-          sync_error: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          business_id: string;
-          source?: string;
-          source_id?: string | null;
-          source_metadata?: Json;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          mobile_phone?: string | null;
-          street?: string | null;
-          city?: string | null;
-          state?: string | null;
-          postal_code?: string | null;
-          country?: string | null;
-          company?: string | null;
-          title?: string | null;
-          department?: string | null;
-          lead_source?: string | null;
-          description?: string | null;
-          owner_id?: string | null;
-          do_not_call?: boolean;
-          do_not_email?: boolean;
-          email_opt_out?: boolean;
-          timezone?: string | null;
-          preferred_language?: string | null;
-          tags?: Json;
-          custom_fields?: Json;
-          last_synced_at?: string | null;
-          sync_status?: string;
-          sync_error?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          business_id?: string;
-          source?: string;
-          source_id?: string | null;
-          source_metadata?: Json;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          mobile_phone?: string | null;
-          street?: string | null;
-          city?: string | null;
-          state?: string | null;
-          postal_code?: string | null;
-          country?: string | null;
-          company?: string | null;
-          title?: string | null;
-          department?: string | null;
-          lead_source?: string | null;
-          description?: string | null;
-          owner_id?: string | null;
-          do_not_call?: boolean;
-          do_not_email?: boolean;
-          email_opt_out?: boolean;
-          timezone?: string | null;
-          preferred_language?: string | null;
-          tags?: Json;
-          custom_fields?: Json;
-          last_synced_at?: string | null;
-          sync_status?: string;
-          sync_error?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'contacts_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      contact_lists: {
+      lead_lists: {
         Row: {
           id: string;
           business_id: string;
@@ -1096,7 +1056,7 @@ export type Database = {
           source: string | null;
           source_id: string | null;
           filter_criteria: Json | null;
-          contact_count: number;
+          lead_count: number;
           last_updated_at: string;
           created_at: string;
           updated_at: string;
@@ -1113,7 +1073,7 @@ export type Database = {
           source?: string | null;
           source_id?: string | null;
           filter_criteria?: Json | null;
-          contact_count?: number;
+          lead_count?: number;
           last_updated_at?: string;
           created_at?: string;
           updated_at?: string;
@@ -1130,7 +1090,7 @@ export type Database = {
           source?: string | null;
           source_id?: string | null;
           filter_criteria?: Json | null;
-          contact_count?: number;
+          lead_count?: number;
           last_updated_at?: string;
           created_at?: string;
           updated_at?: string;
@@ -1139,7 +1099,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'contact_lists_business_id_fkey';
+            foreignKeyName: 'lead_lists_business_id_fkey';
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
@@ -1147,44 +1107,44 @@ export type Database = {
           },
         ];
       };
-      contact_list_members: {
+      lead_list_members: {
         Row: {
           id: string;
-          contact_list_id: string;
-          contact_id: string;
+          lead_list_id: string;
+          lead_id: string;
           added_at: string;
           added_by: string | null;
           notes: string | null;
         };
         Insert: {
           id?: string;
-          contact_list_id: string;
-          contact_id: string;
+          lead_list_id: string;
+          lead_id: string;
           added_at?: string;
           added_by?: string | null;
           notes?: string | null;
         };
         Update: {
           id?: string;
-          contact_list_id?: string;
-          contact_id?: string;
+          lead_list_id?: string;
+          lead_id?: string;
           added_at?: string;
           added_by?: string | null;
           notes?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'contact_list_members_contact_list_id_fkey';
-            columns: ['contact_list_id'];
+            foreignKeyName: 'lead_list_members_lead_list_id_fkey';
+            columns: ['lead_list_id'];
             isOneToOne: false;
-            referencedRelation: 'contact_lists';
+            referencedRelation: 'lead_lists';
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'contact_list_members_contact_id_fkey';
-            columns: ['contact_id'];
+            foreignKeyName: 'lead_list_members_lead_id_fkey';
+            columns: ['lead_id'];
             isOneToOne: false;
-            referencedRelation: 'contacts';
+            referencedRelation: 'leads';
             referencedColumns: ['id'];
           },
         ];
