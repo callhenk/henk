@@ -6,6 +6,7 @@ import {
   Phone,
   User,
   Users,
+  UserCircle,
 } from 'lucide-react';
 import { z } from 'zod';
 
@@ -39,6 +40,11 @@ const routes = [
         label: 'Conversations',
         path: pathsConfig.app.conversations,
         Icon: <MessageSquare className={iconClasses} />,
+      },
+      {
+        label: 'Donors',
+        path: pathsConfig.app.donors,
+        Icon: <UserCircle className={iconClasses} />,
       },
       {
         label: 'Integrations',

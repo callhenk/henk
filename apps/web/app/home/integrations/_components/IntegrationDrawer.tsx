@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@kit/ui/sheet';
 import { useCreateIntegration, useUpdateIntegration } from '@kit/supabase/hooks/integrations/use-integration-mutations';
 
+import type { Json } from '@kit/supabase/database';
+
 import { ConfigForm } from './ConfigForm';
 import { CredentialsForm } from './CredentialsForm';
 import type { ProviderSchema, TestConnectionResult, UiIntegration } from './types';
@@ -85,8 +87,8 @@ export function IntegrationDrawer({
         // Update existing integration
         await updateIntegration.mutateAsync({
           id: item.id,
-          credentials: credentials as any,
-          config: config as any,
+          credentials: credentials as Json,
+          config: config as Json,
           status: 'inactive', // Will be set to 'active' after OAuth flow
         });
       } else {
@@ -96,8 +98,8 @@ export function IntegrationDrawer({
           description: item.description,
           type: item.type,
           status: 'inactive', // Will be set to 'active' after OAuth flow
-          credentials: credentials as any,
-          config: config as any,
+          credentials: credentials as Json,
+          config: config as Json,
         });
       }
 

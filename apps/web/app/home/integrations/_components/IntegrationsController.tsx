@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { AlertCircle, ExternalLink, Info } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@kit/ui/alert';
 import {
