@@ -46,7 +46,7 @@ export function useCampaignEditor(campaignId: string) {
     useCampaign(campaignId);
   const { data: realLeads = [] } = useLeads();
   const { data: realConversations = [] } = useConversations();
-  const { data: realAgents = [] } = useAgents();
+  const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
 
   // Use demo data if demo mode is active
   const campaign = isDemoMode
@@ -59,6 +59,9 @@ export function useCampaignEditor(campaignId: string) {
   ); // Demo leads can be empty for now
   const conversations = isDemoMode ? mockConversations : realConversations;
   const agents = isDemoMode ? mockAgents : realAgents;
+
+  // Loading state should be false in demo mode
+  const isLoadingAgents = isDemoMode ? false : loadingAgents;
 
   // Mutations
   const deleteCampaignMutation = useDeleteCampaign();
@@ -147,14 +150,27 @@ export function useCampaignEditor(campaignId: string) {
   );
 
   const agentReadiness = useMemo(() => {
+    const scriptTemplate = assignedAgent?.script_template ?? '';
+    const faqs = assignedAgent?.faqs ?? '';
     const donorContext = assignedAgent?.donor_context ?? '';
     const startingMessage = assignedAgent?.starting_message ?? '';
-    const hasScript = String(donorContext).trim().length > 0;
+
+    // Check if any script-related field has content
+    const hasScript =
+      String(scriptTemplate).trim().length > 0 ||
+      String(faqs).trim().length > 0 ||
+      String(donorContext).trim().length > 0;
+
     const hasDisclosure = String(startingMessage).trim().length > 0;
     // Caller ID is automatically assigned for new agents
     const hasCallerId = true;
     return { hasScript, hasDisclosure, hasCallerId } as const;
-  }, [assignedAgent?.donor_context, assignedAgent?.starting_message]);
+  }, [
+    assignedAgent?.script_template,
+    assignedAgent?.faqs,
+    assignedAgent?.donor_context,
+    assignedAgent?.starting_message
+  ]);
 
   const contacted = campaignConversations.length;
   const conversions = campaignConversations.filter(
@@ -439,6 +455,7 @@ export function useCampaignEditor(campaignId: string) {
     // data
     campaign,
     loadingCampaign,
+    loadingAgents: isLoadingAgents,
     leads: campaignLeads,
     conversations: campaignConversations,
     agents,
