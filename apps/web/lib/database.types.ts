@@ -686,14 +686,12 @@ export type Database = {
           last_synced_at: string | null;
           sync_status: string;
           sync_error: string | null;
-          campaign_id: string | null;
           status: string;
-          last_contact_date: string | null;
-          attempts: number;
-          pledged_amount: number | null;
-          donated_amount: number | null;
           notes: string | null;
           dnc: boolean;
+          lead_score: number;
+          quality_rating: string | null;
+          last_activity_at: string | null;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -731,14 +729,12 @@ export type Database = {
           last_synced_at?: string | null;
           sync_status?: string;
           sync_error?: string | null;
-          campaign_id?: string | null;
           status?: string;
-          last_contact_date?: string | null;
-          attempts?: number;
-          pledged_amount?: number | null;
-          donated_amount?: number | null;
           notes?: string | null;
           dnc?: boolean;
+          lead_score?: number;
+          quality_rating?: string | null;
+          last_activity_at?: string | null;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;
@@ -776,14 +772,12 @@ export type Database = {
           last_synced_at?: string | null;
           sync_status?: string;
           sync_error?: string | null;
-          campaign_id?: string | null;
           status?: string;
-          last_contact_date?: string | null;
-          attempts?: number;
-          pledged_amount?: number | null;
-          donated_amount?: number | null;
           notes?: string | null;
           dnc?: boolean;
+          lead_score?: number;
+          quality_rating?: string | null;
+          last_activity_at?: string | null;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;
@@ -795,13 +789,6 @@ export type Database = {
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'leads_campaign_id_fkey';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaigns';
             referencedColumns: ['id'];
           },
           {
@@ -1058,6 +1045,9 @@ export type Database = {
           filter_criteria: Json | null;
           lead_count: number;
           last_updated_at: string;
+          is_archived: boolean;
+          tags: Json;
+          metadata: Json;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -1075,6 +1065,9 @@ export type Database = {
           filter_criteria?: Json | null;
           lead_count?: number;
           last_updated_at?: string;
+          is_archived?: boolean;
+          tags?: Json;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;
@@ -1092,6 +1085,9 @@ export type Database = {
           filter_criteria?: Json | null;
           lead_count?: number;
           last_updated_at?: string;
+          is_archived?: boolean;
+          tags?: Json;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;
@@ -1103,6 +1099,20 @@ export type Database = {
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_lists_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_lists_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
         ];
@@ -1145,6 +1155,165 @@ export type Database = {
             columns: ['lead_id'];
             isOneToOne: false;
             referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_list_members_added_by_fkey';
+            columns: ['added_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_lead_lists: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          lead_list_id: string;
+          assigned_at: string;
+          assigned_by: string | null;
+          priority: number;
+          max_attempts_override: number | null;
+          filter_criteria: Json | null;
+          total_leads: number;
+          contacted_leads: number;
+          successful_leads: number;
+          is_active: boolean;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          lead_list_id: string;
+          assigned_at?: string;
+          assigned_by?: string | null;
+          priority?: number;
+          max_attempts_override?: number | null;
+          filter_criteria?: Json | null;
+          total_leads?: number;
+          contacted_leads?: number;
+          successful_leads?: number;
+          is_active?: boolean;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          lead_list_id?: string;
+          assigned_at?: string;
+          assigned_by?: string | null;
+          priority?: number;
+          max_attempts_override?: number | null;
+          filter_criteria?: Json | null;
+          total_leads?: number;
+          contacted_leads?: number;
+          successful_leads?: number;
+          is_active?: boolean;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_lead_lists_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_lead_lists_lead_list_id_fkey';
+            columns: ['lead_list_id'];
+            isOneToOne: false;
+            referencedRelation: 'lead_lists';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_lead_lists_assigned_by_fkey';
+            columns: ['assigned_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_leads: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          lead_id: string;
+          lead_list_id: string | null;
+          status: string;
+          attempts: number;
+          last_attempt_at: string | null;
+          next_attempt_at: string | null;
+          outcome: string | null;
+          pledged_amount: number | null;
+          donated_amount: number | null;
+          notes: string | null;
+          total_talk_time: number;
+          last_call_duration: number | null;
+          added_at: string;
+          contacted_at: string | null;
+          converted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          lead_id: string;
+          lead_list_id?: string | null;
+          status?: string;
+          attempts?: number;
+          last_attempt_at?: string | null;
+          next_attempt_at?: string | null;
+          outcome?: string | null;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          notes?: string | null;
+          total_talk_time?: number;
+          last_call_duration?: number | null;
+          added_at?: string;
+          contacted_at?: string | null;
+          converted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          lead_id?: string;
+          lead_list_id?: string | null;
+          status?: string;
+          attempts?: number;
+          last_attempt_at?: string | null;
+          next_attempt_at?: string | null;
+          outcome?: string | null;
+          pledged_amount?: number | null;
+          donated_amount?: number | null;
+          notes?: string | null;
+          total_talk_time?: number;
+          last_call_duration?: number | null;
+          added_at?: string;
+          contacted_at?: string | null;
+          converted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_leads_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_leads_lead_id_fkey';
+            columns: ['lead_id'];
+            isOneToOne: false;
+            referencedRelation: 'leads';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_leads_lead_list_id_fkey';
+            columns: ['lead_list_id'];
+            isOneToOne: false;
+            referencedRelation: 'lead_lists';
             referencedColumns: ['id'];
           },
         ];
