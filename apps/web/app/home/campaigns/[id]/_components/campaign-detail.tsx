@@ -43,6 +43,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const {
     campaign,
     loadingCampaign,
+    loadingAgents,
     leads,
     agents,
     assignedAgent,
@@ -544,7 +545,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <div className="rounded-md border p-3 md:col-span-2">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="text-sm font-medium">Script preview</div>
-                  {assignedAgent?.script_template && (
+                  {(assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context) && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -554,12 +555,28 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                     </Button>
                   )}
                 </div>
-                <pre className="bg-muted max-h-48 overflow-auto rounded p-3 text-xs whitespace-pre-wrap">
-                  {String(assignedAgent?.faqs ?? '—')
-                    .split('\n')
-                    .slice(0, 12)
-                    .join('\n')}
-                </pre>
+                {loadingAgents ? (
+                  <div className="bg-muted rounded p-3 text-xs text-center">
+                    <div className="text-muted-foreground">Loading script...</div>
+                  </div>
+                ) : !assignedAgent ? (
+                  <div className="bg-muted rounded p-3 text-xs text-center">
+                    <div className="text-muted-foreground">No agent assigned</div>
+                  </div>
+                ) : (
+                  <pre className="bg-muted max-h-48 overflow-auto rounded p-3 text-xs whitespace-pre-wrap">
+                    {(() => {
+                      const scriptContent = assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context;
+                      if (!scriptContent) {
+                        return 'No script content available. Please add script details to the agent.';
+                      }
+                      return String(scriptContent)
+                        .split('\n')
+                        .slice(0, 12)
+                        .join('\n');
+                    })()}
+                  </pre>
+                )}
               </div>
             </div>
 
@@ -634,12 +651,18 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               open={isScriptDialogOpen}
               onOpenChange={setIsScriptDialogOpen}
             >
-              <DialogContent>
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Agent script</DialogTitle>
+                  <DialogTitle>Agent Script</DialogTitle>
                 </DialogHeader>
                 <pre className="bg-muted max-h-[60vh] overflow-auto rounded p-3 text-sm whitespace-pre-wrap">
-                  {String(assignedAgent?.script_template ?? '—')}
+                  {(() => {
+                    const scriptContent = assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context;
+                    if (!scriptContent) {
+                      return 'No script content available. Please add script details to the agent.';
+                    }
+                    return String(scriptContent);
+                  })()}
                 </pre>
               </DialogContent>
             </Dialog>

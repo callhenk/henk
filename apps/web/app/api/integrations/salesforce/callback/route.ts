@@ -81,26 +81,14 @@ export async function GET(request: NextRequest) {
         errorMessage = 'invalid_client_id';
       }
 
-      // Create redirect response that preserves session
-      const redirectResponse = NextResponse.redirect(
+      // Create redirect response without manually copying cookies
+      // Supabase client will handle session cookies automatically
+      return NextResponse.redirect(
         new URL(
           `/home/integrations?error=${errorMessage}&error_description=${encodeURIComponent(errorDescription)}`,
           request.url,
         ),
       );
-
-      // Copy session cookies from request to response to maintain auth
-      const cookies = request.cookies.getAll();
-      cookies.forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-        });
-      });
-
-      return redirectResponse;
     }
 
     if (!code || !state) {
@@ -265,42 +253,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create success redirect response that preserves session
-    const successResponse = NextResponse.redirect(
+    // Create success redirect response without manually copying cookies
+    // Supabase client will handle session cookies automatically
+    return NextResponse.redirect(
       new URL('/home/integrations?success=salesforce_connected', request.url),
     );
-
-    // Copy session cookies from request to response to maintain auth
-    const cookies = request.cookies.getAll();
-    cookies.forEach((cookie) => {
-      successResponse.cookies.set(cookie.name, cookie.value, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
-    });
-
-    return successResponse;
   } catch (error) {
     console.error('Salesforce callback error:', error);
 
-    // Create error redirect response that preserves session
-    const errorResponse = NextResponse.redirect(
+    // Create error redirect response without manually copying cookies
+    // Supabase client will handle session cookies automatically
+    return NextResponse.redirect(
       new URL('/home/integrations?error=internal_error', request.url),
     );
-
-    // Copy session cookies from request to response to maintain auth
-    const cookies = request.cookies.getAll();
-    cookies.forEach((cookie) => {
-      errorResponse.cookies.set(cookie.name, cookie.value, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
-    });
-
-    return errorResponse;
   }
 }
