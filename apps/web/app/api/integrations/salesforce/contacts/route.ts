@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       .eq('business_id', teamMember.business_id)
       .eq('type', 'crm')
       .eq('name', 'Salesforce')
-      .eq('status', 'connected')
+      .eq('status', 'active')  // Fixed: callback sets 'active', not 'connected'
       .single();
 
     if (integrationError || !integration) {
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
       .eq('business_id', teamMember.business_id)
       .eq('type', 'crm')
       .eq('name', 'Salesforce')
-      .eq('status', 'connected')
+      .eq('status', 'active')  // Fixed: callback sets 'active', not 'connected'
       .single();
 
     if (!integration) {
@@ -298,17 +298,27 @@ function mapSalesforceContacts(records: any[]): any[] {
 async function refreshSalesforceToken(integration: any, supabase: any) {
   try {
     const credentials = integration.credentials as {
+      clientId: string;
+      clientSecret: string;
       refreshToken: string;
     };
 
-    const clientId = process.env.SALESFORCE_CLIENT_ID;
-    const clientSecret = process.env.SALESFORCE_CLIENT_SECRET;
+    // Use database-stored credentials first, fall back to env vars
+    const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
+    const clientSecret = credentials?.clientSecret || process.env.SALESFORCE_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
+      console.error('Missing client credentials for token refresh');
       return null;
     }
 
-    const tokenUrl = 'https://login.salesforce.com/services/oauth2/token';
+    // Determine the correct token URL based on environment
+    const config = integration.config as { env?: string } | null;
+    const environment = config?.env || 'production';
+    const loginUrl = environment === 'sandbox'
+      ? 'https://test.salesforce.com'
+      : 'https://login.salesforce.com';
+    const tokenUrl = `${loginUrl}/services/oauth2/token`;
     const tokenParams = new URLSearchParams({
       grant_type: 'refresh_token',
       client_id: clientId,

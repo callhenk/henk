@@ -34,8 +34,8 @@ import {
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
 
-import { useContacts, type ContactsFilters as ContactsFiltersType } from '@kit/supabase/hooks/contacts/use-contacts';
-import { useDeleteContact } from '@kit/supabase/hooks/contacts/use-contact-mutations';
+import { useLeads, type LeadsFilters as LeadsFiltersType } from '@kit/supabase/hooks/leads/use-leads';
+import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
 import { AddDonorDialog } from './add-donor-dialog';
 import { ImportDonorsDialog } from './import-donors-dialog';
@@ -46,14 +46,14 @@ export function DonorsList() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [_filters, _setFilters] = useState<ContactsFiltersType>({});
+  const [_filters, _setFilters] = useState<LeadsFiltersType>({});
   const [deleteDonorId, setDeleteDonorId] = useState<string | null>(null);
 
   // Fetch donors from Supabase
-  const { data: donors = [], isLoading } = useContacts({
+  const { data: donors = [], isLoading } = useLeads({
     search: searchQuery,
   });
-  const deleteDonor = useDeleteContact();
+  const deleteDonor = useDeleteLead();
 
   const handleDeleteDonor = async () => {
     if (!deleteDonorId) return;

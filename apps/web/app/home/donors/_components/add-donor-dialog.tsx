@@ -24,7 +24,7 @@ import {
 } from '@kit/ui/select';
 import { Badge } from '@kit/ui/badge';
 
-import { useCreateContact } from '@kit/supabase/hooks/contacts/use-contact-mutations';
+import { useCreateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
 interface AddDonorDialogProps {
   open: boolean;
@@ -34,7 +34,7 @@ interface AddDonorDialogProps {
 export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const createContact = useCreateContact();
+  const createLead = useCreateLead();
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -52,7 +52,7 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
     const formData = new FormData(e.currentTarget);
 
     try {
-      await createContact.mutateAsync({
+      await createLead.mutateAsync({
         first_name: formData.get('first_name') as string,
         last_name: formData.get('last_name') as string,
         email: formData.get('email') as string,
@@ -319,8 +319,8 @@ export function AddDonorDialog({ open, onOpenChange }: AddDonorDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createContact.isPending}>
-              {createContact.isPending ? 'Saving...' : 'Add Donor'}
+            <Button type="submit" disabled={createLead.isPending}>
+              {createLead.isPending ? 'Saving...' : 'Add Donor'}
             </Button>
           </DialogFooter>
         </form>

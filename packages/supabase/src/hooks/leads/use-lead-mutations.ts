@@ -6,6 +6,10 @@ import { useSupabase } from '../use-supabase';
 type Lead = Tables<'leads'>['Row'];
 type CreateLeadData = TablesInsert<'leads'>;
 type UpdateLeadData = TablesUpdate<'leads'> & { id: string };
+type LeadList = Tables<'lead_lists'>['Row'];
+type CreateLeadListData = TablesInsert<'lead_lists'>;
+type UpdateLeadListData = TablesUpdate<'lead_lists'> & { id: string };
+type CreateLeadListMemberData = TablesInsert<'lead_list_members'>;
 
 export interface BulkCreateLeadsData {
   campaign_id: string;
@@ -117,6 +121,121 @@ export function useBulkCreateLeads() {
           queryKey: ['leads', 'campaign', data[0]?.campaign_id],
         });
       }
+    },
+  });
+}
+
+// Lead List Mutations
+export function useCreateLeadList() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateLeadListData): Promise<LeadList> => {
+      const { data: leadList, error } = await supabase
+        .from('lead_lists')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to create lead list: ${error.message}`);
+      }
+
+      return leadList;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
+    },
+  });
+}
+
+export function useUpdateLeadList() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: UpdateLeadListData): Promise<LeadList> => {
+      const { id, ...updateData } = data;
+
+      const { data: leadList, error } = await supabase
+        .from('lead_lists')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to update lead list: ${error.message}`);
+      }
+
+      return leadList;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-list', data.id] });
+    },
+  });
+}
+
+export function useDeleteLeadList() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      const { error } = await supabase.from('lead_lists').delete().eq('id', id);
+
+      if (error) {
+        throw new Error(`Failed to delete lead list: ${error.message}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
+    },
+  });
+}
+
+export function useAddLeadToList() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateLeadListMemberData): Promise<void> => {
+      const { error } = await supabase
+        .from('lead_list_members')
+        .insert(data);
+
+      if (error) {
+        throw new Error(`Failed to add lead to list: ${error.message}`);
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-list-members', variables.lead_list_id] });
+    },
+  });
+}
+
+export function useRemoveLeadFromList() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { lead_list_id: string; lead_id: string }): Promise<void> => {
+      const { error } = await supabase
+        .from('lead_list_members')
+        .delete()
+        .eq('lead_list_id', data.lead_list_id)
+        .eq('lead_id', data.lead_id);
+
+      if (error) {
+        throw new Error(`Failed to remove lead from list: ${error.message}`);
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-list-members', variables.lead_list_id] });
     },
   });
 }
