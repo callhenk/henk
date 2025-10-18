@@ -79,7 +79,7 @@ const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   if (!voiceType) return 'Default voice';
   const voiceTypes = [
     { value: 'ai_generated', label: 'AI Generated' },
-    { value: 'custom', label: 'Custom Voice' },
+    // { value: 'custom', label: 'Custom Voice' }, // Temporarily disabled
   ];
   const voiceTypeOption = voiceTypes.find((type) => type.value === voiceType);
   return voiceTypeOption?.label || voiceType;

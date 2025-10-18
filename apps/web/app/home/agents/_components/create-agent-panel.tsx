@@ -47,7 +47,7 @@ export function CreateAgentPanel({
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [voiceType, setVoiceType] = useState<'ai_generated' | 'custom'>(
+  const [voiceType, setVoiceType] = useState<'ai_generated'>(
     'ai_generated',
   );
   const [voiceId, setVoiceId] = useState('');
@@ -298,7 +298,7 @@ export function CreateAgentPanel({
                     <Select
                       value={voiceType}
                       onValueChange={(v) =>
-                        setVoiceType(v as 'ai_generated' | 'custom')
+                        setVoiceType(v as 'ai_generated')
                       }
                     >
                       <SelectTrigger>
@@ -308,7 +308,7 @@ export function CreateAgentPanel({
                         <SelectItem value="ai_generated">
                           AI Generated
                         </SelectItem>
-                        <SelectItem value="custom">Custom Voice</SelectItem>
+                        {/* <SelectItem value="custom">Custom Voice</SelectItem> */}
                       </SelectContent>
                     </Select>
                     <p className="text-muted-foreground mt-1 text-xs">

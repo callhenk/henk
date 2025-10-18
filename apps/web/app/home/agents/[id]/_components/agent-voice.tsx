@@ -39,7 +39,7 @@ interface AgentVoiceProps {
 
 const voiceTypes = [
   { value: 'ai_generated', label: 'AI Generated' },
-  { value: 'custom', label: 'Custom Voice' },
+  // { value: 'custom', label: 'Custom Voice' }, // Temporarily disabled
 ];
 
 export function AgentVoice({
@@ -354,7 +354,7 @@ export function AgentVoice({
             <CardHeader>
               <CardTitle>Voice Type</CardTitle>
               <CardDescription>
-                Choose between AI-generated or custom voice
+                Select your agent's voice type
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -380,14 +380,15 @@ export function AgentVoice({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-muted-foreground text-xs">
+              {/* <p className="text-muted-foreground text-xs">
                 Custom voices require a valid 30s sample recording.
-              </p>
+              </p> */}
             </CardContent>
           </Card>
         </div>
 
-        <div className="lg:col-span-1">
+        {/* Custom Voice Recording - temporarily disabled */}
+        {/* <div className="lg:col-span-1">
           <Card className="glass-panel">
             <CardHeader>
               <CardTitle>Record Custom Voice</CardTitle>
@@ -443,7 +444,7 @@ export function AgentVoice({
               )}
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
     </div>
   );

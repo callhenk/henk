@@ -4,7 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { BookOpen, GitBranch, LayoutDashboard, Mic } from 'lucide-react';
+import {
+  // BookOpen, // Temporarily disabled with Knowledge tab
+  GitBranch,
+  LayoutDashboard,
+  Mic
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import our Supabase hooks
@@ -29,7 +34,7 @@ import { useDemoMode } from '~/lib/demo-mode-context';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
 import { AgentHeader } from './agent-header';
-import { AgentKnowledge } from './agent-knowledge';
+// import { AgentKnowledge } from './agent-knowledge'; // Temporarily disabled
 import { AgentOverview } from './agent-overview';
 import { AgentVoice } from './agent-voice';
 import { DebugTools } from './debug-tools';
@@ -43,7 +48,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     useDemoMode();
 
   // Get the default tab from URL parameter
-  const defaultTab = searchParams.get('tab') || 'overview';
+  // If knowledge tab is requested (legacy URLs), fallback to overview
+  const tabParam = searchParams.get('tab');
+  const defaultTab = tabParam === 'knowledge' ? 'overview' : (tabParam || 'overview');
 
   // State for managing active tab
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -644,7 +651,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           className="w-full"
         >
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger
                 value="overview"
                 className="inline-flex items-center gap-2"
@@ -652,6 +659,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 <LayoutDashboard className="h-4 w-4" />
                 <span>Overview</span>
               </TabsTrigger>
+              {/* Knowledge tab temporarily hidden
               <TabsTrigger
                 value="knowledge"
                 className="inline-flex items-center gap-2"
@@ -659,6 +667,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 <BookOpen className="h-4 w-4" />
                 <span>Knowledge</span>
               </TabsTrigger>
+              */}
               <TabsTrigger
                 value="voice"
                 className="inline-flex items-center gap-2"
@@ -772,15 +781,15 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </Card>
             </TabsContent>
 
-            {/* Knowledge Base Tab */}
-            <TabsContent value="knowledge">
+            {/* Knowledge Base Tab - temporarily hidden */}
+            {/* <TabsContent value="knowledge">
               <AgentKnowledge
                 agent={agent}
                 onSaveField={handleSaveField}
                 savingField={savingField}
                 onSaveSuccess={handleSaveSuccess}
               />
-            </TabsContent>
+            </TabsContent> */}
 
             {/* Voice & Tone Tab */}
             <TabsContent value="voice">
