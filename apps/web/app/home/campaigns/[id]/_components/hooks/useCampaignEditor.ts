@@ -169,7 +169,7 @@ export function useCampaignEditor(campaignId: string) {
     assignedAgent?.script_template,
     assignedAgent?.faqs,
     assignedAgent?.donor_context,
-    assignedAgent?.starting_message
+    assignedAgent?.starting_message,
   ]);
 
   const contacted = campaignConversations.length;
