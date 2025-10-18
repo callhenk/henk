@@ -1,5 +1,7 @@
 'use client';
 
+import { BookOpen } from 'lucide-react';
+
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
@@ -65,6 +67,20 @@ export function IntegrationCard({
         <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
           {item.description}
         </p>
+
+        {/* Show setup guide link for Salesforce */}
+        {item.id === 'salesforce' && item.status === 'disconnected' && (
+          <a
+            href="/home/integrations/salesforce-guide"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-3 flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            <span className="underline">Setup Guide (5 min)</span>
+          </a>
+        )}
+
         <div className="flex items-center justify-between text-xs">
           <div className="text-muted-foreground">Last sync: {formatRelativeTime(item.last_sync_at)}</div>
           {canEdit && !isComingSoon && (

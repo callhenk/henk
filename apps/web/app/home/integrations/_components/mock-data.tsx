@@ -78,7 +78,40 @@ export const SEED_INTEGRATIONS = (businessId: string): UiIntegration[] => [
     credentials: null,
     last_sync_at: null,
     icon: Database,
-    schema: { ...oauthOnly, supportsOAuth: true, popular: true },
+    schema: {
+      supportsOAuth: true,
+      popular: true,
+      credentials: [
+        {
+          key: 'clientId',
+          label: 'Client ID (Consumer Key)',
+          type: 'text',
+          required: true,
+          placeholder: '3MVG9...',
+          helpText: 'From your Salesforce Connected App',
+        },
+        {
+          key: 'clientSecret',
+          label: 'Client Secret (Consumer Secret)',
+          type: 'password',
+          required: true,
+          secret: true,
+          helpText: 'From your Salesforce Connected App',
+        },
+      ],
+      config: [
+        {
+          key: 'env',
+          label: 'Environment',
+          type: 'select',
+          options: [
+            { value: 'production', label: 'Production' },
+            { value: 'sandbox', label: 'Sandbox' },
+          ],
+          helpText: 'Choose your Salesforce environment',
+        },
+      ],
+    },
   },
   {
     id: 'twilio',

@@ -1,5 +1,9 @@
 # Salesforce Connected App Deployment Guide
 
+> **Note**: For the step-by-step user guide, visit the in-app guide at `/home/integrations/salesforce-guide`
+
+This guide is for system administrators and developers who need to understand Salesforce package deployment.
+
 ## The "Installation URL" Explained
 
 When the documentation mentions "installation URL," it refers to a **Salesforce package installation link** that allows customers to install your Connected App into their Salesforce org with one click.

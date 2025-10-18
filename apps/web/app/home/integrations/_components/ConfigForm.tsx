@@ -37,7 +37,10 @@ export function ConfigForm({
           </div>
 
           {f.type === 'select' ? (
-            <Select value={String(value[f.key] ?? '')} onValueChange={(v) => setField(f.key, v)}>
+            <Select
+              value={value[f.key] ? String(value[f.key]) : undefined}
+              onValueChange={(v) => setField(f.key, v)}
+            >
               <SelectTrigger disabled={readOnly}>
                 <SelectValue placeholder={f.placeholder ?? 'Select'} />
               </SelectTrigger>

@@ -8,6 +8,7 @@ import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@kit/ui/sheet';
+import { useCreateIntegration, useUpdateIntegration } from '@kit/supabase/hooks/integrations/use-integration-mutations';
 
 import { ConfigForm } from './ConfigForm';
 import { CredentialsForm } from './CredentialsForm';
@@ -49,6 +50,9 @@ export function IntegrationDrawer({
   const [tested, setTested] = useState<TestConnectionResult | null>(null);
   const [copiable, setCopiable] = useState(true); // disable copying after first save
 
+  const createIntegration = useCreateIntegration();
+  const updateIntegration = useUpdateIntegration();
+
   const validateCredentials = () => {
     const required = (schema.credentials ?? []).filter((f) => f.required);
     for (const f of required) {
@@ -71,16 +75,49 @@ export function IntegrationDrawer({
 
   const handleSave = async () => {
     setSaving(true);
-    await mockAsync(() => true, 700);
-    setSaving(false);
     setCopiable(false);
-    const ok = tested?.success ?? true; // if not tested, assume ok
-    await onSave({
-      credentials,
-      config,
-      status: ok ? 'connected' : 'needs_attention',
-    });
-    onOpenChange(false);
+
+    try {
+      // Determine if this is a database-backed integration (has UUID id)
+      const isDbIntegration = item.id.length > 20; // UUIDs are longer than simple string IDs like 'salesforce'
+
+      if (isDbIntegration) {
+        // Update existing integration
+        await updateIntegration.mutateAsync({
+          id: item.id,
+          credentials: credentials as any,
+          config: config as any,
+          status: 'inactive', // Will be set to 'active' after OAuth flow
+        });
+      } else {
+        // Create new integration
+        await createIntegration.mutateAsync({
+          name: item.name,
+          description: item.description,
+          type: item.type,
+          status: 'inactive', // Will be set to 'active' after OAuth flow
+          credentials: credentials as any,
+          config: config as any,
+        });
+      }
+
+      // Call the onSave callback for UI update
+      await onSave({
+        credentials,
+        config,
+        status: 'disconnected', // Status will be updated to 'connected' after OAuth
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Failed to save integration:', error);
+      setTested({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to save integration',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -92,8 +129,8 @@ export function IntegrationDrawer({
         </SheetHeader>
 
         {/* Steps header */}
-        <div className="mt-4 grid grid-cols-4 text-center text-xs">
-          {['Overview', 'Authentication', 'Configuration', 'Review'].map((label, i) => (
+        <div className="mt-4 grid grid-cols-3 text-center text-xs">
+          {['Overview', 'Authentication', 'Review'].map((label, i) => (
             <div
               key={label}
               className={`truncate ${
@@ -112,60 +149,73 @@ export function IntegrationDrawer({
                 <CardTitle className="text-base">Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                {item.id === 'salesforce' ? (
+                {item.type === 'crm' && item.name === 'Salesforce' ? (
                   <div className="space-y-4">
-                    <p className="text-sm">
-                      Connect your Salesforce account to import contacts and create targeted campaigns.
+                    <p className="text-sm text-muted-foreground">
+                      Connect your Salesforce account to import contacts and create targeted campaigns using secure OAuth 2.0 authentication.
                     </p>
-                    <div className="bg-amber-50 dark:bg-amber-950 rounded-md p-3 text-sm space-y-2">
-                      <p className="text-amber-900 dark:text-amber-100">
-                        <strong>⚠️ First-Time Setup Required</strong>
-                      </p>
-                      <p className="text-amber-900 dark:text-amber-100 text-xs">
-                        Before connecting, a Salesforce administrator needs to install our app in your Salesforce org (one-time setup).
-                      </p>
-                    </div>
+
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium">Setup Steps (First Time Only):</h4>
-                      <ol className="ml-4 list-decimal text-sm space-y-2">
-                        <li>
-                          <strong>Admin installs the app</strong> in your Salesforce org
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Contact your Salesforce administrator or see our installation guide
-                          </p>
-                        </li>
-                        <li>
-                          <strong>You connect</strong> by clicking &quot;Connect to Salesforce&quot;
-                        </li>
-                        <li>
-                          <strong>Authorize</strong> access to your Salesforce data
-                        </li>
-                        <li>
-                          <strong>Done!</strong> Start importing contacts
-                        </li>
-                      </ol>
+                      <h4 className="text-sm font-medium">Connection Process (2 Simple Steps):</h4>
+                      <div className="space-y-3">
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-medium text-blue-700 dark:text-blue-300">
+                            1
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Enter Connected App Credentials</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Provide your Client ID and Client Secret
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-medium text-blue-700 dark:text-blue-300">
+                            2
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Authorize Access</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Log in to Salesforce Production and approve the connection
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-4 space-y-2">
+                      <p className="text-blue-900 dark:text-blue-100 text-sm font-medium">
+                        📖 First Time? Create a Connected App
+                      </p>
+                      <p className="text-blue-900 dark:text-blue-100 text-xs">
+                        Before you can connect, you need to create a Salesforce Connected App (one-time setup, takes ~5 minutes).
+                      </p>
+                      <a
+                        href="/home/integrations/salesforce-guide"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-xs font-medium text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 underline"
+                      >
+                        View Setup Guide →
+                      </a>
+                    </div>
+
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">What you&apos;ll need:</h4>
-                      <ul className="ml-4 list-disc text-sm space-y-1">
-                        <li>Salesforce administrator to install the app (first time)</li>
-                        <li>A Salesforce account (Production or Sandbox)</li>
-                        <li>&quot;API Enabled&quot; permission in your user profile</li>
+                      <ul className="space-y-1.5 text-sm text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                          <span>Salesforce Connected App (Client ID &amp; Secret)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                          <span>Salesforce account with &quot;API Enabled&quot; permission</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                          <span>Admin access to create the Connected App (or ask your admin)</span>
+                        </li>
                       </ul>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-3 text-sm">
-                      <p className="text-blue-900 dark:text-blue-100 text-xs">
-                        <strong>Need help?</strong> If you get an error saying &quot;External client app is not installed&quot;, the app hasn&apos;t been installed in your Salesforce org yet.{' '}
-                        <a
-                          href="/home/integrations/salesforce-setup"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline font-medium hover:text-blue-700 dark:hover:text-blue-300"
-                        >
-                          View setup guide
-                        </a>
-                        {' '}or contact your administrator.
-                      </p>
                     </div>
                   </div>
                 ) : (
@@ -185,7 +235,43 @@ export function IntegrationDrawer({
 
         {step === 'auth' && (
           <div className="mt-4 space-y-4">
-            {canUseOAuth || canUseApiKey ? (
+            {item.type === 'crm' && item.name === 'Salesforce' ? (
+              // Salesforce OAuth-only flow with credential input
+              <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-4 text-sm space-y-2">
+                  <p className="text-blue-900 dark:text-blue-100 font-medium">
+                    📋 Step 1: Enter Your Connected App Credentials
+                  </p>
+                  <p className="text-blue-900 dark:text-blue-100 text-xs">
+                    Enter the Client ID and Client Secret from your Salesforce Connected App. Don&apos;t have a Connected App yet?{' '}
+                    <a
+                      href="/home/integrations/salesforce-guide"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline font-medium hover:text-blue-700 dark:hover:text-blue-300"
+                    >
+                      Follow our 5-minute setup guide →
+                    </a>
+                  </p>
+                </div>
+
+                <CredentialsForm
+                  fields={schema.credentials}
+                  value={credentials}
+                  onChange={setCredentials}
+                  readOnly={!canEdit}
+                  disableCopy={!copiable}
+                />
+
+                {tested && !tested.success && (
+                  <div className="bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100 rounded-md p-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" /> {tested.message}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : canUseOAuth || canUseApiKey ? (
               <Tabs
                 value={mode}
                 onValueChange={(v) => setMode(v as 'oauth' | 'api')}
@@ -197,67 +283,22 @@ export function IntegrationDrawer({
                 </TabsList>
                 {canUseOAuth && (
                   <TabsContent value="oauth" className="space-y-4">
-                    {item.id === 'salesforce' ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-medium">Salesforce OAuth Authentication</h4>
-                          <p className="text-sm text-muted-foreground">
-                            You&apos;ll be securely redirected to Salesforce to approve access. This allows us to:
-                          </p>
-                          <ul className="ml-4 list-disc text-sm text-muted-foreground space-y-1">
-                            <li>Read your contact records</li>
-                            <li>Access basic account information</li>
-                            <li>Sync data in real-time</li>
-                          </ul>
-                        </div>
-                        <div className="bg-amber-50 dark:bg-amber-950 rounded-md p-3 text-sm">
-                          <p className="text-amber-900 dark:text-amber-100">
-                            <strong>Note:</strong> You can revoke access at any time from your Salesforce Connected Apps settings.
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/integrations/salesforce/authorize');
-                              const data = await response.json();
-                              if (data.success && data.authorization_url) {
-                                // Redirect to Salesforce OAuth
-                                window.location.href = data.authorization_url;
-                              } else {
-                                console.error('Failed to get authorization URL:', data.error);
-                                setTested({ success: false, message: data.error || 'Failed to start OAuth flow' });
-                              }
-                            } catch (error) {
-                              console.error('Error initiating OAuth:', error);
-                              setTested({ success: false, message: 'Failed to connect to server' });
-                            }
-                          }}
-                          disabled={!canEdit}
-                        >
-                          Connect to Salesforce <ExternalLink className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-sm">
-                          You will be redirected to the provider to approve access.
-                        </p>
-                        <Button
-                          type="button"
-                          onClick={async () => {
-                            setTested({ success: true });
-                          }}
-                          disabled={!canEdit}
-                        >
-                          Continue to provider <ExternalLink className="ml-2 h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+                    <p className="text-sm">
+                      You will be redirected to the provider to approve access.
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        setTested({ success: true });
+                      }}
+                      disabled={!canEdit}
+                    >
+                      Continue to provider <ExternalLink className="ml-2 h-4 w-4" />
+                    </Button>
                   </TabsContent>
                 )}
                 {canUseApiKey && (
-                  <TabsContent value="api">
+                  <TabsContent value="api" className="space-y-4">
                     <CredentialsForm
                       fields={schema.credentials}
                       value={credentials}
@@ -276,14 +317,29 @@ export function IntegrationDrawer({
               <Button variant="outline" onClick={() => setStep('overview')}>
                 Back
               </Button>
-              <Button onClick={() => setStep('config')} disabled={canUseApiKey && !validateCredentials()}>
+              <Button
+                onClick={() => {
+                  // For Salesforce, set environment to production and skip to review
+                  if (item.type === 'crm' && item.name === 'Salesforce') {
+                    setConfig({ env: 'production' });
+                    setStep('review');
+                  } else {
+                    setStep('config');
+                  }
+                }}
+                disabled={
+                  item.type === 'crm' && item.name === 'Salesforce'
+                    ? !validateCredentials()
+                    : canUseApiKey && !validateCredentials()
+                }
+              >
                 Continue
               </Button>
             </div>
           </div>
         )}
 
-        {step === 'config' && (
+        {step === 'config' && item.type !== 'crm' && item.name !== 'Salesforce' && (
           <div className="mt-4 space-y-4">
             <ConfigForm fields={schema.config} value={config} onChange={setConfig} readOnly={!canEdit} />
             <div className="flex justify-between gap-2">
@@ -297,6 +353,17 @@ export function IntegrationDrawer({
 
         {step === 'review' && (
           <div className="mt-4 space-y-4">
+            {item.type === 'crm' && item.name === 'Salesforce' && (
+              <div className="bg-blue-50 dark:bg-blue-950 rounded-md p-4 text-sm space-y-2">
+                <p className="text-blue-900 dark:text-blue-100 font-medium">
+                  🔐 Step 2: Connect to Salesforce
+                </p>
+                <p className="text-blue-900 dark:text-blue-100 text-xs">
+                  Review your settings and click &quot;Connect to Salesforce&quot; to authorize access. You&apos;ll be redirected to Salesforce to approve the connection.
+                </p>
+              </div>
+            )}
+
             {tested ? (
               tested.success ? (
                 <div className="bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100 rounded-md p-3 text-sm">
@@ -308,7 +375,7 @@ export function IntegrationDrawer({
               ) : (
                 <div className="bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100 rounded-md p-3 text-sm">
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" /> Test failed
+                    <AlertCircle className="h-4 w-4" /> {item.type === 'crm' && item.name === 'Salesforce' ? 'Connection failed' : 'Test failed'}
                   </div>
                   <div className="mt-1">{tested.message}</div>
                 </div>
@@ -323,36 +390,78 @@ export function IntegrationDrawer({
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <div className="text-muted-foreground text-xs">Authentication</div>
-                    <div className="text-sm">{canUseOAuth && mode === 'oauth' ? 'OAuth' : 'API key'}</div>
+                    <div className="text-sm">{item.type === 'crm' && item.name === 'Salesforce' ? 'OAuth 2.0' : canUseOAuth && mode === 'oauth' ? 'OAuth' : 'API key'}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground text-xs">Environment</div>
-                    <div className="text-sm">{String(config.env ?? '—')}</div>
+                    <div className="text-sm capitalize">{item.type === 'crm' && item.name === 'Salesforce' ? 'Production' : String(config.env ?? '—')}</div>
                   </div>
-                  <div className="col-span-2">
-                    <div className="text-muted-foreground text-xs">Secrets</div>
-                    <div className="text-sm">Hidden for security</div>
-                  </div>
+                  {item.type === 'crm' && item.name === 'Salesforce' && (
+                    <>
+                      <div>
+                        <div className="text-muted-foreground text-xs">Client ID</div>
+                        <div className="text-sm font-mono text-xs truncate">{String(credentials.clientId ?? '—').substring(0, 20)}...</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground text-xs">Client Secret</div>
+                        <div className="text-sm">•••••••• (hidden)</div>
+                      </div>
+                    </>
+                  )}
+                  {!(item.type === 'crm' && item.name === 'Salesforce') && (
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground text-xs">Secrets</div>
+                      <div className="text-sm">Hidden for security</div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep('config')}>
+                <Button variant="outline" onClick={() => setStep('auth')}>
                   Back
                 </Button>
-                <Button variant="secondary" onClick={testConnection} disabled={!canEdit}>
-                  Test connection
-                </Button>
+                {!(item.type === 'crm' && item.name === 'Salesforce') && (
+                  <Button variant="secondary" onClick={testConnection} disabled={!canEdit}>
+                    Test connection
+                  </Button>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={!canEdit || saving || (canUseApiKey && !validateCredentials())}>
-                  {saving ? 'Saving…' : 'Save'}
-                </Button>
+                {item.type === 'crm' && item.name === 'Salesforce' ? (
+                  <Button
+                    onClick={async () => {
+                      // First save the credentials
+                      await handleSave();
+                      // Then initiate OAuth flow
+                      try {
+                        const response = await fetch('/api/integrations/salesforce/authorize');
+                        const data = await response.json();
+                        if (data.success && data.authorization_url) {
+                          window.location.href = data.authorization_url;
+                        } else {
+                          console.error('Failed to get authorization URL:', data.error);
+                          setTested({ success: false, message: data.error || 'Failed to start OAuth flow' });
+                        }
+                      } catch (error) {
+                        console.error('Error initiating OAuth:', error);
+                        setTested({ success: false, message: 'Failed to connect to server' });
+                      }
+                    }}
+                    disabled={!canEdit || saving || !validateCredentials()}
+                  >
+                    {saving ? 'Saving…' : 'Connect to Salesforce'} <ExternalLink className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSave} disabled={!canEdit || saving || (canUseApiKey && !validateCredentials())}>
+                    {saving ? 'Saving…' : 'Save'}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -371,7 +480,7 @@ function stepIndex(step: Step): number {
     case 'config':
       return 2;
     case 'review':
-      return 3;
+      return 2; // For Salesforce, review is step 2 (skipping config)
   }
 }
 

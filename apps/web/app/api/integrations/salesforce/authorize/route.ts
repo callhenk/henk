@@ -34,16 +34,51 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // 3. Get Salesforce OAuth configuration from environment
-    const clientId = process.env.SALESFORCE_CLIENT_ID;
-    const redirectUri = process.env.SALESFORCE_REDIRECT_URI;
+    // 3. Get Salesforce OAuth configuration from business integration
+    const { data: integration, error: integrationError } = await supabase
+      .from('integrations')
+      .select('credentials, config')
+      .eq('business_id', teamMember.business_id)
+      .eq('name', 'Salesforce')
+      .eq('type', 'crm')
+      .single();
 
-    if (!clientId || !redirectUri) {
+    if (integrationError || !integration) {
       return NextResponse.json(
-        { success: false, error: 'Salesforce OAuth not configured' },
-        { status: 500 },
+        {
+          success: false,
+          error:
+            'Salesforce integration not found. Please save your Connected App credentials first by completing the setup steps.',
+        },
+        { status: 404 },
       );
     }
+
+    const credentials = integration.credentials as Record<string, string> | null;
+    const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
+
+    // Redirect URI is fixed for the application
+    const redirectUri = process.env.SALESFORCE_REDIRECT_URI ||
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.callhenk.com'}/api/integrations/salesforce/callback`;
+
+    if (!clientId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Client ID is required. Please enter your Connected App credentials in the setup form.',
+        },
+        { status: 400 },
+      );
+    }
+
+    // Determine the Salesforce login URL based on environment
+    const config = integration.config as Record<string, string> | null;
+    const environment = config?.env || 'production';
+    const loginUrl =
+      environment === 'sandbox'
+        ? 'https://test.salesforce.com'
+        : 'https://login.salesforce.com';
 
     // 4. Generate state parameter for CSRF protection
     const state = crypto.randomUUID();
@@ -60,7 +95,7 @@ export async function GET(_request: NextRequest) {
     const encodedState = Buffer.from(JSON.stringify(stateData)).toString('base64url');
 
     // 5. Build Salesforce authorization URL
-    const authUrl = new URL('https://login.salesforce.com/services/oauth2/authorize');
+    const authUrl = new URL(`${loginUrl}/services/oauth2/authorize`);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('redirect_uri', redirectUri);

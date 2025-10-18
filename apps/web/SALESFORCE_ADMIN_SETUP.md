@@ -1,6 +1,8 @@
 # Salesforce Integration - Admin Setup Guide
 
-This guide is for administrators setting up the centralized Salesforce OAuth integration that all users will connect through.
+> **Note**: For the step-by-step user guide, visit the in-app guide at `/home/integrations/salesforce-guide`
+
+This guide is for administrators and developers who need detailed technical information about setting up the Salesforce OAuth integration.
 
 ## Overview
 

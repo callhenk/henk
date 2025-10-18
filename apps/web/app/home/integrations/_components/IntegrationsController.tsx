@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, ExternalLink, Info } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@kit/ui/alert';
 import {
@@ -23,6 +23,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
+
+import { useUpdateIntegration } from '@kit/supabase/hooks/integrations/use-integration-mutations';
 
 import { IntegrationDrawer } from './IntegrationDrawer';
 import { IntegrationsFilters, useQueryFilters } from './IntegrationsFilters';
@@ -68,6 +70,8 @@ export function IntegrationsController({
     >
   >({});
 
+  const updateIntegration = useUpdateIntegration();
+
   // Check for OAuth callback errors
   useEffect(() => {
     const error = searchParams?.get('error');
@@ -94,8 +98,14 @@ export function IntegrationsController({
   const connectedCount = filtered.filter(
     (i) => i.status === 'connected',
   ).length;
-  const availableCount = filtered.length;
-  const popularCount = filtered.filter((i) => i.schema.popular).length;
+  // Only count integrations that are actually available (not "coming_soon" or "deprecated")
+  const availableCount = filtered.filter(
+    (i) => i.status !== 'coming_soon' && i.status !== 'deprecated',
+  ).length;
+  // Only count popular integrations that are actually available
+  const popularCount = filtered.filter(
+    (i) => i.schema.popular && i.status !== 'coming_soon' && i.status !== 'deprecated',
+  ).length;
 
   const select = (id: string) => data.find((i) => i.id === id)!;
 
@@ -167,6 +177,30 @@ export function IntegrationsController({
     if (!confirmId) return;
     const id = confirmId;
     setConfirmId(null);
+
+    // Check if this is a database-backed integration
+    const isDbIntegration = id.length > 20; // UUIDs are longer than simple string IDs
+
+    if (isDbIntegration) {
+      try {
+        // Update the integration in the database
+        await updateIntegration.mutateAsync({
+          id,
+          status: 'inactive',
+          credentials: null,
+        });
+      } catch (error) {
+        console.error('Failed to disconnect integration:', error);
+        appendLog(id, {
+          level: 'error',
+          event: 'disconnect',
+          message: 'Failed to disconnect integration',
+        });
+        return;
+      }
+    }
+
+    // Update local state
     update(id, { status: 'disconnected', credentials: null });
     appendLog(id, {
       level: 'info',
@@ -206,7 +240,9 @@ export function IntegrationsController({
                   <p className="text-sm">
                     See the{' '}
                     <a
-                      href="/home/integrations/salesforce-setup"
+                      href="/home/integrations/salesforce-guide"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="underline font-medium hover:text-red-800 dark:hover:text-red-200"
                     >
                       setup guide
@@ -223,15 +259,6 @@ export function IntegrationsController({
               </AlertDescription>
             </Alert>
           )}
-
-          <Alert variant="info">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Coming soon</AlertTitle>
-            <AlertDescription>
-              Integration connections are coming soon. This page is a preview
-              and actions may be limited until release.
-            </AlertDescription>
-          </Alert>
 
           <IntegrationsFilters value={filters} onChange={setFilters} />
 

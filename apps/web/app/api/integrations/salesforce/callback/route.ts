@@ -119,18 +119,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Exchange code for tokens
-    const clientId = process.env.SALESFORCE_CLIENT_ID;
-    const clientSecret = process.env.SALESFORCE_CLIENT_SECRET;
-    const redirectUri = process.env.SALESFORCE_REDIRECT_URI;
+    // Get business-specific Salesforce credentials
+    const { data: integration, error: integrationError } = await supabase
+      .from('integrations')
+      .select('credentials, config')
+      .eq('business_id', stateData.business_id)
+      .eq('name', 'Salesforce')
+      .eq('type', 'crm')
+      .single();
 
-    if (!clientId || !clientSecret || !redirectUri) {
+    if (integrationError || !integration) {
       return NextResponse.redirect(
-        new URL('/home/integrations?error=configuration_error', request.url),
+        new URL(
+          '/home/integrations?error=configuration_error&error_description=Salesforce+integration+not+found.+Please+complete+the+setup+process+to+save+your+credentials.',
+          request.url,
+        ),
       );
     }
 
-    const tokenUrl = 'https://login.salesforce.com/services/oauth2/token';
+    const credentials = integration.credentials as Record<string, string> | null;
+    const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
+    const clientSecret =
+      credentials?.clientSecret || process.env.SALESFORCE_CLIENT_SECRET;
+
+    // Redirect URI is fixed for the application
+    const redirectUri = process.env.SALESFORCE_REDIRECT_URI ||
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.callhenk.com'}/api/integrations/salesforce/callback`;
+
+    if (!clientId || !clientSecret) {
+      return NextResponse.redirect(
+        new URL(
+          '/home/integrations?error=configuration_error&error_description=Client+ID+or+Client+Secret+is+missing.+Please+enter+your+Connected+App+credentials+in+the+setup+form.',
+          request.url,
+        ),
+      );
+    }
+
+    // Determine the Salesforce token URL based on environment
+    const config = integration.config as Record<string, string> | null;
+    const environment = config?.env || 'production';
+    const loginUrl =
+      environment === 'sandbox'
+        ? 'https://test.salesforce.com'
+        : 'https://login.salesforce.com';
+    const tokenUrl = `${loginUrl}/services/oauth2/token`;
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: clientId,
@@ -159,47 +191,75 @@ export async function GET(request: NextRequest) {
 
     const tokenData = await tokenResponse.json();
 
-    // Store integration in database
-    const integrationData = {
-      id: crypto.randomUUID(),
-      business_id: stateData.business_id,
-      name: 'Salesforce',
-      description:
-        'Import contacts from Salesforce to create targeted campaigns.',
-      type: 'crm',
-      status: 'active', // Valid values: active, inactive, error, pending
-      config: {
-        instanceUrl: tokenData.instance_url,
-        apiVersion: 'v61.0',
-      },
-      credentials: {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        tokenType: tokenData.token_type,
-      },
-      last_sync_at: new Date().toISOString(),
-      created_by: stateData.user_id,
-      updated_by: stateData.user_id,
+    // Update integration with OAuth tokens while preserving client credentials
+    const updatedCredentials = {
+      // Preserve the client credentials from the initial setup
+      clientId: credentials?.clientId,
+      clientSecret: credentials?.clientSecret,
+      // Add the OAuth tokens
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      tokenType: tokenData.token_type,
     };
 
-    const { error: insertError } = await supabase
-      .from('integrations')
-      .insert(integrationData);
+    const updatedConfig = {
+      // Preserve existing config
+      ...(config || {}),
+      // Add instance URL
+      instanceUrl: tokenData.instance_url,
+      apiVersion: 'v61.0',
+    };
 
-    if (insertError) {
-      console.error('Failed to save Salesforce integration:', insertError);
-      console.error(
-        'Integration data:',
-        JSON.stringify(integrationData, null, 2),
-      );
+    // Update the existing integration record
+    const { error: updateError } = await supabase
+      .from('integrations')
+      .update({
+        status: 'active',
+        config: updatedConfig,
+        credentials: updatedCredentials,
+        last_sync_at: new Date().toISOString(),
+        updated_by: stateData.user_id,
+      })
+      .eq('business_id', stateData.business_id)
+      .eq('name', 'Salesforce')
+      .eq('type', 'crm');
+
+    if (updateError) {
+      console.error('Failed to update Salesforce integration:', updateError);
+      console.error('Update data:', {
+        status: 'active',
+        config: updatedConfig,
+        credentials: '***REDACTED***',
+      });
 
       // Pass more detailed error info
       const errorDetail = encodeURIComponent(
-        insertError.message || 'Unknown database error',
+        updateError.message || 'Unknown database error',
       );
       return NextResponse.redirect(
         new URL(
           `/home/integrations?error=save_failed&error_description=${errorDetail}`,
+          request.url,
+        ),
+      );
+    }
+
+    // If no rows were updated, it means the integration doesn't exist
+    // This shouldn't happen if the authorize flow worked correctly
+    const { count } = await supabase
+      .from('integrations')
+      .select('*', { count: 'exact', head: true })
+      .eq('business_id', stateData.business_id)
+      .eq('name', 'Salesforce')
+      .eq('type', 'crm');
+
+    if (!count || count === 0) {
+      console.error(
+        'Integration record not found after update. This should not happen.',
+      );
+      return NextResponse.redirect(
+        new URL(
+          '/home/integrations?error=save_failed&error_description=Integration+record+not+found',
           request.url,
         ),
       );
