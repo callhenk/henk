@@ -42,6 +42,7 @@ import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
 import { useDeleteLeadList } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
 import { CreateEditLeadListDialog } from './create-edit-lead-list-dialog';
+import { ViewListMembersDialog } from './view-list-members-dialog';
 
 interface LeadListsDialogProps {
   open: boolean;
@@ -52,6 +53,7 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
   const [deleteListId, setDeleteListId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingList, setEditingList] = useState<any>(null);
+  const [viewingList, setViewingList] = useState<any>(null);
   const { data: leadLists = [], isLoading } = useLeadLists();
   const deleteList = useDeleteLeadList();
 
@@ -152,7 +154,7 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => toast.info('View members coming soon')}
+                                onClick={() => setViewingList(list)}
                               >
                                 <List className="mr-2 h-4 w-4" />
                                 View Members
@@ -187,6 +189,13 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
           }
         }}
         list={editingList}
+      />
+
+      {/* View Members Dialog */}
+      <ViewListMembersDialog
+        open={!!viewingList}
+        onOpenChange={(open) => !open && setViewingList(null)}
+        list={viewingList}
       />
 
       {/* Delete Confirmation */}

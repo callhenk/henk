@@ -71,60 +71,86 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.9 : 1,
   };
+
+  const progressPercentage = assignedList.total_leads
+    ? ((assignedList.contacted_leads || 0) / assignedList.total_leads) * 100
+    : 0;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 border rounded-lg bg-background"
+      className={`group relative rounded-lg border bg-card transition-all ${
+        isDragging ? 'shadow-lg opacity-90' : 'hover:bg-accent/5'
+      }`}
     >
-      <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center gap-3 p-3">
+        {/* Drag Handle */}
         <button
-          className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-accent rounded"
+          className="cursor-grab rounded p-1 transition-colors hover:bg-accent active:cursor-grabbing"
           {...attributes}
           {...listeners}
         >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <GripVertical className="h-4 w-4 text-muted-foreground/60" />
         </button>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-mono text-xs">#{assignedList.priority}</span>
+        {/* Priority */}
+        <span className="text-xs text-muted-foreground font-mono">
+          {assignedList.priority}
+        </span>
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h4 className="text-sm font-medium truncate">{list.name}</h4>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-xs text-muted-foreground">
+                  {assignedList.total_leads || 0} leads
+                </span>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs text-muted-foreground">
+                  {assignedList.contacted_leads || 0} contacted
+                </span>
+                {assignedList.successful_leads > 0 && (
+                  <>
+                    <span className="text-xs text-muted-foreground">•</span>
+                    <span className="text-xs text-muted-foreground">
+                      {assignedList.successful_leads} converted
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-xs font-medium">{progressPercentage.toFixed(0)}%</p>
+                <p className="text-xs text-muted-foreground">complete</p>
+              </div>
+              <div className="w-16 h-1 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-foreground/70 transition-all duration-500"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium">{list.name}</span>
-            <Badge variant="secondary" className="text-xs">
-              {assignedList.total_leads || list.lead_count || 0} leads
-            </Badge>
-          </div>
-          {list.description && (
-            <p className="text-xs text-muted-foreground line-clamp-1">
-              {list.description}
-            </p>
-          )}
-        </div>
-
-        <div className="flex gap-4 text-xs text-muted-foreground">
-          <div>
-            <span className="font-medium">{assignedList.contacted_leads || 0}</span> contacted
-          </div>
-          <div>
-            <span className="font-medium">{assignedList.successful_leads || 0}</span> converted
-          </div>
-        </div>
+        {/* Remove Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onRemove(list.id)}
+          className="h-7 w-7 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+        >
+          <X className="h-3 w-3" />
+        </Button>
       </div>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onRemove(list.id)}
-        className="text-destructive hover:text-destructive"
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </div>
   );
 }
@@ -278,38 +304,43 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                   </div>
                 ) : (
                   availableLists.map((list) => (
-                    <Card
+                    <div
                       key={list.id}
-                      className="cursor-pointer hover:border-primary transition-colors"
+                      className="group cursor-pointer rounded-lg border p-3 transition-all hover:bg-accent/5"
                       onClick={() => handleAssignList(list.id)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium">{list.name}</h4>
-                              <Badge variant="secondary" className="text-xs">
-                                {list.lead_count || 0} leads
-                              </Badge>
-                            </div>
-                            {list.description && (
-                              <p className="text-sm text-muted-foreground">
-                                {list.description}
-                              </p>
+                      <div className="flex items-center justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-medium truncate">{list.name}</h4>
+                            <span className="text-xs text-muted-foreground">
+                              {list.lead_count || 0} leads
+                            </span>
+                          </div>
+                          {list.description && (
+                            <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                              {list.description}
+                            </p>
+                          )}
+                          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>{list.list_type || 'static'}</span>
+                            {list.source && (
+                              <>
+                                <span>•</span>
+                                <span>{list.source}</span>
+                              </>
                             )}
                             {list.tags && Array.isArray(list.tags) && list.tags.length > 0 && (
-                              <div className="flex gap-1 mt-2">
-                                {(list.tags as string[]).map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
+                              <>
+                                <span>•</span>
+                                <span>{(list.tags as string[]).length} tags</span>
+                              </>
                             )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <Plus className="h-4 w-4 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
                   ))
                 )}
               </div>

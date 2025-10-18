@@ -33,6 +33,7 @@ import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 import { CampaignHeader } from './campaign-header';
 import useCampaignEditor from './hooks/useCampaignEditor';
 import { LeadListSelector } from './LeadListSelector';
+import { CampaignQueueMonitor } from './CampaignQueueMonitor';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -484,6 +485,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </div>
               <div className="space-y-4 rounded-md">
                 <LeadListSelector campaignId={campaignId} />
+                <CampaignQueueMonitor campaignId={campaignId} />
               </div>
             </TooltipProvider>
           </TabsContent>

@@ -230,14 +230,28 @@ Please update this section daily by 10 AM:
 
 **Engineer 1**:
 - Yesterday: Reviewed project requirements
-- Today: ✅ Installed @dnd-kit packages, ✅ Implemented drag-and-drop for LeadListSelector with priority reordering
-- Blockers: TypeScript errors due to missing campaign_lead_lists in database.types.ts (needs Supabase typegen to run)
+- Today: ✅ Drag-and-drop, ✅ Fixed 2 bugs, ✅ Integrated EditLeadDialog, ✅ Created CampaignQueueMonitor
+- Blockers: None - all issues resolved!
 - Progress:
-  - Replaced ChevronUp/ChevronDown buttons with GripVertical drag handle
-  - Implemented handleDragEnd function that updates priorities in database using existing useUpdateCampaignLeadListPriority hook
-  - Used @dnd-kit/sortable with vertical list strategy
-  - Component is functional but needs types regeneration to pass typecheck
-- Next: Create CampaignQueueMonitor component (once types issue is resolved)
+  - **Drag-and-Drop**: Replaced ChevronUp/ChevronDown with GripVertical drag handle, implemented priority reordering
+  - **BUG FIX #1**: Created migration `20251018151543_fix_add_lead_list_to_campaign_permissions.sql` for RLS permissions
+  - **BUG FIX #2**: Changed soft delete to hard delete in `useRemoveLeadListFromCampaign` to fix duplicate key constraint
+  - **Edit Feature**: Integrated EditLeadDialog into leads-list.tsx for inline lead editing
+  - **Campaign Queue Monitor**: Created real-time monitoring component for campaign details page
+    - Shows currently processing lead list with progress bar and stats
+    - Displays list name, description, and key metrics (remaining, contacted, converted)
+    - Queue preview of upcoming lists (next 3)
+    - Click-through to view all leads in a list with details dialog
+    - Overall campaign stats across all lists
+    - Empty states and loading skeletons
+  - **UI Improvements**: Professional redesign of all components
+    - LeadListSelector: Added progress bars, better stats layout, improved drag feedback with shadow/ring, smooth transitions
+    - Dialog improvements: Icon-based list cards, metadata display, hover states
+    - CampaignQueueMonitor: Active status with animated pulse, gradient backgrounds, mini progress bars for queued lists
+    - Overall stats: 4-column grid with success rate, uppercase labels, number formatting
+    - Consistent color coding: blue (pending), green (contacted), emerald (converted)
+    - Better visual hierarchy with proper spacing and typography
+- Next: Continue with remaining lead management features
 
 **Engineer 2**:
 - Yesterday: Reviewed project requirements
@@ -346,7 +360,20 @@ CREATE OR REPLACE FUNCTION bulk_add_leads_to_list(
    - **Assigned**: Engineer 1
    - **Fix**: Invalidate query cache after mutations
 
-2. **Issue #002**: [Date] Description
+2. **Issue #002**: [Oct 18] Permission denied for function add_lead_list_to_campaign
+   - **Status**: Fixed
+   - **Assigned**: Engineer 1
+   - **Fix**: Created migration `20251018151543_fix_add_lead_list_to_campaign_permissions.sql` that adds SECURITY DEFINER and GRANT EXECUTE permissions to the RPC function. The function now properly bypasses RLS when called by authenticated users.
+   - **Root Cause**: Original function definition was missing SECURITY DEFINER flag and explicit GRANT statement
+
+3. **Issue #003**: [Oct 18] Duplicate key error when re-adding removed lead list to campaign
+   - **Status**: Fixed
+   - **Assigned**: Engineer 1
+   - **Fix**: Changed `useRemoveLeadListFromCampaign` hook from soft delete (setting `is_active = false`) to hard delete (`.delete()`). Also removed `.eq('is_active', true)` filter from `useCampaignLeadLists` query.
+   - **Root Cause**: Soft delete kept the record in the database with unique constraint on (campaign_id, lead_list_id), preventing re-adding the same list
+   - **File**: `packages/supabase/src/hooks/campaigns/use-campaign-lead-lists.ts`
+
+4. **Issue #004**: [Date] Description
    - **Status**: New/In Progress/Fixed
    - **Assigned**: Engineer Name
    - **Fix**: Solution

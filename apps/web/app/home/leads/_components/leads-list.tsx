@@ -44,6 +44,10 @@ import { LeadsFilters } from './leads-filters';
 import { AddToListDialog } from './add-to-list-dialog';
 import { BulkActionsBar } from './BulkActionsBar';
 import { LeadListsDialog } from './lead-lists-dialog';
+import { EditLeadDialog } from './edit-lead-dialog';
+
+import type { Database } from '@kit/supabase/database';
+type Lead = Database['public']['Tables']['leads']['Row'];
 
 export function LeadsList() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -54,6 +58,7 @@ export function LeadsList() {
   const [_filters, _setFilters] = useState<LeadsFiltersType>({});
   const [deleteLeadId, setDeleteLeadId] = useState<string | null>(null);
   const [addToListLead, setAddToListLead] = useState<{ id: string; name: string } | null>(null);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
   // Selection state - using Set for O(1) lookups
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
@@ -331,7 +336,7 @@ export function LeadsList() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => toast.info('Edit coming soon')}
+                              onClick={() => setEditingLead(lead)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
@@ -386,6 +391,13 @@ export function LeadsList() {
           onOpenChange={(open) => !open && setAddToListLead(null)}
           leadId={addToListLead.id}
           leadName={addToListLead.name}
+        />
+      )}
+      {editingLead && (
+        <EditLeadDialog
+          open={!!editingLead}
+          onOpenChange={(open) => !open && setEditingLead(null)}
+          lead={editingLead}
         />
       )}
 

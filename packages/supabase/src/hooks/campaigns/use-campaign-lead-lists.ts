@@ -19,7 +19,6 @@ export function useCampaignLeadLists(campaignId: string) {
         .from('campaign_lead_lists')
         .select('*')
         .eq('campaign_id', campaignId)
-        .eq('is_active', true)
         .order('priority', { ascending: true });
 
       if (error) {
@@ -77,10 +76,10 @@ export function useRemoveLeadListFromCampaign() {
 
   return useMutation({
     mutationFn: async (data: { campaign_id: string; lead_list_id: string }): Promise<void> => {
-      // Soft delete by setting is_active to false
+      // Hard delete to avoid unique constraint issues when re-adding the same list
       const { error } = await supabase
         .from('campaign_lead_lists')
-        .update({ is_active: false })
+        .delete()
         .eq('campaign_id', data.campaign_id)
         .eq('lead_list_id', data.lead_list_id);
 
