@@ -23,10 +23,17 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
   const { data: assignedLists = [], isLoading: assignedLoading } = useCampaignLeadLists(campaignId);
   const { data: allLists = [] } = useLeadLists();
 
-  // Get current list being processed (lowest priority number, first in queue)
-  const currentList = assignedLists.length > 0
-    ? assignedLists.sort((a, b) => (a.priority || 0) - (b.priority || 0))[0]
-    : null;
+  // Separate completed and incomplete lists
+  const sortedLists = [...assignedLists].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+  const incompleteLists = sortedLists.filter(list =>
+    (list.contacted_leads || 0) < (list.total_leads || 0)
+  );
+  const completedLists = sortedLists.filter(list =>
+    (list.contacted_leads || 0) >= (list.total_leads || 0) && (list.total_leads || 0) > 0
+  );
+
+  // Get current list being processed (first incomplete list by priority)
+  const currentList = incompleteLists.length > 0 ? incompleteLists[0] : null;
 
   // Load members for current active list or selected list
   const activeListId = selectedListId || currentList?.lead_list_id || '';
@@ -114,6 +121,25 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
           </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-4">
+          {/* All Lists Completed State */}
+          {incompleteLists.length === 0 && completedLists.length > 0 && (
+            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <ListChecks className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                    All lists completed!
+                  </h3>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                    All {completedLists.length} lead {completedLists.length === 1 ? 'list has' : 'lists have'} been fully contacted
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Currently Processing */}
           {currentList && currentListDetails && (
             <div className="rounded-lg bg-muted/30 p-4">
@@ -180,24 +206,24 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
             </div>
           )}
 
-          {/* Queue Summary */}
-          {assignedLists.length > 1 && (
+          {/* Queue Summary - Upcoming Incomplete Lists */}
+          {incompleteLists.length > 1 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">UPCOMING</span>
                 <span className="text-xs text-muted-foreground">
-                  {assignedLists.length - 1} queued
+                  {incompleteLists.length - 1} queued
                 </span>
               </div>
               <div className="space-y-1">
-                {assignedLists
-                  .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-                  .slice(1, 4) // Show next 3 lists
+                {incompleteLists
+                  .slice(1, 4) // Show next 3 incomplete lists (excluding current)
                   .map((list) => {
                     const listDetails = allLists.find(l => l.id === list.lead_list_id);
                     if (!listDetails) return null;
 
                     const isSelected = selectedListId === list.lead_list_id;
+                    const remaining = (list.total_leads || 0) - (list.contacted_leads || 0);
                     return (
                       <div
                         key={list.id}
@@ -213,7 +239,7 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                           <div className="min-w-0 flex-1">
                             <div className="text-sm truncate">{listDetails.name}</div>
                             <span className="text-xs text-muted-foreground">
-                              {list.total_leads || 0} leads
+                              {remaining} remaining
                               {list.contacted_leads > 0 && ` • ${list.contacted_leads} contacted`}
                             </span>
                           </div>
@@ -226,10 +252,64 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                       </div>
                     );
                   })}
-                {assignedLists.length > 4 && (
+                {incompleteLists.length > 4 && (
                   <div className="text-center py-1">
                     <span className="text-xs text-muted-foreground">
-                      +{assignedLists.length - 4} more
+                      +{incompleteLists.length - 4} more in queue
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Lists */}
+          {completedLists.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-500">COMPLETED</span>
+                <span className="text-xs text-muted-foreground">
+                  {completedLists.length} finished
+                </span>
+              </div>
+              <div className="space-y-1">
+                {completedLists.slice(0, 3).map((list) => {
+                  const listDetails = allLists.find(l => l.id === list.lead_list_id);
+                  if (!listDetails) return null;
+
+                  const isSelected = selectedListId === list.lead_list_id;
+                  const successRate = list.contacted_leads > 0
+                    ? ((list.successful_leads || 0) / list.contacted_leads * 100).toFixed(1)
+                    : '0';
+                  return (
+                    <div
+                      key={list.id}
+                      className={`group flex items-center justify-between py-2 px-3 rounded transition-colors cursor-pointer ${
+                        isSelected ? 'bg-accent/50' : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => setSelectedListId(isSelected ? null : list.lead_list_id)}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm truncate">{listDetails.name}</div>
+                          <span className="text-xs text-muted-foreground">
+                            {list.total_leads || 0} leads • {successRate}% success
+                          </span>
+                        </div>
+                      </div>
+                      {isSelected ? (
+                        <span className="text-xs text-muted-foreground">viewing</span>
+                      ) : (
+                        <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </div>
+                  );
+                })}
+                {completedLists.length > 3 && (
+                  <div className="text-center py-1">
+                    <span className="text-xs text-muted-foreground">
+                      +{completedLists.length - 3} more completed
                     </span>
                   </div>
                 )}
