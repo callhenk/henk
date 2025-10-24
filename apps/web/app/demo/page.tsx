@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Phone, PhoneCall } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -29,7 +30,9 @@ import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voic
 
 export default function TestCallPage() {
   const searchParams = useSearchParams();
-  const { isLoading: isLoadingBusinessContext } = useBusinessContext();
+  const queryClient = useQueryClient();
+  const { isLoading: isLoadingBusinessContext, data: businessContext } =
+    useBusinessContext();
   const { data: allAgents = [], isLoading: isLoadingAgents } = useAgents();
   const signInMutation = useSignInWithEmailPassword();
   const [isSigningIn, setIsSigningIn] = useState(true);
@@ -106,6 +109,8 @@ export default function TestCallPage() {
           password: credentials.password,
         })
         .then(() => {
+          // Invalidate agents query to refetch with new business context
+          queryClient.invalidateQueries({ queryKey: ['agents'] });
           setIsSigningIn(false);
         })
         .catch(() => {
