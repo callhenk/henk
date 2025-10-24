@@ -109,8 +109,14 @@ export default function TestCallPage() {
           password: credentials.password,
         })
         .then(() => {
-          // Invalidate agents query to refetch with new business context
+          // Invalidate both business-context and agents queries to refetch with new auth session
+          queryClient.invalidateQueries({ queryKey: ['business-context'] });
           queryClient.invalidateQueries({ queryKey: ['agents'] });
+          // Small delay to ensure both queries complete
+          setTimeout(() => {
+            queryClient.refetchQueries({ queryKey: ['business-context'] });
+            queryClient.refetchQueries({ queryKey: ['agents'] });
+          }, 100);
           setIsSigningIn(false);
         })
         .catch(() => {
@@ -170,6 +176,14 @@ export default function TestCallPage() {
       setSelectedAgentId(agents[0]?.id ?? '');
     }
   }, [isSigningIn, isLoading, selectedAgentId, agents]);
+
+  // Additional effect to ensure business context is properly loaded before ending sign-in
+  useEffect(() => {
+    if (isSigningIn && businessContext?.business_id && agents.length > 0) {
+      // Business context loaded with agents available - we can finish signing in
+      setIsSigningIn(false);
+    }
+  }, [businessContext, agents, isSigningIn]);
 
   const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
