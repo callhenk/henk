@@ -42,33 +42,33 @@ interface UseCaseStepProps {
 
 export function UseCaseStep({ selectedUseCase, onSelectUseCase }: UseCaseStepProps) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-2xl font-bold">What will this agent do?</h3>
-        <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-1 sm:space-y-2">
+        <h3 className="text-xl sm:text-2xl font-bold">What will this agent do?</h3>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Select the primary use case for your agent
         </p>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {(Object.entries(USE_CASES) as Array<[string, typeof USE_CASES.customer_support]>).map(([key, useCaseGroup]) => (
-          <div key={key} className="space-y-3">
-            <div className="flex items-center gap-3 px-3 py-2">
-              <span className="text-2xl">{useCaseGroup.icon}</span>
-              <h4 className="font-bold text-base">{useCaseGroup.category}</h4>
+          <div key={key} className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2">
+              <span className="text-xl sm:text-2xl">{useCaseGroup.icon}</span>
+              <h4 className="font-bold text-sm sm:text-base">{useCaseGroup.category}</h4>
             </div>
-            <div className="space-y-2 pl-12">
+            <div className="space-y-1.5 sm:space-y-2 pl-8 sm:pl-12">
               {useCaseGroup.uses.map((u) => (
                 <button
                   key={u}
                   onClick={() => onSelectUseCase(u)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all duration-300 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-300 ${
                     selectedUseCase === u
                       ? 'border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-md shadow-primary/10'
                       : 'border-border hover:border-primary/30 hover:bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{u}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs sm:text-sm font-medium">{u}</span>
                     {selectedUseCase === u && (
                       <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                         <Check className="h-3 w-3 text-primary-foreground" />
