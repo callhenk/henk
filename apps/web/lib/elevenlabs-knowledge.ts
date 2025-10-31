@@ -66,9 +66,15 @@ export async function listKnowledgeDocuments(params?: {
   );
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch knowledge documents: ${response.statusText}`,
-    );
+    try {
+      const errorData = await response.json();
+      const errorMessage = errorData?.error || response.statusText;
+      throw new Error(errorMessage);
+    } catch {
+      throw new Error(
+        `Failed to fetch knowledge documents: ${response.statusText}`,
+      );
+    }
   }
 
   const data = await response.json();
@@ -110,9 +116,15 @@ export async function createKnowledgeDocument(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to create knowledge document: ${response.statusText}`,
-    );
+    try {
+      const errorData = await response.json();
+      const errorMessage = errorData?.error || response.statusText;
+      throw new Error(errorMessage);
+    } catch {
+      throw new Error(
+        `Failed to create knowledge document: ${response.statusText}`,
+      );
+    }
   }
 
   const data = await response.json();
@@ -152,9 +164,15 @@ export async function deleteKnowledgeDocument(
   );
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to delete knowledge document: ${response.statusText}`,
-    );
+    try {
+      const errorData = await response.json();
+      const errorMessage = errorData?.error || response.statusText;
+      throw new Error(errorMessage);
+    } catch {
+      throw new Error(
+        `Failed to delete knowledge document: ${response.statusText}`,
+      );
+    }
   }
 }
 

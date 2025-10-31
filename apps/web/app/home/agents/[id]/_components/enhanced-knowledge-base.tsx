@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   BookOpen,
@@ -24,6 +24,11 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 import { Textarea } from '@kit/ui/textarea';
+import {
+  useLinkKnowledgeBaseToAgent,
+  useUnlinkKnowledgeBaseFromAgent,
+  useFetchAgentKnowledgeBases,
+} from '@kit/supabase/hooks/knowledge-bases/use-knowledge-base-mutations';
 
 import {
   type CreateDocumentRequest,
@@ -44,18 +49,6 @@ interface LinkedDocument {
   usage_mode?: string;
 }
 
-interface KnowledgeDocument {
-  id: string;
-  type: string;
-  name: string;
-  usage_mode?: string;
-  metadata?: {
-    size_bytes: number;
-    created_at_unix_secs: number;
-  };
-  url?: string;
-}
-
 export function EnhancedKnowledgeBase({
   _agentId,
   elevenlabsAgentId,
@@ -68,9 +61,14 @@ export function EnhancedKnowledgeBase({
     uploadFile: uploadFileHook,
     deleteDocument: deleteDocumentHook,
   } = useKnowledgeBase({
-    elevenlabsAgentId,
     autoLoad: true,
   });
+
+  // Knowledge base linking hooks
+  const linkKBMutation = useLinkKnowledgeBaseToAgent();
+  const unlinkKBMutation = useUnlinkKnowledgeBaseFromAgent();
+  const { data: agentKBs = [], isLoading: loadingLinkedDocs } =
+    useFetchAgentKnowledgeBases(_agentId);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [documentType, setDocumentType] = useState<'url' | 'text' | 'file'>(
@@ -89,44 +87,24 @@ export function EnhancedKnowledgeBase({
   } | null>(null);
   const [deletingDocument, setDeletingDocument] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
-  const [linkedDocuments, setLinkedDocuments] = useState<LinkedDocument[]>([]);
-  const [loadingLinkedDocs, setLoadingLinkedDocs] = useState(false);
   const [linkingDocs, setLinkingDocs] = useState(false);
   const [unlinkingDocs, setUnlinkingDocs] = useState<string[]>([]);
 
-  // Fetch linked documents from agent configuration
-  const fetchLinkedDocuments = useCallback(async () => {
-    if (!elevenlabsAgentId) return;
-
-    setLoadingLinkedDocs(true);
-    try {
-      const response = await fetch(
-        `/api/elevenlabs-agent/details/${elevenlabsAgentId}`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const agentConfig = data.data;
-
-        // Extract knowledge base from agent configuration
-        const knowledgeBase =
-          agentConfig?.conversation_config?.agent?.prompt?.knowledge_base;
-
-        if (knowledgeBase && Array.isArray(knowledgeBase)) {
-          setLinkedDocuments(knowledgeBase);
-        } else {
-          setLinkedDocuments([]);
+  // Transform agentKBs into linkedDocuments format (memoized to prevent infinite loop)
+  const linkedDocuments: LinkedDocument[] = useMemo(
+    () =>
+      (agentKBs || []).map(
+        (item: { knowledge_bases: { id: string; name: string } }) => {
+          const kb = item.knowledge_bases;
+          return {
+            id: kb.id,
+            name: kb.name,
+            type: 'knowledge_base',
+          };
         }
-      } else {
-        console.error('Failed to fetch agent details');
-        setLinkedDocuments([]);
-      }
-    } catch (error) {
-      console.error('Error fetching linked documents:', error);
-      setLinkedDocuments([]);
-    } finally {
-      setLoadingLinkedDocs(false);
-    }
-  }, [elevenlabsAgentId]);
+      ),
+    [agentKBs]
+  );
 
   // Check if a document is linked to the agent
   const isDocumentLinked = (docId: string) => {
@@ -156,20 +134,18 @@ export function EnhancedKnowledgeBase({
     }
   }, [showDeleteConfirm]);
 
-  // Fetch linked documents when component mounts or agent ID changes
-  useEffect(() => {
-    if (elevenlabsAgentId) {
-      fetchLinkedDocuments();
-    }
-  }, [elevenlabsAgentId, fetchLinkedDocuments]);
-
   // Auto-select linked documents when they are loaded
+  // Use JSON.stringify to create a stable dependency that only changes when IDs actually change
+  const linkedDocIds = useMemo(
+    () => linkedDocuments.map((doc) => doc.id),
+    [linkedDocuments]
+  );
+
   useEffect(() => {
-    if (linkedDocuments.length > 0) {
-      const linkedDocIds = linkedDocuments.map((doc) => doc.id);
+    if (linkedDocIds.length > 0) {
       setSelectedDocs(linkedDocIds);
     }
-  }, [linkedDocuments]);
+  }, [linkedDocIds]);
 
   // Add new document
   const addDocument = async () => {
@@ -191,6 +167,8 @@ export function EnhancedKnowledgeBase({
 
     setUploading(true);
     try {
+      let createdDocumentId: string | undefined;
+
       if (documentType === 'file' && selectedFile) {
         await uploadFileHook({
           file: selectedFile,
@@ -208,15 +186,24 @@ export function EnhancedKnowledgeBase({
           payload.text = documentText;
         }
 
-        await addDocumentHook(payload as unknown as CreateDocumentRequest);
+        const result = await addDocumentHook(
+          payload as unknown as CreateDocumentRequest,
+        );
+        createdDocumentId = result?.id;
       }
 
-      // Auto-link knowledge base to agent
-      console.log('Document added successfully, now auto-linking to agent...');
-      await linkKnowledgeBaseToAgent();
-
-      // Refresh linked documents after linking
-      await fetchLinkedDocuments();
+      // Auto-link the newly created knowledge base to agent
+      if (_agentId && createdDocumentId) {
+        console.log(
+          'Document added successfully, now auto-linking to agent...',
+          { agent_id: _agentId, knowledge_base_id: createdDocumentId },
+        );
+        await linkKBMutation.mutateAsync({
+          agent_id: _agentId,
+          knowledge_base_id: createdDocumentId,
+        });
+        console.log('Successfully linked knowledge base to agent');
+      }
 
       // Reset form
       setShowAddForm(false);
@@ -240,9 +227,6 @@ export function EnhancedKnowledgeBase({
       await deleteDocumentHook(documentId);
       setShowDeleteConfirm(false);
       setDocumentToDelete(null);
-
-      // Refresh linked documents after deletion
-      await fetchLinkedDocuments();
     } catch (error) {
       console.error('Error deleting document:', error);
     } finally {
@@ -266,67 +250,6 @@ export function EnhancedKnowledgeBase({
     setDocumentToDelete(null);
   };
 
-  // Auto-link knowledge base to agent
-  const linkKnowledgeBaseToAgent = async () => {
-    console.log('Auto-linking knowledge base to agent...', {
-      elevenlabsAgentId,
-    });
-
-    if (!elevenlabsAgentId) {
-      console.log('No ElevenLabs agent ID found, skipping auto-link');
-      return;
-    }
-
-    try {
-      // Get all knowledge base documents
-      const kbResponse = await fetch('/api/elevenlabs-agent/knowledge-base');
-      if (!kbResponse.ok) {
-        console.error('Failed to fetch knowledge base for auto-linking');
-        return;
-      }
-      const kbData = await kbResponse.json();
-      const documents = kbData.data?.documents || [];
-
-      if (documents.length === 0) {
-        console.log('No documents found for auto-linking');
-        return;
-      }
-
-      // Extract document IDs
-      const knowledgeBaseIds = documents.map((doc: { id: string }) => doc.id);
-
-      // Link to agent
-      const updateResponse = await fetch('/api/elevenlabs-agent/update', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          agent_id: elevenlabsAgentId,
-          knowledge_base_ids: knowledgeBaseIds,
-        }),
-      });
-
-      if (updateResponse.ok) {
-        console.log(
-          `Auto-linked ${knowledgeBaseIds.length} documents to agent`,
-        );
-        // Show a subtle toast notification
-        const { toast } = await import('sonner');
-        toast.success(`Document added and linked to agent automatically!`);
-      } else {
-        const errorData = await updateResponse.json().catch(() => ({}));
-        console.error('Failed to auto-link knowledge base to agent:', {
-          status: updateResponse.status,
-          statusText: updateResponse.statusText,
-          errorData,
-        });
-      }
-    } catch (error) {
-      console.error('Error auto-linking knowledge base:', error);
-    }
-  };
-
   // Helper: toggle selection
   const toggleDocSelection = (docId: string) => {
     setSelectedDocs((prev) =>
@@ -339,47 +262,45 @@ export function EnhancedKnowledgeBase({
 
   // Link selected knowledge base documents to agent
   const linkSelectedKnowledgeBaseToAgent = async () => {
-    if (!elevenlabsAgentId) return;
-    const selected = documents.filter((doc) => selectedDocs.includes(doc.id));
+    if (!_agentId) return;
+
+    // Filter out already-linked documents
+    const selected = documents.filter(
+      (doc) => selectedDocs.includes(doc.id) && !isDocumentLinked(doc.id)
+    );
+
     if (selected.length === 0) {
       const { toast } = await import('sonner');
-      toast.error('Please select at least one document to link.');
+
+      // Check if all selected docs are already linked
+      const alreadyLinked = documents.filter(
+        (doc) => selectedDocs.includes(doc.id) && isDocumentLinked(doc.id)
+      );
+
+      if (alreadyLinked.length > 0) {
+        toast.error('Selected documents are already linked to this agent.');
+      } else {
+        toast.error('Please select at least one document to link.');
+      }
       return;
     }
 
     setLinkingDocs(true);
     try {
-      // Build correct KB object array
-      const kbObjects = selected.map((doc) => {
-        const base = { id: doc.id, type: doc.type, name: doc.name };
-        return 'usage_mode' in doc
-          ? { ...base, usage_mode: (doc as KnowledgeDocument).usage_mode }
-          : base;
-      });
+      // Create relationships between agent and selected knowledge bases
+      const linkPromises = selected.map((doc) =>
+        linkKBMutation.mutateAsync({
+          agent_id: _agentId,
+          knowledge_base_id: doc.id,
+        })
+      );
 
-      const response = await fetch('/api/elevenlabs-agent/update', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agent_id: elevenlabsAgentId,
-          knowledge_base_objects: kbObjects,
-        }),
-      });
-
+      await Promise.all(linkPromises);
       const { toast } = await import('sonner');
-      if (response.ok) {
-        toast.success('Linked selected documents to agent!');
-        // Refresh linked documents after linking
-        await fetchLinkedDocuments();
-        // Clear selection after successful linking
-        setSelectedDocs([]);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(
-          'Failed to link documents: ' +
-            (errorData?.error || response.statusText),
-        );
-      }
+
+      toast.success(`Linked ${selected.length} document${selected.length > 1 ? 's' : ''} to agent!`);
+      // Clear selection after successful linking
+      setSelectedDocs([]);
     } catch (error) {
       const { toast } = await import('sonner');
       toast.error(
@@ -393,36 +314,17 @@ export function EnhancedKnowledgeBase({
 
   // Unlink a single document from agent
   const unlinkDocument = async (docId: string) => {
-    if (!elevenlabsAgentId) return;
+    if (!_agentId) return;
 
     setUnlinkingDocs((prev) => [...prev, docId]);
     try {
-      // Get current linked documents excluding the one to unlink
-      const remainingLinkedDocs = linkedDocuments.filter(
-        (doc) => doc.id !== docId,
-      );
-
-      const response = await fetch('/api/elevenlabs-agent/update', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agent_id: elevenlabsAgentId,
-          knowledge_base_objects: remainingLinkedDocs,
-        }),
+      await unlinkKBMutation.mutateAsync({
+        agent_id: _agentId,
+        knowledge_base_id: docId,
       });
 
       const { toast } = await import('sonner');
-      if (response.ok) {
-        toast.success('Document unlinked from agent!');
-        // Refresh linked documents after unlinking
-        await fetchLinkedDocuments();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(
-          'Failed to unlink document: ' +
-            (errorData?.error || response.statusText),
-        );
-      }
+      toast.success('Document unlinked from agent!');
     } catch (error) {
       const { toast } = await import('sonner');
       toast.error(
@@ -459,8 +361,8 @@ export function EnhancedKnowledgeBase({
             <div>
               <h3 className="text-xl font-semibold">Knowledge Base</h3>
               <p className="text-muted-foreground text-sm">
-                No ElevenLabs agent ID found. Please ensure the agent is
-                properly configured.
+                Agent configuration is not yet available. Please ensure the agent is
+                properly set up.
               </p>
             </div>
           </div>
@@ -639,7 +541,18 @@ export function EnhancedKnowledgeBase({
             </div>
             <Button
               onClick={linkSelectedKnowledgeBaseToAgent}
-              disabled={selectedDocs.length === 0 || linkingDocs}
+              disabled={
+                selectedDocs.length === 0 ||
+                linkingDocs ||
+                !selectedDocs.some((docId) => !isDocumentLinked(docId))
+              }
+              title={
+                selectedDocs.length === 0
+                  ? 'Select documents to link'
+                  : !selectedDocs.some((docId) => !isDocumentLinked(docId))
+                    ? 'Selected documents are already linked'
+                    : 'Link selected documents to agent'
+              }
             >
               {linkingDocs ? (
                 <>

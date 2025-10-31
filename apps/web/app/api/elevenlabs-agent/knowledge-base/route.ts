@@ -60,6 +60,33 @@ async function validateAgentBusinessAccess(supabase: any, agentId: string, busin
   return agent;
 }
 
+// Helper function to extract error message from ElevenLabs API response
+function extractErrorMessage(errorData: unknown): string {
+  if (typeof errorData === 'object' && errorData !== null) {
+    const obj = errorData as Record<string, unknown>;
+
+    // Check for detail object with message
+    if (obj.detail && typeof obj.detail === 'object') {
+      const detail = obj.detail as Record<string, unknown>;
+      if (detail.message && typeof detail.message === 'string') {
+        return detail.message;
+      }
+    }
+
+    // Check for message field
+    if (obj.message && typeof obj.message === 'string') {
+      return obj.message;
+    }
+
+    // Check for error field
+    if (obj.error && typeof obj.error === 'string') {
+      return obj.error;
+    }
+  }
+
+  return 'Failed to create knowledge base. Please check your input and try again.';
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Handle CORS preflight
@@ -72,23 +99,10 @@ export async function GET(request: NextRequest) {
     // Get user's business context
     const businessContext = await getUserBusinessContext(supabase);
 
-    // Get ElevenLabs API key
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'ElevenLabs API key not configured' },
-        { status: 500, headers: corsHeaders },
-      );
-    }
-
     // Get query parameters
     const { searchParams } = new URL(request.url);
-    const cursor = searchParams.get('cursor');
-    const pageSize = searchParams.get('page_size') || '30';
+    const pageSize = parseInt(searchParams.get('page_size') || '30', 10);
     const search = searchParams.get('search');
-    const showOnlyOwned =
-      searchParams.get('show_only_owned_documents') || 'false';
-    const types = searchParams.get('types');
     const agentId = searchParams.get('agent_id');
 
     // If agent_id is provided, validate it belongs to the user's business
@@ -96,49 +110,63 @@ export async function GET(request: NextRequest) {
       await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
     }
 
-    // Build query parameters
-    const queryParams = new URLSearchParams();
-    if (cursor) queryParams.append('cursor', cursor);
-    if (pageSize) queryParams.append('page_size', pageSize);
-    if (search) queryParams.append('search', search);
-    if (showOnlyOwned)
-      queryParams.append('show_only_owned_documents', showOnlyOwned);
-    if (types) queryParams.append('types', types);
+    // Fetch knowledge bases from our database for business isolation
+    let query = supabase
+      .from('knowledge_bases')
+      .select('id, name, description, elevenlabs_kb_id, file_count, char_count, status, metadata, created_at')
+      .eq('business_id', businessContext.business_id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(pageSize);
 
-    // Fetch knowledge base documents from ElevenLabs
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/knowledge-base?${queryParams.toString()}`,
-      {
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('ElevenLabs knowledge base API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-      });
-      throw new Error(
-        `ElevenLabs knowledge base API error: ${errorData.detail || response.statusText}`,
-      );
+    // Apply search filter if provided
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
-    const data = await response.json();
+    const { data: kbRecords, error: dbError } = await query;
 
-    // Filter documents by business access (if we have business-specific filtering)
-    // Note: ElevenLabs doesn't provide business-level filtering, so we rely on
-    // the fact that each business uses their own ElevenLabs API key or we
-    // implement additional filtering logic here if needed
+    if (dbError) {
+      console.error('Failed to fetch knowledge bases from database:', dbError);
+      throw new Error('Failed to fetch knowledge bases');
+    }
+
+    // Transform database records to match the expected format
+    // Each KB record represents a knowledge base that can be linked to an agent
+    const documents = (kbRecords || []).map((kb) => {
+      // Safely extract usage_mode from metadata
+      let usageMode = 'default';
+      if (typeof kb.metadata === 'object' && kb.metadata !== null && !Array.isArray(kb.metadata)) {
+        const metadata = kb.metadata as Record<string, unknown>;
+        if (typeof metadata.usage_mode === 'string') {
+          usageMode = metadata.usage_mode;
+        }
+      }
+
+      return {
+        id: kb.id,
+        name: kb.name,
+        description: kb.description || '',
+        knowledge_base_id: kb.elevenlabs_kb_id,
+        type: 'knowledge_base',
+        status: kb.status,
+        metadata: {
+          file_count: typeof kb.file_count === 'number' ? kb.file_count : 0,
+          char_count: typeof kb.char_count === 'number' ? kb.char_count : 0,
+          created_at_unix_secs: kb.created_at ? Math.floor(new Date(kb.created_at).getTime() / 1000) : 0,
+        },
+        usage_mode: usageMode,
+      };
+    });
 
     return NextResponse.json(
       {
         success: true,
-        data,
+        data: {
+          documents,
+          has_more: false,
+          next_cursor: null,
+        },
         business_context: {
           business_id: businessContext.business_id,
           role: businessContext.role,
@@ -190,10 +218,26 @@ export async function POST(request: NextRequest) {
     let response;
 
     switch (type) {
-      case 'url':
+      case 'url': {
         if (!url) {
           return NextResponse.json(
             { success: false, error: 'URL is required for URL type documents' },
+            { status: 400, headers: corsHeaders },
+          );
+        }
+
+        // Validate and normalize URL
+        let validUrl = url;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          validUrl = `https://${url}`;
+        }
+
+        // Validate URL format
+        try {
+          new URL(validUrl);
+        } catch {
+          return NextResponse.json(
+            { success: false, error: 'Invalid URL format. Please enter a valid URL (e.g., https://example.com)' },
             { status: 400, headers: corsHeaders },
           );
         }
@@ -207,12 +251,13 @@ export async function POST(request: NextRequest) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              url,
-              name: name || url,
+              url: validUrl,
+              name: name || validUrl,
             }),
           },
         );
         break;
+      }
 
       case 'text':
         if (!text) {
@@ -269,17 +314,72 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('ElevenLabs knowledge base creation error:', {
+      const errorMessage = extractErrorMessage(errorData);
+      console.error('Knowledge base creation error:', {
         status: response.status,
         statusText: response.statusText,
         errorData,
+        extractedMessage: errorMessage,
       });
-      throw new Error(
-        `ElevenLabs knowledge base creation error: ${errorData.detail || response.statusText}`,
-      );
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+
+    // Save the knowledge base to our database for business isolation
+    // data.id is the ElevenLabs KB ID from the response
+    if (!data.id) {
+      throw new Error('No knowledge base ID returned from ElevenLabs');
+    }
+
+    const { data: insertedData, error: dbError } = await supabase
+      .from('knowledge_bases')
+      .upsert(
+        {
+          business_id: businessContext.business_id,
+          elevenlabs_kb_id: data.id,
+          name: name || 'Unnamed Knowledge Base',
+          description: null,
+          file_count: 0,
+          char_count: 0,
+          status: 'active',
+          metadata: {
+            document_type: type,
+            created_from_api: true,
+          },
+          created_by: businessContext.user_id,
+          updated_by: businessContext.user_id,
+        },
+        {
+          onConflict: 'business_id,elevenlabs_kb_id',
+        }
+      )
+      .select('id, name, elevenlabs_kb_id, status, created_at');
+
+    if (dbError) {
+      console.error('Failed to save knowledge base to database:', {
+        error: dbError,
+        input: {
+          business_id: businessContext.business_id,
+          elevenlabs_kb_id: data.id,
+          name: name || 'Unnamed Knowledge Base',
+        },
+      });
+      throw new Error(`Failed to save knowledge base to database: ${dbError.message}`);
+    }
+
+    if (!insertedData || insertedData.length === 0) {
+      console.error('No data returned from knowledge base upsert');
+      throw new Error('Failed to save knowledge base: No data returned');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const savedKBRecord = insertedData[0] as any;
+    console.log('Knowledge base saved to database:', {
+      id: savedKBRecord.id,
+      name: savedKBRecord.name,
+      elevenlabs_kb_id: savedKBRecord.elevenlabs_kb_id,
+    });
 
     // Log the creation for audit purposes
     console.log('Knowledge base document created:', {
@@ -293,7 +393,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        data,
+        data: savedKBRecord,
         business_context: {
           business_id: businessContext.business_id,
           role: businessContext.role,
@@ -302,11 +402,19 @@ export async function POST(request: NextRequest) {
       { headers: corsHeaders },
     );
   } catch (error) {
-    console.error('POST /api/elevenlabs-agent/knowledge-base error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('POST /api/elevenlabs-agent/knowledge-base error:', {
+      message: errorMessage,
+      stack: errorStack,
+      error,
+    });
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage || 'Failed to create knowledge document',
       },
       { status: 500, headers: corsHeaders },
     );

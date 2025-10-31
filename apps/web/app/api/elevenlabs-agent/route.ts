@@ -78,6 +78,11 @@ export async function POST(request: NextRequest) {
       payload.conversation_config = agentConfig.conversation_config;
     }
 
+    // Include context_data if provided (for storing context prompt reference)
+    if (agentConfig?.context_data != null) {
+      payload.context_data = agentConfig.context_data;
+    }
+
     if (agentConfig?.platform_settings != null) {
       payload.platform_settings = agentConfig.platform_settings;
     }
@@ -99,6 +104,7 @@ export async function POST(request: NextRequest) {
         typeof payload.conversation_config === 'object' &&
         payload.conversation_config !== null,
       conversationConfigKeys: Object.keys(payload.conversation_config || {}),
+      hasContextData: Boolean(payload.context_data),
       hasPlatformSettings: Boolean(payload.platform_settings),
       hasTags: Boolean(payload.tags),
       hasWorkspaceHeader: Boolean(process.env.ELEVENLABS_WORKSPACE_ID),

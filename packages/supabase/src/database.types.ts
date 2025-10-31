@@ -653,6 +653,112 @@ export type Database = {
           },
         ];
       };
+      knowledge_bases: {
+        Row: {
+          id: string;
+          business_id: string;
+          elevenlabs_kb_id: string;
+          name: string;
+          description: string | null;
+          file_count: number | null;
+          char_count: number | null;
+          status: string | null;
+          metadata: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          elevenlabs_kb_id: string;
+          name: string;
+          description?: string | null;
+          file_count?: number | null;
+          char_count?: number | null;
+          status?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          elevenlabs_kb_id?: string;
+          name?: string;
+          description?: string | null;
+          file_count?: number | null;
+          char_count?: number | null;
+          status?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'knowledge_bases_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'knowledge_bases_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'knowledge_bases_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      agents_knowledge_bases: {
+        Row: {
+          id: string;
+          agent_id: string;
+          knowledge_base_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          knowledge_base_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          knowledge_base_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'agents_knowledge_bases_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'agents_knowledge_bases_knowledge_base_id_fkey';
+            columns: ['knowledge_base_id'];
+            isOneToOne: false;
+            referencedRelation: 'knowledge_bases';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       leads: {
         Row: {
           id: string;
