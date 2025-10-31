@@ -177,7 +177,11 @@ export async function deleteKnowledgeDocument(
 }
 
 // Helper function to format file size
-export function formatFileSize(bytes: number): string {
+export function formatFileSize(bytes: number | undefined | null): string {
+  // Handle invalid input
+  if (!bytes || typeof bytes !== 'number' || bytes < 0) {
+    return 'Unknown size';
+  }
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -186,8 +190,16 @@ export function formatFileSize(bytes: number): string {
 }
 
 // Helper function to format date
-export function formatDate(unixSecs: number): string {
-  return new Date(unixSecs * 1000).toLocaleDateString();
+export function formatDate(unixSecs: number | undefined | null): string {
+  // Handle invalid input
+  if (!unixSecs || typeof unixSecs !== 'number' || unixSecs < 0) {
+    return 'Unknown date';
+  }
+  try {
+    return new Date(unixSecs * 1000).toLocaleDateString();
+  } catch {
+    return 'Unknown date';
+  }
 }
 
 // Helper function to get document type icon

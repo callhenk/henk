@@ -380,12 +380,12 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   contextPrompt += '- Always prioritize the customer\'s needs and satisfaction\n';
 
   // System prompt (shorter, for LLM system message)
-  let systemPrompt = useCaseConfig
+  const systemPrompt = useCaseConfig
     ? `You are ${useCaseConfig.role}. ${useCaseConfig.goals[0]}`
     : 'You are a helpful AI assistant. Be professional and concise.';
 
   // Starting message
-  let startingMessage = useCaseConfig && useCaseConfig.keyPoints.length > 0
+  const startingMessage = useCaseConfig && useCaseConfig.keyPoints.length > 0
     ? `Hello! I'm here to help with ${useCaseConfig.keyPoints[0]?.toLowerCase()}. How can I assist you today?`
     : 'Hello! How can I help you today?';
 

@@ -33,7 +33,6 @@ import {
 import {
   type CreateDocumentRequest,
   formatDate,
-  formatFileSize,
 } from '../../../../../lib/elevenlabs-knowledge';
 import { useKnowledgeBase } from './use-knowledge-base';
 
@@ -460,10 +459,6 @@ export function EnhancedKnowledgeBase({
                           <Badge variant="outline">{doc.type}</Badge>
                           {doc.metadata && (
                             <>
-                              <span>•</span>
-                              <span>
-                                {formatFileSize(doc.metadata.size_bytes)}
-                              </span>
                               <span>•</span>
                               <span>
                                 Created{' '}

@@ -158,10 +158,80 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
+    // Save the knowledge base to our database for business isolation
+    // data.id is the ElevenLabs KB ID from the response
+    if (!data.id) {
+      throw new Error('No knowledge base ID returned from ElevenLabs');
+    }
+
+    // Get the user's active business membership
+    const { data: teamMembership, error: teamError } = await supabase
+      .from('team_members')
+      .select('business_id, user_id, role, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (teamError || !teamMembership) {
+      throw new Error('No active business membership found');
+    }
+
+    const { data: insertedData, error: dbError } = await supabase
+      .from('knowledge_bases')
+      .upsert(
+        {
+          business_id: teamMembership.business_id,
+          elevenlabs_kb_id: data.id,
+          name: name || file.name,
+          description: null,
+          file_count: 1,
+          char_count: file.size,
+          status: 'active',
+          metadata: {
+            document_type: 'file',
+            file_name: file.name,
+            file_type: file.type,
+            file_size: file.size,
+            created_from_api: true,
+          },
+          created_by: user.id,
+          updated_by: user.id,
+        },
+        {
+          onConflict: 'business_id,elevenlabs_kb_id',
+        }
+      )
+      .select('id, name, elevenlabs_kb_id, status, created_at');
+
+    if (dbError) {
+      console.error('Failed to save knowledge base to database:', {
+        error: dbError,
+        input: {
+          business_id: teamMembership.business_id,
+          elevenlabs_kb_id: data.id,
+          name: name || file.name,
+        },
+      });
+      throw new Error(`Failed to save knowledge base to database: ${dbError.message}`);
+    }
+
+    if (!insertedData || insertedData.length === 0) {
+      console.error('No data returned from knowledge base upsert');
+      throw new Error('Failed to save knowledge base: No data returned');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const savedKBRecord = insertedData[0] as any;
+    console.log('Knowledge base file saved to database:', {
+      id: savedKBRecord.id,
+      name: savedKBRecord.name,
+      elevenlabs_kb_id: savedKBRecord.elevenlabs_kb_id,
+    });
+
     return NextResponse.json(
       {
         success: true,
-        data,
+        data: savedKBRecord,
       },
       { headers: corsHeaders },
     );
