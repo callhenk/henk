@@ -328,8 +328,8 @@ export function CreateAgentPanel({
           }
         }}
       >
-        <DialogContent className="w-full sm:max-w-2xl p-0 max-h-[90vh] flex flex-col mx-4 sm:mx-auto">
-          <DialogHeader className="border-b px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
+        <DialogContent className="w-full sm:max-w-2xl p-0 max-h-[100vh] sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-lg">
+          <DialogHeader className="border-b px-4 sm:px-6 py-5 sm:py-6 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <DialogTitle className="text-lg sm:text-xl font-semibold">
@@ -367,7 +367,7 @@ export function CreateAgentPanel({
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
-            <div className="px-4 sm:px-6 py-4 sm:py-5">
+            <div className="px-4 sm:px-6 py-5 sm:py-6">
               {step === 'agent-type' && (
                 <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
               )}
@@ -409,7 +409,7 @@ export function CreateAgentPanel({
             </div>
           </div>
 
-          <DialogFooter className="border-t px-4 sm:px-6 py-2 sm:py-3 flex-shrink-0 bg-muted/20">
+          <DialogFooter className="border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 bg-muted/20">
             <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground">
                 Cancel
