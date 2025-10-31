@@ -34,6 +34,7 @@ import { UseCaseStep } from './use-case-step';
 import { IndustryStep } from './industry-step';
 import { DetailsStep } from './details-step';
 import { ReviewStep } from './review-step';
+import { generateAgentPrompts } from '~/lib/generate-agent-prompts';
 
 interface CreateAgentPanelProps {
   open: boolean;
@@ -62,30 +63,44 @@ export function CreateAgentPanel({
 
   // Agent details
   const [name, setName] = useState('');
-  const [goal, setGoal] = useState('');
-  const [website, setWebsite] = useState('');
-  const [chatOnly, setChatOnly] = useState(false);
+  const [contextPrompt, setContextPrompt] = useState('');
+  const [startingMessage, setStartingMessage] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<StepType>('agent-type');
 
-  // Track if user has manually edited name/goal
+  // Track if user has manually edited name
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
-  const [goalManuallyEdited, setGoalManuallyEdited] = useState(false);
 
-  // Auto-populate name and goal based on agent type
+  // Generate dynamic prompts based on use case and industry (takes priority)
   useEffect(() => {
-    if (agentType) {
+    if (agentType && useCase && industry) {
+      const generatedPrompts = generateAgentPrompts({
+        agentType,
+        useCase,
+        industry,
+      });
+
+      // Update context prompt and starting message with generated content
+      setContextPrompt(generatedPrompts.contextPrompt);
+      setStartingMessage(generatedPrompts.startingMessage);
+    } else if (agentType && (!useCase || !industry)) {
+      // Only use basic template if use case or industry hasn't been selected yet
       const template = AGENT_TYPES[agentType];
-      // Only set defaults if user hasn't manually edited them
-      if (!nameManuallyEdited && template.defaultAgentName) {
+      // Only set defaults if user hasn't manually edited them and fields are empty
+      if (!nameManuallyEdited && !name && template.defaultAgentName) {
         setName(template.defaultAgentName);
       }
-      if (!goalManuallyEdited && template.defaultGoal) {
-        setGoal(template.defaultGoal);
+      // Auto-populate starting message from agent type if empty
+      if (!startingMessage && template.startingMessage) {
+        setStartingMessage(template.startingMessage);
+      }
+      // Auto-populate context prompt from agent type if empty
+      if (!contextPrompt && template.contextPrompt) {
+        setContextPrompt(template.contextPrompt);
       }
     }
-  }, [agentType, nameManuallyEdited, goalManuallyEdited]);
+  }, [agentType, useCase, industry, nameManuallyEdited, name, startingMessage, contextPrompt]);
 
   const steps: Array<{
     key: StepType;
@@ -136,7 +151,7 @@ export function CreateAgentPanel({
       case 'industry':
         return industry !== null;
       case 'details':
-        return Boolean(name.trim() && goal.trim());
+        return Boolean(name.trim() && contextPrompt.trim() && startingMessage.trim());
       case 'review':
         return true;
       default:
@@ -171,17 +186,17 @@ export function CreateAgentPanel({
     setIsSubmitting(true);
 
     try {
-      // Get system prompt from agent type
+      // Get system prompt from agent type template
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
-      const baseSystemPrompt = agentTypeTemplate?.systemPrompt || '';
+      const baseSystemPrompt = agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
 
       // Build conversation config with required fields for ElevenLabs
       const conversationConfig = {
         agent: {
-          first_message: `Hi! I'm ${name}. ${goal}`,
+          first_message: startingMessage.trim(),
           language: 'en',
           prompt: {
-            prompt: baseSystemPrompt || 'You are a helpful AI assistant.',
+            prompt: contextPrompt.trim(), // Use the context prompt as the main prompt
             llm: 'gpt-4o-mini',
             max_tokens: 1024,
           },
@@ -192,6 +207,9 @@ export function CreateAgentPanel({
       const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
         conversation_config: conversationConfig,
+        context_data: {
+          donor_context: contextPrompt.trim(), // Store context prompt in context_data for reference
+        },
       };
 
       console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
@@ -199,7 +217,6 @@ export function CreateAgentPanel({
         agentType,
         useCase,
         industry,
-        chatOnly,
         hasConversationConfig: Boolean(elevenLabsAgentConfig.conversation_config),
         hasWorkflow: Boolean(elevenLabsAgentConfig.workflow),
         hasVoiceId: Boolean(elevenLabsAgentConfig.voice_id),
@@ -243,55 +260,54 @@ export function CreateAgentPanel({
       // 2) Create agent record in DB
       const created = await createAgentMutation.mutateAsync({
         name: name.trim(),
-        description: goal.trim() || null,
+        donor_context: contextPrompt.trim() || null, // Save context prompt to donor_context field
+        starting_message: startingMessage.trim() || null, // Save starting message as top-level field
         voice_type: 'ai_generated',
         voice_id: '',
         knowledge_base: {
           agentType,
           useCase,
           industry,
-          website,
-          chatOnly,
-          systemPrompt: conversationConfig.agent.prompt,
-          firstMessage: conversationConfig.agent.first_message,
-          llmModel: 'gpt-4-turbo',
+          contextPrompt: contextPrompt.trim(), // User-provided context prompt
+          systemPrompt: baseSystemPrompt, // System prompt from agent type
+          startingMessage: startingMessage.trim(), // User-provided starting message
+          firstMessage: startingMessage.trim(), // For compatibility
+          llmModel: 'gpt-4o-mini',
           temperature: 0.7,
-          maxTokens: 500,
+          maxTokens: 1024,
           asrQuality: 'high',
           ttsStability: 75,
         },
-        status: chatOnly ? 'chat' : 'active',
+        status: 'active',
         elevenlabs_agent_id: elevenlabsAgentId,
       });
 
-      // 3) Assign default phone to agent (caller_id) - only if not chat-only
-      if (!chatOnly) {
-        const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
-        if (created?.id) {
-          console.log('[create-agent] assign-phone start', {
-            agentId: created.id,
-            phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
+      // 3) Assign default phone to agent (caller_id)
+      const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
+      if (created?.id) {
+        console.log('[create-agent] assign-phone start', {
+          agentId: created.id,
+          phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
+        });
+        try {
+          const phoneResp = await fetch(`/api/agents/${created.id}/assign-phone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
+          }).catch((e) => {
+            console.warn('[create-agent] assign-phone network error', e);
+            return undefined as unknown as Response;
           });
-          try {
-            const phoneResp = await fetch(`/api/agents/${created.id}/assign-phone`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
-            }).catch((e) => {
-              console.warn('[create-agent] assign-phone network error', e);
-              return undefined as unknown as Response;
+          if (phoneResp) {
+            const raw = await phoneResp.text().catch(() => '');
+            console.log('[create-agent] assign-phone response', {
+              status: phoneResp.status,
+              ok: phoneResp.ok,
+              bodyPreview: raw?.slice(0, 300),
             });
-            if (phoneResp) {
-              const raw = await phoneResp.text().catch(() => '');
-              console.log('[create-agent] assign-phone response', {
-                status: phoneResp.status,
-                ok: phoneResp.ok,
-                bodyPreview: raw?.slice(0, 300),
-              });
-            }
-          } catch (err) {
-            console.warn('[create-agent] assign-phone failed', err);
           }
+        } catch (err) {
+          console.warn('[create-agent] assign-phone failed', err);
         }
       }
 
@@ -322,9 +338,8 @@ export function CreateAgentPanel({
             setUseCase(null);
             setIndustry(null);
             setName('');
-            setGoal('');
-            setWebsite('');
-            setChatOnly(false);
+            setContextPrompt('');
+            setStartingMessage('');
           }
         }}
       >
@@ -344,15 +359,15 @@ export function CreateAgentPanel({
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all ${
+                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all duration-300 ease-in-out ${
                     idx <= stepIndex
-                      ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'border bg-muted text-muted-foreground'
+                      ? 'bg-primary text-primary-foreground font-semibold scale-105'
+                      : 'border bg-muted text-muted-foreground scale-100'
                   }`}
                 >
-                  <div className="flex items-center justify-center h-4 sm:h-5">
+                  <div className="flex items-center justify-center h-4 sm:h-5 transition-all duration-300">
                     {idx < stepIndex ? (
-                      <Check className="h-3 w-3" />
+                      <Check className="h-3 w-3 animate-in zoom-in duration-300" />
                     ) : (
                       <span className="text-[10px] sm:text-xs font-bold">{idx + 1}</span>
                     )}
@@ -367,49 +382,55 @@ export function CreateAgentPanel({
           <div className="flex-1 overflow-y-auto">
             <div className="px-4 sm:px-6 py-5 sm:py-6">
               {step === 'agent-type' && (
-                <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
+                </div>
               )}
 
               {step === 'use-case' && (
-                <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
+                </div>
               )}
 
               {step === 'industry' && (
-                <IndustryStep selectedIndustry={industry} onSelectIndustry={setIndustry} />
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <IndustryStep selectedIndustry={industry} onSelectIndustry={setIndustry} />
+                </div>
               )}
 
               {step === 'details' && (
-                <DetailsStep
-                  name={name}
-                  onNameChange={setName}
-                  onNameEdited={() => setNameManuallyEdited(true)}
-                  goal={goal}
-                  onGoalChange={setGoal}
-                  onGoalEdited={() => setGoalManuallyEdited(true)}
-                  website={website}
-                  onWebsiteChange={setWebsite}
-                  chatOnly={chatOnly}
-                  onChatOnlyChange={setChatOnly}
-                />
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <DetailsStep
+                    name={name}
+                    onNameChange={setName}
+                    onNameEdited={() => setNameManuallyEdited(true)}
+                    contextPrompt={contextPrompt}
+                    onContextPromptChange={setContextPrompt}
+                    startingMessage={startingMessage}
+                    onStartingMessageChange={setStartingMessage}
+                  />
+                </div>
               )}
 
               {step === 'review' && (
-                <ReviewStep
-                  agentType={agentType}
-                  useCase={useCase}
-                  industry={industry}
-                  name={name}
-                  goal={goal}
-                  website={website}
-                  chatOnly={chatOnly}
-                />
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <ReviewStep
+                    agentType={agentType}
+                    useCase={useCase}
+                    industry={industry}
+                    name={name}
+                    contextPrompt={contextPrompt}
+                    startingMessage={startingMessage}
+                  />
+                </div>
               )}
             </div>
           </div>
 
           <DialogFooter className="border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 bg-muted/20">
             <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground transition-all duration-200">
                 Cancel
               </Button>
               <div className="flex w-full sm:w-auto items-center gap-2">
@@ -418,12 +439,12 @@ export function CreateAgentPanel({
                   size="sm"
                   onClick={goBack}
                   disabled={stepIndex === 0}
-                  className="flex-1 sm:flex-none"
+                  className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {stepIndex < steps.length - 1 ? (
-                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none">
+                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
                     Next <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 ) : (
@@ -431,7 +452,7 @@ export function CreateAgentPanel({
                     onClick={handleSubmit}
                     disabled={isSubmitting || !canProceed()}
                     size="sm"
-                    className="flex-1 sm:flex-none"
+                    className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
                   >
                     {isSubmitting ? (
                       <>

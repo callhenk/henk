@@ -25,6 +25,7 @@ interface AgentKnowledgeProps {
     elevenlabs_agent_id?: string | null;
     organization_info?: string | null;
     donor_context?: string | null;
+    context_prompt?: string | null;
     starting_message?: string | null;
     faqs?: Json;
   };
@@ -155,7 +156,7 @@ export function AgentKnowledge({
                   >
                     {savingField === 'donor_context'
                       ? 'Saving...'
-                      : 'Save Prompt'}
+                      : 'Save Context Prompt'}
                   </Button>
                 </div>
               )}
@@ -186,7 +187,7 @@ export function AgentKnowledge({
 
           <Card className="glass-panel">
             <CardHeader>
-              <CardTitle>ElevenLabs Knowledge Base</CardTitle>
+              <CardTitle>Knowledge Base</CardTitle>
               <CardDescription>
                 Upload documents and link them to your agent for enhanced
                 responses

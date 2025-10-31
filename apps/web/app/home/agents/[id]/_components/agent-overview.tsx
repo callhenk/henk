@@ -24,6 +24,7 @@ interface AgentOverviewProps {
     id: string;
     name: string;
     description?: string | null;
+    donor_context?: string | null;
     status: string;
     voice_type?: string | null;
     updated_at?: string | null;
@@ -250,15 +251,15 @@ export function AgentOverview({
           <div className="space-y-6 lg:col-span-1">
             <Card className="glass-panel">
               <CardHeader>
-                <CardTitle>Agent Description</CardTitle>
+                <CardTitle>Context Prompt</CardTitle>
                 <CardDescription>
-                  Overview and details about your agent
+                  The prompt that guides how the agent responds
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="rounded-lg border p-4">
-                  <p className="text-sm">
-                    {agent.description || 'No description available'}
+                  <p className="text-sm whitespace-pre-wrap">
+                    {agent.donor_context || 'No context prompt available'}
                   </p>
                 </div>
               </CardContent>

@@ -14,7 +14,6 @@ import {
 } from '../../../../../lib/elevenlabs-knowledge';
 
 interface UseKnowledgeBaseOptions {
-  elevenlabsAgentId?: string;
   autoLoad?: boolean;
 }
 
@@ -31,14 +30,15 @@ interface UseKnowledgeBaseReturn {
     showOnlyOwned?: boolean;
     types?: string[];
   }) => Promise<void>;
-  addDocument: (request: CreateDocumentRequest) => Promise<void>;
+  addDocument: (
+    request: CreateDocumentRequest,
+  ) => Promise<{ id: string; name: string } | undefined>;
   uploadFile: (request: UploadFileRequest) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 export function useKnowledgeBase({
-  elevenlabsAgentId,
   autoLoad = true,
 }: UseKnowledgeBaseOptions): UseKnowledgeBaseReturn {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
@@ -55,11 +55,6 @@ export function useKnowledgeBase({
       showOnlyOwned?: boolean;
       types?: string[];
     }) => {
-      if (!elevenlabsAgentId) {
-        setError('No ElevenLabs agent ID found');
-        return;
-      }
-
       setLoading(true);
       setError(null);
 
@@ -86,22 +81,20 @@ export function useKnowledgeBase({
         setLoading(false);
       }
     },
-    [elevenlabsAgentId],
+    [],
   );
 
   const addDocument = useCallback(
     async (request: CreateDocumentRequest) => {
-      if (!elevenlabsAgentId) {
-        toast.error('No ElevenLabs agent ID found');
-        return;
-      }
-
       try {
-        await createKnowledgeDocument(request);
+        const result = await createKnowledgeDocument(request);
         toast.success('Document added successfully');
 
         // Refresh the documents list
         await loadDocuments();
+
+        // Return the created document
+        return result;
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to add document';
@@ -109,16 +102,11 @@ export function useKnowledgeBase({
         throw err;
       }
     },
-    [elevenlabsAgentId, loadDocuments],
+    [loadDocuments],
   );
 
   const uploadFile = useCallback(
     async (request: UploadFileRequest) => {
-      if (!elevenlabsAgentId) {
-        toast.error('No ElevenLabs agent ID found');
-        return;
-      }
-
       try {
         await uploadKnowledgeFile(request);
         toast.success('File uploaded successfully');
@@ -132,7 +120,7 @@ export function useKnowledgeBase({
         throw err;
       }
     },
-    [elevenlabsAgentId, loadDocuments],
+    [loadDocuments],
   );
 
   const deleteDocument = useCallback(async (documentId: string) => {
@@ -156,10 +144,10 @@ export function useKnowledgeBase({
 
   // Auto-load documents when the hook is initialized
   useEffect(() => {
-    if (autoLoad && elevenlabsAgentId) {
+    if (autoLoad) {
       loadDocuments();
     }
-  }, [autoLoad, elevenlabsAgentId, loadDocuments]);
+  }, [autoLoad, loadDocuments]);
 
   return {
     documents,

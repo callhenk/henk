@@ -61,17 +61,17 @@ export function UseCaseStep({ selectedUseCase, onSelectUseCase }: UseCaseStepPro
                 <button
                   key={u}
                   onClick={() => onSelectUseCase(u)}
-                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-300 ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] ${
                     selectedUseCase === u
-                      ? 'border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-md shadow-primary/10'
+                      ? 'border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-md shadow-primary/10 scale-[1.02]'
                       : 'border-border hover:border-primary/30 hover:bg-muted/50'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs sm:text-sm font-medium">{u}</span>
                     {selectedUseCase === u && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                        <Check className="h-3 w-3 text-primary-foreground" />
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-in zoom-in duration-300">
+                        <Check className="h-3 w-3 text-primary-foreground animate-in zoom-in duration-200 delay-75" />
                       </div>
                     )}
                   </div>
