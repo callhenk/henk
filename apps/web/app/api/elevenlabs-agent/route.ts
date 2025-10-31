@@ -71,8 +71,12 @@ export async function POST(request: NextRequest) {
 
     const payload: Record<string, unknown> = {
       name: agentConfig.name,
-      conversation_config: agentConfig?.conversation_config ?? {},
     };
+
+    // Only include conversation_config if it's provided and has content
+    if (agentConfig?.conversation_config && Object.keys(agentConfig.conversation_config).length > 0) {
+      payload.conversation_config = agentConfig.conversation_config;
+    }
 
     if (agentConfig?.platform_settings != null) {
       payload.platform_settings = agentConfig.platform_settings;
@@ -94,10 +98,13 @@ export async function POST(request: NextRequest) {
       hasConversationConfig:
         typeof payload.conversation_config === 'object' &&
         payload.conversation_config !== null,
+      conversationConfigKeys: Object.keys(payload.conversation_config || {}),
       hasPlatformSettings: Boolean(payload.platform_settings),
       hasTags: Boolean(payload.tags),
       hasWorkspaceHeader: Boolean(process.env.ELEVENLABS_WORKSPACE_ID),
+      apiKeyLength: apiKey?.length,
     });
+    console.log('[elevenlabs-agent] Full payload being sent:', JSON.stringify(payload, null, 2));
 
     const resp = await fetch(
       'https://api.elevenlabs.io/v1/convai/agents/create',

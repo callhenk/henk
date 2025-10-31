@@ -8,18 +8,24 @@ const AGENT_TYPES = {
     description: 'Build from scratch with full customization',
     icon: '📝',
     systemPrompt: 'You are a helpful AI assistant. Be concise and friendly in your responses.',
+    defaultAgentName: '',
+    defaultGoal: '',
   },
   personal_assistant: {
     name: 'Personal Assistant',
     description: 'Manage schedules, tasks, and personal information',
     icon: '👤',
     systemPrompt: 'You are a personal assistant helping with scheduling, reminders, and task management. Be organized and proactive.',
+    defaultAgentName: 'Assistant',
+    defaultGoal: 'Help manage schedules, tasks, reminders, and personal information with organized and proactive support.',
   },
   business_agent: {
     name: 'Business Agent',
     description: 'Handle customer interactions and business operations',
     icon: '💼',
     systemPrompt: 'You are a professional business agent. Represent the company professionally and help resolve customer inquiries efficiently.',
+    defaultAgentName: 'Support Agent',
+    defaultGoal: 'Handle customer interactions, answer inquiries, and provide professional business support.',
   },
 };
 
