@@ -330,15 +330,13 @@ export function CreateAgentPanel({
       >
         <DialogContent className="w-full sm:max-w-2xl p-0 max-h-[100vh] sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-lg">
           <DialogHeader className="border-b px-4 sm:px-6 py-5 sm:py-6 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <DialogTitle className="text-lg sm:text-xl font-semibold">
-                  Create Agent
-                </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm">
-                  Set up a new AI voice agent for your campaigns
-                </DialogDescription>
-              </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-lg sm:text-xl font-semibold">
+                Create Agent
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
+                Set up a new AI voice agent for your campaigns
+              </DialogDescription>
             </div>
 
             {/* Step indicator */}
