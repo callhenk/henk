@@ -190,25 +190,7 @@ export async function trainAgent(
   });
 }
 
-// Legacy functions for backward compatibility
-export async function createElevenLabsAgent(
-  agentConfig: AgentConfig,
-): Promise<AgentResponse> {
-  return callApiRoute('/api/elevenlabs-agent/create', {
-    method: 'POST',
-    body: JSON.stringify(agentConfig),
-  });
-}
-
-export async function listElevenLabsAgents(): Promise<AgentResponse> {
-  return callApiRoute('/api/elevenlabs-agent/list');
-}
-
-export async function getElevenLabsAgent(
-  agentId: string,
-): Promise<AgentResponse> {
-  return callApiRoute(`/api/elevenlabs-agent/details/${agentId}`);
-}
+// Removed unused legacy functions: createElevenLabsAgent, listElevenLabsAgents, getElevenLabsAgent, deleteElevenLabsAgent
 
 export async function updateElevenLabsAgent(
   agentId: string,
@@ -220,14 +202,6 @@ export async function updateElevenLabsAgent(
       agent_id: agentId,
       updates,
     }),
-  });
-}
-
-export async function deleteElevenLabsAgent(
-  agentId: string,
-): Promise<AgentResponse> {
-  return callApiRoute(`/api/elevenlabs-agent/delete/${agentId}`, {
-    method: 'DELETE',
   });
 }
 
