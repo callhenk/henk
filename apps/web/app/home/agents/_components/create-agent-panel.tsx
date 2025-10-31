@@ -4,14 +4,21 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Check, ChevronLeft, ChevronRight, User, Volume2 } from 'lucide-react';
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Briefcase,
+  Target,
+  Building2,
+  Settings,
+  Eye,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useCreateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useUser } from '@kit/supabase/hooks/use-user';
-import { useVoices } from '@kit/supabase/hooks/voices/use-voices';
 import { Button } from '@kit/ui/button';
-// Removed @kit/ui/form usage in favor of plain markup since we're not using react-hook-form context
 import {
   Dialog,
   DialogContent,
@@ -20,21 +27,40 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@kit/ui/dialog';
-import { Input } from '@kit/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
 import { Spinner } from '@kit/ui/spinner';
-import { Textarea } from '@kit/ui/textarea';
+
+import { AgentTypesStep, AGENT_TYPES } from './agent-types-step';
+import { UseCaseStep } from './use-case-step';
+import { IndustryStep } from './industry-step';
+import { DetailsStep } from './details-step';
+import { ReviewStep } from './review-step';
 
 interface CreateAgentPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+type StepType =
+  | 'agent-type'
+  | 'use-case'
+  | 'industry'
+  | 'details'
+  | 'review';
+
+// Default workflow template for all agents
+const DEFAULT_WORKFLOW = {
+  nodes: [
+    { node_id: 'start', node_type: 'agent', initial_message: '' },
+    { node_id: 'end', node_type: 'end' },
+  ],
+  edges: [
+    {
+      source_node_id: 'start',
+      target_node_id: 'end',
+      edge_type: 'none',
+    },
+  ],
+};
 
 export function CreateAgentPanel({
   open,
@@ -43,50 +69,96 @@ export function CreateAgentPanel({
   const router = useRouter();
   const { data: user } = useUser();
   const createAgentMutation = useCreateAgent();
-  const { data: voices = [] } = useVoices();
 
+  // ElevenLabs-aligned flow state
+  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(null);
+  const [useCase, setUseCase] = useState<string | null>(null);
+  const [industry, setIndustry] = useState<string | null>(null);
+
+  // Agent details
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [voiceType, setVoiceType] = useState<'ai_generated'>(
-    'ai_generated',
-  );
-  const [voiceId, setVoiceId] = useState('');
+  const [goal, setGoal] = useState('');
+  const [website, setWebsite] = useState('');
+  const [chatOnly, setChatOnly] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [step, setStep] = useState<StepType>('agent-type');
 
   const steps: Array<{
-    key: 'info' | 'voice' | 'review';
+    key: StepType;
     title: string;
+    icon: React.ReactNode;
     description?: string;
   }> = [
     {
-      key: 'info',
-      title: 'Agent Information',
-      description: 'Name and description',
+      key: 'agent-type',
+      title: 'Agent Type',
+      icon: <Briefcase className="h-4 w-4" />,
+      description: 'Choose template',
     },
     {
-      key: 'voice',
-      title: 'Voice',
-      description: 'Choose voice type and voice',
+      key: 'use-case',
+      title: 'Use Case',
+      icon: <Target className="h-4 w-4" />,
+      description: 'Primary purpose',
     },
-    { key: 'review', title: 'Review', description: 'Confirm and create' },
+    {
+      key: 'industry',
+      title: 'Industry',
+      icon: <Building2 className="h-4 w-4" />,
+      description: 'Your sector',
+    },
+    {
+      key: 'details',
+      title: 'Details',
+      icon: <Settings className="h-4 w-4" />,
+      description: 'Name & goal',
+    },
+    {
+      key: 'review',
+      title: 'Review',
+      icon: <Eye className="h-4 w-4" />,
+      description: 'Confirm & create',
+    },
   ];
 
+  const stepIndex = steps.findIndex((s) => s.key === step);
+
   const canProceed = () => {
-    if (step === 0) return Boolean(name.trim());
-    if (step === 1)
-      return voiceType === 'ai_generated'
-        ? Boolean(voiceId) || voices.length === 0
-        : true;
-    return true;
+    switch (step) {
+      case 'agent-type':
+        return agentType !== null;
+      case 'use-case':
+        return useCase !== null;
+      case 'industry':
+        return industry !== null;
+      case 'details':
+        return Boolean(name.trim() && goal.trim());
+      case 'review':
+        return true;
+      default:
+        return false;
+    }
   };
 
   const goNext = () => {
-    if (step < 2 && canProceed()) setStep((s) => (s + 1) as 0 | 1 | 2);
+    const currentStepIndex = steps.findIndex((s) => s.key === step);
+    if (currentStepIndex >= 0 && currentStepIndex < steps.length - 1 && canProceed()) {
+      const nextStep = steps[currentStepIndex + 1];
+      if (nextStep) {
+        setStep(nextStep.key);
+      }
+    }
   };
 
   const goBack = () => {
-    if (step > 0) setStep((s) => (s - 1) as 0 | 1 | 2);
+    const currentStepIndex = steps.findIndex((s) => s.key === step);
+    if (currentStepIndex > 0) {
+      const prevStep = steps[currentStepIndex - 1];
+      if (prevStep) {
+        setStep(prevStep.key);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,22 +168,48 @@ export function CreateAgentPanel({
     setIsSubmitting(true);
 
     try {
-      // 1) Create ElevenLabs agent first: minimal required payload (no conversation_flow)
+      // Get system prompt from agent type
+      const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
+      const baseSystemPrompt = agentTypeTemplate?.systemPrompt || '';
+
+      // Build comprehensive conversation config
+      const conversationConfig = {
+        asr: {
+          quality: 'high',
+          language: 'en',
+        },
+        llm: {
+          model: 'gpt-4-turbo',
+          temperature: 0.7,
+          max_tokens: 500,
+        },
+        tts: {
+          stability: 75,
+          similarity_boost: 75,
+        },
+        agent: {
+          prompt: baseSystemPrompt,
+          first_message: `Hi! I'm ${name}. ${goal}`,
+          language: 'en',
+        },
+      };
+
+      // 1) Create ElevenLabs agent with full configuration
       const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
-        conversation_config: {},
+        conversation_config: conversationConfig,
+        workflow: DEFAULT_WORKFLOW,
       };
-      if (voiceId && voiceId !== 'none') {
-        elevenLabsAgentConfig.voice_id = voiceId;
-      }
 
-      console.log('[create-agent] Sending to /api/elevenlabs-agent:', {
+      console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
         name: elevenLabsAgentConfig.name,
-        hasConversationConfig:
-          typeof elevenLabsAgentConfig.conversation_config === 'object',
-        hasVoiceId: Boolean(
-          (elevenLabsAgentConfig as { voice_id?: string }).voice_id,
-        ),
+        agentType,
+        useCase,
+        industry,
+        chatOnly,
+        hasConversationConfig: Boolean(elevenLabsAgentConfig.conversation_config),
+        hasWorkflow: Boolean(elevenLabsAgentConfig.workflow),
+        hasVoiceId: Boolean(elevenLabsAgentConfig.voice_id),
       });
 
       const resp = await fetch('/api/elevenlabs-agent', {
@@ -151,53 +249,68 @@ export function CreateAgentPanel({
       // 2) Create agent record in DB
       const created = await createAgentMutation.mutateAsync({
         name: name.trim(),
-        description: description.trim() ? description.trim() : null,
-        voice_type: voiceType,
-        voice_id: voiceId?.trim() ? voiceId.trim() : '',
-        knowledge_base: {},
-        status: 'active',
+        description: goal.trim() || null,
+        voice_type: 'ai_generated',
+        voice_id: '',
+        knowledge_base: {
+          agentType,
+          useCase,
+          industry,
+          website,
+          chatOnly,
+          systemPrompt: conversationConfig.agent.prompt,
+          firstMessage: conversationConfig.agent.first_message,
+          llmModel: 'gpt-4-turbo',
+          temperature: 0.7,
+          maxTokens: 500,
+          asrQuality: 'high',
+          ttsStability: 75,
+        },
+        status: chatOnly ? 'chat' : 'active',
         elevenlabs_agent_id: elevenlabsAgentId,
       });
 
-      // 3) Assign default phone to agent (caller_id)
-      const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
-      if (created?.id) {
-        console.log('[create-agent] assign-phone start', {
-          agentId: created.id,
-          phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
-        });
-        try {
-          const resp = await fetch(`/api/agents/${created.id}/assign-phone`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
-          }).catch((e) => {
-            console.warn('[create-agent] assign-phone network error', e);
-            return undefined as unknown as Response;
+      // 3) Assign default phone to agent (caller_id) - only if not chat-only
+      if (!chatOnly) {
+        const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
+        if (created?.id) {
+          console.log('[create-agent] assign-phone start', {
+            agentId: created.id,
+            phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
           });
-          if (resp) {
-            const raw = await resp.text().catch(() => '');
-            console.log('[create-agent] assign-phone response', {
-              status: resp.status,
-              ok: resp.ok,
-              bodyPreview: raw?.slice(0, 300),
+          try {
+            const phoneResp = await fetch(`/api/agents/${created.id}/assign-phone`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
+            }).catch((e) => {
+              console.warn('[create-agent] assign-phone network error', e);
+              return undefined as unknown as Response;
             });
+            if (phoneResp) {
+              const raw = await phoneResp.text().catch(() => '');
+              console.log('[create-agent] assign-phone response', {
+                status: phoneResp.status,
+                ok: phoneResp.ok,
+                bodyPreview: raw?.slice(0, 300),
+              });
+            }
+          } catch (err) {
+            console.warn('[create-agent] assign-phone failed', err);
           }
-        } catch (err) {
-          console.warn('[create-agent] assign-phone failed', err);
         }
       }
 
       if (created?.id) {
-        // Navigate to details page - modal stays open with loading state until page loads
+        // Navigate to details page
         router.push(`/home/agents/${created.id}`);
       }
-      toast.success('Agent created');
-      // Don't stop loading - let the navigation handle the transition
+      toast.success('Agent created successfully!');
     } catch (err) {
       console.error('Failed to create agent', err);
-      toast.error('Failed to create agent');
-      // Only stop loading on error
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to create agent'
+      );
       setIsSubmitting(false);
     }
   };
@@ -208,7 +321,17 @@ export function CreateAgentPanel({
         open={open}
         onOpenChange={(o) => {
           onOpenChange(o);
-          if (!o) setStep(0);
+          if (!o) {
+            setStep('agent-type');
+            // Reset form
+            setAgentType(null);
+            setUseCase(null);
+            setIndustry(null);
+            setName('');
+            setGoal('');
+            setWebsite('');
+            setChatOnly(false);
+          }
         }}
       >
         <DialogContent className="max-w-2xl p-0">
@@ -225,22 +348,24 @@ export function CreateAgentPanel({
             </div>
 
             {/* Step indicator */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-6 gap-1">
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={
-                    idx <= step
-                      ? 'bg-primary text-primary-foreground rounded-md px-3 py-2 text-xs'
-                      : 'rounded-md border px-3 py-2 text-xs'
-                  }
+                  className={`rounded-md px-2 py-2 text-xs flex flex-col items-center justify-center gap-1 ${
+                    idx <= stepIndex
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border bg-muted'
+                  }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="bg-background text-foreground inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px]">
-                      {idx < step ? <Check className="h-3 w-3" /> : idx + 1}
-                    </span>
-                    <span className="font-medium">{s.title}</span>
+                  <div>
+                    {idx < stepIndex ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <span>{idx + 1}</span>
+                    )}
                   </div>
+                  <span className="font-medium text-[10px]">{s.title}</span>
                 </div>
               ))}
             </div>
@@ -249,131 +374,41 @@ export function CreateAgentPanel({
           {/* Body */}
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="overflow-y-auto px-6 py-6">
-              {step === 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-5 w-5 text-blue-500" />
-                    <h3 className="text-lg font-semibold">Agent Information</h3>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">
-                      Agent Name
-                    </label>
-                    <Input
-                      placeholder="e.g., Sarah"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      Choose a friendly, memorable name.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">
-                      Description
-                    </label>
-                    <Textarea
-                      placeholder="Brief description"
-                      className="min-h-[80px]"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      What this agent is for.
-                    </p>
-                  </div>
-                </div>
+              {step === 'agent-type' && (
+                <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
               )}
 
-              {step === 1 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="h-5 w-5 text-purple-500" />
-                    <h3 className="text-lg font-semibold">Voice</h3>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">
-                      Voice Type
-                    </label>
-                    <Select
-                      value={voiceType}
-                      onValueChange={(v) =>
-                        setVoiceType(v as 'ai_generated')
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ai_generated">
-                          AI Generated
-                        </SelectItem>
-                        {/* <SelectItem value="custom">Custom Voice</SelectItem> */}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      Technology powering your agent voice.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">
-                      Select Voice
-                    </label>
-                    <Select value={voiceId} onValueChange={setVoiceId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a voice" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {voices.length === 0 ? (
-                          <SelectItem value="none" disabled>
-                            No voices available
-                          </SelectItem>
-                        ) : (
-                          voices.map((v) => (
-                            <SelectItem key={v.voice_id} value={v.voice_id}>
-                              {v.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+              {step === 'use-case' && (
+                <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
               )}
 
-              {step === 2 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Review</h3>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div>
-                      <div className="text-muted-foreground text-xs">Name</div>
-                      <div className="font-medium">{name || '—'}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground text-xs">
-                        Description
-                      </div>
-                      <div className="font-medium">{description || '—'}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground text-xs">
-                        Voice Type
-                      </div>
-                      <div className="font-medium">
-                        {voiceType === 'ai_generated'
-                          ? 'AI Generated'
-                          : 'Custom'}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground text-xs">Voice</div>
-                      <div className="font-medium">
-                        {voices.find((v) => v.voice_id === voiceId)?.name ||
-                          '—'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {step === 'industry' && (
+                <IndustryStep selectedIndustry={industry} onSelectIndustry={setIndustry} />
+              )}
+
+              {step === 'details' && (
+                <DetailsStep
+                  name={name}
+                  onNameChange={setName}
+                  goal={goal}
+                  onGoalChange={setGoal}
+                  website={website}
+                  onWebsiteChange={setWebsite}
+                  chatOnly={chatOnly}
+                  onChatOnlyChange={setChatOnly}
+                />
+              )}
+
+              {step === 'review' && (
+                <ReviewStep
+                  agentType={agentType}
+                  useCase={useCase}
+                  industry={industry}
+                  name={name}
+                  goal={goal}
+                  website={website}
+                  chatOnly={chatOnly}
+                />
               )}
             </div>
           </div>
@@ -387,11 +422,11 @@ export function CreateAgentPanel({
                 <Button
                   variant="outline"
                   onClick={goBack}
-                  disabled={step === 0}
+                  disabled={stepIndex === 0}
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                {step < 2 ? (
+                {stepIndex < steps.length - 1 ? (
                   <Button onClick={goNext} disabled={!canProceed()}>
                     Next <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -401,7 +436,10 @@ export function CreateAgentPanel({
                     disabled={isSubmitting || !canProceed()}
                   >
                     {isSubmitting ? (
-                      <Spinner className="h-4 w-4" />
+                      <>
+                        <Spinner className="mr-2 h-4 w-4" />
+                        Creating...
+                      </>
                     ) : (
                       'Create Agent'
                     )}
