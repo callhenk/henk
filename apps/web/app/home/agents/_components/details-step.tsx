@@ -62,7 +62,7 @@ export function DetailsStep({
             Main Goal <span className="text-destructive">*</span>
           </label>
           <Textarea
-            placeholder="What is the primary goal of this agent? (e.g., 'Help customers with product orders')"
+            placeholder="What is the primary goal of this agent? (e.g., &apos;Help customers with product orders&apos;)"
             className="min-h-[100px] text-base resize-none"
             value={goal}
             onChange={(e) => {
@@ -71,7 +71,7 @@ export function DetailsStep({
             }}
           />
           <p className="text-xs text-muted-foreground">
-            This helps set the agent's purpose and behavior
+            This helps set the agent&apos;s purpose and behavior
           </p>
         </div>
 
