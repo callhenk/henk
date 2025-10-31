@@ -22,60 +22,72 @@ export function ReviewStep({
   chatOnly,
 }: ReviewStepProps) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Review Your Agent</h3>
-        <p className="text-muted-foreground text-sm mb-4">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="text-2xl font-bold">Review Your Agent</h3>
+        <p className="text-muted-foreground">
           Make sure everything looks correct before creation
         </p>
       </div>
 
       <div className="space-y-3">
-        <div className="rounded-lg border p-4 bg-muted/50">
-          <p className="text-muted-foreground text-xs font-medium mb-1">AGENT TYPE</p>
-          <p className="font-semibold text-base">
-            {agentType ? AGENT_TYPES[agentType].name : 'Not selected'}
-          </p>
+        {/* Agent Type */}
+        <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Agent Type</p>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{agentType ? AGENT_TYPES[agentType].icon : '❓'}</span>
+            <p className="font-bold text-lg">
+              {agentType ? AGENT_TYPES[agentType].name : 'Not selected'}
+            </p>
+          </div>
         </div>
 
-        <div className="rounded-lg border p-4 bg-muted/50">
-          <p className="text-muted-foreground text-xs font-medium mb-1">USE CASE</p>
-          <p className="font-semibold text-base">{useCase || 'Not selected'}</p>
+        {/* Use Case */}
+        <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Use Case</p>
+          <p className="font-bold text-lg">{useCase || '(Not selected)'}</p>
         </div>
 
-        <div className="rounded-lg border p-4 bg-muted/50">
-          <p className="text-muted-foreground text-xs font-medium mb-1">INDUSTRY</p>
-          <p className="font-semibold text-base">{industry || 'Not selected'}</p>
+        {/* Industry */}
+        <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Industry</p>
+          <p className="font-bold text-lg">{industry || '(Not selected)'}</p>
         </div>
 
-        <div className="rounded-lg border p-4 bg-muted/50">
-          <p className="text-muted-foreground text-xs font-medium mb-1">AGENT NAME</p>
-          <p className="font-semibold text-base">{name}</p>
+        {/* Agent Name */}
+        <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Agent Name</p>
+          <p className="font-bold text-lg">{name || '(Not provided)'}</p>
         </div>
 
-        <div className="rounded-lg border p-4 bg-muted/50">
-          <p className="text-muted-foreground text-xs font-medium mb-1">MAIN GOAL</p>
-          <p className="font-semibold text-base">{goal}</p>
+        {/* Main Goal */}
+        <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Main Goal</p>
+          <p className="font-semibold text-base text-foreground">{goal || '(Not provided)'}</p>
         </div>
 
+        {/* Website - Conditional */}
         {website && (
-          <div className="rounded-lg border p-4 bg-muted/50">
-            <p className="text-muted-foreground text-xs font-medium mb-1">WEBSITE</p>
-            <p className="font-semibold text-base">{website}</p>
+          <div className="rounded-xl border-2 border-border p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Website</p>
+            <p className="font-bold text-lg text-primary">{website}</p>
           </div>
         )}
 
+        {/* Chat Mode - Conditional */}
         {chatOnly && (
-          <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950">
-            <p className="text-muted-foreground text-xs font-medium mb-1">MODE</p>
-            <p className="font-semibold text-base">Chat Only (No Voice Calls)</p>
+          <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 p-5 bg-gradient-to-br from-blue-50 to-blue-50/50 dark:from-blue-950/30 dark:to-blue-950/10">
+            <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-2">Mode</p>
+            <p className="font-bold text-lg text-blue-900 dark:text-blue-100">Chat Only (No Voice Calls)</p>
           </div>
         )}
       </div>
 
-      <p className="text-muted-foreground text-xs mt-4">
-        You can customize advanced settings and voice after creation
-      </p>
+      <div className="rounded-lg bg-primary/5 border border-primary/10 p-4">
+        <p className="text-sm text-primary/80 font-medium">
+          ✨ You can customize advanced settings and voice configuration after creation
+        </p>
+      </div>
     </div>
   );
 }
