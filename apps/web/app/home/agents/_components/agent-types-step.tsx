@@ -36,35 +36,35 @@ interface AgentTypesStepProps {
 
 export function AgentTypesStep({ selectedType, onSelectType }: AgentTypesStepProps) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-2xl font-bold">Choose Agent Type</h3>
-        <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-1 sm:space-y-2">
+        <h3 className="text-xl sm:text-2xl font-bold">Choose Agent Type</h3>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Select a template to get started, or build from scratch
         </p>
       </div>
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4">
         {(Object.entries(AGENT_TYPES) as Array<[keyof typeof AGENT_TYPES, typeof AGENT_TYPES.blank]>).map(([key, template]) => (
           <button
             key={key}
             onClick={() => onSelectType(key)}
-            className={`relative group rounded-xl border-2 p-5 text-left transition-all duration-300 ${
+            className={`relative group rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-300 ${
               selectedType === key
                 ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20'
                 : 'border-border hover:border-primary/30 hover:shadow-md hover:shadow-primary/10'
             }`}
           >
-            <div className="flex items-start gap-4">
-              <div className={`flex-shrink-0 rounded-lg p-3 transition-all duration-300 ${
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className={`flex-shrink-0 rounded-lg p-2 sm:p-3 transition-all duration-300 ${
                 selectedType === key
                   ? 'bg-primary/20'
                   : 'bg-muted group-hover:bg-primary/10'
               }`}>
-                <span className="text-4xl">{template.icon}</span>
+                <span className="text-3xl sm:text-4xl">{template.icon}</span>
               </div>
-              <div className="flex-1">
-                <div className="font-bold text-lg">{template.name}</div>
-                <div className="text-muted-foreground text-sm mt-1">
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-base sm:text-lg">{template.name}</div>
+                <div className="text-muted-foreground text-xs sm:text-sm mt-1">
                   {template.description}
                 </div>
               </div>

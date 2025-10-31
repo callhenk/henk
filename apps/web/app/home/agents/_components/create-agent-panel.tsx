@@ -175,34 +175,23 @@ export function CreateAgentPanel({
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
       const baseSystemPrompt = agentTypeTemplate?.systemPrompt || '';
 
-      // Build comprehensive conversation config - start with minimal config
+      // Build conversation config with required fields for ElevenLabs
       const conversationConfig = {
-        asr: {
-          quality: 'high' as const,
-          language: 'en',
-        },
-        turn: {
-          regular_call_thickness: 2.0,
-        },
-        tts: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-        conversation: {
-          default_language: 'en',
-        },
         agent: {
-          prompt: baseSystemPrompt || 'You are a helpful AI assistant.',
           first_message: `Hi! I'm ${name}. ${goal}`,
           language: 'en',
+          prompt: {
+            prompt: baseSystemPrompt || 'You are a helpful AI assistant.',
+            llm: 'gpt-4o-mini',
+            max_tokens: 1024,
+          },
         },
       };
 
-      // 1) Create ElevenLabs agent - start with minimal config (name only)
-      // We can add conversation_config after we verify basic creation works
+      // 1) Create ElevenLabs agent with conversation config
       const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
-        // conversation_config: conversationConfig, // TODO: Add back after debugging
+        conversation_config: conversationConfig,
       };
 
       console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
@@ -339,38 +328,38 @@ export function CreateAgentPanel({
           }
         }}
       >
-        <DialogContent className="max-w-2xl p-0 max-h-[90vh] flex flex-col">
-          <DialogHeader className="border-b px-6 py-5 flex-shrink-0">
+        <DialogContent className="w-full sm:max-w-2xl p-0 max-h-[90vh] flex flex-col mx-4 sm:mx-auto">
+          <DialogHeader className="border-b px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <DialogTitle className="text-xl font-semibold">
+                <DialogTitle className="text-lg sm:text-xl font-semibold">
                   Create Agent
                 </DialogTitle>
-                <DialogDescription className="text-sm">
+                <DialogDescription className="text-xs sm:text-sm">
                   Set up a new AI voice agent for your campaigns
                 </DialogDescription>
               </div>
             </div>
 
             {/* Step indicator */}
-            <div className="mt-4 grid grid-cols-5 gap-2">
+            <div className="mt-3 sm:mt-4 grid grid-cols-5 gap-1 sm:gap-2">
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={`rounded-lg px-3 py-2 text-xs flex flex-col items-center justify-center gap-1 transition-all ${
+                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all ${
                     idx <= stepIndex
                       ? 'bg-primary text-primary-foreground font-semibold'
                       : 'border bg-muted text-muted-foreground'
                   }`}
                 >
-                  <div className="flex items-center justify-center h-5">
+                  <div className="flex items-center justify-center h-4 sm:h-5">
                     {idx < stepIndex ? (
                       <Check className="h-3 w-3" />
                     ) : (
-                      <span className="text-xs font-bold">{idx + 1}</span>
+                      <span className="text-[10px] sm:text-xs font-bold">{idx + 1}</span>
                     )}
                   </div>
-                  <span className="font-medium text-[9px] leading-tight text-center">{s.title}</span>
+                  <span className="font-medium text-[7px] sm:text-[9px] leading-tight text-center">{s.title}</span>
                 </div>
               ))}
             </div>
@@ -378,7 +367,7 @@ export function CreateAgentPanel({
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
-            <div className="px-6 py-5">
+            <div className="px-4 sm:px-6 py-4 sm:py-5">
               {step === 'agent-type' && (
                 <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
               )}
@@ -420,22 +409,23 @@ export function CreateAgentPanel({
             </div>
           </div>
 
-          <DialogFooter className="border-t px-6 py-3 flex-shrink-0 bg-muted/20">
-            <div className="flex w-full items-center justify-between gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:text-foreground">
+          <DialogFooter className="border-t px-4 sm:px-6 py-2 sm:py-3 flex-shrink-0 bg-muted/20">
+            <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
+              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground">
                 Cancel
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full sm:w-auto items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={goBack}
                   disabled={stepIndex === 0}
+                  className="flex-1 sm:flex-none"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {stepIndex < steps.length - 1 ? (
-                  <Button onClick={goNext} disabled={!canProceed()} size="sm">
+                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none">
                     Next <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 ) : (
@@ -443,6 +433,7 @@ export function CreateAgentPanel({
                     onClick={handleSubmit}
                     disabled={isSubmitting || !canProceed()}
                     size="sm"
+                    className="flex-1 sm:flex-none"
                   >
                     {isSubmitting ? (
                       <>
