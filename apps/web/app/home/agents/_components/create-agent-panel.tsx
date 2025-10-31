@@ -175,10 +175,10 @@ export function CreateAgentPanel({
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
       const baseSystemPrompt = agentTypeTemplate?.systemPrompt || '';
 
-      // Build comprehensive conversation config
+      // Build comprehensive conversation config - start with minimal config
       const conversationConfig = {
         asr: {
-          quality: 'high',
+          quality: 'high' as const,
           language: 'en',
         },
         turn: {
@@ -192,16 +192,17 @@ export function CreateAgentPanel({
           default_language: 'en',
         },
         agent: {
-          prompt: baseSystemPrompt,
+          prompt: baseSystemPrompt || 'You are a helpful AI assistant.',
           first_message: `Hi! I'm ${name}. ${goal}`,
           language: 'en',
         },
       };
 
-      // 1) Create ElevenLabs agent with full configuration
+      // 1) Create ElevenLabs agent - start with minimal config (name only)
+      // We can add conversation_config after we verify basic creation works
       const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
-        conversation_config: conversationConfig,
+        // conversation_config: conversationConfig, // TODO: Add back after debugging
       };
 
       console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
@@ -235,6 +236,7 @@ export function CreateAgentPanel({
           body: raw?.slice(0, 500),
           parsed: elevenlabsData,
         });
+        setIsSubmitting(false);
         throw new Error(
           ((elevenlabsData as Record<string, unknown>)?.error as
             | string

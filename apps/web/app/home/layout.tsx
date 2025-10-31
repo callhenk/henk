@@ -1,5 +1,6 @@
 import { use } from 'react';
 
+import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import {
@@ -19,6 +20,14 @@ import { requireUserInServerComponent } from '~/lib/server/require-user-in-serve
 import { HomeMenuNavigation } from './_components/home-menu-navigation';
 import { HomeMobileNavigation } from './_components/home-mobile-navigation';
 import { HomeSidebar } from './_components/home-sidebar';
+
+// Protected pages should not be indexed by search engines
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function HomeLayout({ children }: React.PropsWithChildren) {
   const style = use(getLayoutStyle());
