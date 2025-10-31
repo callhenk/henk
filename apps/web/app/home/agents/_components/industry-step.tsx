@@ -28,28 +28,30 @@ interface IndustryStepProps {
 
 export function IndustryStep({ selectedIndustry, onSelectIndustry }: IndustryStepProps) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">What industry are you in?</h3>
-        <p className="text-muted-foreground text-sm mb-4">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="text-2xl font-bold">What industry are you in?</h3>
+        <p className="text-muted-foreground">
           This helps us tailor recommendations for your agent
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {INDUSTRIES.map((ind) => (
           <button
             key={ind}
             onClick={() => onSelectIndustry(ind)}
-            className={`rounded-lg border-2 p-3 text-left transition ${
+            className={`rounded-xl border-2 p-4 text-left transition-all duration-300 font-medium ${
               selectedIndustry === ind
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50'
+                ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-md shadow-primary/15'
+                : 'border-border hover:border-primary/30 hover:bg-muted/50'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{ind}</span>
+              <span className="text-sm">{ind}</span>
               {selectedIndustry === ind && (
-                <Check className="h-4 w-4 text-primary" />
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <Check className="h-3 w-3 text-primary-foreground" />
+                </div>
               )}
             </div>
           </button>
