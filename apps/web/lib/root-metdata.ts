@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { headers } from 'next/headers';
 
 import appConfig from '~/config/app.config';
+import { generateOrganizationSchema, generateWebsiteSchema, schemaToJsonLd } from '~/lib/seo-schema';
 
 /**
  * @name generateRootMetadata
@@ -17,14 +18,23 @@ export const generateRootMetadata = async (): Promise<Metadata> => {
     description: appConfig.description,
     metadataBase: new URL(appConfig.url),
     applicationName: appConfig.name,
+    viewport: {
+      width: 'device-width',
+      initialScale: 1,
+      maximumScale: 5,
+      userScalable: true,
+    },
     other: {
       'csrf-token': csrfToken,
+      'schema:organization': schemaToJsonLd(generateOrganizationSchema()),
+      'schema:website': schemaToJsonLd(generateWebsiteSchema()),
     },
     openGraph: {
       url: appConfig.url,
       siteName: appConfig.name,
       title: appConfig.title,
       description: appConfig.description,
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
