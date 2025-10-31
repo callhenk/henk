@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -47,21 +47,6 @@ type StepType =
   | 'details'
   | 'review';
 
-// Default workflow template for all agents
-const DEFAULT_WORKFLOW = {
-  nodes: [
-    { node_id: 'start', node_type: 'agent', initial_message: '' },
-    { node_id: 'end', node_type: 'end' },
-  ],
-  edges: [
-    {
-      source_node_id: 'start',
-      target_node_id: 'end',
-      edge_type: 'none',
-    },
-  ],
-};
-
 export function CreateAgentPanel({
   open,
   onOpenChange,
@@ -83,6 +68,24 @@ export function CreateAgentPanel({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<StepType>('agent-type');
+
+  // Track if user has manually edited name/goal
+  const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
+  const [goalManuallyEdited, setGoalManuallyEdited] = useState(false);
+
+  // Auto-populate name and goal based on agent type
+  useEffect(() => {
+    if (agentType) {
+      const template = AGENT_TYPES[agentType];
+      // Only set defaults if user hasn't manually edited them
+      if (!nameManuallyEdited && template.defaultAgentName) {
+        setName(template.defaultAgentName);
+      }
+      if (!goalManuallyEdited && template.defaultGoal) {
+        setGoal(template.defaultGoal);
+      }
+    }
+  }, [agentType, nameManuallyEdited, goalManuallyEdited]);
 
   const steps: Array<{
     key: StepType;
@@ -178,14 +181,15 @@ export function CreateAgentPanel({
           quality: 'high',
           language: 'en',
         },
-        llm: {
-          model: 'gpt-4-turbo',
-          temperature: 0.7,
-          max_tokens: 500,
+        turn: {
+          regular_call_thickness: 2.0,
         },
         tts: {
-          stability: 75,
-          similarity_boost: 75,
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
+        conversation: {
+          default_language: 'en',
         },
         agent: {
           prompt: baseSystemPrompt,
@@ -198,7 +202,6 @@ export function CreateAgentPanel({
       const elevenLabsAgentConfig: Record<string, unknown> = {
         name: name.trim(),
         conversation_config: conversationConfig,
-        workflow: DEFAULT_WORKFLOW,
       };
 
       console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
@@ -390,8 +393,10 @@ export function CreateAgentPanel({
                 <DetailsStep
                   name={name}
                   onNameChange={setName}
+                  onNameEdited={() => setNameManuallyEdited(true)}
                   goal={goal}
                   onGoalChange={setGoal}
+                  onGoalEdited={() => setGoalManuallyEdited(true)}
                   website={website}
                   onWebsiteChange={setWebsite}
                   chatOnly={chatOnly}

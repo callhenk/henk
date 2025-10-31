@@ -7,8 +7,10 @@ import { Textarea } from '@kit/ui/textarea';
 interface DetailsStepProps {
   name: string;
   onNameChange: (name: string) => void;
+  onNameEdited?: () => void;
   goal: string;
   onGoalChange: (goal: string) => void;
+  onGoalEdited?: () => void;
   website: string;
   onWebsiteChange: (website: string) => void;
   chatOnly: boolean;
@@ -18,8 +20,10 @@ interface DetailsStepProps {
 export function DetailsStep({
   name,
   onNameChange,
+  onNameEdited,
   goal,
   onGoalChange,
+  onGoalEdited,
   website,
   onWebsiteChange,
   chatOnly,
@@ -42,7 +46,10 @@ export function DetailsStep({
           <Input
             placeholder="e.g., Sarah, Support Bot"
             value={name}
-            onChange={(e) => onNameChange(e.target.value)}
+            onChange={(e) => {
+              onNameChange(e.target.value);
+              onNameEdited?.();
+            }}
             className="h-11 text-base"
           />
           <p className="text-xs text-muted-foreground">
@@ -58,7 +65,10 @@ export function DetailsStep({
             placeholder="What is the primary goal of this agent? (e.g., 'Help customers with product orders')"
             className="min-h-[100px] text-base resize-none"
             value={goal}
-            onChange={(e) => onGoalChange(e.target.value)}
+            onChange={(e) => {
+              onGoalChange(e.target.value);
+              onGoalEdited?.();
+            }}
           />
           <p className="text-xs text-muted-foreground">
             This helps set the agent's purpose and behavior
