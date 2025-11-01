@@ -30,7 +30,13 @@ export default defineConfig({
       },
     },
     include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', '.next', 'apps/e2e/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.next/**',
+      'apps/e2e/**',
+      'node_modules/**',
+    ],
   },
   resolve: {
     alias: {
@@ -38,6 +44,8 @@ export default defineConfig({
       '@kit/ui': path.resolve(__dirname, './packages/ui/src'),
       '@kit/supabase': path.resolve(__dirname, './packages/supabase/src'),
       '@kit/shared': path.resolve(__dirname, './packages/shared/src'),
+      '~': path.resolve(__dirname, './apps/web'),
     },
+    conditions: ['module', 'import', 'node'],
   },
 });

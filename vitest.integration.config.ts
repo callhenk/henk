@@ -7,9 +7,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: [path.resolve(__dirname, './vitest.setup.ts')],
     include: ['**/*.integration.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', '.next', 'apps/e2e/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.next/**',
+      'apps/e2e/**',
+      'node_modules/**',
+    ],
     testTimeout: 30000, // Integration tests may take longer
     hookTimeout: 30000,
     coverage: {
@@ -34,6 +40,8 @@ export default defineConfig({
       '@kit/ui': path.resolve(__dirname, './packages/ui/src'),
       '@kit/supabase': path.resolve(__dirname, './packages/supabase/src'),
       '@kit/shared': path.resolve(__dirname, './packages/shared/src'),
+      '~': path.resolve(__dirname, './apps/web'),
     },
+    conditions: ['module', 'import', 'node'],
   },
 });

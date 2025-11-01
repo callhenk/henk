@@ -6,7 +6,7 @@ import type { IntegrationStatus } from './types';
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant'];
 
-export function StatusBadge({ status }: { status: IntegrationStatus }) {
+export function IntegrationStatusBadge({ status }: { status: IntegrationStatus }) {
   const { variant, label } = get(status);
   return <Badge variant={variant}>{label}</Badge>;
 }

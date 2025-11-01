@@ -47,6 +47,7 @@ import { LeadListsDialog } from './lead-lists-dialog';
 import { EditLeadDialog } from './edit-lead-dialog';
 
 import type { Database } from '~/lib/database.types';
+import { getSourceBadgeColor } from '~/lib/utils/badges';
 type Lead = Database['public']['Tables']['leads']['Row'];
 
 export function LeadsList() {
@@ -106,19 +107,6 @@ export function LeadsList() {
       setDeleteLeadId(null);
     } catch {
       toast.error('Failed to delete lead');
-    }
-  };
-
-  const getSourceBadgeColor = (source: string) => {
-    switch (source) {
-      case 'salesforce':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'hubspot':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'manual':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
-      default:
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
     }
   };
 

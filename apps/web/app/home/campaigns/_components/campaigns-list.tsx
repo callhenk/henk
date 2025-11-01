@@ -67,6 +67,7 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { useDemoMode } from '~/lib/demo-mode-context';
+import { formatDate, getConversionRate } from '~/lib/utils';
 
 import { WizardContainer } from '../wizard/wizard-container';
 
@@ -543,14 +544,6 @@ function CampaignsTable({
   onDeleteCampaign: (campaign: EnhancedCampaign) => void;
 }) {
   const router = useRouter();
-  const getConversionRate = (contacted: number, conversions: number) => {
-    if (contacted === 0) return 0;
-    return Math.round((conversions / contacted) * 100);
-  };
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
 
   // Empty state
   if (campaigns.length === 0) {
