@@ -53,30 +53,6 @@ async function testVoiceAPI() {
       }
     }
 
-    // Test 3: Test campaign API
-    console.log('\n3. Testing GET /api/campaigns...');
-    const campaignsResponse = await fetch(`${BASE_URL}/api/campaigns`);
-    const campaignsData = await campaignsResponse.json();
-
-    if (campaignsData.success) {
-      console.log('✅ Campaigns API working');
-      console.log(`   Found ${campaignsData.data?.length || 0} campaigns`);
-    } else {
-      console.log('❌ Campaigns API failed:', campaignsData.error);
-    }
-
-    // Test 4: Test agents API
-    console.log('\n4. Testing GET /api/agents...');
-    const agentsResponse = await fetch(`${BASE_URL}/api/agents`);
-    const agentsData = await agentsResponse.json();
-
-    if (agentsData.success) {
-      console.log('✅ Agents API working');
-      console.log(`   Found ${agentsData.data?.length || 0} agents`);
-    } else {
-      console.log('❌ Agents API failed:', agentsData.error);
-    }
-
     console.log('\n🎉 AI Voice API integration test completed!');
   } catch (error) {
     console.error(

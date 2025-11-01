@@ -65,8 +65,10 @@ export const UpdatePasswordForm = ({
   };
 
   const updatePasswordCallback = async ({
+    currentPassword,
     newPassword,
   }: {
+    currentPassword: string;
     newPassword: string;
   }) => {
     const email = user.email;
@@ -77,7 +79,27 @@ export const UpdatePasswordForm = ({
       return Promise.reject(t(`cannotUpdatePassword`));
     }
 
-    updatePasswordFromCredential(newPassword);
+    // Verify current password by attempting to sign in
+    try {
+      const { createBrowserClient } = await import('@kit/supabase/client');
+      const supabase = createBrowserClient();
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast.error(t('currentPasswordIncorrect'));
+        return Promise.reject(t('currentPasswordIncorrect'));
+      }
+
+      // Current password verified, proceed with update
+      updatePasswordFromCredential(newPassword);
+    } catch (error) {
+      toast.error(t('currentPasswordIncorrect'));
+      return Promise.reject(t('currentPasswordIncorrect'));
+    }
   };
 
   const form = useForm({
@@ -85,6 +107,7 @@ export const UpdatePasswordForm = ({
       PasswordUpdateSchema.withTranslation(t('passwordNotMatching')),
     ),
     defaultValues: {
+      currentPassword: '',
       newPassword: '',
       repeatPassword: '',
     },
@@ -104,6 +127,37 @@ export const UpdatePasswordForm = ({
           <If condition={needsReauthentication}>
             <NeedsReauthenticationAlert />
           </If>
+
+          <FormField
+            name={'currentPassword'}
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormLabel>
+                    <Label>
+                      <Trans i18nKey={'account:currentPassword'} defaults="Current Password" />
+                    </Label>
+                  </FormLabel>
+
+                  <FormControl>
+                    <Input
+                      data-test={'account-password-form-current-password-input'}
+                      required
+                      type={'password'}
+                      placeholder="Enter your current password"
+                      {...field}
+                    />
+                  </FormControl>
+
+                  <FormDescription>
+                    <Trans i18nKey={'account:currentPasswordDescription'} defaults="Please enter your current password to verify your identity" />
+                  </FormDescription>
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
 
           <FormField
             name={'newPassword'}

@@ -18,7 +18,10 @@ export const generateMetadata = async () => {
 };
 
 const { callback, passwordUpdate, signIn } = pathsConfig.auth;
-const redirectPath = `${callback}?next=${passwordUpdate}`;
+
+// Get the app URL from environment or use a fallback
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.callhenk.com';
+const redirectPath = `${appUrl}${callback}?next=${passwordUpdate}`;
 
 function PasswordResetPage() {
   return (
