@@ -23,19 +23,30 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 
+import { AgentVoiceSettings } from './agent-voice-settings';
+
+interface VoiceSettings {
+  stability?: number;
+  similarity_boost?: number;
+  style?: number;
+  use_speaker_boost?: boolean;
+  optimize_streaming_latency?: number;
+}
+
 interface AgentVoiceProps {
   agent: {
     id: string;
     voice_id?: string | null;
     voice_type?: string | null;
+    voice_settings?: VoiceSettings | null;
     elevenlabs_agent_id?: string | null;
   };
   voices: Array<{
     voice_id: string;
     name: string;
   }>;
-  onSaveField: (fieldName: string, value: string) => Promise<void>;
-  onVoiceUpdate: (fieldName: string, value: string) => void;
+  onSaveField: (fieldName: string, value: string | unknown) => Promise<void>;
+  onVoiceUpdate: (fieldName: string, value: string | unknown) => void;
 }
 
 const voiceTypes = [
@@ -174,6 +185,13 @@ export function AgentVoice({
 
   return (
     <div className="space-y-6">
+      {/* Voice Settings Controls */}
+      <AgentVoiceSettings
+        agent={agent}
+        onSaveField={onSaveField}
+        onVoiceUpdate={onVoiceUpdate}
+      />
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <Card className="glass-panel">
