@@ -85,10 +85,7 @@ vi.mock('next/navigation', () => ({
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
-  default: (props: any) => {
-    // eslint-disable-next-line jsx-a11y/alt-text
-    return <img {...props} />;
-  },
+  default: vi.fn(),
 }));
 
 // Suppress console errors in tests (optional - comment out if you want to see them)

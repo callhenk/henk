@@ -48,16 +48,33 @@ export async function createTestUser(
 /**
  * Creates a test business
  */
-export async function createTestBusiness(name: string, slug?: string) {
+export async function createTestBusiness(name: string, accountId?: string) {
   const supabase = createTestClient();
 
-  const businessSlug = slug || name.toLowerCase().replace(/\s+/g, '-');
+  // Create an account first if not provided
+  let finalAccountId = accountId;
+  if (!finalAccountId) {
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .insert({
+        name: `${name} Account`,
+      })
+      .select()
+      .single();
+
+    if (accountError) {
+      throw new Error(`Failed to create test account: ${accountError.message}`);
+    }
+
+    finalAccountId = account.id;
+  }
 
   const { data: business, error } = await supabase
     .from('businesses')
     .insert({
       name,
-      slug: businessSlug,
+      account_id: finalAccountId,
+      status: 'active',
     })
     .select()
     .single();

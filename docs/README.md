@@ -29,6 +29,8 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 
 - **[Demo System](./demo-system.md)** - Token-based demo system for client presentations
 - **[QA Plan](./qa-plan.md)** - Quality assurance and testing strategy
+- **[Testing Quick Start](./testing-quickstart.md)** - Get started with the test suite
+- **[Testing Known Issues](./testing-known-issues.md)** - Current testing blockers and solutions
 
 ---
 
@@ -42,7 +44,7 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 | Database setup             | [Supabase Local Development](./supabase-local-development.md)|
 | Storage configuration      | [Storage Buckets](./storage-buckets.md)                      |
 | Environment variables      | [Environment Configuration](./environment.md)                |
-| Testing & QA               | [QA Plan](./qa-plan.md)                                      |
+| Testing & QA               | [QA Plan](./qa-plan.md) • [Quick Start](./testing-quickstart.md) |
 | Troubleshooting            | [Troubleshooting](./troubleshooting.md)                      |
 
 ---

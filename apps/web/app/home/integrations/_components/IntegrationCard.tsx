@@ -7,7 +7,7 @@ import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
 import { OverflowMenu } from './OverflowMenu';
-import { StatusBadge } from './StatusBadge';
+import { IntegrationStatusBadge } from './integration-status-badge';
 import { formatRelativeTime } from './types';
 import type { UiIntegration } from './types';
 
@@ -50,7 +50,7 @@ export function IntegrationCard({
                 <Badge variant="outline" className="text-xs capitalize">
                   {item.type}
                 </Badge>
-                <StatusBadge status={item.status} />
+                <IntegrationStatusBadge status={item.status} />
               </div>
             </div>
           </div>
