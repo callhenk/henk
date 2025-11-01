@@ -4,1666 +4,3199 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       accounts: {
         Row: {
-          created_at: string | null;
-          created_by: string | null;
-          email: string | null;
-          id: string;
-          name: string;
-          picture_url: string | null;
-          public_data: Json;
-          updated_at: string | null;
-          updated_by: string | null;
-        };
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          picture_url: string | null
+          public_data: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
         Insert: {
-          created_at?: string | null;
-          created_by?: string | null;
-          email?: string | null;
-          id?: string;
-          name: string;
-          picture_url?: string | null;
-          public_data?: Json;
-          updated_at?: string | null;
-          updated_by?: string | null;
-        };
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          picture_url?: string | null
+          public_data?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
         Update: {
-          created_at?: string | null;
-          created_by?: string | null;
-          email?: string | null;
-          id?: string;
-          name?: string;
-          picture_url?: string | null;
-          public_data?: Json;
-          updated_at?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'accounts_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'accounts_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          picture_url?: string | null
+          public_data?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          status: string;
-          voice_type: string;
-          voice_id: string | null;
-          speaking_tone: string;
-          voice_settings: Json | null;
-          personality: string | null;
-          script_template: string | null;
-          organization_info: string | null;
-          donor_context: string | null;
-          starting_message: string | null;
-          faqs: Json | null;
-          knowledge_base: Json | null;
-          workflow_config: Json | null;
-          elevenlabs_agent_id: string | null;
-          caller_id: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-          business_id: string;
-        };
+          business_id: string
+          caller_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          donor_context: string | null
+          elevenlabs_agent_id: string | null
+          enabled_tools: Json | null
+          faqs: Json | null
+          id: string
+          knowledge_base: Json | null
+          name: string
+          organization_info: string | null
+          personality: string | null
+          script_template: string | null
+          speaking_tone: string
+          starting_message: string | null
+          status: Database["public"]["Enums"]["agent_status"]
+          updated_at: string | null
+          updated_by: string | null
+          voice_id: string | null
+          voice_settings: Json | null
+          voice_type: Database["public"]["Enums"]["voice_type"]
+          workflow_config: Json | null
+        }
         Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          status?: string;
-          voice_type?: string;
-          voice_id?: string | null;
-          speaking_tone?: string;
-          voice_settings?: Json | null;
-          personality?: string | null;
-          script_template?: string | null;
-          organization_info?: string | null;
-          donor_context?: string | null;
-          caller_id?: string | null;
-          starting_message?: string | null;
-          faqs?: Json | null;
-          knowledge_base?: Json | null;
-          workflow_config?: Json | null;
-          elevenlabs_agent_id?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id: string;
-        };
+          business_id: string
+          caller_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          donor_context?: string | null
+          elevenlabs_agent_id?: string | null
+          enabled_tools?: Json | null
+          faqs?: Json | null
+          id?: string
+          knowledge_base?: Json | null
+          name: string
+          organization_info?: string | null
+          personality?: string | null
+          script_template?: string | null
+          speaking_tone?: string
+          starting_message?: string | null
+          status?: Database["public"]["Enums"]["agent_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          voice_id?: string | null
+          voice_settings?: Json | null
+          voice_type?: Database["public"]["Enums"]["voice_type"]
+          workflow_config?: Json | null
+        }
         Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          status?: string;
-          voice_type?: string;
-          voice_id?: string | null;
-          speaking_tone?: string;
-          voice_settings?: Json | null;
-          personality?: string | null;
-          script_template?: string | null;
-          organization_info?: string | null;
-          caller_id?: string | null;
-          donor_context?: string | null;
-          starting_message?: string | null;
-          faqs?: Json | null;
-          knowledge_base?: Json | null;
-          workflow_config?: Json | null;
-          elevenlabs_agent_id?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id?: string;
-        };
+          business_id?: string
+          caller_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          donor_context?: string | null
+          elevenlabs_agent_id?: string | null
+          enabled_tools?: Json | null
+          faqs?: Json | null
+          id?: string
+          knowledge_base?: Json | null
+          name?: string
+          organization_info?: string | null
+          personality?: string | null
+          script_template?: string | null
+          speaking_tone?: string
+          starting_message?: string | null
+          status?: Database["public"]["Enums"]["agent_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          voice_id?: string | null
+          voice_settings?: Json | null
+          voice_type?: Database["public"]["Enums"]["voice_type"]
+          workflow_config?: Json | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'agents_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
+            foreignKeyName: "agents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: 'agents_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'agents_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      audio_generations: {
-        Row: {
-          id: string;
-          campaign_id: string | null;
-          agent_id: string | null;
-          lead_id: string | null;
-          text_content: string;
-          voice_id: string;
-          voice_settings: Json | null;
-          status: string;
-          audio_url: string | null;
-          file_size_bytes: number | null;
-          duration_seconds: number | null;
-          elevenlabs_request_id: string | null;
-          elevenlabs_voice_name: string | null;
-          model_id: string;
-          generation_time_ms: number | null;
-          cost_cents: number | null;
-          cache_hit: boolean;
-          cache_key: string | null;
-          error_code: string | null;
-          error_message: string | null;
-          retry_count: number;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          campaign_id?: string | null;
-          agent_id?: string | null;
-          lead_id?: string | null;
-          text_content: string;
-          voice_id: string;
-          voice_settings?: Json | null;
-          status?: string;
-          audio_url?: string | null;
-          file_size_bytes?: number | null;
-          duration_seconds?: number | null;
-          elevenlabs_request_id?: string | null;
-          elevenlabs_voice_name?: string | null;
-          model_id?: string;
-          generation_time_ms?: number | null;
-          cost_cents?: number | null;
-          cache_hit?: boolean;
-          cache_key?: string | null;
-          error_code?: string | null;
-          error_message?: string | null;
-          retry_count?: number;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          campaign_id?: string | null;
-          agent_id?: string | null;
-          lead_id?: string | null;
-          text_content?: string;
-          voice_id?: string;
-          voice_settings?: Json | null;
-          status?: string;
-          audio_url?: string | null;
-          file_size_bytes?: number | null;
-          duration_seconds?: number | null;
-          elevenlabs_request_id?: string | null;
-          elevenlabs_voice_name?: string | null;
-          model_id?: string;
-          generation_time_ms?: number | null;
-          cost_cents?: number | null;
-          cache_hit?: boolean;
-          cache_key?: string | null;
-          error_code?: string | null;
-          error_message?: string | null;
-          retry_count?: number;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'audio_generations_campaign_id_fkey';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaigns';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'audio_generations_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'audio_generations_lead_id_fkey';
-            columns: ['lead_id'];
-            isOneToOne: false;
-            referencedRelation: 'leads';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'audio_generations_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      businesses: {
-        Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          status: string;
-          account_id: string;
-          industry: string | null;
-          website: string | null;
-          phone: string | null;
-          address: string | null;
-          logo_url: string | null;
-          settings: Json | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          status?: string;
-          account_id: string;
-          industry?: string | null;
-          website?: string | null;
-          phone?: string | null;
-          address?: string | null;
-          logo_url?: string | null;
-          settings?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          status?: string;
-          account_id?: string;
-          industry?: string | null;
-          website?: string | null;
-          phone?: string | null;
-          address?: string | null;
-          logo_url?: string | null;
-          settings?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'businesses_account_id_fkey';
-            columns: ['account_id'];
-            isOneToOne: false;
-            referencedRelation: 'accounts';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'businesses_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'businesses_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      campaigns: {
-        Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          status: string;
-          agent_id: string | null;
-          start_date: string | null;
-          end_date: string | null;
-
-          // New: Calling & Voice
-          goal_metric: string | null; // 'pledge_rate' | 'average_gift' | 'total_donations'
-          disclosure_line: string | null;
-          call_window_start: string | null; // time with time zone -> string
-          call_window_end: string | null; // time with time zone -> string
-
-          // New: Audience
-          audience_list_id: string | null; // uuid
-          dedupe_by_phone: boolean; // default false
-          exclude_dnc: boolean; // default true
-          audience_contact_count: number; // default 0
-
-          // Existing
-          max_attempts: number;
-          daily_call_cap: number;
-          script: string;
-          retry_logic: string;
-          budget: number | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-          business_id: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          status?: string;
-          agent_id?: string | null;
-          start_date?: string | null;
-          end_date?: string | null;
-
-          // New: Calling & Voice
-          goal_metric?: string | null;
-          disclosure_line?: string | null;
-          call_window_start?: string | null;
-          call_window_end?: string | null;
-
-          // New: Audience
-          audience_list_id?: string | null;
-          dedupe_by_phone?: boolean; // if omitted -> false
-          exclude_dnc?: boolean; // if omitted -> true
-          audience_contact_count?: number; // if omitted -> 0
-
-          // Existing
-          max_attempts?: number;
-          daily_call_cap?: number;
-          script: string;
-          retry_logic?: string;
-          budget?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          status?: string;
-          agent_id?: string | null;
-          start_date?: string | null;
-          end_date?: string | null;
-
-          // New: Calling & Voice
-          goal_metric?: string | null;
-          disclosure_line?: string | null;
-          call_window_start?: string | null;
-          call_window_end?: string | null;
-
-          // New: Audience
-          audience_list_id?: string | null;
-          dedupe_by_phone?: boolean;
-          exclude_dnc?: boolean;
-          audience_contact_count?: number;
-
-          // Existing
-          max_attempts?: number;
-          daily_call_cap?: number;
-          script?: string;
-          retry_logic?: string;
-          budget?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'campaigns_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'campaigns_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'campaigns_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'campaigns_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          // Add an FK for audience_list_id here if/when you create an audience_lists table + constraint.
-        ];
-      };
-      conversations: {
-        Row: {
-          id: string;
-          campaign_id: string;
-          agent_id: string;
-          lead_id: string;
-          status: string;
-          duration_seconds: number | null;
-          call_sid: string | null;
-          recording_url: string | null;
-          transcript: string | null;
-          sentiment_score: number | null;
-          key_points: Json | null;
-          outcome: string | null;
-          notes: string | null;
-          started_at: string | null;
-          ended_at: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-          conversation_id: string | null;
-        };
-        Insert: {
-          id?: string;
-          campaign_id: string;
-          agent_id: string;
-          lead_id: string;
-          status?: string;
-          duration_seconds?: number | null;
-          call_sid?: string | null;
-          recording_url?: string | null;
-          transcript?: string | null;
-          sentiment_score?: number | null;
-          key_points?: Json | null;
-          outcome?: string | null;
-          notes?: string | null;
-          started_at?: string | null;
-          ended_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          conversation_id?: string | null;
-        };
-        Update: {
-          id?: string;
-          campaign_id?: string;
-          agent_id?: string;
-          lead_id?: string;
-          status?: string;
-          duration_seconds?: number | null;
-          call_sid?: string | null;
-          recording_url?: string | null;
-          transcript?: string | null;
-          sentiment_score?: number | null;
-          key_points?: Json | null;
-          outcome?: string | null;
-          notes?: string | null;
-          started_at?: string | null;
-          ended_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          conversation_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'conversations_campaign_id_fkey';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaigns';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'conversations_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'conversations_lead_id_fkey';
-            columns: ['lead_id'];
-            isOneToOne: false;
-            referencedRelation: 'leads';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'conversations_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'conversations_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      integrations: {
-        Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          type: string;
-          status: string;
-          config: Json | null;
-          credentials: Json | null;
-          last_sync_at: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-          business_id: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          type: string;
-          status?: string;
-          config?: Json | null;
-          credentials?: Json | null;
-          last_sync_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          type?: string;
-          status?: string;
-          config?: Json | null;
-          credentials?: Json | null;
-          last_sync_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-          business_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'integrations_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'integrations_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'integrations_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      knowledge_bases: {
-        Row: {
-          id: string;
-          business_id: string;
-          elevenlabs_kb_id: string;
-          name: string;
-          description: string | null;
-          file_count: number | null;
-          char_count: number | null;
-          status: string | null;
-          metadata: Json | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          business_id: string;
-          elevenlabs_kb_id: string;
-          name: string;
-          description?: string | null;
-          file_count?: number | null;
-          char_count?: number | null;
-          status?: string | null;
-          metadata?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          business_id?: string;
-          elevenlabs_kb_id?: string;
-          name?: string;
-          description?: string | null;
-          file_count?: number | null;
-          char_count?: number | null;
-          status?: string | null;
-          metadata?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'knowledge_bases_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'knowledge_bases_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'knowledge_bases_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
+        ]
+      }
       agents_knowledge_bases: {
         Row: {
-          id: string;
-          agent_id: string;
-          knowledge_base_id: string;
-          created_at: string | null;
-        };
+          agent_id: string
+          created_at: string | null
+          id: string
+          knowledge_base_id: string
+        }
         Insert: {
-          id?: string;
-          agent_id: string;
-          knowledge_base_id: string;
-          created_at?: string | null;
-        };
+          agent_id: string
+          created_at?: string | null
+          id?: string
+          knowledge_base_id: string
+        }
         Update: {
-          id?: string;
-          agent_id?: string;
-          knowledge_base_id?: string;
-          created_at?: string | null;
-        };
+          agent_id?: string
+          created_at?: string | null
+          id?: string
+          knowledge_base_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: 'agents_knowledge_bases_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
+            foreignKeyName: "agents_knowledge_bases_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'agents_knowledge_bases_knowledge_base_id_fkey';
-            columns: ['knowledge_base_id'];
-            isOneToOne: false;
-            referencedRelation: 'knowledge_bases';
-            referencedColumns: ['id'];
+            foreignKeyName: "agents_knowledge_bases_knowledge_base_id_fkey"
+            columns: ["knowledge_base_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_bases"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      leads: {
+        ]
+      }
+      audio_generations: {
         Row: {
-          id: string;
-          business_id: string;
-          source: string;
-          source_id: string | null;
-          source_metadata: Json;
-          first_name: string | null;
-          last_name: string | null;
-          email: string | null;
-          phone: string | null;
-          mobile_phone: string | null;
-          street: string | null;
-          city: string | null;
-          state: string | null;
-          postal_code: string | null;
-          country: string | null;
-          company: string | null;
-          title: string | null;
-          department: string | null;
-          lead_source: string | null;
-          description: string | null;
-          owner_id: string | null;
-          do_not_call: boolean;
-          do_not_email: boolean;
-          email_opt_out: boolean;
-          timezone: string | null;
-          preferred_language: string | null;
-          tags: Json;
-          custom_fields: Json;
-          last_synced_at: string | null;
-          sync_status: string;
-          sync_error: string | null;
-          status: string;
-          notes: string | null;
-          dnc: boolean;
-          lead_score: number;
-          quality_rating: string | null;
-          last_activity_at: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-        };
+          agent_id: string | null
+          audio_url: string | null
+          cache_hit: boolean | null
+          cache_key: string | null
+          campaign_id: string | null
+          cost_cents: number | null
+          created_at: string | null
+          created_by: string | null
+          duration_seconds: number | null
+          elevenlabs_request_id: string | null
+          elevenlabs_voice_name: string | null
+          error_code: string | null
+          error_message: string | null
+          file_size_bytes: number | null
+          generation_time_ms: number | null
+          id: string
+          lead_id: string | null
+          model_id: string | null
+          retry_count: number | null
+          status: Database["public"]["Enums"]["audio_generation_status"]
+          text_content: string
+          updated_at: string | null
+          voice_id: string
+          voice_settings: Json | null
+        }
         Insert: {
-          id?: string;
-          business_id: string;
-          source?: string;
-          source_id?: string | null;
-          source_metadata?: Json;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          mobile_phone?: string | null;
-          street?: string | null;
-          city?: string | null;
-          state?: string | null;
-          postal_code?: string | null;
-          country?: string | null;
-          company?: string | null;
-          title?: string | null;
-          department?: string | null;
-          lead_source?: string | null;
-          description?: string | null;
-          owner_id?: string | null;
-          do_not_call?: boolean;
-          do_not_email?: boolean;
-          email_opt_out?: boolean;
-          timezone?: string | null;
-          preferred_language?: string | null;
-          tags?: Json;
-          custom_fields?: Json;
-          last_synced_at?: string | null;
-          sync_status?: string;
-          sync_error?: string | null;
-          status?: string;
-          notes?: string | null;
-          dnc?: boolean;
-          lead_score?: number;
-          quality_rating?: string | null;
-          last_activity_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          agent_id?: string | null
+          audio_url?: string | null
+          cache_hit?: boolean | null
+          cache_key?: string | null
+          campaign_id?: string | null
+          cost_cents?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          duration_seconds?: number | null
+          elevenlabs_request_id?: string | null
+          elevenlabs_voice_name?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          generation_time_ms?: number | null
+          id?: string
+          lead_id?: string | null
+          model_id?: string | null
+          retry_count?: number | null
+          status?: Database["public"]["Enums"]["audio_generation_status"]
+          text_content: string
+          updated_at?: string | null
+          voice_id: string
+          voice_settings?: Json | null
+        }
         Update: {
-          id?: string;
-          business_id?: string;
-          source?: string;
-          source_id?: string | null;
-          source_metadata?: Json;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          mobile_phone?: string | null;
-          street?: string | null;
-          city?: string | null;
-          state?: string | null;
-          postal_code?: string | null;
-          country?: string | null;
-          company?: string | null;
-          title?: string | null;
-          department?: string | null;
-          lead_source?: string | null;
-          description?: string | null;
-          owner_id?: string | null;
-          do_not_call?: boolean;
-          do_not_email?: boolean;
-          email_opt_out?: boolean;
-          timezone?: string | null;
-          preferred_language?: string | null;
-          tags?: Json;
-          custom_fields?: Json;
-          last_synced_at?: string | null;
-          sync_status?: string;
-          sync_error?: string | null;
-          status?: string;
-          notes?: string | null;
-          dnc?: boolean;
-          lead_score?: number;
-          quality_rating?: string | null;
-          last_activity_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          agent_id?: string | null
+          audio_url?: string | null
+          cache_hit?: boolean | null
+          cache_key?: string | null
+          campaign_id?: string | null
+          cost_cents?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          duration_seconds?: number | null
+          elevenlabs_request_id?: string | null
+          elevenlabs_voice_name?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          generation_time_ms?: number | null
+          id?: string
+          lead_id?: string | null
+          model_id?: string | null
+          retry_count?: number | null
+          status?: Database["public"]["Enums"]["audio_generation_status"]
+          text_content?: string
+          updated_at?: string | null
+          voice_id?: string
+          voice_settings?: Json | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'leads_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
+            foreignKeyName: "audio_generations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'leads_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
+            foreignKeyName: "audio_generations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: 'leads_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      team_members: {
+        ]
+      }
+      businesses: {
         Row: {
-          id: string;
-          business_id: string;
-          user_id: string;
-          role: string;
-          status: string;
-          permissions: Json | null;
-          invited_by: string | null;
-          invited_at: string | null;
-          accepted_at: string | null;
-          last_active_at: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
+          account_id: string
+          address: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          settings: Json | null
+          status: Database["public"]["Enums"]["business_status"]
+          updated_at: string | null
+          updated_by: string | null
+          website: string | null
+        }
         Insert: {
-          id?: string;
-          business_id: string;
-          user_id: string;
-          role?: string;
-          status?: string;
-          permissions?: Json | null;
-          invited_by?: string | null;
-          invited_at?: string | null;
-          accepted_at?: string | null;
-          last_active_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          account_id: string
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          status?: Database["public"]["Enums"]["business_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          website?: string | null
+        }
         Update: {
-          id?: string;
-          business_id?: string;
-          user_id?: string;
-          role?: string;
-          status?: string;
-          permissions?: Json | null;
-          invited_by?: string | null;
-          invited_at?: string | null;
-          accepted_at?: string | null;
-          last_active_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          account_id?: string
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          settings?: Json | null
+          status?: Database["public"]["Enums"]["business_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          website?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'team_members_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
+            foreignKeyName: "businesses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: 'team_members_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'team_members_invited_by_fkey';
-            columns: ['invited_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      workflows: {
+        ]
+      }
+      call_attempts: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          agent_id: string;
-          status: string;
-          version: number;
-          is_default: boolean;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-        };
+          attempt_number: number
+          attempted_at: string | null
+          audio_generation_id: string | null
+          call_log_id: string | null
+          campaign_id: string
+          created_at: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          lead_id: string
+          next_attempt_at: string | null
+          phone_number: string
+          result: Database["public"]["Enums"]["call_attempt_result"] | null
+          retry_delay_minutes: number | null
+          retry_reason: string | null
+          scheduled_at: string
+          updated_at: string | null
+        }
         Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          agent_id: string;
-          status?: string;
-          version?: number;
-          is_default?: boolean;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          attempt_number: number
+          attempted_at?: string | null
+          audio_generation_id?: string | null
+          call_log_id?: string | null
+          campaign_id: string
+          created_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id: string
+          next_attempt_at?: string | null
+          phone_number: string
+          result?: Database["public"]["Enums"]["call_attempt_result"] | null
+          retry_delay_minutes?: number | null
+          retry_reason?: string | null
+          scheduled_at: string
+          updated_at?: string | null
+        }
         Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          agent_id?: string;
-          status?: string;
-          version?: number;
-          is_default?: boolean;
-          created_at?: string | null;
-          updated_at?: string | null;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          attempt_number?: number
+          attempted_at?: string | null
+          audio_generation_id?: string | null
+          call_log_id?: string | null
+          campaign_id?: string
+          created_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string
+          next_attempt_at?: string | null
+          phone_number?: string
+          result?: Database["public"]["Enums"]["call_attempt_result"] | null
+          retry_delay_minutes?: number | null
+          retry_reason?: string | null
+          scheduled_at?: string
+          updated_at?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'workflows_agent_id_fkey';
-            columns: ['agent_id'];
-            isOneToOne: false;
-            referencedRelation: 'agents';
-            referencedColumns: ['id'];
+            foreignKeyName: "call_attempts_audio_generation_id_fkey"
+            columns: ["audio_generation_id"]
+            isOneToOne: false
+            referencedRelation: "audio_generations"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'workflows_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
+            foreignKeyName: "call_attempts_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "call_logs"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'workflows_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
+            foreignKeyName: "call_attempts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      workflow_edges: {
+        ]
+      }
+      call_logs: {
         Row: {
-          id: string;
-          workflow_id: string;
-          edge_id: string;
-          source_node_id: string;
-          target_node_id: string;
-          source_handle: string | null;
-          target_handle: string | null;
-          label: string | null;
-          condition: Json | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
+          agent_id: string
+          answered_at: string | null
+          audio_url: string | null
+          call_cost: number | null
+          call_sid: string | null
+          campaign_id: string
+          conversation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          direction: string
+          donated_amount: number | null
+          duration_seconds: number | null
+          ended_at: string | null
+          error_code: string | null
+          error_message: string | null
+          from_number: string
+          id: string
+          initiated_at: string | null
+          lead_id: string
+          machine_detection_result: string | null
+          metadata: Json | null
+          outcome: Database["public"]["Enums"]["call_outcome"] | null
+          parent_call_sid: string | null
+          pledged_amount: number | null
+          quality_score: number | null
+          queued_at: string | null
+          recording_duration_seconds: number | null
+          recording_url: string | null
+          ring_duration_seconds: number | null
+          sentiment_score: number | null
+          status: Database["public"]["Enums"]["call_status"]
+          to_number: string
+          updated_at: string | null
+        }
         Insert: {
-          id?: string;
-          workflow_id: string;
-          edge_id: string;
-          source_node_id: string;
-          target_node_id: string;
-          source_handle?: string | null;
-          target_handle?: string | null;
-          label?: string | null;
-          condition?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          agent_id: string
+          answered_at?: string | null
+          audio_url?: string | null
+          call_cost?: number | null
+          call_sid?: string | null
+          campaign_id: string
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direction?: string
+          donated_amount?: number | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          from_number: string
+          id?: string
+          initiated_at?: string | null
+          lead_id: string
+          machine_detection_result?: string | null
+          metadata?: Json | null
+          outcome?: Database["public"]["Enums"]["call_outcome"] | null
+          parent_call_sid?: string | null
+          pledged_amount?: number | null
+          quality_score?: number | null
+          queued_at?: string | null
+          recording_duration_seconds?: number | null
+          recording_url?: string | null
+          ring_duration_seconds?: number | null
+          sentiment_score?: number | null
+          status?: Database["public"]["Enums"]["call_status"]
+          to_number: string
+          updated_at?: string | null
+        }
         Update: {
-          id?: string;
-          workflow_id?: string;
-          edge_id?: string;
-          source_node_id?: string;
-          target_node_id?: string;
-          source_handle?: string | null;
-          target_handle?: string | null;
-          label?: string | null;
-          condition?: Json | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          agent_id?: string
+          answered_at?: string | null
+          audio_url?: string | null
+          call_cost?: number | null
+          call_sid?: string | null
+          campaign_id?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direction?: string
+          donated_amount?: number | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          from_number?: string
+          id?: string
+          initiated_at?: string | null
+          lead_id?: string
+          machine_detection_result?: string | null
+          metadata?: Json | null
+          outcome?: Database["public"]["Enums"]["call_outcome"] | null
+          parent_call_sid?: string | null
+          pledged_amount?: number | null
+          quality_score?: number | null
+          queued_at?: string | null
+          recording_duration_seconds?: number | null
+          recording_url?: string | null
+          ring_duration_seconds?: number | null
+          sentiment_score?: number | null
+          status?: Database["public"]["Enums"]["call_status"]
+          to_number?: string
+          updated_at?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'workflow_edges_workflow_id_fkey';
-            columns: ['workflow_id'];
-            isOneToOne: false;
-            referencedRelation: 'workflows';
-            referencedColumns: ['id'];
+            foreignKeyName: "call_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      workflow_nodes: {
+          {
+            foreignKeyName: "call_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_executions: {
         Row: {
-          id: string;
-          workflow_id: string;
-          node_id: string;
-          type: string;
-          position_x: number;
-          position_y: number;
-          data: Json;
-          created_at: string | null;
-          updated_at: string | null;
-        };
+          audio_generations_today: number
+          average_call_duration_seconds: number | null
+          calls_failed: number
+          calls_made: number
+          calls_successful: number
+          calls_this_hour: number
+          calls_today: number
+          campaign_id: string
+          completed_at: string | null
+          config_snapshot: Json
+          created_at: string | null
+          created_by: string | null
+          current_throughput_calls_per_hour: number | null
+          error_count: number
+          estimated_completion_at: string | null
+          execution_node: string | null
+          id: string
+          last_error: string | null
+          leads_processed: number
+          leads_queued: number
+          paused_at: string | null
+          process_id: string | null
+          resumed_at: string | null
+          retry_count: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["campaign_execution_status"]
+          success_rate_percentage: number | null
+          total_leads: number
+          updated_at: string | null
+        }
         Insert: {
-          id?: string;
-          workflow_id: string;
-          node_id: string;
-          type: string;
-          position_x: number;
-          position_y: number;
-          data: Json;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          audio_generations_today?: number
+          average_call_duration_seconds?: number | null
+          calls_failed?: number
+          calls_made?: number
+          calls_successful?: number
+          calls_this_hour?: number
+          calls_today?: number
+          campaign_id: string
+          completed_at?: string | null
+          config_snapshot?: Json
+          created_at?: string | null
+          created_by?: string | null
+          current_throughput_calls_per_hour?: number | null
+          error_count?: number
+          estimated_completion_at?: string | null
+          execution_node?: string | null
+          id?: string
+          last_error?: string | null
+          leads_processed?: number
+          leads_queued?: number
+          paused_at?: string | null
+          process_id?: string | null
+          resumed_at?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_execution_status"]
+          success_rate_percentage?: number | null
+          total_leads?: number
+          updated_at?: string | null
+        }
         Update: {
-          id?: string;
-          workflow_id?: string;
-          node_id?: string;
-          type?: string;
-          position_x?: number;
-          position_y?: number;
-          data?: Json;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
+          audio_generations_today?: number
+          average_call_duration_seconds?: number | null
+          calls_failed?: number
+          calls_made?: number
+          calls_successful?: number
+          calls_this_hour?: number
+          calls_today?: number
+          campaign_id?: string
+          completed_at?: string | null
+          config_snapshot?: Json
+          created_at?: string | null
+          created_by?: string | null
+          current_throughput_calls_per_hour?: number | null
+          error_count?: number
+          estimated_completion_at?: string | null
+          execution_node?: string | null
+          id?: string
+          last_error?: string | null
+          leads_processed?: number
+          leads_queued?: number
+          paused_at?: string | null
+          process_id?: string | null
+          resumed_at?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_execution_status"]
+          success_rate_percentage?: number | null
+          total_leads?: number
+          updated_at?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'workflow_nodes_workflow_id_fkey';
-            columns: ['workflow_id'];
-            isOneToOne: false;
-            referencedRelation: 'workflows';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_executions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      lead_lists: {
-        Row: {
-          id: string;
-          business_id: string;
-          name: string;
-          description: string | null;
-          color: string;
-          list_type: string;
-          source: string | null;
-          source_id: string | null;
-          filter_criteria: Json | null;
-          lead_count: number;
-          last_updated_at: string;
-          is_archived: boolean;
-          tags: Json;
-          metadata: Json;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          business_id: string;
-          name: string;
-          description?: string | null;
-          color?: string;
-          list_type?: string;
-          source?: string | null;
-          source_id?: string | null;
-          filter_criteria?: Json | null;
-          lead_count?: number;
-          last_updated_at?: string;
-          is_archived?: boolean;
-          tags?: Json;
-          metadata?: Json;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          business_id?: string;
-          name?: string;
-          description?: string | null;
-          color?: string;
-          list_type?: string;
-          source?: string | null;
-          source_id?: string | null;
-          filter_criteria?: Json | null;
-          lead_count?: number;
-          last_updated_at?: string;
-          is_archived?: boolean;
-          tags?: Json;
-          metadata?: Json;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'lead_lists_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'lead_lists_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'lead_lists_updated_by_fkey';
-            columns: ['updated_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      lead_list_members: {
-        Row: {
-          id: string;
-          lead_list_id: string;
-          lead_id: string;
-          added_at: string;
-          added_by: string | null;
-          notes: string | null;
-        };
-        Insert: {
-          id?: string;
-          lead_list_id: string;
-          lead_id: string;
-          added_at?: string;
-          added_by?: string | null;
-          notes?: string | null;
-        };
-        Update: {
-          id?: string;
-          lead_list_id?: string;
-          lead_id?: string;
-          added_at?: string;
-          added_by?: string | null;
-          notes?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'lead_list_members_lead_list_id_fkey';
-            columns: ['lead_list_id'];
-            isOneToOne: false;
-            referencedRelation: 'lead_lists';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'lead_list_members_lead_id_fkey';
-            columns: ['lead_id'];
-            isOneToOne: false;
-            referencedRelation: 'leads';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'lead_list_members_added_by_fkey';
-            columns: ['added_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
+        ]
+      }
       campaign_lead_lists: {
         Row: {
-          id: string;
-          campaign_id: string;
-          lead_list_id: string;
-          assigned_at: string;
-          assigned_by: string | null;
-          priority: number;
-          max_attempts_override: number | null;
-          filter_criteria: Json | null;
-          total_leads: number;
-          contacted_leads: number;
-          successful_leads: number;
-          is_active: boolean;
-          completed_at: string | null;
-        };
+          assigned_at: string | null
+          assigned_by: string | null
+          campaign_id: string
+          completed_at: string | null
+          contacted_leads: number | null
+          filter_criteria: Json | null
+          id: string
+          is_active: boolean | null
+          lead_list_id: string
+          max_attempts_override: number | null
+          priority: number | null
+          successful_leads: number | null
+          total_leads: number | null
+        }
         Insert: {
-          id?: string;
-          campaign_id: string;
-          lead_list_id: string;
-          assigned_at?: string;
-          assigned_by?: string | null;
-          priority?: number;
-          max_attempts_override?: number | null;
-          filter_criteria?: Json | null;
-          total_leads?: number;
-          contacted_leads?: number;
-          successful_leads?: number;
-          is_active?: boolean;
-          completed_at?: string | null;
-        };
+          assigned_at?: string | null
+          assigned_by?: string | null
+          campaign_id: string
+          completed_at?: string | null
+          contacted_leads?: number | null
+          filter_criteria?: Json | null
+          id?: string
+          is_active?: boolean | null
+          lead_list_id: string
+          max_attempts_override?: number | null
+          priority?: number | null
+          successful_leads?: number | null
+          total_leads?: number | null
+        }
         Update: {
-          id?: string;
-          campaign_id?: string;
-          lead_list_id?: string;
-          assigned_at?: string;
-          assigned_by?: string | null;
-          priority?: number;
-          max_attempts_override?: number | null;
-          filter_criteria?: Json | null;
-          total_leads?: number;
-          contacted_leads?: number;
-          successful_leads?: number;
-          is_active?: boolean;
-          completed_at?: string | null;
-        };
+          assigned_at?: string | null
+          assigned_by?: string | null
+          campaign_id?: string
+          completed_at?: string | null
+          contacted_leads?: number | null
+          filter_criteria?: Json | null
+          id?: string
+          is_active?: boolean | null
+          lead_list_id?: string
+          max_attempts_override?: number | null
+          priority?: number | null
+          successful_leads?: number | null
+          total_leads?: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'campaign_lead_lists_campaign_id_fkey';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaigns';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_lead_lists_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'campaign_lead_lists_lead_list_id_fkey';
-            columns: ['lead_list_id'];
-            isOneToOne: false;
-            referencedRelation: 'lead_lists';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_lead_lists_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'campaign_lead_lists_assigned_by_fkey';
-            columns: ['assigned_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_lead_lists_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists_with_campaigns"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       campaign_leads: {
         Row: {
-          id: string;
-          campaign_id: string;
-          lead_id: string;
-          lead_list_id: string | null;
-          status: string;
-          attempts: number;
-          last_attempt_at: string | null;
-          next_attempt_at: string | null;
-          outcome: string | null;
-          pledged_amount: number | null;
-          donated_amount: number | null;
-          notes: string | null;
-          total_talk_time: number;
-          last_call_duration: number | null;
-          added_at: string;
-          contacted_at: string | null;
-          converted_at: string | null;
-        };
+          added_at: string | null
+          attempts: number | null
+          campaign_id: string
+          contacted_at: string | null
+          converted_at: string | null
+          donated_amount: number | null
+          id: string
+          last_attempt_at: string | null
+          last_call_duration: number | null
+          lead_id: string
+          lead_list_id: string | null
+          next_attempt_at: string | null
+          notes: string | null
+          outcome: string | null
+          pledged_amount: number | null
+          status: string | null
+          total_talk_time: number | null
+        }
         Insert: {
-          id?: string;
-          campaign_id: string;
-          lead_id: string;
-          lead_list_id?: string | null;
-          status?: string;
-          attempts?: number;
-          last_attempt_at?: string | null;
-          next_attempt_at?: string | null;
-          outcome?: string | null;
-          pledged_amount?: number | null;
-          donated_amount?: number | null;
-          notes?: string | null;
-          total_talk_time?: number;
-          last_call_duration?: number | null;
-          added_at?: string;
-          contacted_at?: string | null;
-          converted_at?: string | null;
-        };
+          added_at?: string | null
+          attempts?: number | null
+          campaign_id: string
+          contacted_at?: string | null
+          converted_at?: string | null
+          donated_amount?: number | null
+          id?: string
+          last_attempt_at?: string | null
+          last_call_duration?: number | null
+          lead_id: string
+          lead_list_id?: string | null
+          next_attempt_at?: string | null
+          notes?: string | null
+          outcome?: string | null
+          pledged_amount?: number | null
+          status?: string | null
+          total_talk_time?: number | null
+        }
         Update: {
-          id?: string;
-          campaign_id?: string;
-          lead_id?: string;
-          lead_list_id?: string | null;
-          status?: string;
-          attempts?: number;
-          last_attempt_at?: string | null;
-          next_attempt_at?: string | null;
-          outcome?: string | null;
-          pledged_amount?: number | null;
-          donated_amount?: number | null;
-          notes?: string | null;
-          total_talk_time?: number;
-          last_call_duration?: number | null;
-          added_at?: string;
-          contacted_at?: string | null;
-          converted_at?: string | null;
-        };
+          added_at?: string | null
+          attempts?: number | null
+          campaign_id?: string
+          contacted_at?: string | null
+          converted_at?: string | null
+          donated_amount?: number | null
+          id?: string
+          last_attempt_at?: string | null
+          last_call_duration?: number | null
+          lead_id?: string
+          lead_list_id?: string | null
+          next_attempt_at?: string | null
+          notes?: string | null
+          outcome?: string | null
+          pledged_amount?: number | null
+          status?: string | null
+          total_talk_time?: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'campaign_leads_campaign_id_fkey';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaigns';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_leads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'campaign_leads_lead_id_fkey';
-            columns: ['lead_id'];
-            isOneToOne: false;
-            referencedRelation: 'leads';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'campaign_leads_lead_list_id_fkey';
-            columns: ['lead_list_id'];
-            isOneToOne: false;
-            referencedRelation: 'lead_lists';
-            referencedColumns: ['id'];
+            foreignKeyName: "campaign_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_with_lists"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+          {
+            foreignKeyName: "campaign_leads_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_leads_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists_with_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_queue: {
+        Row: {
+          attempt_number: number
+          audio_generation_id: string | null
+          calls_made_today: number
+          campaign_id: string
+          created_at: string | null
+          error_count: number
+          id: string
+          last_call_at: string | null
+          last_error: string | null
+          lead_id: string
+          priority: number
+          processing_node: string | null
+          processing_started_at: string | null
+          requires_audio_generation: boolean
+          retry_reason: string | null
+          scheduled_for: string
+          status: Database["public"]["Enums"]["queue_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_number?: number
+          audio_generation_id?: string | null
+          calls_made_today?: number
+          campaign_id: string
+          created_at?: string | null
+          error_count?: number
+          id?: string
+          last_call_at?: string | null
+          last_error?: string | null
+          lead_id: string
+          priority?: number
+          processing_node?: string | null
+          processing_started_at?: string | null
+          requires_audio_generation?: boolean
+          retry_reason?: string | null
+          scheduled_for: string
+          status?: Database["public"]["Enums"]["queue_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_number?: number
+          audio_generation_id?: string | null
+          calls_made_today?: number
+          campaign_id?: string
+          created_at?: string | null
+          error_count?: number
+          id?: string
+          last_call_at?: string | null
+          last_error?: string | null
+          lead_id?: string
+          priority?: number
+          processing_node?: string | null
+          processing_started_at?: string | null
+          requires_audio_generation?: boolean
+          retry_reason?: string | null
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["queue_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_queue_audio_generation_id_fkey"
+            columns: ["audio_generation_id"]
+            isOneToOne: false
+            referencedRelation: "audio_generations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_queue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          agent_id: string | null
+          audience_contact_count: number
+          audience_list_id: string | null
+          budget: number | null
+          business_id: string
+          call_window_end: string | null
+          call_window_start: string | null
+          created_at: string | null
+          created_by: string | null
+          daily_call_cap: number
+          dedupe_by_phone: boolean
+          description: string | null
+          disclosure_line: string | null
+          end_date: string | null
+          exclude_dnc: boolean
+          goal_metric: string | null
+          id: string
+          max_attempts: number
+          name: string
+          retry_logic: string
+          script: string
+          start_date: string | null
+          status: Database["public"]["Enums"]["campaign_status"]
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          audience_contact_count?: number
+          audience_list_id?: string | null
+          budget?: number | null
+          business_id: string
+          call_window_end?: string | null
+          call_window_start?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          daily_call_cap?: number
+          dedupe_by_phone?: boolean
+          description?: string | null
+          disclosure_line?: string | null
+          end_date?: string | null
+          exclude_dnc?: boolean
+          goal_metric?: string | null
+          id?: string
+          max_attempts?: number
+          name: string
+          retry_logic?: string
+          script: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          audience_contact_count?: number
+          audience_list_id?: string | null
+          budget?: number | null
+          business_id?: string
+          call_window_end?: string | null
+          call_window_start?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          daily_call_cap?: number
+          dedupe_by_phone?: boolean
+          description?: string | null
+          disclosure_line?: string | null
+          end_date?: string | null
+          exclude_dnc?: boolean
+          goal_metric?: string | null
+          id?: string
+          max_attempts?: number
+          name?: string
+          retry_logic?: string
+          script?: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_events: {
+        Row: {
+          agent_text: string | null
+          ai_model_used: string | null
+          audio_duration_seconds: number | null
+          audio_url: string | null
+          call_log_id: string | null
+          completed_at: string | null
+          confidence_score: number | null
+          conversation_id: string
+          created_at: string | null
+          event_type: Database["public"]["Enums"]["conversation_event_type"]
+          id: string
+          metadata: Json | null
+          processing_time_ms: number | null
+          sequence_number: number
+          started_at: string | null
+          user_response: string | null
+        }
+        Insert: {
+          agent_text?: string | null
+          ai_model_used?: string | null
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          call_log_id?: string | null
+          completed_at?: string | null
+          confidence_score?: number | null
+          conversation_id: string
+          created_at?: string | null
+          event_type: Database["public"]["Enums"]["conversation_event_type"]
+          id?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          sequence_number: number
+          started_at?: string | null
+          user_response?: string | null
+        }
+        Update: {
+          agent_text?: string | null
+          ai_model_used?: string | null
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          call_log_id?: string | null
+          completed_at?: string | null
+          confidence_score?: number | null
+          conversation_id?: string
+          created_at?: string | null
+          event_type?: Database["public"]["Enums"]["conversation_event_type"]
+          id?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          sequence_number?: number
+          started_at?: string | null
+          user_response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_events_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          agent_id: string
+          call_sid: string | null
+          campaign_id: string
+          conversation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          key_points: Json | null
+          lead_id: string
+          notes: string | null
+          outcome: string | null
+          recording_url: string | null
+          sentiment_score: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["conversation_status"]
+          transcript: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          agent_id: string
+          call_sid?: string | null
+          campaign_id: string
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          key_points?: Json | null
+          lead_id: string
+          notes?: string | null
+          outcome?: string | null
+          recording_url?: string | null
+          sentiment_score?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["conversation_status"]
+          transcript?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          agent_id?: string
+          call_sid?: string | null
+          campaign_id?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          key_points?: Json | null
+          lead_id?: string
+          notes?: string | null
+          outcome?: string | null
+          recording_url?: string | null
+          sentiment_score?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["conversation_status"]
+          transcript?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          business_id: string
+          config: Json | null
+          created_at: string | null
+          created_by: string | null
+          credentials: Json | null
+          description: string | null
+          id: string
+          last_sync_at: string | null
+          name: string
+          status: Database["public"]["Enums"]["integration_status"]
+          type: Database["public"]["Enums"]["integration_type"]
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          credentials?: Json | null
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["integration_status"]
+          type: Database["public"]["Enums"]["integration_type"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          credentials?: Json | null
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["integration_status"]
+          type?: Database["public"]["Enums"]["integration_type"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_bases: {
+        Row: {
+          business_id: string
+          char_count: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          elevenlabs_kb_id: string
+          file_count: number | null
+          id: string
+          metadata: Json | null
+          name: string
+          status: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          char_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          elevenlabs_kb_id: string
+          file_count?: number | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          char_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          elevenlabs_kb_id?: string
+          file_count?: number | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_bases_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_list_members: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          id: string
+          lead_id: string
+          lead_list_id: string
+          notes: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          id?: string
+          lead_id: string
+          lead_list_id: string
+          notes?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          id?: string
+          lead_id?: string
+          lead_list_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_list_members_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_list_members_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_with_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_list_members_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_list_members_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists_with_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_lists: {
+        Row: {
+          business_id: string
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          filter_criteria: Json | null
+          id: string
+          is_archived: boolean | null
+          last_updated_at: string | null
+          lead_count: number | null
+          list_type: string | null
+          metadata: Json | null
+          name: string
+          source: string | null
+          source_id: string | null
+          tags: Json | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          filter_criteria?: Json | null
+          id?: string
+          is_archived?: boolean | null
+          last_updated_at?: string | null
+          lead_count?: number | null
+          list_type?: string | null
+          metadata?: Json | null
+          name: string
+          source?: string | null
+          source_id?: string | null
+          tags?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          filter_criteria?: Json | null
+          id?: string
+          is_archived?: boolean | null
+          last_updated_at?: string | null
+          lead_count?: number | null
+          list_type?: string | null
+          metadata?: Json | null
+          name?: string
+          source?: string | null
+          source_id?: string | null
+          tags?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_lists_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          business_id: string
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          custom_fields: Json | null
+          department: string | null
+          description: string | null
+          dnc: boolean | null
+          do_not_call: boolean | null
+          do_not_email: boolean | null
+          email: string | null
+          email_opt_out: boolean | null
+          first_name: string | null
+          id: string
+          last_activity_at: string | null
+          last_name: string | null
+          last_synced_at: string | null
+          lead_score: number | null
+          lead_source: string | null
+          mobile_phone: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          postal_code: string | null
+          preferred_language: string | null
+          quality_rating: string | null
+          source: string
+          source_id: string | null
+          source_metadata: Json | null
+          state: string | null
+          status: string | null
+          street: string | null
+          sync_error: string | null
+          sync_status: string | null
+          tags: Json | null
+          timezone: string | null
+          title: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custom_fields?: Json | null
+          department?: string | null
+          description?: string | null
+          dnc?: boolean | null
+          do_not_call?: boolean | null
+          do_not_email?: boolean | null
+          email?: string | null
+          email_opt_out?: boolean | null
+          first_name?: string | null
+          id?: string
+          last_activity_at?: string | null
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          mobile_phone?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          preferred_language?: string | null
+          quality_rating?: string | null
+          source?: string
+          source_id?: string | null
+          source_metadata?: Json | null
+          state?: string | null
+          status?: string | null
+          street?: string | null
+          sync_error?: string | null
+          sync_status?: string | null
+          tags?: Json | null
+          timezone?: string | null
+          title?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custom_fields?: Json | null
+          department?: string | null
+          description?: string | null
+          dnc?: boolean | null
+          do_not_call?: boolean | null
+          do_not_email?: boolean | null
+          email?: string | null
+          email_opt_out?: boolean | null
+          first_name?: string | null
+          id?: string
+          last_activity_at?: string | null
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_score?: number | null
+          lead_source?: string | null
+          mobile_phone?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          preferred_language?: string | null
+          quality_rating?: string | null
+          source?: string
+          source_id?: string | null
+          source_metadata?: Json | null
+          state?: string | null
+          status?: string | null
+          street?: string | null
+          sync_error?: string | null
+          sync_status?: string | null
+          tags?: Json | null
+          timezone?: string | null
+          title?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_metrics: {
+        Row: {
+          campaign_id: string | null
+          id: string
+          metric_name: string
+          metric_type: string
+          node_id: string | null
+          recorded_at: string | null
+          service_name: string | null
+          tags: Json | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          campaign_id?: string | null
+          id?: string
+          metric_name: string
+          metric_type: string
+          node_id?: string | null
+          recorded_at?: string | null
+          service_name?: string | null
+          tags?: Json | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          campaign_id?: string | null
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          node_id?: string | null
+          recorded_at?: string | null
+          service_name?: string | null
+          tags?: Json | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      status_updates: {
+        Row: {
+          account_id: string
+          campaign_id: string | null
+          created_at: string | null
+          data: Json | null
+          email_sent: boolean
+          email_sent_at: string | null
+          expires_at: string | null
+          id: string
+          message: string | null
+          priority: number
+          title: string
+          update_type: Database["public"]["Enums"]["status_update_type"]
+          websocket_sent: boolean
+          websocket_sent_at: string | null
+        }
+        Insert: {
+          account_id: string
+          campaign_id?: string | null
+          created_at?: string | null
+          data?: Json | null
+          email_sent?: boolean
+          email_sent_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          priority?: number
+          title: string
+          update_type: Database["public"]["Enums"]["status_update_type"]
+          websocket_sent?: boolean
+          websocket_sent_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          campaign_id?: string | null
+          created_at?: string | null
+          data?: Json | null
+          email_sent?: boolean
+          email_sent_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          priority?: number
+          title?: string
+          update_type?: Database["public"]["Enums"]["status_update_type"]
+          websocket_sent?: boolean
+          websocket_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "status_updates_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "status_updates_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs: {
         Row: {
-          id: string;
-          integration_id: string;
-          business_id: string;
-          sync_type: string;
-          sync_status: string;
-          records_processed: number;
-          records_created: number;
-          records_updated: number;
-          records_failed: number;
-          started_at: string;
-          completed_at: string | null;
-          duration_ms: number | null;
-          error_message: string | null;
-          error_details: Json | null;
-          metadata: Json;
-          created_at: string;
-        };
+          business_id: string
+          completed_at: string | null
+          created_at: string | null
+          duration_ms: number | null
+          error_details: Json | null
+          error_message: string | null
+          id: string
+          integration_id: string
+          metadata: Json | null
+          records_created: number | null
+          records_failed: number | null
+          records_processed: number | null
+          records_updated: number | null
+          started_at: string
+          sync_status: string
+          sync_type: string
+        }
         Insert: {
-          id?: string;
-          integration_id: string;
-          business_id: string;
-          sync_type: string;
-          sync_status: string;
-          records_processed?: number;
-          records_created?: number;
-          records_updated?: number;
-          records_failed?: number;
-          started_at?: string;
-          completed_at?: string | null;
-          duration_ms?: number | null;
-          error_message?: string | null;
-          error_details?: Json | null;
-          metadata?: Json;
-          created_at?: string;
-        };
+          business_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          integration_id: string
+          metadata?: Json | null
+          records_created?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_updated?: number | null
+          started_at?: string
+          sync_status: string
+          sync_type: string
+        }
         Update: {
-          id?: string;
-          integration_id?: string;
-          business_id?: string;
-          sync_type?: string;
-          sync_status?: string;
-          records_processed?: number;
-          records_created?: number;
-          records_updated?: number;
-          records_failed?: number;
-          started_at?: string;
-          completed_at?: string | null;
-          duration_ms?: number | null;
-          error_message?: string | null;
-          error_details?: Json | null;
-          metadata?: Json;
-          created_at?: string;
-        };
+          business_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          integration_id?: string
+          metadata?: Json | null
+          records_created?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_updated?: number | null
+          started_at?: string
+          sync_status?: string
+          sync_type?: string
+        }
         Relationships: [
           {
-            foreignKeyName: 'sync_logs_integration_id_fkey';
-            columns: ['integration_id'];
-            isOneToOne: false;
-            referencedRelation: 'integrations';
-            referencedColumns: ['id'];
+            foreignKeyName: "sync_logs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'sync_logs_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
+            foreignKeyName: "sync_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-    };
+        ]
+      }
+      team_members: {
+        Row: {
+          accepted_at: string | null
+          business_id: string
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          last_active_at: string | null
+          permissions: Json | null
+          role: Database["public"]["Enums"]["team_role"]
+          status: Database["public"]["Enums"]["team_member_status"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          business_id: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          last_active_at?: string | null
+          permissions?: Json | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["team_member_status"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          last_active_at?: string | null
+          permissions?: Json | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["team_member_status"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_events: {
+        Row: {
+          account_sid: string | null
+          call_log_id: string | null
+          call_sid: string | null
+          campaign_id: string | null
+          created_at: string | null
+          event_data: Json
+          event_type: Database["public"]["Enums"]["webhook_event_type"]
+          id: string
+          processed: boolean
+          processed_at: string | null
+          processing_error: string | null
+          raw_payload: Json
+          received_at: string | null
+          signature_valid: boolean | null
+          source_ip: string | null
+          twilio_signature: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          account_sid?: string | null
+          call_log_id?: string | null
+          call_sid?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          event_data?: Json
+          event_type: Database["public"]["Enums"]["webhook_event_type"]
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          processing_error?: string | null
+          raw_payload?: Json
+          received_at?: string | null
+          signature_valid?: boolean | null
+          source_ip?: string | null
+          twilio_signature?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          account_sid?: string | null
+          call_log_id?: string | null
+          call_sid?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          event_data?: Json
+          event_type?: Database["public"]["Enums"]["webhook_event_type"]
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          processing_error?: string | null
+          raw_payload?: Json
+          received_at?: string | null
+          signature_valid?: boolean | null
+          source_ip?: string | null
+          twilio_signature?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_edges: {
+        Row: {
+          condition: Json | null
+          created_at: string | null
+          edge_id: string
+          id: string
+          label: string | null
+          source_handle: string | null
+          source_node_id: string
+          target_handle: string | null
+          target_node_id: string
+          updated_at: string | null
+          workflow_id: string
+        }
+        Insert: {
+          condition?: Json | null
+          created_at?: string | null
+          edge_id: string
+          id?: string
+          label?: string | null
+          source_handle?: string | null
+          source_node_id: string
+          target_handle?: string | null
+          target_node_id: string
+          updated_at?: string | null
+          workflow_id: string
+        }
+        Update: {
+          condition?: Json | null
+          created_at?: string | null
+          edge_id?: string
+          id?: string
+          label?: string | null
+          source_handle?: string | null
+          source_node_id?: string
+          target_handle?: string | null
+          target_node_id?: string
+          updated_at?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_edges_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_nodes: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          node_id: string
+          position_x: number
+          position_y: number
+          type: Database["public"]["Enums"]["node_type"]
+          updated_at: string | null
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          node_id: string
+          position_x: number
+          position_y: number
+          type: Database["public"]["Enums"]["node_type"]
+          updated_at?: string | null
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          node_id?: string
+          position_x?: number
+          position_y?: number
+          type?: Database["public"]["Enums"]["node_type"]
+          updated_at?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_nodes_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          status: Database["public"]["Enums"]["workflow_status"]
+          updated_at: string | null
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          status?: Database["public"]["Enums"]["workflow_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          status?: Database["public"]["Enums"]["workflow_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflows_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
+      campaign_lead_lists_with_stats: {
+        Row: {
+          actual_leads_count: number | null
+          assigned_at: string | null
+          assigned_by: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          campaign_status: Database["public"]["Enums"]["campaign_status"] | null
+          completed_at: string | null
+          contacted_count: number | null
+          contacted_leads: number | null
+          converted_count: number | null
+          filter_criteria: Json | null
+          id: string | null
+          is_active: boolean | null
+          lead_list_id: string | null
+          list_description: string | null
+          list_name: string | null
+          max_attempts_override: number | null
+          priority: number | null
+          successful_leads: number | null
+          total_leads: number | null
+          total_leads_in_list: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_lead_lists_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_lead_lists_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_lead_lists_lead_list_id_fkey"
+            columns: ["lead_list_id"]
+            isOneToOne: false
+            referencedRelation: "lead_lists_with_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_call_volume: {
+        Row: {
+          avg_duration: number | null
+          busy_calls: number | null
+          call_date: string | null
+          completed_calls: number | null
+          failed_calls: number | null
+          no_answer_calls: number | null
+          total_calls: number | null
+          total_duration: number | null
+          voicemail_calls: number | null
+        }
+        Relationships: []
+      }
+      lead_lists_with_campaigns: {
+        Row: {
+          business_id: string | null
+          campaigns: Json | null
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          filter_criteria: Json | null
+          id: string | null
+          is_archived: boolean | null
+          last_updated_at: string | null
+          lead_count: number | null
+          list_type: string | null
+          metadata: Json | null
+          name: string | null
+          source: string | null
+          source_id: string | null
+          tags: Json | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_lists_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads_with_lists: {
+        Row: {
+          business_id: string | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          custom_fields: Json | null
+          department: string | null
+          description: string | null
+          dnc: boolean | null
+          do_not_call: boolean | null
+          do_not_email: boolean | null
+          email: string | null
+          email_opt_out: boolean | null
+          first_name: string | null
+          id: string | null
+          last_activity_at: string | null
+          last_name: string | null
+          last_synced_at: string | null
+          lead_score: number | null
+          lead_source: string | null
+          lists: Json | null
+          mobile_phone: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          postal_code: string | null
+          preferred_language: string | null
+          quality_rating: string | null
+          source: string | null
+          source_id: string | null
+          source_metadata: Json | null
+          state: string | null
+          status: string | null
+          street: string | null
+          sync_error: string | null
+          sync_status: string | null
+          tags: Json | null
+          timezone: string | null
+          title: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs_summary: {
         Row: {
-          id: string | null;
-          integration_id: string | null;
-          integration_name: string | null;
-          business_id: string | null;
-          business_name: string | null;
-          sync_type: string | null;
-          sync_status: string | null;
-          records_processed: number | null;
-          records_created: number | null;
-          records_updated: number | null;
-          records_failed: number | null;
-          started_at: string | null;
-          completed_at: string | null;
-          duration_ms: number | null;
-          duration_formatted: string | null;
-          error_message: string | null;
-          metadata: Json | null;
-          created_at: string | null;
-        };
+          business_id: string | null
+          business_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          duration_formatted: string | null
+          duration_ms: number | null
+          error_message: string | null
+          id: string | null
+          integration_id: string | null
+          integration_name: string | null
+          metadata: Json | null
+          records_created: number | null
+          records_failed: number | null
+          records_processed: number | null
+          records_updated: number | null
+          started_at: string | null
+          sync_status: string | null
+          sync_type: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: 'sync_logs_integration_id_fkey';
-            columns: ['integration_id'];
-            isOneToOne: false;
-            referencedRelation: 'integrations';
-            referencedColumns: ['id'];
+            foreignKeyName: "sync_logs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'sync_logs_business_id_fkey';
-            columns: ['business_id'];
-            isOneToOne: false;
-            referencedRelation: 'businesses';
-            referencedColumns: ['id'];
+            foreignKeyName: "sync_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-    };
+        ]
+      }
+    }
     Functions: {
-      get_latest_sync_status: {
-        Args: {
-          p_integration_id: string;
-        };
-        Returns: {
-          sync_status: string;
-          last_sync_at: string;
-          records_processed: number;
-          records_created: number;
-          records_updated: number;
-          records_failed: number;
-        }[];
-      };
       add_lead_list_to_campaign: {
         Args: {
-          p_campaign_id: string;
-          p_lead_list_id: string;
-          p_priority?: number;
-        };
-        Returns: string;
-      };
+          p_campaign_id: string
+          p_lead_list_id: string
+          p_priority?: number
+        }
+        Returns: string
+      }
+      can_campaign_make_calls: {
+        Args: { p_campaign_id: string }
+        Returns: boolean
+      }
       create_lead_list_from_csv: {
-        Args: {
-          p_business_id: string;
-          p_list_name: string;
-          p_leads: Json;
-        };
-        Returns: string;
-      };
-      update_campaign_lead_list_priority: {
-        Args: {
-          p_campaign_id: string;
-          p_lead_list_id: string;
-          p_new_priority: number;
-        };
-        Returns: boolean;
-      };
-    };
+        Args: { p_business_id: string; p_leads: Json; p_list_name: string }
+        Returns: string
+      }
+      get_latest_sync_status: {
+        Args: { p_integration_id: string }
+        Returns: {
+          sync_status: string
+          last_sync_at: string
+          records_processed: number
+          records_created: number
+          records_updated: number
+          records_failed: number
+        }[]
+      }
+      get_next_queued_call: {
+        Args: Record<PropertyKey, never> | { p_campaign_id: string }
+        Returns: {
+          call_id: string
+          campaign_id: string
+          agent_id: string
+          lead_id: string
+          phone_number: string
+          script: string
+        }[]
+      }
+      trigger_campaign_orchestrator: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_campaign_execution_stats: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
+    }
     Enums: {
-      business_status: 'active' | 'inactive' | 'suspended';
-      team_member_status: 'active' | 'invited' | 'suspended' | 'left';
-      team_role: 'owner' | 'admin' | 'member' | 'viewer';
-      agent_status: 'active' | 'inactive' | 'draft';
-      voice_type: 'ai_generated' | 'human' | 'custom';
+      action_type:
+        | "voicemail"
+        | "script"
+        | "question"
+        | "transfer"
+        | "hangup"
+        | "callback"
+        | "donation_request"
+        | "follow_up"
+      agent_status: "active" | "inactive" | "agent_paused" | "training"
       audio_generation_status:
-        | 'pending'
-        | 'processing'
-        | 'completed'
-        | 'failed';
-      campaign_status: 'draft' | 'active' | 'paused' | 'completed';
-      call_status: 'queued' | 'initiated' | 'answered' | 'ended' | 'failed';
+        | "pending"
+        | "generating"
+        | "completed"
+        | "failed"
+        | "cached"
+      business_status: "active" | "inactive" | "suspended"
+      call_attempt_result:
+        | "success"
+        | "no_answer"
+        | "busy"
+        | "failed"
+        | "invalid_number"
+        | "blocked"
+        | "rate_limited"
+        | "error"
+      call_outcome:
+        | "donated"
+        | "pledged"
+        | "interested"
+        | "not_interested"
+        | "callback_requested"
+        | "voicemail_left"
+        | "wrong_number"
+        | "do_not_call"
+        | "unknown"
+      call_status:
+        | "queued"
+        | "initiated"
+        | "ringing"
+        | "answered"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "busy"
+        | "no_answer"
+        | "voicemail"
+        | "cancelled"
       campaign_execution_status:
-        | 'pending'
-        | 'running'
-        | 'paused'
-        | 'completed'
-        | 'failed';
-      queue_status: 'pending' | 'processing' | 'completed' | 'failed';
-      conversation_status: 'initiated' | 'active' | 'ended' | 'failed';
-      integration_status: 'active' | 'inactive' | 'error';
-      lead_status: 'new' | 'contacted' | 'pledged' | 'failed';
-      workflow_status: 'draft' | 'active' | 'archived';
-      update_type: 'info' | 'warning' | 'error' | 'success';
-      event_type:
-        | 'call_started'
-        | 'call_ended'
-        | 'conversation_event'
-        | 'system_event';
-    };
+        | "pending"
+        | "initializing"
+        | "running"
+        | "paused"
+        | "pausing"
+        | "resuming"
+        | "completing"
+        | "completed"
+        | "cancelled"
+        | "failed"
+      campaign_status: "draft" | "active" | "paused" | "completed" | "cancelled"
+      conversation_event_type:
+        | "call_started"
+        | "intro_played"
+        | "gather_started"
+        | "speech_detected"
+        | "dtmf_received"
+        | "response_processed"
+        | "follow_up_question"
+        | "objection_handled"
+        | "commitment_requested"
+        | "call_ended"
+        | "transfer_requested"
+        | "callback_scheduled"
+      conversation_status:
+        | "initiated"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "no_answer"
+        | "busy"
+        | "voicemail"
+      integration_status: "active" | "inactive" | "error" | "pending"
+      integration_type:
+        | "crm"
+        | "payment"
+        | "communication"
+        | "analytics"
+        | "voice"
+      lead_status:
+        | "new"
+        | "contacted"
+        | "interested"
+        | "pledged"
+        | "donated"
+        | "not_interested"
+        | "unreachable"
+        | "failed"
+      node_type:
+        | "start"
+        | "decision"
+        | "action"
+        | "end"
+        | "condition"
+        | "loop"
+        | "delay"
+      queue_status:
+        | "pending"
+        | "scheduled"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "cancelled"
+        | "rate_limited"
+      status_update_type:
+        | "campaign_started"
+        | "campaign_paused"
+        | "campaign_resumed"
+        | "campaign_completed"
+        | "call_initiated"
+        | "call_answered"
+        | "call_completed"
+        | "call_failed"
+        | "lead_converted"
+        | "error_occurred"
+        | "queue_updated"
+        | "stats_updated"
+      team_member_status: "active" | "invited" | "suspended" | "left"
+      team_role: "owner" | "admin" | "member" | "viewer"
+      voice_type: "ai_generated" | "custom"
+      webhook_event_type:
+        | "call_initiated"
+        | "call_ringing"
+        | "call_answered"
+        | "call_completed"
+        | "call_failed"
+        | "call_busy"
+        | "call_no_answer"
+        | "gather_speech"
+        | "gather_dtmf"
+        | "recording_completed"
+        | "machine_detection"
+      workflow_status: "draft" | "active" | "inactive" | "archived"
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
+      [_ in never]: never
+    }
+  }
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          allowed_mime_types: string[] | null
+          avif_autodetection: boolean | null
+          created_at: string | null
+          file_size_limit: number | null
+          id: string
+          name: string
+          owner: string | null
+          owner_id: string | null
+          public: boolean | null
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id: string
+          name: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id?: string
+          name?: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      buckets_analytics: {
+        Row: {
+          created_at: string
+          format: string
+          id: string
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          format?: string
+          id: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          format?: string
+          id?: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      iceberg_namespaces: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iceberg_namespaces_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_analytics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iceberg_tables: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          location: string
+          name: string
+          namespace_id: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+          namespace_id: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          namespace_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iceberg_tables_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iceberg_tables_namespace_id_fkey"
+            columns: ["namespace_id"]
+            isOneToOne: false
+            referencedRelation: "iceberg_namespaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      migrations: {
+        Row: {
+          executed_at: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Insert: {
+          executed_at?: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Update: {
+          executed_at?: string | null
+          hash?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      objects: {
+        Row: {
+          bucket_id: string | null
+          created_at: string | null
+          id: string
+          last_accessed_at: string | null
+          level: number | null
+          metadata: Json | null
+          name: string | null
+          owner: string | null
+          owner_id: string | null
+          path_tokens: string[] | null
+          updated_at: string | null
+          user_metadata: Json | null
+          version: string | null
+        }
+        Insert: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          level?: number | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Update: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          level?: number | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prefixes: {
+        Row: {
+          bucket_id: string
+          created_at: string | null
+          level: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string | null
+          level?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string | null
+          level?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prefixes_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          in_progress_size: number
+          key: string
+          owner_id: string | null
+          upload_signature: string
+          user_metadata: Json | null
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id: string
+          in_progress_size?: number
+          key: string
+          owner_id?: string | null
+          upload_signature: string
+          user_metadata?: Json | null
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          in_progress_size?: number
+          key?: string
+          owner_id?: string | null
+          upload_signature?: string
+          user_metadata?: Json | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads_parts: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          etag: string
+          id: string
+          key: string
+          owner_id: string | null
+          part_number: number
+          size: number
+          upload_id: string
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          etag: string
+          id?: string
+          key: string
+          owner_id?: string | null
+          part_number: number
+          size?: number
+          upload_id: string
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          etag?: string
+          id?: string
+          key?: string
+          owner_id?: string | null
+          part_number?: number
+          size?: number
+          upload_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "s3_multipart_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      add_prefixes: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: undefined
+      }
+      can_insert_object: {
+        Args: { bucketid: string; metadata: Json; name: string; owner: string }
+        Returns: undefined
+      }
+      delete_prefix: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: boolean
+      }
+      extension: {
+        Args: { name: string }
+        Returns: string
+      }
+      filename: {
+        Args: { name: string }
+        Returns: string
+      }
+      foldername: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_level: {
+        Args: { name: string }
+        Returns: number
+      }
+      get_prefix: {
+        Args: { name: string }
+        Returns: string
+      }
+      get_prefixes: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_size_by_bucket: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          size: number
+          bucket_id: string
+        }[]
+      }
+      list_multipart_uploads_with_delimiter: {
+        Args: {
+          bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_key_token?: string
+          next_upload_token?: string
+          prefix_param: string
+        }
+        Returns: {
+          key: string
+          id: string
+          created_at: string
+        }[]
+      }
+      list_objects_with_delimiter: {
+        Args: {
+          bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_token?: string
+          prefix_param: string
+          start_after?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          metadata: Json
+          updated_at: string
+        }[]
+      }
+      operation: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      search: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+      search_legacy_v1: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+      search_v1_optimised: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
+        }[]
+      }
+      search_v2: {
+        Args: {
+          bucket_name: string
+          levels?: number
+          limits?: number
+          prefix: string
+          start_after?: string
+        }
+        Returns: {
+          key: string
+          name: string
+          id: string
+          updated_at: string
+          created_at: string
+          metadata: Json
+        }[]
+      }
+    }
+    Enums: {
+      buckettype: "STANDARD" | "ANALYTICS"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof Database['public']['Tables']
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]
-  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
-    ? Database['public']['Tables'][PublicTableNameOrOptions]
-    : never;
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof Database['public']['Tables']
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
-      Insert: any;
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
     }
-    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Insert']
+    ? I
     : never
-  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
-    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
-        Insert: any;
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
       }
-      ? Database['public']['Tables'][PublicTableNameOrOptions]['Insert']
+      ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof Database['public']['Tables']
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
-      Update: any;
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
     }
-    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName]['Update']
+    ? U
     : never
-  : PublicTableNameOrOptions extends keyof Database['public']['Tables']
-    ? Database['public']['Tables'][PublicTableNameOrOptions] extends {
-        Update: any;
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
       }
-      ? Database['public']['Tables'][PublicTableNameOrOptions]['Update']
+      ? U
       : never
-    : never;
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      action_type: [
+        "voicemail",
+        "script",
+        "question",
+        "transfer",
+        "hangup",
+        "callback",
+        "donation_request",
+        "follow_up",
+      ],
+      agent_status: ["active", "inactive", "agent_paused", "training"],
+      audio_generation_status: [
+        "pending",
+        "generating",
+        "completed",
+        "failed",
+        "cached",
+      ],
+      business_status: ["active", "inactive", "suspended"],
+      call_attempt_result: [
+        "success",
+        "no_answer",
+        "busy",
+        "failed",
+        "invalid_number",
+        "blocked",
+        "rate_limited",
+        "error",
+      ],
+      call_outcome: [
+        "donated",
+        "pledged",
+        "interested",
+        "not_interested",
+        "callback_requested",
+        "voicemail_left",
+        "wrong_number",
+        "do_not_call",
+        "unknown",
+      ],
+      call_status: [
+        "queued",
+        "initiated",
+        "ringing",
+        "answered",
+        "in_progress",
+        "completed",
+        "failed",
+        "busy",
+        "no_answer",
+        "voicemail",
+        "cancelled",
+      ],
+      campaign_execution_status: [
+        "pending",
+        "initializing",
+        "running",
+        "paused",
+        "pausing",
+        "resuming",
+        "completing",
+        "completed",
+        "cancelled",
+        "failed",
+      ],
+      campaign_status: ["draft", "active", "paused", "completed", "cancelled"],
+      conversation_event_type: [
+        "call_started",
+        "intro_played",
+        "gather_started",
+        "speech_detected",
+        "dtmf_received",
+        "response_processed",
+        "follow_up_question",
+        "objection_handled",
+        "commitment_requested",
+        "call_ended",
+        "transfer_requested",
+        "callback_scheduled",
+      ],
+      conversation_status: [
+        "initiated",
+        "in_progress",
+        "completed",
+        "failed",
+        "no_answer",
+        "busy",
+        "voicemail",
+      ],
+      integration_status: ["active", "inactive", "error", "pending"],
+      integration_type: [
+        "crm",
+        "payment",
+        "communication",
+        "analytics",
+        "voice",
+      ],
+      lead_status: [
+        "new",
+        "contacted",
+        "interested",
+        "pledged",
+        "donated",
+        "not_interested",
+        "unreachable",
+        "failed",
+      ],
+      node_type: [
+        "start",
+        "decision",
+        "action",
+        "end",
+        "condition",
+        "loop",
+        "delay",
+      ],
+      queue_status: [
+        "pending",
+        "scheduled",
+        "processing",
+        "completed",
+        "failed",
+        "cancelled",
+        "rate_limited",
+      ],
+      status_update_type: [
+        "campaign_started",
+        "campaign_paused",
+        "campaign_resumed",
+        "campaign_completed",
+        "call_initiated",
+        "call_answered",
+        "call_completed",
+        "call_failed",
+        "lead_converted",
+        "error_occurred",
+        "queue_updated",
+        "stats_updated",
+      ],
+      team_member_status: ["active", "invited", "suspended", "left"],
+      team_role: ["owner", "admin", "member", "viewer"],
+      voice_type: ["ai_generated", "custom"],
+      webhook_event_type: [
+        "call_initiated",
+        "call_ringing",
+        "call_answered",
+        "call_completed",
+        "call_failed",
+        "call_busy",
+        "call_no_answer",
+        "gather_speech",
+        "gather_dtmf",
+        "recording_completed",
+        "machine_detection",
+      ],
+      workflow_status: ["draft", "active", "inactive", "archived"],
+    },
+  },
+  storage: {
+    Enums: {
+      buckettype: ["STANDARD", "ANALYTICS"],
+    },
+  },
+} as const
+

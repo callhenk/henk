@@ -2,18 +2,32 @@
 
 import { useState } from 'react';
 
-import { Phone, PlayCircle, SkipForward, Voicemail } from 'lucide-react';
+import { Check, Loader2, Phone, PlayCircle, SkipForward, Voicemail, X } from 'lucide-react';
+import { toast } from 'sonner';
 
+import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader } from '@kit/ui/card';
 import { Label } from '@kit/ui/label';
 import { Switch } from '@kit/ui/switch';
+
+// Field name constant
+const ENABLED_TOOLS_FIELD = 'enabled_tools';
+
+// Tool ID constants
+const TOOL_IDS = {
+  END_CALL: 'end_call',
+  SKIP_TURN: 'skip_turn',
+  PLAY_KEYPAD_TONE: 'play_keypad_tone',
+  VOICEMAIL_DETECTION: 'voicemail_detection',
+} as const;
 
 interface AgentToolsProps {
   agent: {
     id: string;
     name: string;
+    enabled_tools?: unknown;
   };
-  onSaveField: (fieldName: string, value: string) => Promise<void>;
+  onSaveField: (fieldName: string, value: unknown) => Promise<void>;
 }
 
 interface ToolConfig {
@@ -25,53 +39,89 @@ interface ToolConfig {
 }
 
 export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
-  // Initialize tools state from agent configuration
-  // TODO: These should be stored in the database
-  const [tools, setTools] = useState<ToolConfig[]>([
-    {
-      id: 'end_call',
-      label: 'End call',
-      description: 'Gives agent the ability to end the call with the user.',
-      icon: Phone,
-      enabled: false,
-    },
-    {
-      id: 'skip_turn',
-      label: 'Skip turn',
-      description:
-        'Agent will skip its turn if user explicitly indicates they need a moment.',
-      icon: SkipForward,
-      enabled: false,
-    },
-    {
-      id: 'play_keypad_tone',
-      label: 'Play keypad touch tone',
-      description:
-        'Gives agent the ability to play keypad touch tones during a phone call.',
-      icon: PlayCircle,
-      enabled: false,
-    },
-    {
-      id: 'voicemail_detection',
-      label: 'Voicemail detection',
-      description:
-        'Allows agent to detect voicemail systems and optionally leave a message.',
-      icon: Voicemail,
-      enabled: false,
-    },
-  ]);
+  // Initialize tools configuration
+  const getInitialTools = (): ToolConfig[] => {
+    const enabledToolIds = Array.isArray(agent.enabled_tools)
+      ? agent.enabled_tools
+      : [];
 
-  const handleToggleTool = async (toolId: string) => {
+    return [
+      {
+        id: TOOL_IDS.END_CALL,
+        label: 'End call',
+        description: 'Gives agent the ability to end the call with the user.',
+        icon: Phone,
+        enabled: enabledToolIds.includes(TOOL_IDS.END_CALL),
+      },
+      {
+        id: TOOL_IDS.SKIP_TURN,
+        label: 'Skip turn',
+        description:
+          'Agent will skip its turn if user explicitly indicates they need a moment.',
+        icon: SkipForward,
+        enabled: enabledToolIds.includes(TOOL_IDS.SKIP_TURN),
+      },
+      {
+        id: TOOL_IDS.PLAY_KEYPAD_TONE,
+        label: 'Play keypad touch tone',
+        description:
+          'Gives agent the ability to play keypad touch tones during a phone call.',
+        icon: PlayCircle,
+        enabled: enabledToolIds.includes(TOOL_IDS.PLAY_KEYPAD_TONE),
+      },
+      {
+        id: TOOL_IDS.VOICEMAIL_DETECTION,
+        label: 'Voicemail detection',
+        description:
+          'Allows agent to detect voicemail systems and optionally leave a message.',
+        icon: Voicemail,
+        enabled: enabledToolIds.includes(TOOL_IDS.VOICEMAIL_DETECTION),
+      },
+    ];
+  };
+
+  const [tools, setTools] = useState<ToolConfig[]>(getInitialTools);
+  const [originalTools, setOriginalTools] = useState<ToolConfig[]>(getInitialTools);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Check if there are unsaved changes
+  const hasChanges = tools.some(
+    (tool, index) => tool.enabled !== originalTools[index]?.enabled,
+  );
+
+  const handleToggleTool = (toolId: string) => {
     const updatedTools = tools.map((tool) =>
       tool.id === toolId ? { ...tool, enabled: !tool.enabled } : tool,
     );
     setTools(updatedTools);
+  };
 
-    // TODO: Save to database
-    // const enabledTools = updatedTools
-    //   .filter((t) => t.enabled)
-    //   .map((t) => t.id);
-    // await onSaveField('enabled_tools', JSON.stringify(enabledTools));
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Save enabled tools to database
+      const enabledTools = tools
+        .filter((t) => t.enabled)
+        .map((t) => t.id);
+
+      await onSaveField(ENABLED_TOOLS_FIELD, enabledTools);
+
+      // Update original tools to match current state
+      setOriginalTools([...tools]);
+
+      toast.success('Tool settings saved successfully');
+    } catch (error) {
+      console.error('Failed to save tool settings:', error);
+      toast.error('Failed to save tool settings. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset tools to original state
+    setTools([...originalTools]);
+    toast.info('Changes discarded');
   };
 
   return (
@@ -113,12 +163,52 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
                     id={tool.id}
                     checked={tool.enabled}
                     onCheckedChange={() => handleToggleTool(tool.id)}
+                    disabled={isSaving}
                   />
                 </div>
               );
             })}
           </div>
         </CardContent>
+
+        {/* Save/Cancel Actions */}
+        {hasChanges && (
+          <CardContent className="border-t bg-muted/50 pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-muted-foreground text-sm">
+                You have unsaved changes
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       {/* Custom Tools Section - Disabled for now */}

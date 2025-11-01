@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { BookOpen, Edit, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { Button } from '@kit/ui/button';
@@ -60,7 +61,7 @@ export function FAQEditor({
 
       onSaveSuccess?.();
     } catch {
-      alert('Failed to save FAQs. Please try again.');
+      toast.error('Failed to save FAQs. Please try again.');
     }
   };
 
