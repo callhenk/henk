@@ -96,7 +96,10 @@ function NotificationSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Configure Email Settings</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Control which email notifications you receive for account activity, campaigns, and system updates. Choose notification frequency and customize which events trigger emails.
+              </p>
+              <Button variant="outline" disabled>Configure Email Settings (Coming Soon)</Button>
             </CardContent>
           </Card>
 
@@ -111,7 +114,10 @@ function NotificationSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Configure Campaign Alerts</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get notified about campaign starts, completions, and important milestones. Set up alerts for call outcomes, conversion events, and campaign performance metrics.
+              </p>
+              <Button variant="outline" disabled>Configure Campaign Alerts (Coming Soon)</Button>
             </CardContent>
           </Card>
 
@@ -126,7 +132,10 @@ function NotificationSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Configure System Alerts</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Receive alerts for security events, system maintenance, and critical updates. Stay informed about account activity, login attempts, and platform status.
+              </p>
+              <Button variant="outline" disabled>Configure System Alerts (Coming Soon)</Button>
             </CardContent>
           </Card>
         </div>

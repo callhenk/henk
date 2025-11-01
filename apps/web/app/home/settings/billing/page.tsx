@@ -92,7 +92,10 @@ function BillingSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Manage Payment Methods</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add, remove, or update your payment methods for subscription billing. Securely store credit cards, debit cards, or bank accounts for automatic payments.
+              </p>
+              <Button variant="outline" disabled>Manage Payment Methods (Coming Soon)</Button>
             </CardContent>
           </Card>
 
@@ -107,7 +110,10 @@ function BillingSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">View Billing History</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Access and download your past invoices and billing statements. View payment history, transaction details, and export records for accounting purposes.
+              </p>
+              <Button variant="outline" disabled>View Billing History (Coming Soon)</Button>
             </CardContent>
           </Card>
 
