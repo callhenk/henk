@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { use } from 'react';
 
 import { Eye, Key, Lock, Shield } from 'lucide-react';
@@ -14,6 +15,7 @@ import {
 import { PageBody, PageHeader } from '@kit/ui/page';
 import { Separator } from '@kit/ui/separator';
 
+import pathsConfig from '~/config/paths.config';
 import { withI18n } from '~/lib/i18n/with-i18n';
 import { requireUserInServerComponent } from '~/lib/server/require-user-in-server-component';
 
@@ -92,7 +94,10 @@ function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button>Enable 2FA</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Two-factor authentication (2FA) adds an additional layer of security by requiring a second form of verification when signing in. Enable 2FA to protect your account from unauthorized access.
+              </p>
+              <Button variant="outline" disabled>Enable 2FA (Coming Soon)</Button>
             </CardContent>
           </Card>
 
@@ -105,7 +110,11 @@ function SecuritySettingsPage() {
               <CardDescription>Update your account password</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Change Password</Button>
+              <Button variant="outline" asChild>
+                <Link href={pathsConfig.app.profileSettings}>
+                  Change Password
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 
@@ -120,7 +129,10 @@ function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">Manage Privacy</Button>
+              <p className="text-sm text-muted-foreground mb-4">
+                Configure how your data is used and shared within the platform. Control visibility settings, data export options, and third-party integrations.
+              </p>
+              <Button variant="outline" disabled>Manage Privacy (Coming Soon)</Button>
             </CardContent>
           </Card>
         </div>
