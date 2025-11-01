@@ -2,6 +2,7 @@
   "name": "next-supabase-saas-kit-turbo-lite",
   "version": "0.2.0",
   "private": true,
+  "license": "UNLICENSED",
   "sideEffects": false,
   "engines": {
     "node": ">=v18.18.0"
@@ -27,6 +28,7 @@
     "test:e2e": "turbo run test --filter=web-e2e",
     "test:e2e:only": "cd apps/e2e && pnpm exec playwright test",
     "test:smoke": "cd apps/e2e && pnpm exec playwright test tests/core-functionality/smoke-test.spec.ts",
+    "test:pages": "cd apps/e2e && pnpm exec playwright test tests/pages/ --reporter=list",
     "test:coverage": "vitest run --coverage",
     "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "test:complete": "node scripts/test-all.mjs",
@@ -71,6 +73,7 @@
     "@types/papaparse": "^5.3.16",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/coverage-v8": "^4.0.6",
+    "@vitest/ui": "4.0.6",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "happy-dom": "^20.0.10",
