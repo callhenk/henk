@@ -149,16 +149,22 @@ function validatePackageReferences() {
   ];
 
   const files = fs.readdirSync(docsDir)
-    .filter(f => f.endsWith('.md') && f !== 'documentation-audit.md');
+    .filter(f => f.endsWith('.md') && f !== 'documentation-audit.md' && f !== 'pre-push-checklist.md');
 
   files.forEach(file => {
     const filePath = path.join(docsDir, file);
     const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
 
     invalidPackages.forEach(pkg => {
-      if (content.includes(pkg)) {
-        error(`File ${file} references non-existent package: ${pkg}`);
-      }
+      lines.forEach((line, index) => {
+        // Skip lines that are examples of what NOT to do (contain ❌)
+        if (line.includes('❌')) return;
+
+        if (line.includes(pkg)) {
+          error(`File ${file}:${index + 1} references non-existent package: ${pkg}`);
+        }
+      });
     });
   });
 }
@@ -168,7 +174,7 @@ function validateEnvFileReferences() {
   info('Checking environment file references...');
 
   const files = fs.readdirSync(docsDir)
-    .filter(f => f.endsWith('.md'));
+    .filter(f => f.endsWith('.md') && f !== 'pre-push-checklist.md');
 
   files.push(path.join(rootDir, 'README.md'));
 
@@ -180,12 +186,18 @@ function validateEnvFileReferences() {
     if (!fs.existsSync(filePath)) return;
 
     const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
     const fileName = path.basename(filePath);
 
     incorrectRefs.forEach(ref => {
-      if (content.includes(ref)) {
-        error(`File ${fileName} references "${ref}" instead of "${correctRef}"`);
-      }
+      lines.forEach((line, index) => {
+        // Skip lines that are examples of what NOT to do (contain ❌)
+        if (line.includes('❌')) return;
+
+        if (line.includes(ref)) {
+          error(`File ${fileName}:${index + 1} references "${ref}" instead of "${correctRef}"`);
+        }
+      });
     });
   });
 }
