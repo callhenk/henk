@@ -171,9 +171,7 @@ export function AgentKnowledge({
                     <div className="text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <code className="bg-muted rounded px-1 py-0.5">{'{{donor_name}}'}</code>
                       <code className="bg-muted rounded px-1 py-0.5">{'{{campaign_name}}'}</code>
-                      <code className="bg-muted rounded px-1 py-0.5">{'{{name}}'}</code>
                       <code className="bg-muted rounded px-1 py-0.5">{'{{company}}'}</code>
-                      <code className="bg-muted rounded px-1 py-0.5">{'{{lead_id}}'}</code>
                       <code className="bg-muted rounded px-1 py-0.5">{'{{attempt_no}}'}</code>
                     </div>
                   </div>
