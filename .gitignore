@@ -124,6 +124,7 @@ playwright/.cache/
 # Supabase
 .supabase/
 supabase/.temp/
+supabase/.branches/
 
 # Local development
 *.local
