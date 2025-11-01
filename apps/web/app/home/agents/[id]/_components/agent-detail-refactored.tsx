@@ -653,7 +653,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           className="w-full"
         >
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger
                 value="overview"
                 className="inline-flex items-center gap-2"
@@ -674,6 +674,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               >
                 <Mic className="h-4 w-4" />
                 <span>Voice</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="tools"
+                className="inline-flex items-center gap-2"
+              >
+                <Wrench className="h-4 w-4" />
+                <span>Tools</span>
               </TabsTrigger>
               <TabsTrigger
                 value="workflow"
@@ -799,6 +806,11 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 onSaveField={handleSaveField}
                 onVoiceUpdate={handleVoiceUpdate}
               />
+            </TabsContent>
+
+            {/* Tools Tab */}
+            <TabsContent value="tools">
+              <AgentTools agent={agent} onSaveField={handleSaveField} />
             </TabsContent>
 
             {/* Workflow Tab */}
