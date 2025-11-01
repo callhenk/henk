@@ -90,15 +90,17 @@ export const UpdatePasswordForm = ({
       });
 
       if (signInError) {
-        toast.error(t('currentPasswordIncorrect'));
-        return Promise.reject(t('currentPasswordIncorrect'));
+        const errorMessage = 'The current password you entered is incorrect. Please try again.';
+        toast.error(errorMessage);
+        return Promise.reject(errorMessage);
       }
 
       // Current password verified, proceed with update
       updatePasswordFromCredential(newPassword);
     } catch (error) {
-      toast.error(t('currentPasswordIncorrect'));
-      return Promise.reject(t('currentPasswordIncorrect'));
+      const errorMessage = 'Unable to verify your current password. Please check and try again.';
+      toast.error(errorMessage);
+      return Promise.reject(errorMessage);
     }
   };
 
