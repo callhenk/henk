@@ -74,6 +74,11 @@ const statusConfig = {
     className:
       'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
   },
+  in_progress: {
+    variant: 'default' as const,
+    className:
+      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
+  },
   completed: {
     variant: 'default' as const,
     className:
@@ -133,6 +138,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   };
 
   const getStatusText = (status: string) => {
+    // Handle specific cases with custom text
     switch (status) {
       case 'agent_paused':
         return 'Paused';
@@ -146,8 +152,15 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         return 'Callback Requested';
       case 'no-interest':
         return 'No Interest';
+      case 'no-answer':
+        return 'No Answer';
       default:
-        return status.charAt(0).toUpperCase() + status.slice(1);
+        // Convert snake_case or kebab-case to Title Case
+        return status
+          .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+          .split(' ')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
     }
   };
 
