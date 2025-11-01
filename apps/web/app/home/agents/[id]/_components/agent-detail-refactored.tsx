@@ -41,6 +41,25 @@ import { AgentTools } from './agent-tools';
 import { AgentVoice } from './agent-voice';
 import { DebugTools } from './debug-tools';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
+
+// Agent field name constants
+const AGENT_FIELDS = {
+  NAME: 'name',
+  STARTING_MESSAGE: 'starting_message',
+  ORGANIZATION_INFO: 'organization_info',
+  DONOR_CONTEXT: 'donor_context',
+  VOICE_TYPE: 'voice_type',
+  VOICE_ID: 'voice_id',
+  VOICE_SETTINGS: 'voice_settings',
+  FAQS: 'faqs',
+  ENABLED_TOOLS: 'enabled_tools',
+} as const;
+
+// Get human-readable field name for display
+const getFieldDisplayName = (fieldName: string): string => {
+  if (fieldName === AGENT_FIELDS.FAQS) return 'FAQs';
+  return fieldName.replace('_', ' ');
+};
 import { WorkflowBuilder } from './workflow-builder/index';
 
 export function AgentDetail({ agentId }: { agentId: string }) {
@@ -168,7 +187,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       };
 
       // Handle different field types
-      if (pendingVoiceUpdate.fieldName === 'voice_settings') {
+      if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS) {
         updateData.voice_settings = pendingVoiceUpdate.value;
       } else {
         updateData[pendingVoiceUpdate.fieldName] = pendingVoiceUpdate.value;
@@ -183,9 +202,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           const elevenLabsUpdateData: Record<string, unknown> = {};
 
           // Map field names for ElevenLabs API
-          if (pendingVoiceUpdate.fieldName === 'voice_id') {
+          if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_ID) {
             elevenLabsUpdateData.voice_id = pendingVoiceUpdate.value;
-          } else if (pendingVoiceUpdate.fieldName === 'voice_settings') {
+          } else if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS) {
             elevenLabsUpdateData.voice_settings = pendingVoiceUpdate.value;
           }
 
@@ -258,6 +277,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const handleCancelVoiceUpdate = () => {
     setShowVoiceUpdateConfirm(false);
     setPendingVoiceUpdate(null);
+    setSavingField(null);
   };
 
   const handleVoiceUpdate = (fieldName: string, value: string | unknown) => {
@@ -515,22 +535,40 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   };
 
   const handleSaveField = useCallback(
-    async (fieldName: string, value: string) => {
+    async (fieldName: string, value: unknown) => {
       if (!agent) return;
 
       setSavingField(fieldName);
       try {
-        const updateData = {
-          id: agentId,
-          ...(fieldName === 'name' && { name: value }),
-          ...(fieldName === 'starting_message' && { starting_message: value }),
-          ...(fieldName === 'organization_info' && {
-            organization_info: value,
-          }),
-          ...(fieldName === 'donor_context' && { donor_context: value }),
-          ...(fieldName === 'voice_type' && { voice_type: value }),
-          ...(fieldName === 'faqs' && { faqs: JSON.parse(value) }),
-        };
+        // Build update data based on field name
+        const baseUpdate = { id: agentId };
+        let updateData;
+
+        switch (fieldName) {
+          case AGENT_FIELDS.NAME:
+            updateData = { ...baseUpdate, name: value as string };
+            break;
+          case AGENT_FIELDS.STARTING_MESSAGE:
+            updateData = { ...baseUpdate, starting_message: value as string };
+            break;
+          case AGENT_FIELDS.ORGANIZATION_INFO:
+            updateData = { ...baseUpdate, organization_info: value as string };
+            break;
+          case AGENT_FIELDS.DONOR_CONTEXT:
+            updateData = { ...baseUpdate, donor_context: value as string };
+            break;
+          case AGENT_FIELDS.VOICE_TYPE:
+            updateData = { ...baseUpdate, voice_type: value as string };
+            break;
+          case AGENT_FIELDS.FAQS:
+            updateData = { ...baseUpdate, faqs: JSON.parse(value as string) };
+            break;
+          case AGENT_FIELDS.ENABLED_TOOLS:
+            updateData = { ...baseUpdate, enabled_tools: value };
+            break;
+          default:
+            updateData = baseUpdate;
+        }
 
         await updateAgentMutation.mutateAsync(updateData);
 
@@ -539,27 +577,27 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           try {
             const elevenLabsUpdates: Record<string, unknown> = {};
 
-            if (fieldName === 'name') {
+            if (fieldName === AGENT_FIELDS.NAME) {
               elevenLabsUpdates.name = value;
             }
-            if (fieldName === 'voice_id') {
+            if (fieldName === AGENT_FIELDS.VOICE_ID) {
               elevenLabsUpdates.voice_id = value;
             }
-            if (fieldName === 'organization_info') {
+            if (fieldName === AGENT_FIELDS.ORGANIZATION_INFO) {
               elevenLabsUpdates.context_data = {
                 organization_info: value,
               };
             }
-            if (fieldName === 'donor_context') {
+            if (fieldName === AGENT_FIELDS.DONOR_CONTEXT) {
               elevenLabsUpdates.context_data = {
                 donor_context: value,
               };
             }
-            if (fieldName === 'starting_message') {
+            if (fieldName === AGENT_FIELDS.STARTING_MESSAGE) {
               elevenLabsUpdates.starting_message = value;
             }
-            if (fieldName === 'faqs') {
-              elevenLabsUpdates.faqs = JSON.parse(value);
+            if (fieldName === AGENT_FIELDS.FAQS) {
+              elevenLabsUpdates.faqs = JSON.parse(value as string);
             }
 
             if (Object.keys(elevenLabsUpdates).length > 0) {
@@ -579,12 +617,12 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
         // Show success message
         setSaveSuccess(
-          `${fieldName === 'faqs' ? 'FAQs' : fieldName.replace('_', ' ')} saved successfully!`,
+          `${getFieldDisplayName(fieldName)} saved successfully!`,
         );
         setTimeout(() => setSaveSuccess(null), 3000);
       } catch (error) {
         console.error(`Failed to save ${fieldName} changes:`, error);
-        alert(
+        toast.error(
           `Failed to save ${fieldName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
       } finally {
@@ -850,12 +888,12 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-card text-card-foreground mx-4 w-full max-w-md rounded-lg p-6">
             <h3 className="mb-4 text-lg font-semibold">
-              {pendingVoiceUpdate?.fieldName === 'voice_settings'
+              {pendingVoiceUpdate?.fieldName === AGENT_FIELDS.VOICE_SETTINGS
                 ? 'Confirm Voice Settings Update'
                 : 'Confirm Voice Update'}
             </h3>
             <p className="text-muted-foreground mb-6">
-              {pendingVoiceUpdate?.fieldName === 'voice_settings'
+              {pendingVoiceUpdate?.fieldName === AGENT_FIELDS.VOICE_SETTINGS
                 ? 'This will update the voice settings for both the local agent and the ElevenLabs agent. Are you sure you want to proceed?'
                 : 'This will update the voice for both the local agent and the ElevenLabs agent. Are you sure you want to proceed?'}
             </p>
@@ -863,26 +901,28 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               <Button
                 variant="outline"
                 onClick={handleCancelVoiceUpdate}
-                disabled={savingField === 'voice_id'}
+                disabled={
+                  savingField === AGENT_FIELDS.VOICE_ID || savingField === AGENT_FIELDS.VOICE_SETTINGS
+                }
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirmVoiceUpdate}
                 disabled={
-                  savingField === 'voice_id' ||
-                  savingField === 'voice_settings'
+                  savingField === AGENT_FIELDS.VOICE_ID ||
+                  savingField === AGENT_FIELDS.VOICE_SETTINGS
                 }
               >
-                {savingField === 'voice_id' ||
-                savingField === 'voice_settings' ? (
+                {savingField === AGENT_FIELDS.VOICE_ID ||
+                savingField === AGENT_FIELDS.VOICE_SETTINGS ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
                     Updating...
                   </>
                 ) : (
                   <>
-                    {pendingVoiceUpdate?.fieldName === 'voice_settings'
+                    {pendingVoiceUpdate?.fieldName === AGENT_FIELDS.VOICE_SETTINGS
                       ? 'Update Settings'
                       : 'Update Voice'}
                   </>
