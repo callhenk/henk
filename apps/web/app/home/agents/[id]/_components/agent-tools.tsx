@@ -8,10 +8,11 @@ import { Card, CardContent, CardHeader } from '@kit/ui/card';
 import { Label } from '@kit/ui/label';
 import { Switch } from '@kit/ui/switch';
 
-import type { Agent } from '~/lib/database.types';
-
 interface AgentToolsProps {
-  agent: Agent;
+  agent: {
+    id: string;
+    name: string;
+  };
   onSaveField: (fieldName: string, value: string) => Promise<void>;
 }
 
