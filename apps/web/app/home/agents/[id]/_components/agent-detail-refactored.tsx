@@ -8,7 +8,8 @@ import {
   BookOpen,
   GitBranch,
   LayoutDashboard,
-  Mic
+  Mic,
+  Wrench,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -36,6 +37,7 @@ import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
 import { AgentHeader } from './agent-header';
 import { AgentKnowledge } from './agent-knowledge';
 import { AgentOverview } from './agent-overview';
+import { AgentTools } from './agent-tools';
 import { AgentVoice } from './agent-voice';
 import { DebugTools } from './debug-tools';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
