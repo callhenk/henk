@@ -129,12 +129,12 @@ For detailed guides and documentation, see the **[/docs](/docs)** directory:
 - **[Project Structure](/docs/project-structure.md)** - Monorepo organization
 - **[Development Workflow](/docs/development-workflow.md)** - How to work with the codebase
 - **[Supabase Local Development](/docs/supabase-local-development.md)** - Local database setup
-- **[Storage Buckets](/docs/STORAGE_BUCKETS.md)** - Storage bucket configuration
+- **[Storage Buckets](/docs/storage-buckets.md)** - Storage bucket configuration
 - **[Available Scripts](/docs/scripts.md)** - All pnpm scripts reference
 - **[Troubleshooting](/docs/troubleshooting.md)** - Common issues and solutions
 - **[Tech Stack](/docs/tech-stack.md)** - Detailed technology breakdown
 - **[Environment Configuration](/docs/environment.md)** - Environment variables guide
-- **[QA Plan](/docs/QA_PLAN.md)** - Quality assurance and testing strategy
+- **[QA Plan](/docs/qa-plan.md)** - Quality assurance and testing strategy
 - **[Demo System](/docs/demo-system.md)** - Token-based demo system
 
 ---
