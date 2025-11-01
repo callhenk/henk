@@ -22,7 +22,7 @@ cd henk
 pnpm install
 
 # Set up environment variables
-cp .env.example .env.local
+cp .env.sample .env.local
 # Edit .env.local with your configuration
 
 # Start Supabase
@@ -104,8 +104,7 @@ git checkout -b fix/descriptive-bug-name
 ### 2. Making Changes
 
 - **UI Components**: Add to `packages/ui/src/henk/`
-- **Authentication**: Add to `packages/auth/src/`
-- **Account Features**: Add to `packages/accounts/src/`
+- **Feature Packages**: Add to `packages/features/src/`
 - **Database Changes**: Add migrations to `apps/web/supabase/migrations/`
 - **App Features**: Add to `apps/web/app/`
 
@@ -408,9 +407,9 @@ pnpm --filter web run dev
 
 ## 🎯 Next Steps
 
-- **[Coding Standards](./coding-standards.md)** - Detailed code style guidelines
-- **[Testing Guide](./testing.md)** - Comprehensive testing documentation
-- **[Database Guide](./database.md)** - Database development practices
+- **[Project Structure](./project-structure.md)** - Understand the codebase organization
+- **[Available Scripts](./scripts.md)** - See all available commands
+- **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
 
 ---
 

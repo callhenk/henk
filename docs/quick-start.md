@@ -45,7 +45,7 @@ This will install all dependencies for the monorepo and set up the workspace.
 
 ```bash
 # Copy the example environment file
-cp .env.example .env.local
+cp .env.sample .env.local
 ```
 
 Edit `.env.local` and fill in the required values:
@@ -124,7 +124,7 @@ Now that you're up and running:
 3. **Read the Documentation**:
    - [Project Structure](./project-structure.md) - Understand the codebase
    - [Development Workflow](./development-workflow.md) - Learn how to contribute
-   - [Architecture Overview](./architecture.md) - Understand the system design
+   - [Tech Stack](./tech-stack.md) - Understand the technologies used
 
 ## 🚨 Common Issues
 
@@ -158,7 +158,7 @@ PORT=3001 pnpm run dev
 ls -la .env.local
 
 # Copy example if missing
-cp .env.example .env.local
+cp .env.sample .env.local
 ```
 
 ### Dependencies Issues
@@ -186,9 +186,9 @@ Here are the most commonly used scripts:
 ## 📞 Need Help?
 
 - **Technical Issues**: Check [Troubleshooting](./troubleshooting.md)
-- **Architecture Questions**: See [Architecture Overview](./architecture.md)
 - **Development Process**: Read [Development Workflow](./development-workflow.md)
+- **Available Scripts**: See [Scripts Reference](./scripts.md)
 
 ---
 
-_This quick start guide gets you up and running fast. For detailed setup instructions, see [Development Setup](./development-setup.md)._
+_This quick start guide gets you up and running fast. For more detailed information, see the other documentation in the [docs](./README.md) folder._

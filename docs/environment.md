@@ -10,7 +10,7 @@ The project uses different environment files for different contexts:
 
 | File              | Purpose                              | Environment |
 | ----------------- | ------------------------------------ | ----------- |
-| `.env.example`    | Template with all required variables | Development |
+| `.env.sample`    | Template with all required variables | Development |
 | `.env.local`      | Local development overrides          | Development |
 | `.env.test`       | Testing environment                  | Testing     |
 | `.env.production` | Production environment               | Production  |
@@ -19,7 +19,7 @@ The project uses different environment files for different contexts:
 
 ```bash
 # Copy the example environment file
-cp .env.example .env.local
+cp .env.sample .env.local
 
 # Edit the file with your values
 nano .env.local
@@ -194,7 +194,7 @@ NEXT_PUBLIC_ENABLE_ANALYTICS=true
 
 ```bash
 # Start with example file
-cp .env.example .env.local
+cp .env.sample .env.local
 
 # Edit with your values
 nano .env.local
@@ -208,7 +208,7 @@ pnpm run lint
 
 ```bash
 # Create test environment
-cp .env.example .env.test
+cp .env.sample .env.test
 
 # Edit for testing
 nano .env.test
@@ -390,7 +390,7 @@ pnpm run lint
 ### 1. Copy Environment Template
 
 ```bash
-cp .env.example .env.local
+cp .env.sample .env.local
 ```
 
 ### 2. Fill Required Variables
@@ -415,4 +415,4 @@ pnpm run dev
 
 ---
 
-_This environment configuration guide ensures your development environment is properly set up. For deployment configuration, see [Deployment Guide](./deployment.md)._
+_This environment configuration guide ensures your development environment is properly set up. For more information, see the other documentation in the [docs](./README.md) folder._

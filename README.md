@@ -23,7 +23,7 @@ pnpm install
 ### 2. Set up environment variables
 
 ```bash
-cp .env.example .env.local
+cp .env.sample .env.local
 ```
 
 Fill in required keys:
@@ -120,8 +120,29 @@ packages/
 
 ---
 
-## 🛠 Troubleshooting
+## 📖 Documentation
 
-- **401 Supabase**: Check `SUPABASE_ANON_KEY`
-- **Twilio error 11200**: Restart ngrok and update webhook
-- **No audio on call**: Check ElevenLabs quota or voice config
+For detailed guides and documentation, see the **[/docs](/docs)** directory:
+
+- **[Quick Start Guide](/docs/quick-start.md)** - Detailed setup instructions
+- **[Project Overview](/docs/project-overview.md)** - What is Henk and the tech stack
+- **[Project Structure](/docs/project-structure.md)** - Monorepo organization
+- **[Development Workflow](/docs/development-workflow.md)** - How to work with the codebase
+- **[Supabase Local Development](/docs/supabase-local-development.md)** - Local database setup
+- **[Storage Buckets](/docs/STORAGE_BUCKETS.md)** - Storage bucket configuration
+- **[Available Scripts](/docs/scripts.md)** - All pnpm scripts reference
+- **[Troubleshooting](/docs/troubleshooting.md)** - Common issues and solutions
+- **[Tech Stack](/docs/tech-stack.md)** - Detailed technology breakdown
+- **[Environment Configuration](/docs/environment.md)** - Environment variables guide
+- **[QA Plan](/docs/QA_PLAN.md)** - Quality assurance and testing strategy
+- **[Demo System](/docs/demo-system.md)** - Token-based demo system
+
+---
+
+## 🛠 Quick Troubleshooting
+
+- **401 Supabase**: Check `SUPABASE_ANON_KEY` in `.env.local`
+- **Twilio error 11200**: Restart ngrok and update webhook URL
+- **No audio on call**: Check ElevenLabs quota or voice configuration
+- **Database issues**: See [Supabase Local Development](/docs/supabase-local-development.md)
+- **More solutions**: See [Troubleshooting Guide](/docs/troubleshooting.md)

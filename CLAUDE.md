@@ -2,6 +2,8 @@
 
 This document provides context and guidelines for working on the Henk platform with Claude Code.
 
+> **Documentation Note:** The project documentation has been cleaned and organized (Nov 2024). All available documentation is in the `docs/` folder. See `docs/README.md` for the complete index. References to non-existent documentation files have been removed.
+
 ## Project Overview
 
 Henk is a fundraising and campaign management platform built with Next.js, Supabase, and TypeScript. The platform helps businesses manage campaigns, integrations, and client relationships.

@@ -2,19 +2,21 @@
 
 Welcome to the Henk documentation! This guide will help you understand the project structure, get started with development, and contribute effectively.
 
+> **Note:** This documentation focuses on essential guides for contributors. Additional documentation will be added as needed.
+
 ## 📚 Documentation Index
 
 ### 🚀 Getting Started
 
-- **[Project Overview](./project-overview.md)** - What is Henk and the tech stack
 - **[Quick Start Guide](./quick-start.md)** - Get up and running in 10 minutes
-- **[Tech Stack](./tech-stack.md)** - Detailed breakdown of technologies used
+- **[Project Overview](./project-overview.md)** - What is Henk and the tech stack
+- **[Environment Configuration](./environment.md)** - Setting up environment variables
 
 ### 🏗️ Architecture & Development
 
 - **[Project Structure](./project-structure.md)** - Monorepo organization and key directories
+- **[Tech Stack](./tech-stack.md)** - Detailed breakdown of technologies used
 - **[Development Workflow](./development-workflow.md)** - How to work with the codebase
-- **[Environment Configuration](./environment.md)** - Setting up environment variables
 
 ### 🔧 Tools & Database
 
@@ -55,6 +57,7 @@ Before contributing, please read:
 
 - **[archive/](./archive/)** - Archived documentation and old planning documents
 - **[migrations/](./migrations/)** - Database migration documentation
+- **[DOCUMENTATION_AUDIT.md](./DOCUMENTATION_AUDIT.md)** - Documentation accuracy audit results
 
 ---
 
