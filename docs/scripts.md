@@ -97,21 +97,13 @@ These scripts are specific to the main web application (`apps/web`).
 | **Lint**       | `pnpm --filter ui run lint`      | Lint UI components       |
 | **Type Check** | `pnpm --filter ui run typecheck` | Type check UI components |
 
-### Auth Package (`packages/auth`)
-
-| Script         | Command                            | Purpose                 |
-| -------------- | ---------------------------------- | ----------------------- |
-| **Build**      | `pnpm --filter auth run build`     | Build auth package      |
-| **Lint**       | `pnpm --filter auth run lint`      | Lint auth package       |
-| **Type Check** | `pnpm --filter auth run typecheck` | Type check auth package |
-
-### Accounts Package (`packages/accounts`)
+### Features Package (`packages/features`)
 
 | Script         | Command                                | Purpose                     |
 | -------------- | -------------------------------------- | --------------------------- |
-| **Build**      | `pnpm --filter accounts run build`     | Build accounts package      |
-| **Lint**       | `pnpm --filter accounts run lint`      | Lint accounts package       |
-| **Type Check** | `pnpm --filter accounts run typecheck` | Type check accounts package |
+| **Build**      | `pnpm --filter features run build`     | Build features package      |
+| **Lint**       | `pnpm --filter features run lint`      | Lint features package       |
+| **Type Check** | `pnpm --filter features run typecheck` | Type check features package |
 
 ### Supabase Package (`packages/supabase`)
 

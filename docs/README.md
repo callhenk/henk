@@ -22,11 +22,13 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 
 - **[Available Scripts](./scripts.md)** - All pnpm scripts and their purposes
 - **[Supabase Local Development](./supabase-local-development.md)** - Local database setup and management
+- **[Storage Buckets](./STORAGE_BUCKETS.md)** - Storage bucket configuration and policies
 - **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
 
-### 🎯 Features
+### 🎯 Features & Quality
 
 - **[Demo System](./demo-system.md)** - Token-based demo system for client presentations
+- **[QA Plan](./QA_PLAN.md)** - Quality assurance and testing strategy
 
 ---
 
@@ -38,7 +40,9 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 | Understanding the codebase | [Project Structure](./project-structure.md)                  |
 | Adding new features        | [Development Workflow](./development-workflow.md)            |
 | Database setup             | [Supabase Local Development](./supabase-local-development.md)|
+| Storage configuration      | [Storage Buckets](./STORAGE_BUCKETS.md)                      |
 | Environment variables      | [Environment Configuration](./environment.md)                |
+| Testing & QA               | [QA Plan](./QA_PLAN.md)                                      |
 | Troubleshooting            | [Troubleshooting](./troubleshooting.md)                      |
 
 ---
@@ -61,4 +65,4 @@ Before contributing, please read:
 
 ---
 
-_Last updated: November 2024_
+_Last updated: November 2025_

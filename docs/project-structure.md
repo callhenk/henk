@@ -212,12 +212,7 @@ packages/ui
 ├── @kit/shared          # Shared utilities
 └── (external deps)      # Radix UI, Tailwind, etc.
 
-packages/auth
-├── @kit/supabase        # Database services
-├── @kit/ui              # UI components
-└── @kit/shared          # Shared utilities
-
-packages/accounts
+packages/features
 ├── @kit/supabase        # Database services
 ├── @kit/ui              # UI components
 └── @kit/shared          # Shared utilities
@@ -245,10 +240,9 @@ packages/accounts
 ### Adding New Features
 
 1. **UI Components**: Add to `packages/ui/src/henk/`
-2. **Authentication**: Add to `packages/auth/src/`
-3. **Account Features**: Add to `packages/accounts/src/`
-4. **Database Changes**: Add migrations to `apps/web/supabase/migrations/`
-5. **App Features**: Add to `apps/web/app/`
+2. **Features**: Add to `packages/features/src/`
+3. **Database Changes**: Add migrations to `apps/web/supabase/migrations/`
+4. **App Features**: Add to `apps/web/app/`
 
 ### Package Development
 
