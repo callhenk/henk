@@ -560,6 +560,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           case AGENT_FIELDS.VOICE_TYPE:
             updateData = { ...baseUpdate, voice_type: value as 'ai_generated' | 'custom' };
             break;
+          case AGENT_FIELDS.VOICE_SETTINGS:
+            updateData = { ...baseUpdate, voice_settings: value as Json };
+            break;
           case AGENT_FIELDS.FAQS:
             updateData = { ...baseUpdate, faqs: JSON.parse(value as string) };
             break;
@@ -582,6 +585,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             }
             if (fieldName === AGENT_FIELDS.VOICE_ID) {
               elevenLabsUpdates.voice_id = value;
+            }
+            if (fieldName === AGENT_FIELDS.VOICE_SETTINGS) {
+              elevenLabsUpdates.voice_settings = value;
             }
             if (fieldName === AGENT_FIELDS.ORGANIZATION_INFO) {
               elevenLabsUpdates.context_data = {
