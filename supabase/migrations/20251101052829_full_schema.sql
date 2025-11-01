@@ -411,8 +411,14 @@ declare
     current_setting('app.settings.conversation_orchestrator_url', true),
     'https://plvxicajcpnnsxosmntd.supabase.co/functions/v1/conversation-orchestrator'
   );
-  anon_key text := current_setting('app.settings.supabase_anon_key', true);
+  anon_key text;
 begin
+  -- Get anon key from Vault
+  select decrypted_secret into anon_key
+  from vault.decrypted_secrets
+  where name = 'supabase_anon_key'
+  limit 1;
+
   perform net.http_post(
     url := conversation_orchestrator_url,
     headers := jsonb_build_object(
@@ -437,8 +443,14 @@ declare
     current_setting('app.settings.sync_salesforce_leads_url', true),
     'https://plvxicajcpnnsxosmntd.supabase.co/functions/v1/sync-salesforce-leads'
   );
-  anon_key text := current_setting('app.settings.supabase_anon_key', true);
+  anon_key text;
 begin
+  -- Get anon key from Vault
+  select decrypted_secret into anon_key
+  from vault.decrypted_secrets
+  where name = 'supabase_anon_key'
+  limit 1;
+
   perform net.http_post(
     url := sync_salesforce_leads_url,
     headers := jsonb_build_object(
@@ -921,8 +933,14 @@ CREATE OR REPLACE FUNCTION "public"."trigger_campaign_orchestrator"() RETURNS "v
     LANGUAGE "plpgsql"
     AS $$
 DECLARE
-  anon_key text := current_setting('app.settings.supabase_anon_key', true);
+  anon_key text;
 BEGIN
+  -- Get anon key from Vault
+  SELECT decrypted_secret INTO anon_key
+  FROM vault.decrypted_secrets
+  WHERE name = 'supabase_anon_key'
+  LIMIT 1;
+
   PERFORM net.http_post(
     url := 'https://plvxicajcpnnsxosmntd.supabase.co/functions/v1/campaign-orchestrator',
     headers := jsonb_build_object(
