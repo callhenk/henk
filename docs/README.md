@@ -36,16 +36,16 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 
 ## 🎯 Quick Navigation
 
-| Task                       | Documentation                                                |
-| -------------------------- | ------------------------------------------------------------ |
-| First time setup           | [Quick Start Guide](./quick-start.md)                        |
-| Understanding the codebase | [Project Structure](./project-structure.md)                  |
-| Adding new features        | [Development Workflow](./development-workflow.md)            |
-| Database setup             | [Supabase Local Development](./supabase-local-development.md)|
-| Storage configuration      | [Storage Buckets](./storage-buckets.md)                      |
-| Environment variables      | [Environment Configuration](./environment.md)                |
+| Task                       | Documentation                                                    |
+| -------------------------- | ---------------------------------------------------------------- |
+| First time setup           | [Quick Start Guide](./quick-start.md)                            |
+| Understanding the codebase | [Project Structure](./project-structure.md)                      |
+| Adding new features        | [Development Workflow](./development-workflow.md)                |
+| Database setup             | [Supabase Local Development](./supabase-local-development.md)    |
+| Storage configuration      | [Storage Buckets](./storage-buckets.md)                          |
+| Environment variables      | [Environment Configuration](./environment.md)                    |
 | Testing & QA               | [QA Plan](./qa-plan.md) • [Quick Start](./testing-quickstart.md) |
-| Troubleshooting            | [Troubleshooting](./troubleshooting.md)                      |
+| Troubleshooting            | [Troubleshooting](./troubleshooting.md)                          |
 
 ---
 
@@ -63,7 +63,7 @@ Before contributing, please read:
 
 - **[archive/](./archive/)** - Archived documentation and old planning documents
 - **[migrations/](./migrations/)** - Database migration documentation
-- **[documentation-audit.md](./documentation-audit.md)** - Documentation accuracy audit results
+- **[documentation-audit.md](./archive/documentation-audit.md)** - Documentation accuracy audit results
 
 ---
 
