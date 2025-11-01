@@ -92,7 +92,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
   const [showVoiceUpdateConfirm, setShowVoiceUpdateConfirm] = useState(false);
   const [pendingVoiceUpdate, setPendingVoiceUpdate] = useState<{
     fieldName: string;
-    value: string;
+    value: string | unknown;
   } | null>(null);
 
   // State for ElevenLabs agent details
@@ -162,10 +162,17 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
     setSavingField(pendingVoiceUpdate.fieldName);
     try {
-      const updateData = {
+      // Prepare update data based on field type
+      const updateData: Record<string, unknown> = {
         id: agentId,
-        voice_id: pendingVoiceUpdate.value,
       };
+
+      // Handle different field types
+      if (pendingVoiceUpdate.fieldName === 'voice_settings') {
+        updateData.voice_settings = pendingVoiceUpdate.value;
+      } else {
+        updateData[pendingVoiceUpdate.fieldName] = pendingVoiceUpdate.value;
+      }
 
       // First, update the local database
       await updateAgentMutation.mutateAsync(updateData);
@@ -173,11 +180,18 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       // Try to update ElevenLabs agent if it exists
       if (agent?.elevenlabs_agent_id) {
         try {
+          const elevenLabsUpdateData: Record<string, unknown> = {};
+
+          // Map field names for ElevenLabs API
+          if (pendingVoiceUpdate.fieldName === 'voice_id') {
+            elevenLabsUpdateData.voice_id = pendingVoiceUpdate.value;
+          } else if (pendingVoiceUpdate.fieldName === 'voice_settings') {
+            elevenLabsUpdateData.voice_settings = pendingVoiceUpdate.value;
+          }
+
           const result = await updateElevenLabsAgent(
             agent.elevenlabs_agent_id,
-            {
-              voice_id: pendingVoiceUpdate.value,
-            },
+            elevenLabsUpdateData,
           );
 
           if (!result.success) {
@@ -246,7 +260,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     setPendingVoiceUpdate(null);
   };
 
-  const handleVoiceUpdate = (fieldName: string, value: string) => {
+  const handleVoiceUpdate = (fieldName: string, value: string | unknown) => {
     if (agent?.elevenlabs_agent_id) {
       setPendingVoiceUpdate({ fieldName, value });
       setShowVoiceUpdateConfirm(true);
@@ -835,10 +849,15 @@ export function AgentDetail({ agentId }: { agentId: string }) {
       {showVoiceUpdateConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-card text-card-foreground mx-4 w-full max-w-md rounded-lg p-6">
-            <h3 className="mb-4 text-lg font-semibold">Confirm Voice Update</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              {pendingVoiceUpdate?.fieldName === 'voice_settings'
+                ? 'Confirm Voice Settings Update'
+                : 'Confirm Voice Update'}
+            </h3>
             <p className="text-muted-foreground mb-6">
-              This will update the voice for both the local agent and the
-              ElevenLabs agent. Are you sure you want to proceed?
+              {pendingVoiceUpdate?.fieldName === 'voice_settings'
+                ? 'This will update the voice settings for both the local agent and the ElevenLabs agent. Are you sure you want to proceed?'
+                : 'This will update the voice for both the local agent and the ElevenLabs agent. Are you sure you want to proceed?'}
             </p>
             <div className="flex justify-end gap-3">
               <Button
@@ -850,15 +869,23 @@ export function AgentDetail({ agentId }: { agentId: string }) {
               </Button>
               <Button
                 onClick={handleConfirmVoiceUpdate}
-                disabled={savingField === 'voice_id'}
+                disabled={
+                  savingField === 'voice_id' ||
+                  savingField === 'voice_settings'
+                }
               >
-                {savingField === 'voice_id' ? (
+                {savingField === 'voice_id' ||
+                savingField === 'voice_settings' ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
                     Updating...
                   </>
                 ) : (
-                  'Update Voice'
+                  <>
+                    {pendingVoiceUpdate?.fieldName === 'voice_settings'
+                      ? 'Update Settings'
+                      : 'Update Voice'}
+                  </>
                 )}
               </Button>
             </div>

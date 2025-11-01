@@ -12,7 +12,7 @@ test('debug: check what happens after login', async ({ page }) => {
   await page.click('button[type="submit"]');
 
   // Wait for navigation
-  await page.waitForURL(/\\/home/, { timeout: 10000 });
+  await page.waitForURL(/\/home/, { timeout: 10000 });
 
   // Print the current URL
   console.log('✓ Current URL:', page.url());

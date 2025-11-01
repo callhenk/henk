@@ -21,20 +21,30 @@ test.describe('Core Functionality Smoke Tests', () => {
 
     // Verify we're logged in
     await expect(page).toHaveURL(/\/home/);
+
+    // Expand the sidebar if it's collapsed
+    const toggleButton = page.locator('button').filter({ hasText: /Toggle Sidebar/i }).or(
+      page.locator('button[aria-label*="Toggle"]')
+    );
+    if (await toggleButton.isVisible({ timeout: 2000 })) {
+      await toggleButton.click();
+      await page.waitForTimeout(500); // Wait for sidebar animation
+    }
   });
 
   test('can navigate to main sections', async ({ page }) => {
     // Check that main navigation items are visible
-    await expect(page.locator('text=Donors').or(page.locator('text=Contacts'))).toBeVisible();
-    await expect(page.locator('text=Campaigns')).toBeVisible();
-    await expect(page.locator('text=Agents')).toBeVisible();
+    await expect(page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")')).toBeVisible();
+    await expect(page.locator('a:has-text("Campaigns")')).toBeVisible();
+    await expect(page.locator('a:has-text("Agents")')).toBeVisible();
 
     console.log('✓ Main navigation sections are accessible');
   });
 
   test('can create a contact/donor', async ({ page }) => {
-    // Navigate to donors/contacts page
-    await page.click('text=Donors');
+    // Navigate to donors/contacts/leads page
+    const leadsLink = page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")').first();
+    await leadsLink.click();
 
     // Wait for donors page to load
     await page.waitForURL(/\/home\/(donors|contacts)/, { timeout: 5000 });
