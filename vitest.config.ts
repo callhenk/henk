@@ -29,13 +29,18 @@ export default defineConfig({
         statements: 70,
       },
     },
-    include: ['**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'apps/web/**/*.{test,spec}.{ts,tsx}',
+      'packages/*/src/**/*.{test,spec}.{ts,tsx}',
+      '!**/node_modules/**',
+    ],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
       '**/.next/**',
       'apps/e2e/**',
-      'node_modules/**',
+      '**/coverage/**',
+      '**/.turbo/**',
     ],
   },
   resolve: {
