@@ -85,48 +85,17 @@ export function AgentVoiceSettings({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      if (agent?.elevenlabs_agent_id && onVoiceUpdate) {
-        // For ElevenLabs conversational AI agents, use the update handler
-        // This will trigger the confirmation dialog
-        // Don't update originalSettings here - wait for agent.voice_settings to change
-        onVoiceUpdate('voice_settings', voiceSettings);
-      } else {
-        // For regular agents, save directly
-        await onSaveField('voice_settings', voiceSettings);
-        setOriginalSettings(voiceSettings);
-        toast.success('Voice settings saved successfully');
-      }
+      // Save directly for all agents (no confirmation needed since Save button provides explicit control)
+      await onSaveField('voice_settings', voiceSettings);
+      setOriginalSettings(voiceSettings);
+      toast.success('Voice settings saved successfully');
     } catch (error) {
       console.error('Error updating voice settings:', error);
       toast.error('Failed to update voice settings');
     } finally {
-      // Keep isSaving true for ElevenLabs agents until confirmation dialog is handled
-      if (!agent?.elevenlabs_agent_id) {
-        setIsSaving(false);
-      }
+      setIsSaving(false);
     }
   };
-
-  // Reset isSaving when settings change or when voiceSettings is reset (dialog cancelled)
-  useEffect(() => {
-    if (isSaving && agent?.elevenlabs_agent_id) {
-      // Check if the settings in the database match what we're trying to save
-      const currentSettings = {
-        ...DEFAULT_SETTINGS,
-        ...(agent.voice_settings || {}),
-      };
-
-      // Reset if settings were saved successfully
-      if (JSON.stringify(currentSettings) === JSON.stringify(voiceSettings)) {
-        setIsSaving(false);
-      }
-
-      // Reset if we're back to original (dialog was cancelled and parent reset the state)
-      if (JSON.stringify(voiceSettings) === JSON.stringify(originalSettings)) {
-        setIsSaving(false);
-      }
-    }
-  }, [agent.voice_settings, voiceSettings, originalSettings, isSaving, agent?.elevenlabs_agent_id]);
 
   const handleReset = () => {
     setVoiceSettings(originalSettings);
