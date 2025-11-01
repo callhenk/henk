@@ -6,11 +6,14 @@
   "scripts": {
     "report": "playwright show-report",
     "test": "playwright test --max-failures=1",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "test:pages": "playwright test tests/pages/ --reporter=list",
+    "test:smoke": "playwright test tests/core-functionality/smoke-test.spec.ts --reporter=list"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "private": true,
   "devDependencies": {
     "@playwright/test": "^1.51.1",
     "@types/node": "^22.15.23",
