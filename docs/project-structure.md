@@ -84,32 +84,14 @@ packages/ui/
 └── package.json          # UI package dependencies
 ```
 
-#### `/packages/auth` - Authentication System
+#### `/packages/features` - Feature Packages
 
-Complete authentication system with Supabase integration.
-
-```
-packages/auth/
-├── src/
-│   ├── components/        # Auth UI components
-│   ├── schemas/           # Validation schemas
-│   ├── captcha/           # CAPTCHA integration
-│   └── shared.ts          # Shared auth utilities
-└── package.json          # Auth package dependencies
-```
-
-#### `/packages/accounts` - User Account Management
-
-User profile, settings, and account management features.
+Modular feature packages including authentication, accounts, and other features.
 
 ```
-packages/accounts/
-├── src/
-│   ├── components/        # Account UI components
-│   ├── hooks/             # Account-related hooks
-│   ├── schema/            # Validation schemas
-│   └── server/            # Server actions and API
-└── package.json          # Accounts package dependencies
+packages/features/
+└── src/
+    └── # Feature-specific code and components
 ```
 
 #### `/packages/supabase` - Database & Backend Services
@@ -310,9 +292,9 @@ pnpm run test
 
 ## 🚀 Next Steps
 
-- **[Architecture Overview](./architecture.md)** - Understand system design
+- **[Tech Stack](./tech-stack.md)** - Understand the technologies used
 - **[Development Workflow](./development-workflow.md)** - Learn development process
-- **[Coding Standards](./coding-standards.md)** - Follow code conventions
+- **[Available Scripts](./scripts.md)** - See all available commands
 
 ---
 

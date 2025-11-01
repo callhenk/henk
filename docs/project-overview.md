@@ -30,8 +30,7 @@ henk/
 │   └── e2e/                 # End-to-end testing
 ├── packages/
 │   ├── ui/                  # Shared UI components
-│   ├── auth/                # Authentication system
-│   ├── accounts/            # User account management
+│   ├── features/            # Feature packages (auth, accounts, etc.)
 │   ├── supabase/            # Database and backend services
 │   ├── i18n/                # Internationalization
 │   ├── next/                # Next.js utilities
@@ -124,8 +123,8 @@ henk/
 Ready to dive in? Start with:
 
 1. **[Quick Start Guide](./quick-start.md)** - Get up and running in 10 minutes
-2. **[Development Setup](./development-setup.md)** - Complete development environment
-3. **[Project Structure](./project-structure.md)** - Understand the codebase organization
+2. **[Project Structure](./project-structure.md)** - Understand the codebase organization
+3. **[Development Workflow](./development-workflow.md)** - Learn the development process
 
 ---
 

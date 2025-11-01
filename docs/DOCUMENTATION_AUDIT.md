@@ -37,7 +37,7 @@ The following files are referenced in documentation but **do not exist**:
 
 ###  2. Incorrect Environment File Name (HIGH PRIORITY)
 
-**Issue:** Documentation references `.env.example` but actual file is `.env.sample`
+**Issue:** Documentation references `.env.sample` but actual file is `.env.sample`
 
 **Affected Files:**
 - quick-start.md
@@ -48,7 +48,7 @@ The following files are referenced in documentation but **do not exist**:
 **Fix:**
 ```bash
 # Change all references from:
-cp .env.example .env.local
+cp .env.sample .env.local
 
 # To:
 cp .env.sample .env.local
@@ -87,7 +87,7 @@ packages/
 - ❌ Line 195: References `development-setup.md` (doesn't exist)
 - ❌ Line 127: References `architecture.md` (doesn't exist)
 - ❌ Line 189: References `architecture.md` (doesn't exist)
-- ❌ Line 46-47: References `.env.example` (should be `.env.sample`)
+- ❌ Line 46-47: References `.env.sample` (should be `.env.sample`)
 
 ### project-overview.md
 - ❌ Line 127: References `development-setup.md` (doesn't exist)
@@ -102,16 +102,16 @@ packages/
 - ❌ Line 411: References `coding-standards.md` (doesn't exist)
 - ❌ Line 412: References `testing.md` (doesn't exist)
 - ❌ Line 413: References `database.md` (doesn't exist)
-- ❌ Line 25: References `.env.example` (should be `.env.sample`)
+- ❌ Line 25: References `.env.sample` (should be `.env.sample`)
 - ❌ Lines 106-110: References non-existent package structure
 
 ### environment.md
 - ❌ Line 418: References `deployment.md` (doesn't exist)
-- ❌ Line 22: References `.env.example` (should be `.env.sample`)
-- ❌ Line 196: References `.env.example` (should be `.env.sample`)
+- ❌ Line 22: References `.env.sample` (should be `.env.sample`)
+- ❌ Line 196: References `.env.sample` (should be `.env.sample`)
 
 ### troubleshooting.md
-- ❌ Line 310: References `.env.example` (should be `.env.sample`)
+- ❌ Line 310: References `.env.sample` (should be `.env.sample`)
 
 ### docs/README.md
 - ❌ References multiple non-existent files in the index
@@ -151,7 +151,7 @@ pnpm run supabase:web:typegen # ✅ Works
 ### Priority 1: Fix Environment File References (Immediate)
 ```bash
 # Find and replace in all docs
-find docs -name "*.md" -type f -exec sed -i '' 's/.env.example/.env.sample/g' {} \;
+find docs -name "*.md" -type f -exec sed -i '' 's/.env.sample/.env.sample/g' {} \;
 ```
 
 ### Priority 2: Remove Dead Links (Immediate)
@@ -182,7 +182,7 @@ Replace references to non-existent docs with actual files or remove them.
 ## 📋 Action Items
 
 ### Immediate (Today)
-- [ ] Fix all `.env.example` → `.env.sample` references
+- [ ] Fix all `.env.sample` → `.env.sample` references
 - [ ] Update docs/README.md to remove dead links
 - [ ] Update quick-start.md to remove dead references
 - [ ] Test all documented commands to ensure they work

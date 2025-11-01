@@ -308,7 +308,7 @@ pnpm run test:debug
 ls -la .env.local
 
 # Copy example if missing
-cp .env.example .env.local
+cp .env.sample .env.local
 
 # Edit environment file
 nano .env.local
@@ -447,7 +447,7 @@ Include the following information:
 1. **Use correct Node.js version**: v18.18.0+
 2. **Use pnpm**: v9.12.0+
 3. **Keep Docker running**: For Supabase
-4. **Set environment variables**: Copy from `.env.example`
+4. **Set environment variables**: Copy from `.env.sample`
 
 ### Development Habits
 
