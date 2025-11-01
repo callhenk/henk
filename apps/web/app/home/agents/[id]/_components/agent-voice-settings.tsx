@@ -218,7 +218,7 @@ export function AgentVoiceSettings({
             max={4}
             step={1}
             value={[voiceSettings.optimize_streaming_latency || 0]}
-            onValueChange={([value]) => handleSettingChange('optimize_streaming_latency', value)}
+            onValueChange={([value]) => value !== undefined && handleSettingChange('optimize_streaming_latency', value)}
             className="w-full"
             disabled={isSaving}
           />
@@ -268,7 +268,7 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.stability || 0.5]}
-            onValueChange={([value]) => handleSettingChange('stability', value)}
+            onValueChange={([value]) => value !== undefined && handleSettingChange('stability', value)}
             className="w-full"
             disabled={isSaving}
           />
@@ -318,7 +318,7 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.similarity_boost || 0.75]}
-            onValueChange={([value]) => handleSettingChange('similarity_boost', value)}
+            onValueChange={([value]) => value !== undefined && handleSettingChange('similarity_boost', value)}
             className="w-full"
             disabled={isSaving}
           />
@@ -368,7 +368,7 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.style || 0]}
-            onValueChange={([value]) => handleSettingChange('style', value)}
+            onValueChange={([value]) => value !== undefined && handleSettingChange('style', value)}
             className="w-full"
             disabled={isSaving}
           />
