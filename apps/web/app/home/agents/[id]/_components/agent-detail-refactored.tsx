@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import type { Json } from '~/lib/database.types';
+
 // Import our Supabase hooks
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
@@ -181,17 +183,15 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
     setSavingField(pendingVoiceUpdate.fieldName);
     try {
-      // Prepare update data based on field type
-      const updateData: Record<string, unknown> = {
+      // Build update data for local database with proper typing
+      const updateData = {
         id: agentId,
+        ...(pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS
+          ? { voice_settings: pendingVoiceUpdate.value as Json }
+          : pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_ID
+            ? { voice_id: pendingVoiceUpdate.value as string }
+            : {}),
       };
-
-      // Handle different field types
-      if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS) {
-        updateData.voice_settings = pendingVoiceUpdate.value;
-      } else {
-        updateData[pendingVoiceUpdate.fieldName] = pendingVoiceUpdate.value;
-      }
 
       // First, update the local database
       await updateAgentMutation.mutateAsync(updateData);
@@ -558,7 +558,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, donor_context: value as string };
             break;
           case AGENT_FIELDS.VOICE_TYPE:
-            updateData = { ...baseUpdate, voice_type: value as string };
+            updateData = { ...baseUpdate, voice_type: value as 'ai_generated' | 'custom' };
             break;
           case AGENT_FIELDS.FAQS:
             updateData = { ...baseUpdate, faqs: JSON.parse(value as string) };
