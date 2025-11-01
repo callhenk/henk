@@ -22,13 +22,13 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 
 - **[Available Scripts](./scripts.md)** - All pnpm scripts and their purposes
 - **[Supabase Local Development](./supabase-local-development.md)** - Local database setup and management
-- **[Storage Buckets](./STORAGE_BUCKETS.md)** - Storage bucket configuration and policies
+- **[Storage Buckets](./storage-buckets.md)** - Storage bucket configuration and policies
 - **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
 
 ### 🎯 Features & Quality
 
 - **[Demo System](./demo-system.md)** - Token-based demo system for client presentations
-- **[QA Plan](./QA_PLAN.md)** - Quality assurance and testing strategy
+- **[QA Plan](./qa-plan.md)** - Quality assurance and testing strategy
 
 ---
 
@@ -40,9 +40,9 @@ Welcome to the Henk documentation! This guide will help you understand the proje
 | Understanding the codebase | [Project Structure](./project-structure.md)                  |
 | Adding new features        | [Development Workflow](./development-workflow.md)            |
 | Database setup             | [Supabase Local Development](./supabase-local-development.md)|
-| Storage configuration      | [Storage Buckets](./STORAGE_BUCKETS.md)                      |
+| Storage configuration      | [Storage Buckets](./storage-buckets.md)                      |
 | Environment variables      | [Environment Configuration](./environment.md)                |
-| Testing & QA               | [QA Plan](./QA_PLAN.md)                                      |
+| Testing & QA               | [QA Plan](./qa-plan.md)                                      |
 | Troubleshooting            | [Troubleshooting](./troubleshooting.md)                      |
 
 ---
@@ -61,7 +61,7 @@ Before contributing, please read:
 
 - **[archive/](./archive/)** - Archived documentation and old planning documents
 - **[migrations/](./migrations/)** - Database migration documentation
-- **[DOCUMENTATION_AUDIT.md](./DOCUMENTATION_AUDIT.md)** - Documentation accuracy audit results
+- **[documentation-audit.md](./documentation-audit.md)** - Documentation accuracy audit results
 
 ---
 
