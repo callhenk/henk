@@ -55,6 +55,7 @@ const AGENT_FIELDS = {
   VOICE_SETTINGS: 'voice_settings',
   FAQS: 'faqs',
   ENABLED_TOOLS: 'enabled_tools',
+  TRANSFER_RULES: 'transfer_rules',
 } as const;
 
 // Get human-readable field name for display

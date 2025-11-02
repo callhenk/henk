@@ -54,19 +54,19 @@ export function AgentTypesStep({ selectedType, onSelectType }: AgentTypesStepPro
           <button
             key={key}
             onClick={() => onSelectType(key)}
-            className={`relative group rounded-xl border-2 p-4 sm:p-5 text-left transition-all duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] ${
+            className={`relative group rounded-xl border-2 p-4 sm:p-5 text-left transition-colors duration-200 ${
               selectedType === key
-                ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20 scale-[1.02]'
+                ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20'
                 : 'border-border hover:border-primary/30 hover:shadow-md hover:shadow-primary/10'
             }`}
           >
             <div className="flex items-start gap-3 sm:gap-4">
-              <div className={`flex-shrink-0 rounded-lg p-2 sm:p-3 transition-all duration-300 transform group-hover:scale-110 ${
+              <div className={`flex-shrink-0 rounded-lg p-2 sm:p-3 transition-colors duration-200 ${
                 selectedType === key
-                  ? 'bg-primary/20 scale-110'
+                  ? 'bg-primary/20'
                   : 'bg-muted group-hover:bg-primary/10'
               }`}>
-                <span className="text-3xl sm:text-4xl transition-transform duration-300">{template.icon}</span>
+                <span className="text-3xl sm:text-4xl">{template.icon}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-base sm:text-lg">{template.name}</div>
@@ -75,9 +75,9 @@ export function AgentTypesStep({ selectedType, onSelectType }: AgentTypesStepPro
                 </div>
               </div>
               {selectedType === key && (
-                <div className="flex-shrink-0 flex items-center justify-center animate-in zoom-in duration-300">
+                <div className="flex-shrink-0 flex items-center justify-center animate-in fade-in duration-200">
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="h-4 w-4 text-primary-foreground animate-in zoom-in duration-200 delay-100" />
+                    <Check className="h-4 w-4 text-primary-foreground" />
                   </div>
                 </div>
               )}
