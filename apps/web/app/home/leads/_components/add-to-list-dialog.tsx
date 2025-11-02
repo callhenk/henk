@@ -135,10 +135,12 @@ export function AddToListDialog({
           {selectedList && (
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="flex items-start gap-3">
-                <div
-                  className="h-4 w-4 rounded-full flex-shrink-0 mt-0.5"
-                  style={{ backgroundColor: selectedList.color }}
-                />
+                {selectedList.color && (
+                  <div
+                    className="h-4 w-4 rounded-full flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: selectedList.color }}
+                  />
+                )}
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium">{selectedList.name}</p>
                   {selectedList.description && (

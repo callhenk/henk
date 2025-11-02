@@ -43,6 +43,7 @@ export interface MockAgent {
   business_id: string;
   enabled_tools: Json | null;
   transfer_rules: Json | null;
+  transfer_to_number_rules: Json | null;
 }
 
 export interface MockCampaign {
@@ -171,6 +172,7 @@ function generateMockData() {
       business_id: 'demo-business-id',
       enabled_tools: null,
       transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-2',
@@ -220,6 +222,7 @@ function generateMockData() {
       business_id: 'demo-business-id',
       enabled_tools: null,
       transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-3',
@@ -269,6 +272,7 @@ function generateMockData() {
       business_id: 'demo-business-id',
       enabled_tools: null,
       transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-4',
@@ -318,6 +322,7 @@ function generateMockData() {
       business_id: 'demo-business-id',
       enabled_tools: null,
       transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-5',
@@ -367,6 +372,7 @@ function generateMockData() {
       business_id: 'demo-business-id',
       enabled_tools: null,
       transfer_rules: null,
+      transfer_to_number_rules: null,
     },
   ];
 
@@ -406,8 +412,6 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
-      enabled_tools: null,
-      transfer_rules: null,
     },
     {
       id: 'campaign-2',
@@ -444,15 +448,13 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
-      enabled_tools: null,
-      transfer_rules: null,
     },
     {
       id: 'campaign-3',
       name: 'Education Support Initiative',
       description:
         'Supporting educational opportunities and scholarships for underserved communities.',
-      status: 'training',
+      status: 'draft',
       agent_id: 'agent-3',
       start_date: new Date(
         now.getTime() - 45 * 24 * 60 * 60 * 1000,
@@ -484,8 +486,6 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
-      enabled_tools: null,
-      transfer_rules: null,
     },
     {
       id: 'campaign-4',
@@ -522,8 +522,6 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
-      enabled_tools: null,
-      transfer_rules: null,
     },
   ];
 

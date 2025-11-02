@@ -7,9 +7,6 @@ type Agent = Tables<'agents'>;
 type CreateAgentData = Omit<TablesInsert<'agents'>, 'business_id'>;
 type UpdateAgentData = TablesUpdate<'agents'> & { id: string };
 
-// Default outbound phone number id for ElevenLabs
-const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
-
 export function useCreateAgent() {
   const supabase = useSupabase();
   const queryClient = useQueryClient();

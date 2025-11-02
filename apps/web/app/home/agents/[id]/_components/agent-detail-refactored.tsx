@@ -64,6 +64,7 @@ const AGENT_FIELDS = {
   FAQS: 'faqs',
   ENABLED_TOOLS: 'enabled_tools',
   TRANSFER_RULES: 'transfer_rules',
+  TRANSFER_TO_NUMBER_RULES: 'transfer_to_number_rules',
 } as const;
 
 // Get human-readable field name for display
@@ -580,6 +581,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             break;
           case AGENT_FIELDS.TRANSFER_RULES:
             updateData = { ...baseUpdate, transfer_rules: value as Json };
+            break;
+          case AGENT_FIELDS.TRANSFER_TO_NUMBER_RULES:
+            updateData = { ...baseUpdate, transfer_to_number_rules: value as Json };
             break;
           default:
             updateData = baseUpdate;

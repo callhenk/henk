@@ -144,8 +144,8 @@ export function LeadsPageSidebar({
                             key={list.id}
                             id={list.id}
                             name={list.name}
-                            color={list.color}
-                            leadCount={list.lead_count}
+                            color={list.color ?? undefined}
+                            leadCount={list.lead_count ?? undefined}
                           />
                         ))}
                       </div>
@@ -162,8 +162,8 @@ export function LeadsPageSidebar({
                             key={list.id}
                             id={list.id}
                             name={list.name}
-                            color={list.color}
-                            leadCount={list.lead_count}
+                            color={list.color ?? undefined}
+                            leadCount={list.lead_count ?? undefined}
                           />
                         ))}
                       </div>
@@ -180,8 +180,8 @@ export function LeadsPageSidebar({
                             key={list.id}
                             id={list.id}
                             name={list.name}
-                            color={list.color}
-                            leadCount={list.lead_count}
+                            color={list.color ?? undefined}
+                            leadCount={list.lead_count ?? undefined}
                           />
                         ))}
                       </div>

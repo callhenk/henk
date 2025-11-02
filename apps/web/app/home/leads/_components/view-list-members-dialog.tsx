@@ -276,7 +276,7 @@ export function ViewListMembersDialog({
                           {getQualityBadge(lead.quality_rating)}
                         </TableCell>
                         <TableCell>
-                          {lead.lead_score > 0 && (
+                          {(lead.lead_score ?? 0) > 0 && (
                             <Badge variant="outline">{lead.lead_score}</Badge>
                           )}
                         </TableCell>

@@ -91,6 +91,7 @@ export type Database = {
           starting_message: string | null
           status: Database["public"]["Enums"]["agent_status"]
           transfer_rules: Json | null
+          transfer_to_number_rules: Json | null
           updated_at: string | null
           updated_by: string | null
           voice_id: string | null
@@ -118,6 +119,7 @@ export type Database = {
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
           transfer_rules?: Json | null
+          transfer_to_number_rules?: Json | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
           transfer_rules?: Json | null
+          transfer_to_number_rules?: Json | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
@@ -2217,23 +2220,23 @@ export type Database = {
       get_latest_sync_status: {
         Args: { p_integration_id: string }
         Returns: {
-          last_sync_at: string
+          records_failed: number
           sync_status: string
+          last_sync_at: string
           records_processed: number
           records_created: number
           records_updated: number
-          records_failed: number
         }[]
       }
       get_next_queued_call: {
         Args: Record<PropertyKey, never> | { p_campaign_id: string }
         Returns: {
-          campaign_id: string
-          agent_id: string
-          call_id: string
-          lead_id: string
           phone_number: string
           script: string
+          lead_id: string
+          agent_id: string
+          campaign_id: string
+          call_id: string
         }[]
       }
       trigger_campaign_orchestrator: {
@@ -2818,10 +2821,10 @@ export type Database = {
           start_after?: string
         }
         Returns: {
-          metadata: Json
-          updated_at: string
-          id: string
           name: string
+          id: string
+          updated_at: string
+          metadata: Json
         }[]
       }
       operation: {
@@ -2841,11 +2844,11 @@ export type Database = {
         }
         Returns: {
           id: string
+          name: string
           metadata: Json
           last_accessed_at: string
           created_at: string
           updated_at: string
-          name: string
         }[]
       }
       search_legacy_v1: {
@@ -2899,9 +2902,9 @@ export type Database = {
         Returns: {
           key: string
           name: string
+          id: string
           updated_at: string
           created_at: string
-          id: string
           metadata: Json
         }[]
       }

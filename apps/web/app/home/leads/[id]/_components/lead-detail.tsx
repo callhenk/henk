@@ -553,7 +553,7 @@ export function LeadDetail({ leadId }: { leadId: string }) {
                     <div className="flex-1 pb-8">
                       <p className="font-medium">Lead Created</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(lead.created_at), 'PPpp')}
+                        {lead.created_at ? format(new Date(lead.created_at), 'PPpp') : 'N/A'}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Source: {lead.source}
