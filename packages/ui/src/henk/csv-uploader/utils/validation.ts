@@ -395,8 +395,9 @@ export function sanitizeCSVData<T extends CSVRow>(data: T[]): T[] {
 
       if (typeof value === 'string') {
         // Remove potentially harmful characters and normalize whitespace
-
+        // Intentionally using control character regex for security sanitization
         (sanitized as Record<string, unknown>)[key] = value
+          // eslint-disable-next-line no-control-regex
           .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
           .replace(/\s+/g, ' ') // Normalize whitespace
           .trim();
