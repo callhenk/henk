@@ -48,8 +48,16 @@ export class Mailbox {
     const response = await fetch(url);
 
     if (!response.ok) {
-      console.error(`Inbucket API error: ${response.statusText}`);
-      throw new Error(`Failed to fetch emails: ${response.statusText}`);
+      const status = response.status;
+      console.error(`Inbucket API error: ${status} ${response.statusText}`);
+
+      // If it's a 500 error, wait and retry
+      if (status >= 500) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        throw new Error(`Inbucket server error (${status}), will retry...`);
+      }
+
+      throw new Error(`Failed to fetch emails: ${status} ${response.statusText}`);
     }
 
     const json = (await response.json()) as { messages: Array<{ ID: string }> };

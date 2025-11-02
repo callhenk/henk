@@ -2241,23 +2241,23 @@ export type Database = {
       get_latest_sync_status: {
         Args: { p_integration_id: string }
         Returns: {
+          last_sync_at: string
+          sync_status: string
           records_processed: number
           records_created: number
           records_updated: number
           records_failed: number
-          sync_status: string
-          last_sync_at: string
         }[]
       }
       get_next_queued_call: {
         Args: Record<PropertyKey, never> | { p_campaign_id: string }
         Returns: {
           campaign_id: string
+          agent_id: string
+          call_id: string
           lead_id: string
           phone_number: string
           script: string
-          call_id: string
-          agent_id: string
         }[]
       }
       trigger_campaign_orchestrator: {
@@ -2813,8 +2813,8 @@ export type Database = {
       get_size_by_bucket: {
         Args: Record<PropertyKey, never>
         Returns: {
-          size: number
           bucket_id: string
+          size: number
         }[]
       }
       list_multipart_uploads_with_delimiter: {
@@ -2827,9 +2827,9 @@ export type Database = {
           prefix_param: string
         }
         Returns: {
+          id: string
           key: string
           created_at: string
-          id: string
         }[]
       }
       list_objects_with_delimiter: {
@@ -2842,9 +2842,9 @@ export type Database = {
           start_after?: string
         }
         Returns: {
-          id: string
           metadata: Json
           updated_at: string
+          id: string
           name: string
         }[]
       }
@@ -2864,11 +2864,11 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
+          id: string
           metadata: Json
           last_accessed_at: string
           created_at: string
           updated_at: string
-          id: string
           name: string
         }[]
       }
@@ -2884,9 +2884,9 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
-          created_at: string
           metadata: Json
           last_accessed_at: string
+          created_at: string
           updated_at: string
           id: string
           name: string
@@ -2904,12 +2904,12 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
-          last_accessed_at: string
-          metadata: Json
-          created_at: string
           name: string
           id: string
           updated_at: string
+          created_at: string
+          last_accessed_at: string
+          metadata: Json
         }[]
       }
       search_v2: {
@@ -2923,9 +2923,9 @@ export type Database = {
         Returns: {
           key: string
           name: string
-          id: string
           updated_at: string
           created_at: string
+          id: string
           metadata: Json
         }[]
       }

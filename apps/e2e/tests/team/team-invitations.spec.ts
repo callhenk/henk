@@ -161,7 +161,8 @@ test.describe('Team Member Management', () => {
 
     // Verify form fields
     await expect(page.locator('#invite-email')).toBeVisible();
-    await expect(page.getByText('Role')).toBeVisible();
+    // Use more specific selector to avoid matching table headers
+    await expect(page.locator('label[for="invite-role"]')).toBeVisible();
 
     // Close dialog
     await page.getByRole('button', { name: 'Cancel' }).click();

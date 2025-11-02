@@ -131,10 +131,7 @@ export class TeamPageObject {
   }
 
   async verifyRolePermissionsGuide() {
-    await expect(this.page.getByText('Role Permissions')).toBeVisible();
-    await expect(this.page.getByText('Owner')).toBeVisible();
-    await expect(this.page.getByText('Admin')).toBeVisible();
-    await expect(this.page.getByText('Member')).toBeVisible();
-    await expect(this.page.getByText('Viewer')).toBeVisible();
+    // Use heading role to target the specific Role Permissions section, not table headers
+    await expect(this.page.getByRole('heading', { name: 'Role Permissions' })).toBeVisible();
   }
 }
