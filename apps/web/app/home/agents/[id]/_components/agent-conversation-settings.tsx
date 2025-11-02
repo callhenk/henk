@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
@@ -26,55 +26,122 @@ interface AgentConversationSettingsProps {
   onSaveField: (fieldName: string, value: unknown) => void;
 }
 
+type FieldName =
+  | 'retention_period_days'
+  | 'turn_timeout'
+  | 'eagerness'
+  | 'silence_end_call_timeout'
+  | 'max_conversation_duration';
+
+interface FieldState<T = string | number> {
+  value: T;
+  originalValue: T;
+  hasChanges: boolean;
+}
+
+const DEFAULT_VALUES = {
+  retention_period_days: 90,
+  turn_timeout: 7,
+  eagerness: 'normal' as const,
+  silence_end_call_timeout: -1,
+  max_conversation_duration: 600,
+};
+
 export function AgentConversationSettings({
   agent,
   onSaveField,
 }: AgentConversationSettingsProps) {
-  const [retentionPeriod, setRetentionPeriod] = useState(
-    agent.retention_period_days?.toString() || '90',
-  );
-  const [turnTimeout, setTurnTimeout] = useState(
-    agent.turn_timeout?.toString() || '7',
-  );
-  const [eagerness, setEagerness] = useState(agent.eagerness || 'normal');
-  const [silenceTimeout, setSilenceTimeout] = useState(
-    agent.silence_end_call_timeout?.toString() || '-1',
-  );
-  const [maxDuration, setMaxDuration] = useState(
-    agent.max_conversation_duration?.toString() || '600',
-  );
+  // Initialize state with original values
+  const [retentionPeriod, setRetentionPeriod] = useState<FieldState<string>>({
+    value: (agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days).toString(),
+    originalValue: (agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days).toString(),
+    hasChanges: false,
+  });
 
-  const handleRetentionPeriodChange = () => {
-    const value = parseInt(retentionPeriod, 10);
-    if (!isNaN(value)) {
-      onSaveField('retention_period_days', value);
-    }
-  };
+  const [turnTimeout, setTurnTimeout] = useState<FieldState<string>>({
+    value: (agent.turn_timeout ?? DEFAULT_VALUES.turn_timeout).toString(),
+    originalValue: (agent.turn_timeout ?? DEFAULT_VALUES.turn_timeout).toString(),
+    hasChanges: false,
+  });
 
-  const handleTurnTimeoutChange = () => {
-    const value = parseInt(turnTimeout, 10);
-    if (!isNaN(value)) {
-      onSaveField('turn_timeout', value);
-    }
+  const [eagerness, setEagerness] = useState<FieldState<string>>({
+    value: agent.eagerness || DEFAULT_VALUES.eagerness,
+    originalValue: agent.eagerness || DEFAULT_VALUES.eagerness,
+    hasChanges: false,
+  });
+
+  const [silenceTimeout, setSilenceTimeout] = useState<FieldState<string>>({
+    value: (agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout).toString(),
+    originalValue: (agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout).toString(),
+    hasChanges: false,
+  });
+
+  const [maxDuration, setMaxDuration] = useState<FieldState<string>>({
+    value: (agent.max_conversation_duration ?? DEFAULT_VALUES.max_conversation_duration).toString(),
+    originalValue: (agent.max_conversation_duration ?? DEFAULT_VALUES.max_conversation_duration).toString(),
+    hasChanges: false,
+  });
+
+  // Update hasChanges when values change
+  useEffect(() => {
+    setRetentionPeriod((prev) => ({
+      ...prev,
+      hasChanges: prev.value !== prev.originalValue,
+    }));
+  }, [retentionPeriod.value]);
+
+  useEffect(() => {
+    setTurnTimeout((prev) => ({
+      ...prev,
+      hasChanges: prev.value !== prev.originalValue,
+    }));
+  }, [turnTimeout.value]);
+
+  useEffect(() => {
+    setEagerness((prev) => ({
+      ...prev,
+      hasChanges: prev.value !== prev.originalValue,
+    }));
+  }, [eagerness.value]);
+
+  useEffect(() => {
+    setSilenceTimeout((prev) => ({
+      ...prev,
+      hasChanges: prev.value !== prev.originalValue,
+    }));
+  }, [silenceTimeout.value]);
+
+  useEffect(() => {
+    setMaxDuration((prev) => ({
+      ...prev,
+      hasChanges: prev.value !== prev.originalValue,
+    }));
+  }, [maxDuration.value]);
+
+  // Save handlers
+  const handleSave = (fieldName: FieldName, value: string, setState: React.Dispatch<React.SetStateAction<FieldState<string>>>) => {
+    const numValue = parseInt(value, 10);
+    if (isNaN(numValue)) return;
+
+    onSaveField(fieldName, numValue);
+    setState((prev) => ({
+      ...prev,
+      originalValue: value,
+      hasChanges: false,
+    }));
   };
 
   const handleEagernessChange = (value: string) => {
-    setEagerness(value);
-    onSaveField('eagerness', value);
+    setEagerness((prev) => ({ ...prev, value }));
   };
 
-  const handleSilenceTimeoutChange = () => {
-    const value = parseInt(silenceTimeout, 10);
-    if (!isNaN(value)) {
-      onSaveField('silence_end_call_timeout', value);
-    }
-  };
-
-  const handleMaxDurationChange = () => {
-    const value = parseInt(maxDuration, 10);
-    if (!isNaN(value)) {
-      onSaveField('max_conversation_duration', value);
-    }
+  const handleEagernessSave = () => {
+    onSaveField('eagerness', eagerness.value);
+    setEagerness((prev) => ({
+      ...prev,
+      originalValue: prev.value,
+      hasChanges: false,
+    }));
   };
 
   return (
@@ -96,24 +163,34 @@ export function AgentConversationSettings({
               Number of days to retain conversation data before automatic
               deletion
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 id="retention-period"
                 type="number"
-                value={retentionPeriod}
-                onChange={(e) => setRetentionPeriod(e.target.value)}
+                value={retentionPeriod.value}
+                onChange={(e) =>
+                  setRetentionPeriod((prev) => ({
+                    ...prev,
+                    value: e.target.value,
+                  }))
+                }
                 className="max-w-[200px]"
                 placeholder="90"
+                min="1"
               />
-              <Button
-                variant="outline"
-                onClick={handleRetentionPeriodChange}
-                size="sm"
-              >
-                Save
-              </Button>
+              <span className="text-muted-foreground text-sm">days</span>
+              {retentionPeriod.hasChanges && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleSave('retention_period_days', retentionPeriod.value, setRetentionPeriod)
+                  }
+                  size="sm"
+                >
+                  Save
+                </Button>
+              )}
             </div>
-            <p className="text-muted-foreground text-xs">days</p>
           </div>
         </CardContent>
       </Card>
@@ -123,7 +200,7 @@ export function AgentConversationSettings({
         <CardHeader>
           <CardTitle>Advanced Settings</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Fine-tune conversation behavior and timing
+            Fine-tune conversation behavior and timing (synced with ElevenLabs)
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -131,103 +208,134 @@ export function AgentConversationSettings({
           <div className="space-y-2">
             <Label htmlFor="turn-timeout">Turn timeout</Label>
             <p className="text-muted-foreground text-xs">
-              The maximum number of seconds since the user last spoke. If
-              exceeded, the agent will respond and force a turn. A value of -1
-              means the agent will never timeout and always wait for a response
-              from the user.
+              Maximum seconds of silence before agent responds (1-30 seconds, or
+              -1 for no timeout)
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 id="turn-timeout"
                 type="number"
-                value={turnTimeout}
-                onChange={(e) => setTurnTimeout(e.target.value)}
+                value={turnTimeout.value}
+                onChange={(e) =>
+                  setTurnTimeout((prev) => ({ ...prev, value: e.target.value }))
+                }
                 className="max-w-[200px]"
                 placeholder="7"
+                min="-1"
+                max="30"
               />
-              <Button
-                variant="outline"
-                onClick={handleTurnTimeoutChange}
-                size="sm"
-              >
-                Save
-              </Button>
+              <span className="text-muted-foreground text-sm">seconds</span>
+              {turnTimeout.hasChanges && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleSave('turn_timeout', turnTimeout.value, setTurnTimeout)
+                  }
+                  size="sm"
+                >
+                  Save
+                </Button>
+              )}
             </div>
-            <p className="text-muted-foreground text-xs">seconds</p>
           </div>
 
           {/* Eagerness */}
           <div className="space-y-2">
-            <Label htmlFor="eagerness">Eagerness</Label>
+            <Label htmlFor="eagerness">Turn eagerness</Label>
             <p className="text-muted-foreground text-xs">
-              Controls how eager the agent is to respond. High eagerness means
-              the agent responds quickly, while low eagerness means the agent
-              waits longer to ensure the user has finished speaking.
+              How quickly the agent responds: Eager (fast), Normal (balanced),
+              Patient (waits longer)
             </p>
-            <Select value={eagerness} onValueChange={handleEagernessChange}>
-              <SelectTrigger id="eagerness" className="max-w-[200px]">
-                <SelectValue placeholder="Select eagerness" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={eagerness.value} onValueChange={handleEagernessChange}>
+                <SelectTrigger id="eagerness" className="max-w-[200px]">
+                  <SelectValue placeholder="Select eagerness" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="eager">Eager (Fast)</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="patient">Patient (Slow)</SelectItem>
+                </SelectContent>
+              </Select>
+              {eagerness.hasChanges && (
+                <Button
+                  variant="outline"
+                  onClick={handleEagernessSave}
+                  size="sm"
+                >
+                  Save
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Silence End Call Timeout */}
           <div className="space-y-2">
             <Label htmlFor="silence-timeout">Silence end call timeout</Label>
             <p className="text-muted-foreground text-xs">
-              The maximum number of seconds since the user last spoke. If
-              exceeded, the call will terminate. A value of -1 means there is no
-              fixed cutoff.
+              Maximum seconds of silence before call ends (-1 for no cutoff)
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 id="silence-timeout"
                 type="number"
-                value={silenceTimeout}
-                onChange={(e) => setSilenceTimeout(e.target.value)}
+                value={silenceTimeout.value}
+                onChange={(e) =>
+                  setSilenceTimeout((prev) => ({
+                    ...prev,
+                    value: e.target.value,
+                  }))
+                }
                 className="max-w-[200px]"
                 placeholder="-1"
+                min="-1"
               />
-              <Button
-                variant="outline"
-                onClick={handleSilenceTimeoutChange}
-                size="sm"
-              >
-                Save
-              </Button>
+              <span className="text-muted-foreground text-sm">seconds</span>
+              {silenceTimeout.hasChanges && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleSave('silence_end_call_timeout', silenceTimeout.value, setSilenceTimeout)
+                  }
+                  size="sm"
+                >
+                  Save
+                </Button>
+              )}
             </div>
-            <p className="text-muted-foreground text-xs">seconds</p>
           </div>
 
           {/* Max Conversation Duration */}
           <div className="space-y-2">
             <Label htmlFor="max-duration">Max conversation duration</Label>
             <p className="text-muted-foreground text-xs">
-              The maximum number of seconds that a conversation can last.
+              Maximum call length in seconds
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 id="max-duration"
                 type="number"
-                value={maxDuration}
-                onChange={(e) => setMaxDuration(e.target.value)}
+                value={maxDuration.value}
+                onChange={(e) =>
+                  setMaxDuration((prev) => ({ ...prev, value: e.target.value }))
+                }
                 className="max-w-[200px]"
                 placeholder="600"
+                min="1"
               />
-              <Button
-                variant="outline"
-                onClick={handleMaxDurationChange}
-                size="sm"
-              >
-                Save
-              </Button>
+              <span className="text-muted-foreground text-sm">seconds</span>
+              {maxDuration.hasChanges && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleSave('max_conversation_duration', maxDuration.value, setMaxDuration)
+                  }
+                  size="sm"
+                >
+                  Save
+                </Button>
+              )}
             </div>
-            <p className="text-muted-foreground text-xs">seconds</p>
           </div>
         </CardContent>
       </Card>

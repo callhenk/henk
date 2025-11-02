@@ -59,8 +59,8 @@ export class AuthPageObject {
 
       expect(res).not.toBeNull();
     }).toPass({
-      intervals: [1_000, 2_000, 5_000],
-      timeout: 45_000, // 45 seconds to wait for email
+      intervals: [2_000, 3_000, 5_000, 5_000],
+      timeout: 60_000, // 60 seconds to wait for email
     });
   }
 

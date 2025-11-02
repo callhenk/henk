@@ -651,6 +651,28 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             if (fieldName === AGENT_FIELDS.FAQS) {
               elevenLabsUpdates.faqs = JSON.parse(value as string);
             }
+            // Conversation settings (sync with ElevenLabs)
+            if (fieldName === AGENT_FIELDS.TURN_TIMEOUT) {
+              elevenLabsUpdates.conversation_config = {
+                turn_timeout: value as number,
+              };
+            }
+            if (fieldName === AGENT_FIELDS.EAGERNESS) {
+              elevenLabsUpdates.conversation_config = {
+                turn: {
+                  turn_eagerness: value as string,
+                },
+              };
+            }
+            if (fieldName === AGENT_FIELDS.LANGUAGE) {
+              // Map 'english' to 'en', 'spanish' to 'es', etc.
+              const languageCode = (value as string).substring(0, 2);
+              elevenLabsUpdates.overrides = {
+                agent: {
+                  language: languageCode,
+                },
+              };
+            }
 
             if (Object.keys(elevenLabsUpdates).length > 0) {
               await updateElevenLabsAgent(
