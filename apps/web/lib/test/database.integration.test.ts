@@ -3,8 +3,8 @@ import {
   createTestContext,
   cleanupTestUser,
   cleanupTestBusiness,
-  createContact,
-  createContacts,
+  createLead,
+  createLeads,
   createCampaign,
   createAgent,
   createTestClient,
@@ -34,7 +34,7 @@ describe('Database Integration Tests', () => {
   beforeEach(async () => {
     // Clean up data before each test
     await supabase
-      .from('contacts')
+      .from('leads')
       .delete()
       .eq('business_id', testContext.business.id);
     await supabase
@@ -47,35 +47,35 @@ describe('Database Integration Tests', () => {
       .eq('business_id', testContext.business.id);
   });
 
-  describe('Contacts', () => {
-    it('creates a contact successfully', async () => {
-      const contact = await createContact(testContext.business.id, {
+  describe('Leads', () => {
+    it('creates a lead successfully', async () => {
+      const lead = await createLead(testContext.business.id, {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john.doe@example.com',
       });
 
-      expect(contact).toBeTruthy();
-      expect(contact.first_name).toBe('John');
-      expect(contact.last_name).toBe('Doe');
-      expect(contact.email).toBe('john.doe@example.com');
-      expect(contact.business_id).toBe(testContext.business.id);
+      expect(lead).toBeTruthy();
+      expect(lead.first_name).toBe('John');
+      expect(lead.last_name).toBe('Doe');
+      expect(lead.email).toBe('john.doe@example.com');
+      expect(lead.business_id).toBe(testContext.business.id);
     });
 
-    it('creates multiple contacts', async () => {
-      const contacts = await createContacts(testContext.business.id, 5);
+    it('creates multiple leads', async () => {
+      const leads = await createLeads(testContext.business.id, 5);
 
-      expect(contacts).toHaveLength(5);
-      expect(contacts[0].business_id).toBe(testContext.business.id);
+      expect(leads).toHaveLength(5);
+      expect(leads[0].business_id).toBe(testContext.business.id);
     });
 
-    it('queries contacts by business', async () => {
-      // Create contacts
-      await createContacts(testContext.business.id, 3);
+    it('queries leads by business', async () => {
+      // Create leads
+      await createLeads(testContext.business.id, 3);
 
-      // Query contacts
+      // Query leads
       const { data, error } = await supabase
-        .from('contacts')
+        .from('leads')
         .select('*')
         .eq('business_id', testContext.business.id);
 
@@ -83,46 +83,51 @@ describe('Database Integration Tests', () => {
       expect(data).toHaveLength(3);
     });
 
-    it('filters contacts by tags', async () => {
-      // Create contacts with different tags
-      await createContact(testContext.business.id, {
+    it('filters leads by tags', async () => {
+      // Create leads with different tags
+      await createLead(testContext.business.id, {
         first_name: 'VIP',
         last_name: 'Donor',
         email: 'vip@example.com',
         tags: ['VIP', 'Major Donor'],
       });
 
-      await createContact(testContext.business.id, {
+      await createLead(testContext.business.id, {
         first_name: 'Regular',
         last_name: 'Donor',
         email: 'regular@example.com',
         tags: ['Regular'],
       });
 
-      // Query VIP contacts
+      // Query VIP leads (using JSONB @> operator)
       const { data, error } = await supabase
-        .from('contacts')
+        .from('leads')
         .select('*')
         .eq('business_id', testContext.business.id)
-        .contains('tags', ['VIP']);
+        .filter('tags', 'cs', '["VIP"]');
 
       expect(error).toBeNull();
       expect(data).toHaveLength(1);
       expect(data?.[0].email).toBe('vip@example.com');
     });
 
-    it('prevents creating duplicate email within business', async () => {
-      // Create first contact
-      await createContact(testContext.business.id, {
+    it('allows creating leads with same email (no unique constraint)', async () => {
+      // Create first lead
+      const lead1 = await createLead(testContext.business.id, {
         email: 'duplicate@example.com',
+        first_name: 'First',
       });
 
-      // Try to create duplicate - this should fail due to unique constraint
-      await expect(
-        createContact(testContext.business.id, {
-          email: 'duplicate@example.com',
-        })
-      ).rejects.toThrow();
+      // Create second lead with same email - this should succeed
+      const lead2 = await createLead(testContext.business.id, {
+        email: 'duplicate@example.com',
+        first_name: 'Second',
+      });
+
+      // Both should be created successfully
+      expect(lead1).toBeTruthy();
+      expect(lead2).toBeTruthy();
+      expect(lead1.id).not.toBe(lead2.id);
     });
   });
 
@@ -249,31 +254,31 @@ describe('Database Integration Tests', () => {
         businessName: 'Other Business',
       });
 
-      // Create contacts in both businesses
-      await createContact(testContext.business.id, {
+      // Create leads in both businesses
+      await createLead(testContext.business.id, {
         email: 'business1@example.com',
       });
-      await createContact(otherContext.business.id, {
+      await createLead(otherContext.business.id, {
         email: 'business2@example.com',
       });
 
-      // Query first business contacts
-      const { data: business1Contacts } = await supabase
-        .from('contacts')
+      // Query first business leads
+      const { data: business1Leads } = await supabase
+        .from('leads')
         .select('*')
         .eq('business_id', testContext.business.id);
 
-      expect(business1Contacts).toHaveLength(1);
-      expect(business1Contacts?.[0].email).toBe('business1@example.com');
+      expect(business1Leads).toHaveLength(1);
+      expect(business1Leads?.[0].email).toBe('business1@example.com');
 
-      // Query second business contacts
-      const { data: business2Contacts } = await supabase
-        .from('contacts')
+      // Query second business leads
+      const { data: business2Leads } = await supabase
+        .from('leads')
         .select('*')
         .eq('business_id', otherContext.business.id);
 
-      expect(business2Contacts).toHaveLength(1);
-      expect(business2Contacts?.[0].email).toBe('business2@example.com');
+      expect(business2Leads).toHaveLength(1);
+      expect(business2Leads?.[0].email).toBe('business2@example.com');
 
       // Cleanup
       await cleanupTestBusiness(otherContext.business.id);
@@ -283,12 +288,12 @@ describe('Database Integration Tests', () => {
 
   describe('Complex Queries', () => {
     it('performs pagination correctly', async () => {
-      // Create 10 contacts
-      await createContacts(testContext.business.id, 10);
+      // Create 10 leads
+      await createLeads(testContext.business.id, 10);
 
       // Get first page (5 items)
       const { data: page1, count } = await supabase
-        .from('contacts')
+        .from('leads')
         .select('*', { count: 'exact' })
         .eq('business_id', testContext.business.id)
         .range(0, 4);
@@ -298,7 +303,7 @@ describe('Database Integration Tests', () => {
 
       // Get second page
       const { data: page2 } = await supabase
-        .from('contacts')
+        .from('leads')
         .select('*')
         .eq('business_id', testContext.business.id)
         .range(5, 9);
@@ -312,13 +317,13 @@ describe('Database Integration Tests', () => {
       expect(overlap).toHaveLength(0);
     });
 
-    it('searches contacts by name', async () => {
-      await createContact(testContext.business.id, {
+    it('searches leads by name', async () => {
+      await createLead(testContext.business.id, {
         first_name: 'John',
         last_name: 'Smith',
         email: 'john.smith@example.com',
       });
-      await createContact(testContext.business.id, {
+      await createLead(testContext.business.id, {
         first_name: 'Jane',
         last_name: 'Doe',
         email: 'jane.doe@example.com',
@@ -326,7 +331,7 @@ describe('Database Integration Tests', () => {
 
       // Search for "John"
       const { data } = await supabase
-        .from('contacts')
+        .from('leads')
         .select('*')
         .eq('business_id', testContext.business.id)
         .or(`first_name.ilike.%John%,last_name.ilike.%John%`);

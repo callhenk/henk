@@ -2,16 +2,16 @@ import { faker } from '@faker-js/faker';
 import type { Database } from '../database.types';
 import { createTestClient } from './supabase-test-client';
 
-type Contact = Database['public']['Tables']['contacts']['Insert'];
+type Lead = Database['public']['Tables']['leads']['Insert'];
 type Campaign = Database['public']['Tables']['campaigns']['Insert'];
 type Agent = Database['public']['Tables']['agents']['Insert'];
 type Integration = Database['public']['Tables']['integrations']['Insert'];
-type ContactList = Database['public']['Tables']['contact_lists']['Insert'];
+type LeadList = Database['public']['Tables']['lead_lists']['Insert'];
 
 /**
- * Factory for creating contact test data
+ * Factory for creating lead test data
  */
-export function createContactData(overrides?: Partial<Contact>): Contact {
+export function createLeadData(overrides?: Partial<Lead>): Lead {
   return {
     business_id: overrides?.business_id || faker.string.uuid(),
     first_name: faker.person.firstName(),
@@ -27,48 +27,48 @@ export function createContactData(overrides?: Partial<Contact>): Contact {
 }
 
 /**
- * Creates a contact in the database
+ * Creates a lead in the database
  */
-export async function createContact(
+export async function createLead(
   businessId: string,
-  overrides?: Partial<Contact>,
+  overrides?: Partial<Lead>,
 ) {
   const supabase = createTestClient();
-  const data = createContactData({ business_id: businessId, ...overrides });
+  const data = createLeadData({ business_id: businessId, ...overrides });
 
-  const { data: contact, error } = await supabase
-    .from('contacts')
+  const { data: lead, error } = await supabase
+    .from('leads')
     .insert(data)
     .select()
     .single();
 
   if (error) {
-    throw new Error(`Failed to create contact: ${error.message}`);
+    throw new Error(`Failed to create lead: ${error.message}`);
   }
 
-  return contact;
+  return lead;
 }
 
 /**
- * Creates multiple contacts in the database
+ * Creates multiple leads in the database
  */
-export async function createContacts(
+export async function createLeads(
   businessId: string,
   count: number,
-  overrides?: Partial<Contact>,
+  overrides?: Partial<Lead>,
 ) {
   const supabase = createTestClient();
-  const contacts = Array.from({ length: count }, () =>
-    createContactData({ business_id: businessId, ...overrides }),
+  const leads = Array.from({ length: count }, () =>
+    createLeadData({ business_id: businessId, ...overrides }),
   );
 
   const { data, error } = await supabase
-    .from('contacts')
-    .insert(contacts)
+    .from('leads')
+    .insert(leads)
     .select();
 
   if (error) {
-    throw new Error(`Failed to create contacts: ${error.message}`);
+    throw new Error(`Failed to create leads: ${error.message}`);
   }
 
   return data;
@@ -83,7 +83,7 @@ export function createCampaignData(overrides?: Partial<Campaign>): Campaign {
     name: faker.company.catchPhrase(),
     description: faker.lorem.sentence(),
     status: 'draft',
-    goal: faker.number.int({ min: 1000, max: 100000 }).toString(),
+    script: faker.lorem.paragraph(),
     ...overrides,
   };
 }
@@ -123,7 +123,6 @@ export function createAgentData(overrides?: Partial<Agent>): Agent {
       stability: 0.5,
       similarity_boost: 0.75,
     },
-    system_prompt: faker.lorem.paragraph(),
     ...overrides,
   };
 }
@@ -198,11 +197,11 @@ export async function createIntegration(
 }
 
 /**
- * Factory for creating contact list test data
+ * Factory for creating lead list test data
  */
-export function createContactListData(
-  overrides?: Partial<ContactList>,
-): ContactList {
+export function createLeadListData(
+  overrides?: Partial<LeadList>,
+): LeadList {
   return {
     business_id: overrides?.business_id || faker.string.uuid(),
     name: faker.lorem.words(3),
@@ -213,73 +212,73 @@ export function createContactListData(
 }
 
 /**
- * Creates a contact list in the database
+ * Creates a lead list in the database
  */
-export async function createContactList(
+export async function createLeadList(
   businessId: string,
-  overrides?: Partial<ContactList>,
+  overrides?: Partial<LeadList>,
 ) {
   const supabase = createTestClient();
-  const data = createContactListData({
+  const data = createLeadListData({
     business_id: businessId,
     ...overrides,
   });
 
-  const { data: contactList, error } = await supabase
-    .from('contact_lists')
+  const { data: leadList, error } = await supabase
+    .from('lead_lists')
     .insert(data)
     .select()
     .single();
 
   if (error) {
-    throw new Error(`Failed to create contact list: ${error.message}`);
+    throw new Error(`Failed to create lead list: ${error.message}`);
   }
 
-  return contactList;
+  return leadList;
 }
 
 /**
- * Adds contacts to a contact list
+ * Adds leads to a lead list
  */
-export async function addContactsToList(
-  contactListId: string,
-  contactIds: string[],
+export async function addLeadsToList(
+  leadListId: string,
+  leadIds: string[],
 ) {
   const supabase = createTestClient();
 
-  const members = contactIds.map((contactId) => ({
-    contact_list_id: contactListId,
-    contact_id: contactId,
+  const members = leadIds.map((leadId) => ({
+    lead_list_id: leadListId,
+    lead_id: leadId,
   }));
 
   const { data, error } = await supabase
-    .from('contact_list_members')
+    .from('lead_list_members')
     .insert(members)
     .select();
 
   if (error) {
-    throw new Error(`Failed to add contacts to list: ${error.message}`);
+    throw new Error(`Failed to add leads to list: ${error.message}`);
   }
 
   return data;
 }
 
 /**
- * Creates a complete test scenario with business, contacts, campaigns, etc.
+ * Creates a complete test scenario with business, leads, campaigns, etc.
  */
 export async function createFullTestScenario(businessId: string) {
-  // Create contacts
-  const contacts = await createContacts(businessId, 10);
+  // Create leads
+  const leads = await createLeads(businessId, 10);
 
-  // Create contact list
-  const contactList = await createContactList(businessId, {
+  // Create lead list
+  const leadList = await createLeadList(businessId, {
     name: 'Test VIP Donors',
   });
 
-  // Add contacts to list
-  await addContactsToList(
-    contactList.id,
-    contacts.slice(0, 5).map((c) => c.id),
+  // Add leads to list
+  await addLeadsToList(
+    leadList.id,
+    leads.slice(0, 5).map((c) => c.id),
   );
 
   // Create campaign
@@ -301,8 +300,8 @@ export async function createFullTestScenario(businessId: string) {
   });
 
   return {
-    contacts,
-    contactList,
+    leads,
+    leadList,
     campaign,
     agent,
     integrations: {

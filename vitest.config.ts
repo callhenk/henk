@@ -30,9 +30,13 @@ export default defineConfig({
       },
     },
     include: [
-      'apps/web/**/*.{test,spec}.{ts,tsx}',
-      'packages/*/src/**/*.{test,spec}.{ts,tsx}',
-      '!**/node_modules/**',
+      'apps/web/lib/**/*.{test,spec}.{ts,tsx}',
+      'apps/web/lib/**/*.integration.test.{ts,tsx}',
+      'apps/web/app/**/*.{test,spec}.{ts,tsx}',
+      'packages/ui/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/supabase/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/shared/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/features/*/src/**/*.{test,spec}.{ts,tsx}',
     ],
     exclude: [
       '**/node_modules/**',
@@ -41,6 +45,11 @@ export default defineConfig({
       'apps/e2e/**',
       '**/coverage/**',
       '**/.turbo/**',
+      'packages/ui/node_modules/**',
+      'packages/supabase/node_modules/**',
+      'packages/shared/node_modules/**',
+      'packages/next/node_modules/**',
+      'packages/features/*/node_modules/**',
     ],
   },
   resolve: {

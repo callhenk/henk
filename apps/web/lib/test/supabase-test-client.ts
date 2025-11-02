@@ -156,14 +156,104 @@ export async function cleanupTestUser(userId: string) {
 export async function cleanupTestBusiness(businessId: string) {
   const supabase = createTestClient();
 
-  // Delete business (cascade should handle related data)
-  const { error } = await supabase
-    .from('businesses')
-    .delete()
-    .eq('id', businessId);
+  try {
+    // Delete dependent records in correct order to avoid foreign key violations
 
-  if (error) {
+    // 1. Get conversation IDs for this business
+    const { data: conversations } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('business_id', businessId);
+
+    if (conversations && conversations.length > 0) {
+      const conversationIds = conversations.map((c) => c.id);
+      // Delete conversation events
+      await supabase
+        .from('conversation_events')
+        .delete()
+        .in('conversation_id', conversationIds);
+    }
+
+    // 2. Delete conversations (references agents)
+    await supabase
+      .from('conversations')
+      .delete()
+      .eq('business_id', businessId);
+
+    // 3. Get campaign IDs for this business
+    const { data: campaigns } = await supabase
+      .from('campaigns')
+      .select('id')
+      .eq('business_id', businessId);
+
+    if (campaigns && campaigns.length > 0) {
+      const campaignIds = campaigns.map((c) => c.id);
+
+      // Delete campaign executions
+      await supabase
+        .from('campaign_executions')
+        .delete()
+        .in('campaign_id', campaignIds);
+
+      // Delete campaign queue
+      await supabase
+        .from('campaign_queue')
+        .delete()
+        .in('campaign_id', campaignIds);
+    }
+
+    // 4. Get lead list IDs for this business
+    const { data: leadLists } = await supabase
+      .from('lead_lists')
+      .select('id')
+      .eq('business_id', businessId);
+
+    if (leadLists && leadLists.length > 0) {
+      const listIds = leadLists.map((l) => l.id);
+
+      // Delete campaign leads (references lead_lists)
+      await supabase
+        .from('campaign_leads')
+        .delete()
+        .in('list_id', listIds);
+
+      // Delete lead list members
+      await supabase
+        .from('lead_list_members')
+        .delete()
+        .in('list_id', listIds);
+    }
+
+    // 5. Delete lead lists
+    await supabase.from('lead_lists').delete().eq('business_id', businessId);
+
+    // 6. Delete leads
+    await supabase.from('leads').delete().eq('business_id', businessId);
+
+    // 8. Delete integrations
+    await supabase.from('integrations').delete().eq('business_id', businessId);
+
+    // 9. Delete agents
+    await supabase.from('agents').delete().eq('business_id', businessId);
+
+    // 10. Delete campaigns
+    await supabase.from('campaigns').delete().eq('business_id', businessId);
+
+    // 11. Delete team members
+    await supabase.from('team_members').delete().eq('business_id', businessId);
+
+    // 12. Finally, delete the business
+    const { error } = await supabase
+      .from('businesses')
+      .delete()
+      .eq('id', businessId);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error: any) {
     console.error(`Failed to cleanup test business: ${error.message}`);
+    throw error;
   }
 }
 
