@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Conversation = Tables<'conversations'>['Row'];
+type Conversation = Tables<'conversations'>;
 
 export interface ConversationsFilters {
   campaign_id?: string;

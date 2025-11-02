@@ -123,7 +123,7 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
                 <span className="text-xs text-muted-foreground">
                   {assignedList.contacted_leads || 0} contacted
                 </span>
-                {assignedList.successful_leads > 0 && (
+                {(assignedList.successful_leads ?? 0) > 0 && (
                   <>
                     <span className="text-xs text-muted-foreground">•</span>
                     <span className="text-xs text-muted-foreground">

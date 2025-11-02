@@ -47,7 +47,7 @@ export function CampaignsEmptyState({ onCreateCampaign }: CampaignsEmptyStatePro
         {/* Quick Tips */}
         <div className="mt-8 pt-8 border-t w-full max-w-2xl">
           <p className="text-sm font-medium text-muted-foreground mb-4">
-            What you'll need:
+            What you&apos;ll need:
           </p>
           <div className="grid gap-3 md:grid-cols-3 text-left">
             <div className="flex items-start gap-2">

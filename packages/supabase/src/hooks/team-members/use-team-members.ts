@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type TeamMember = Tables<'team_members'>['Row'];
+type TeamMember = Tables<'team_members'>;
 
 export interface TeamMembersFilters {
   business_id?: string;

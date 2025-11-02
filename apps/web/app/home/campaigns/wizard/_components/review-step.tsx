@@ -8,7 +8,7 @@ import { Tables } from '@kit/supabase/database';
 import { Button } from '@kit/ui/button';
 import { Separator } from '@kit/ui/separator';
 
-type AgentRow = Tables<'agents'>['Row'];
+type AgentRow = Tables<'agents'>;
 
 interface ReviewProps {
   basics: {

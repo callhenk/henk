@@ -26,7 +26,7 @@ import { Separator } from '@kit/ui/separator';
 
 import { DatePicker } from '~/components/shared';
 
-type AgentRow = Tables<'agents'>['Row'];
+type AgentRow = Tables<'agents'>;
 
 export interface BasicsFormValues {
   campaign_name: string;

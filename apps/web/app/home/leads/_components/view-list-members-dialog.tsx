@@ -131,7 +131,7 @@ export function ViewListMembersDialog({
                 <DialogTitle className="flex items-center gap-2">
                   <div
                     className="h-3 w-3 flex-shrink-0 rounded-full"
-                    style={{ backgroundColor: list.color }}
+                    style={{ backgroundColor: list.color ?? undefined }}
                   />
                   {list.name} Members
                 </DialogTitle>

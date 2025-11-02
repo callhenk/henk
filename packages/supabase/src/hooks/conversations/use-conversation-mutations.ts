@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Conversation = Tables<'conversations'>['Row'];
+type Conversation = Tables<'conversations'>;
 type CreateConversationData = TablesInsert<'conversations'>;
 type UpdateConversationData = TablesUpdate<'conversations'> & { id: string };
 

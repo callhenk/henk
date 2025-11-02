@@ -91,7 +91,7 @@ export function TransferRulesDialog({
     updatedRules[index] = {
       ...updatedRules[index],
       [field]: value,
-    };
+    } as TransferRule;
     setRules(updatedRules);
   };
 

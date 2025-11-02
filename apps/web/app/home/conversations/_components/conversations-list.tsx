@@ -56,12 +56,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { useDemoMode } from '~/lib/demo-mode-context';
-import { formatDate, formatDuration, getConversionRate } from '~/lib/utils';
+import { formatDuration } from '~/lib/utils';
 
-type Conversation = Tables<'conversations'>['Row'];
-type _Campaign = Tables<'campaigns'>['Row'];
-type _Agent = Tables<'agents'>['Row'];
-type _Lead = Tables<'leads'>['Row'];
+type Conversation = Tables<'conversations'>;
+type _Campaign = Tables<'campaigns'>;
+type _Agent = Tables<'agents'>;
+type _Lead = Tables<'leads'>;
 
 // Enhanced conversation interface with calculated fields
 interface EnhancedConversation extends Conversation {

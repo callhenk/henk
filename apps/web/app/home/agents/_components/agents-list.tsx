@@ -74,7 +74,7 @@ import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { AgentsEmptyState } from './agents-empty-state';
 import { CreateAgentPanel } from './create-agent-panel';
 
-type Agent = Tables<'agents'>['Row'];
+type Agent = Tables<'agents'>;
 
 const getVoiceTypeLabel = (voiceType: string | null | undefined): string => {
   if (!voiceType) return 'Default voice';
