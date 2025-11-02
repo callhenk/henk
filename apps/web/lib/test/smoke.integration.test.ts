@@ -40,7 +40,7 @@ describe('Smoke Tests - Core Functionality', () => {
 
   it('✓ Can create a contact', async () => {
     const { data: contact, error } = await supabase
-      .from('contacts')
+      .from('leads')
       .insert({
         business_id: testContext.business.id,
         first_name: 'Test',
@@ -67,6 +67,7 @@ describe('Smoke Tests - Core Functionality', () => {
         name: 'Smoke Test Campaign',
         description: 'Testing campaign creation',
         status: 'draft',
+        script: 'This is a test campaign script for automated testing.',
       })
       .select()
       .single();
@@ -99,11 +100,11 @@ describe('Smoke Tests - Core Functionality', () => {
 
   it('✓ Can create a contact list', async () => {
     const { data: list, error } = await supabase
-      .from('contact_lists')
+      .from('lead_lists')
       .insert({
         business_id: testContext.business.id,
         name: 'Smoke Test List',
-        type: 'static',
+        list_type: 'static',
       })
       .select()
       .single();
@@ -137,7 +138,7 @@ describe('Smoke Tests - Core Functionality', () => {
   it('✓ Multi-tenancy works (data isolation)', async () => {
     // Create a contact in this business
     const { data: contact1 } = await supabase
-      .from('contacts')
+      .from('leads')
       .insert({
         business_id: testContext.business.id,
         first_name: 'Business1',
@@ -148,17 +149,17 @@ describe('Smoke Tests - Core Functionality', () => {
       .select()
       .single();
 
-    // Try to query all contacts (should only see this business's contacts)
-    const { data: contacts } = await supabase
-      .from('contacts')
+    // Try to query all leads (should only see this business's leads)
+    const { data: leads } = await supabase
+      .from('leads')
       .select('*')
       .eq('business_id', testContext.business.id);
 
-    expect(contacts).toBeTruthy();
-    expect(contacts?.length).toBeGreaterThan(0);
+    expect(leads).toBeTruthy();
+    expect(leads?.length).toBeGreaterThan(0);
 
-    // All contacts should belong to this business
-    contacts?.forEach((contact) => {
+    // All leads should belong to this business
+    leads?.forEach((contact) => {
       expect(contact.business_id).toBe(testContext.business.id);
     });
 
@@ -166,8 +167,8 @@ describe('Smoke Tests - Core Functionality', () => {
   });
 
   it('✓ Can query and filter data', async () => {
-    // Create a few more contacts
-    await supabase.from('contacts').insert([
+    // Create a few more leads
+    await supabase.from('leads').insert([
       {
         business_id: testContext.business.id,
         first_name: 'VIP',
@@ -186,12 +187,12 @@ describe('Smoke Tests - Core Functionality', () => {
       },
     ]);
 
-    // Query VIP donors
+    // Query VIP donors (using JSONB @> operator)
     const { data: vipDonors, error } = await supabase
-      .from('contacts')
+      .from('leads')
       .select('*')
       .eq('business_id', testContext.business.id)
-      .contains('tags', ['VIP']);
+      .filter('tags', 'cs', '["VIP"]');
 
     expect(error).toBeNull();
     expect(vipDonors).toBeTruthy();
@@ -209,6 +210,7 @@ describe('Smoke Tests - Core Functionality', () => {
         business_id: testContext.business.id,
         name: 'Campaign to Update',
         status: 'draft',
+        script: 'Test script for update test',
       })
       .select()
       .single();
@@ -235,6 +237,7 @@ describe('Smoke Tests - Core Functionality', () => {
         business_id: testContext.business.id,
         name: 'Campaign to Delete',
         status: 'draft',
+        script: 'Test script for delete test',
       })
       .select()
       .single();
@@ -293,8 +296,8 @@ describe('Smoke Tests - Core Functionality', () => {
   });
 
   it('✓ Pagination works', async () => {
-    // Create multiple contacts
-    const contactsToCreate = Array.from({ length: 5 }, (_, i) => ({
+    // Create multiple leads
+    const leadsToCreate = Array.from({ length: 5 }, (_, i) => ({
       business_id: testContext.business.id,
       first_name: `Contact${i}`,
       last_name: 'Test',
@@ -302,11 +305,11 @@ describe('Smoke Tests - Core Functionality', () => {
       source: 'manual' as const,
     }));
 
-    await supabase.from('contacts').insert(contactsToCreate);
+    await supabase.from('leads').insert(leadsToCreate);
 
     // Get first page (2 items)
     const { data: page1, count } = await supabase
-      .from('contacts')
+      .from('leads')
       .select('*', { count: 'exact' })
       .eq('business_id', testContext.business.id)
       .range(0, 1);
@@ -316,7 +319,7 @@ describe('Smoke Tests - Core Functionality', () => {
 
     // Get second page
     const { data: page2 } = await supabase
-      .from('contacts')
+      .from('leads')
       .select('*')
       .eq('business_id', testContext.business.id)
       .range(2, 3);
@@ -333,8 +336,8 @@ describe('Smoke Tests - Core Functionality', () => {
   });
 
   it('✓ Search works', async () => {
-    // Create contacts with searchable names
-    await supabase.from('contacts').insert([
+    // Create leads with searchable names
+    await supabase.from('leads').insert([
       {
         business_id: testContext.business.id,
         first_name: 'John',
@@ -353,7 +356,7 @@ describe('Smoke Tests - Core Functionality', () => {
 
     // Search for "John"
     const { data: results, error } = await supabase
-      .from('contacts')
+      .from('leads')
       .select('*')
       .eq('business_id', testContext.business.id)
       .or('first_name.ilike.%John%,last_name.ilike.%John%');
