@@ -115,8 +115,11 @@ export function useConversation(id: string) {
       }
 
       // Remove the campaign object from the response
-      const { campaign: _, ...conversation } = data as any;
-      return conversation as Conversation;
+      // The data includes campaign for filtering, but we only want the conversation
+      const { campaign: _, ...conversation } = data as Conversation & {
+        campaign: { business_id: string };
+      };
+      return conversation;
     },
     enabled: !!id && !!businessContext?.business_id,
   });
