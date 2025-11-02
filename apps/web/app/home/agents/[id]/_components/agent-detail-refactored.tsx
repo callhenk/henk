@@ -44,8 +44,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 import { useDemoMode } from '~/lib/demo-mode-context';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
+import { AgentConversationSettings } from './agent-conversation-settings';
 import { AgentHeader } from './agent-header';
 import { AgentKnowledge } from './agent-knowledge';
+import { AgentLanguage } from './agent-language';
 import { AgentOverview } from './agent-overview';
 import { AgentTools } from './agent-tools';
 import { AgentVoice } from './agent-voice';
@@ -65,6 +67,13 @@ const AGENT_FIELDS = {
   ENABLED_TOOLS: 'enabled_tools',
   TRANSFER_RULES: 'transfer_rules',
   TRANSFER_TO_NUMBER_RULES: 'transfer_to_number_rules',
+  LANGUAGE: 'language',
+  ADDITIONAL_LANGUAGES: 'additional_languages',
+  RETENTION_PERIOD_DAYS: 'retention_period_days',
+  TURN_TIMEOUT: 'turn_timeout',
+  EAGERNESS: 'eagerness',
+  SILENCE_END_CALL_TIMEOUT: 'silence_end_call_timeout',
+  MAX_CONVERSATION_DURATION: 'max_conversation_duration',
 } as const;
 
 // Get human-readable field name for display
@@ -585,6 +594,27 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           case AGENT_FIELDS.TRANSFER_TO_NUMBER_RULES:
             updateData = { ...baseUpdate, transfer_to_number_rules: value as Json };
             break;
+          case AGENT_FIELDS.LANGUAGE:
+            updateData = { ...baseUpdate, language: value as string };
+            break;
+          case AGENT_FIELDS.ADDITIONAL_LANGUAGES:
+            updateData = { ...baseUpdate, additional_languages: value as Json };
+            break;
+          case AGENT_FIELDS.RETENTION_PERIOD_DAYS:
+            updateData = { ...baseUpdate, retention_period_days: value as number };
+            break;
+          case AGENT_FIELDS.TURN_TIMEOUT:
+            updateData = { ...baseUpdate, turn_timeout: value as number };
+            break;
+          case AGENT_FIELDS.EAGERNESS:
+            updateData = { ...baseUpdate, eagerness: value as string };
+            break;
+          case AGENT_FIELDS.SILENCE_END_CALL_TIMEOUT:
+            updateData = { ...baseUpdate, silence_end_call_timeout: value as number };
+            break;
+          case AGENT_FIELDS.MAX_CONVERSATION_DURATION:
+            updateData = { ...baseUpdate, max_conversation_duration: value as number };
+            break;
           default:
             updateData = baseUpdate;
         }
@@ -773,6 +803,33 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 conversations={conversations}
                 campaigns={campaigns}
               />
+
+              {/* Agent Language Settings */}
+              <div className="mt-6">
+                <AgentLanguage
+                  agent={{
+                    id: agent.id,
+                    language: agent.language || 'english',
+                    additional_languages: agent.additional_languages,
+                  }}
+                  onSaveField={handleSaveField}
+                />
+              </div>
+
+              {/* Agent Conversation Settings */}
+              <div className="mt-6">
+                <AgentConversationSettings
+                  agent={{
+                    id: agent.id,
+                    retention_period_days: agent.retention_period_days,
+                    turn_timeout: agent.turn_timeout,
+                    eagerness: agent.eagerness,
+                    silence_end_call_timeout: agent.silence_end_call_timeout,
+                    max_conversation_duration: agent.max_conversation_duration,
+                  }}
+                  onSaveField={handleSaveField}
+                />
+              </div>
 
               {/* Outbound Caller ID
                   Hidden for now. Caller ID will be automatically set to the only
