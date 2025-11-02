@@ -139,12 +139,14 @@ export function LeadsPageSidebar({
                             size="sm"
                             onClick={() => onSelectList(list.id)}
                           >
-                            <div
-                              className="mr-2 h-2 w-2 rounded-full"
-                              style={{ backgroundColor: list.color }}
-                            />
+                            {list.color && (
+                              <div
+                                className="mr-2 h-2 w-2 rounded-full"
+                                style={{ backgroundColor: list.color }}
+                              />
+                            )}
                             <span className="truncate">{list.name}</span>
-                            {list.lead_count > 0 && (
+                            {(list.lead_count ?? 0) > 0 && (
                               <Badge variant="secondary" className="ml-auto">
                                 {list.lead_count}
                               </Badge>
@@ -185,12 +187,14 @@ export function LeadsPageSidebar({
                             size="sm"
                             onClick={() => onSelectList(list.id)}
                           >
-                            <div
-                              className="mr-2 h-2 w-2 rounded-full"
-                              style={{ backgroundColor: list.color }}
-                            />
+                            {list.color && (
+                              <div
+                                className="mr-2 h-2 w-2 rounded-full"
+                                style={{ backgroundColor: list.color }}
+                              />
+                            )}
                             <span className="truncate">{list.name}</span>
-                            {list.lead_count > 0 && (
+                            {(list.lead_count ?? 0) > 0 && (
                               <Badge variant="secondary" className="ml-auto">
                                 {list.lead_count}
                               </Badge>
@@ -231,12 +235,14 @@ export function LeadsPageSidebar({
                             size="sm"
                             onClick={() => onSelectList(list.id)}
                           >
-                            <div
-                              className="mr-2 h-2 w-2 rounded-full"
-                              style={{ backgroundColor: list.color }}
-                            />
+                            {list.color && (
+                              <div
+                                className="mr-2 h-2 w-2 rounded-full"
+                                style={{ backgroundColor: list.color }}
+                              />
+                            )}
                             <span className="truncate">{list.name}</span>
-                            {list.lead_count > 0 && (
+                            {(list.lead_count ?? 0) > 0 && (
                               <Badge variant="secondary" className="ml-auto">
                                 {list.lead_count}
                               </Badge>
@@ -277,12 +283,14 @@ export function LeadsPageSidebar({
                             size="sm"
                             onClick={() => onSelectList(list.id)}
                           >
-                            <div
-                              className="mr-2 h-2 w-2 rounded-full"
-                              style={{ backgroundColor: list.color }}
-                            />
+                            {list.color && (
+                              <div
+                                className="mr-2 h-2 w-2 rounded-full"
+                                style={{ backgroundColor: list.color }}
+                              />
+                            )}
                             <span className="truncate">{list.name}</span>
-                            {list.lead_count > 0 && (
+                            {(list.lead_count ?? 0) > 0 && (
                               <Badge variant="secondary" className="ml-auto">
                                 {list.lead_count}
                               </Badge>

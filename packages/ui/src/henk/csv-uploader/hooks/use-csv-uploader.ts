@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 
+import Papa from 'papaparse';
+
 import type {
   CSVRow,
   CSVUploaderConfig,
@@ -9,7 +11,7 @@ import type {
   ValidationError,
 } from '../types';
 import { DEFAULT_CSV_CONFIG } from '../types';
-import { parseCSVFile } from '../utils/parser';
+import { generateCSVTemplate, parseCSVFile } from '../utils/parser';
 import { validateFile } from '../utils/validation';
 
 export interface UseCSVUploaderProps<T extends CSVRow = CSVRow> {
@@ -218,8 +220,6 @@ export function useCSVUploader<T extends CSVRow = CSVRow>({
   }, []);
 
   const downloadTemplate = useCallback(() => {
-    const { generateCSVTemplate } = require('../utils/parser');
-
     try {
       const csvContent = generateCSVTemplate(mergedConfig);
       downloadCSV('template.csv', csvContent);
@@ -308,6 +308,5 @@ function downloadCSV(filename: string, content: string) {
 function convertToCSV(data: unknown[]): string {
   if (data.length === 0) return '';
 
-  const Papa = require('papaparse');
   return Papa.unparse(data);
 }

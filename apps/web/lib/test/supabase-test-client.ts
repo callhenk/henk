@@ -2,6 +2,33 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../database.types';
 
 /**
+ * Checks if Supabase is available (for skipping integration tests in CI)
+ */
+export async function isSupabaseAvailable(): Promise<boolean> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return false;
+  }
+
+  try {
+    const client = createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // Try a simple health check
+    const { error } = await client.from('accounts').select('count').limit(0);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Creates a Supabase client for testing with service role key
  * This bypasses RLS policies for test setup
  */
@@ -251,8 +278,9 @@ export async function cleanupTestBusiness(businessId: string) {
     if (error) {
       throw error;
     }
-  } catch (error: any) {
-    console.error(`Failed to cleanup test business: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to cleanup test business: ${message}`);
     throw error;
   }
 }

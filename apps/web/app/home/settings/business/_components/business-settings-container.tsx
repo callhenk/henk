@@ -28,7 +28,7 @@ import { Separator } from '@kit/ui/separator';
 import { Skeleton } from '@kit/ui/skeleton';
 import { Textarea } from '@kit/ui/textarea';
 
-type Business = Tables<'businesses'>['Row'];
+type Business = Tables<'businesses'>;
 
 interface BusinessSettingsContainerProps {
   userId: string;

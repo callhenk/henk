@@ -4,8 +4,8 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Lead = Tables<'leads'>['Row'];
-type LeadList = Tables<'lead_lists'>['Row'];
+type Lead = Tables<'leads'>;
+type LeadList = Tables<'lead_lists'>;
 
 export interface LeadsFilters {
   campaign_id?: string;

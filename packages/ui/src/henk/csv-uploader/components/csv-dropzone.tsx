@@ -18,7 +18,7 @@ export function CSVDropzone({
   children,
 }: DropzoneProps) {
   const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+    (acceptedFiles: File[], _fileRejections: FileRejection[]) => {
       if (acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
         if (file) {

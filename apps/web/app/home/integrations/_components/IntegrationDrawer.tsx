@@ -12,10 +12,27 @@ import { useCreateIntegration, useUpdateIntegration } from '@kit/supabase/hooks/
 
 import { ConfigForm } from './ConfigForm';
 import { CredentialsForm } from './CredentialsForm';
-import type { ProviderSchema, TestConnectionResult, UiIntegration } from './types';
+import type { IntegrationType, ProviderSchema, TestConnectionResult, UiIntegration } from './types';
 import { mockAsync } from './types';
 
 type Step = 'overview' | 'auth' | 'config' | 'review';
+
+// Map UI integration types to database enum types
+function mapToDatabaseType(uiType: IntegrationType): 'crm' | 'payment' | 'communication' | 'analytics' | 'voice' {
+  const typeMap: Record<IntegrationType, 'crm' | 'payment' | 'communication' | 'analytics' | 'voice'> = {
+    'telephony': 'voice',
+    'tts': 'voice',
+    'nlp': 'analytics',
+    'crm': 'crm',
+    'email': 'communication',
+    'analytics': 'analytics',
+    'payments': 'payment',
+    'storage': 'analytics', // Default storage to analytics
+    'captcha': 'analytics',
+    'other': 'analytics',
+  };
+  return typeMap[uiType] || 'analytics';
+}
 
 export function IntegrationDrawer({
   open,
@@ -94,7 +111,7 @@ export function IntegrationDrawer({
         await createIntegration.mutateAsync({
           name: item.name,
           description: item.description,
-          type: item.type,
+          type: mapToDatabaseType(item.type),
           status: 'inactive', // Will be set to 'active' after OAuth flow
           credentials: JSON.parse(JSON.stringify(credentials)),
           config: JSON.parse(JSON.stringify(config)),

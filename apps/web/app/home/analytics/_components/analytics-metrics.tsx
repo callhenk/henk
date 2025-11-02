@@ -50,6 +50,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
   const metrics = useMemo(() => {
     // Filter conversations based on date range
     const filteredConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       return (
         convDate >= filters.dateRange.startDate &&
@@ -136,6 +137,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
     previousPeriodEnd.setTime(previousPeriodEnd.getTime() - periodLength);
 
     const previousPeriodConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       return convDate >= previousPeriodStart && convDate <= previousPeriodEnd;
     });

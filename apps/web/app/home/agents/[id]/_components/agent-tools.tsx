@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { ArrowRightLeft, Check, Loader2, Phone, PlayCircle, Settings, SkipForward, Voicemail, X } from 'lucide-react';
+import { ArrowRightLeft, Check, Loader2, Phone, PhoneForwarded, PlayCircle, Settings, SkipForward, Voicemail, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
@@ -12,6 +12,7 @@ import { Label } from '@kit/ui/label';
 import { Switch } from '@kit/ui/switch';
 
 import { TransferRulesDialog } from './transfer-rules-dialog';
+import { TransferToNumberDialog } from './transfer-to-number-dialog';
 
 // Field name constant
 const ENABLED_TOOLS_FIELD = 'enabled_tools';
@@ -21,6 +22,7 @@ const TOOL_IDS = {
   END_CALL: 'end_call',
   SKIP_TURN: 'skip_turn',
   TRANSFER_TO_AGENT: 'transfer_to_agent',
+  TRANSFER_TO_NUMBER: 'transfer_to_number',
   PLAY_KEYPAD_TONE: 'play_keypad_tone',
   VOICEMAIL_DETECTION: 'voicemail_detection',
 } as const;
@@ -32,6 +34,7 @@ interface AgentToolsProps {
     business_id: string;
     enabled_tools?: unknown;
     transfer_rules?: unknown;
+    transfer_to_number_rules?: unknown;
   };
   onSaveField: (fieldName: string, value: unknown) => Promise<void>;
 }
@@ -46,6 +49,7 @@ interface ToolConfig {
 
 export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [isTransferToNumberDialogOpen, setIsTransferToNumberDialogOpen] = useState(false);
 
   // Fetch all agents for the transfer rules dialog
   const { data: allAgents = [] } = useAgents();
@@ -79,6 +83,14 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
           'Gives agent the ability to transfer the call to another agent based on specific conditions.',
         icon: ArrowRightLeft,
         enabled: enabledToolIds.includes(TOOL_IDS.TRANSFER_TO_AGENT),
+      },
+      {
+        id: TOOL_IDS.TRANSFER_TO_NUMBER,
+        label: 'Transfer to number',
+        description:
+          'Gives agent the ability to transfer the call to a phone number or SIP URI.',
+        icon: PhoneForwarded,
+        enabled: enabledToolIds.includes(TOOL_IDS.TRANSFER_TO_NUMBER),
       },
       {
         id: TOOL_IDS.PLAY_KEYPAD_TONE,
@@ -163,6 +175,25 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
     }
   };
 
+  const handleSaveTransferToNumberRules = async (transferToNumberRules: {
+    transfers: Array<{
+      phone_number: string;
+      condition: string;
+      transfer_type?: 'conference' | 'sip_refer';
+      destination_type?: 'phone_number' | 'sip_uri';
+    }>;
+  }) => {
+    console.log('Saving transfer to number rules:', JSON.stringify(transferToNumberRules, null, 2));
+    console.log('Agent ID:', agent.id);
+    try {
+      await onSaveField('transfer_to_number_rules', transferToNumberRules);
+      console.log('Transfer to number rules saved successfully');
+    } catch (error) {
+      console.error('Error saving transfer to number rules:', error);
+      throw error; // Re-throw to let the dialog handle it
+    }
+  };
+
   // Get transfer rules from agent
   const transferRules =
     typeof agent.transfer_rules === 'object' && agent.transfer_rules !== null
@@ -173,6 +204,19 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
             delay_ms?: number;
             transfer_message?: string;
             enable_transferred_agent_first_message?: boolean;
+          }>;
+        })
+      : { transfers: [] };
+
+  // Get transfer to number rules from agent
+  const transferToNumberRules =
+    typeof agent.transfer_to_number_rules === 'object' && agent.transfer_to_number_rules !== null
+      ? (agent.transfer_to_number_rules as {
+          transfers: Array<{
+            phone_number: string;
+            condition: string;
+            transfer_type?: 'conference' | 'sip_refer';
+            destination_type?: 'phone_number' | 'sip_uri';
           }>;
         })
       : { transfers: [] };
@@ -191,7 +235,8 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
           <div className="space-y-4">
             {tools.map((tool) => {
               const Icon = tool.icon;
-              const isTransferTool = tool.id === TOOL_IDS.TRANSFER_TO_AGENT;
+              const isTransferToAgentTool = tool.id === TOOL_IDS.TRANSFER_TO_AGENT;
+              const isTransferToNumberTool = tool.id === TOOL_IDS.TRANSFER_TO_NUMBER;
 
               return (
                 <div
@@ -212,7 +257,7 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
                       <p className="text-muted-foreground text-sm">
                         {tool.description}
                       </p>
-                      {isTransferTool && tool.enabled && (
+                      {isTransferToAgentTool && tool.enabled && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -221,6 +266,17 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
                         >
                           <Settings className="mr-2 h-4 w-4" />
                           Configure Transfer Rules
+                        </Button>
+                      )}
+                      {isTransferToNumberTool && tool.enabled && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsTransferToNumberDialogOpen(true)}
+                          className="mt-2"
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Configure Transfer to Number
                         </Button>
                       )}
                     </div>
@@ -305,6 +361,14 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
         }
         transferRules={transferRules}
         onSave={handleSaveTransferRules}
+      />
+
+      {/* Transfer to Number Dialog */}
+      <TransferToNumberDialog
+        open={isTransferToNumberDialogOpen}
+        onOpenChange={setIsTransferToNumberDialogOpen}
+        transferToNumberRules={transferToNumberRules}
+        onSave={handleSaveTransferToNumberRules}
       />
     </div>
   );

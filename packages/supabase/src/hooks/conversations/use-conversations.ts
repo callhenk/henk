@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Conversation = Tables<'conversations'>['Row'];
+type Conversation = Tables<'conversations'>;
 
 export interface ConversationsFilters {
   campaign_id?: string;
@@ -115,8 +115,11 @@ export function useConversation(id: string) {
       }
 
       // Remove the campaign object from the response
-      const { campaign: _, ...conversation } = data as any;
-      return conversation as Conversation;
+      // The data includes campaign for filtering, but we only want the conversation
+      const { campaign: _, ...conversation } = data as Conversation & {
+        campaign: { business_id: string };
+      };
+      return conversation;
     },
     enabled: !!id && !!businessContext?.business_id,
   });

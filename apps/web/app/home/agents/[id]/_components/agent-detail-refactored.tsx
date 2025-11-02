@@ -15,6 +15,14 @@ import { toast } from 'sonner';
 
 import type { Json } from '~/lib/database.types';
 
+interface VoiceSettings {
+  stability?: number;
+  similarity_boost?: number;
+  style?: number;
+  use_speaker_boost?: boolean;
+  optimize_streaming_latency?: number;
+}
+
 // Import our Supabase hooks
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
@@ -56,6 +64,7 @@ const AGENT_FIELDS = {
   FAQS: 'faqs',
   ENABLED_TOOLS: 'enabled_tools',
   TRANSFER_RULES: 'transfer_rules',
+  TRANSFER_TO_NUMBER_RULES: 'transfer_to_number_rules',
 } as const;
 
 // Get human-readable field name for display
@@ -568,10 +577,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, faqs: JSON.parse(value as string) };
             break;
           case AGENT_FIELDS.ENABLED_TOOLS:
-            updateData = { ...baseUpdate, enabled_tools: value };
+            updateData = { ...baseUpdate, enabled_tools: value as Json };
             break;
           case AGENT_FIELDS.TRANSFER_RULES:
             updateData = { ...baseUpdate, transfer_rules: value as Json };
+            break;
+          case AGENT_FIELDS.TRANSFER_TO_NUMBER_RULES:
+            updateData = { ...baseUpdate, transfer_to_number_rules: value as Json };
             break;
           default:
             updateData = baseUpdate;
@@ -863,7 +875,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             {/* Voice & Tone Tab */}
             <TabsContent value="voice">
               <AgentVoice
-                agent={agent}
+                agent={{
+                  id: agent.id,
+                  voice_id: agent.voice_id,
+                  voice_type: agent.voice_type,
+                  voice_settings: agent.voice_settings as VoiceSettings | null,
+                  elevenlabs_agent_id: agent.elevenlabs_agent_id,
+                }}
                 voices={voices}
                 onSaveField={handleSaveField}
                 onVoiceUpdate={handleVoiceUpdate}

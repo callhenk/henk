@@ -171,7 +171,7 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
       email: lead.email,
       company: lead.company,
       timezone: lead.timezone,
-      status: lead.status,
+      status: lead.status ?? 'new',
     });
     setEditOpen(true);
   };

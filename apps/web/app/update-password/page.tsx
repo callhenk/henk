@@ -5,7 +5,7 @@ import { AppLogo } from '~/components/app-logo';
 import pathsConfig from '~/config/paths.config';
 import { createI18nServerInstance } from '~/lib/i18n/i18n.server';
 import { withI18n } from '~/lib/i18n/with-i18n';
-import { createClient } from '~/lib/supabase/server';
+import { getSupabaseServerClient } from '~/lib/supabase/server';
 
 export const generateMetadata = async () => {
   const { t } = await createI18nServerInstance();
@@ -34,7 +34,7 @@ async function UpdatePasswordPage(props: UpdatePasswordPageProps) {
 
   // Only require authentication if this is NOT a password recovery flow
   if (!isPasswordRecovery) {
-    const supabase = await createClient();
+    const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     // Redirect to sign in if user is not authenticated and not using recovery link

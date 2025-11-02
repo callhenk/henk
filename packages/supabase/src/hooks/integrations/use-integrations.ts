@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Integration = Tables<'integrations'>['Row'];
+type Integration = Tables<'integrations'>;
 
 export interface IntegrationsFilters {
   type?: Integration['type'];

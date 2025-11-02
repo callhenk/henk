@@ -4,9 +4,13 @@ import {
   cleanupTestUser,
   cleanupTestBusiness,
   createTestClient,
+  isSupabaseAvailable,
 } from './index';
 
-describe('Smoke Tests - Core Functionality', () => {
+// Skip these tests if Supabase is not available (e.g., in CI without local Supabase)
+const supabaseAvailable = await isSupabaseAvailable();
+
+describe.skipIf(!supabaseAvailable)('Smoke Tests - Core Functionality', () => {
   let testContext: Awaited<ReturnType<typeof createTestContext>>;
   let supabase: ReturnType<typeof createTestClient>;
 
@@ -137,7 +141,7 @@ describe('Smoke Tests - Core Functionality', () => {
 
   it('✓ Multi-tenancy works (data isolation)', async () => {
     // Create a contact in this business
-    const { data: contact1 } = await supabase
+    await supabase
       .from('leads')
       .insert({
         business_id: testContext.business.id,
@@ -197,7 +201,7 @@ describe('Smoke Tests - Core Functionality', () => {
     expect(error).toBeNull();
     expect(vipDonors).toBeTruthy();
     expect(vipDonors?.length).toBeGreaterThan(0);
-    expect(vipDonors?.[0].first_name).toBe('VIP');
+    expect(vipDonors?.[0]?.first_name).toBe('VIP');
 
     console.log('✓ Querying and filtering works correctly');
   });
@@ -216,10 +220,13 @@ describe('Smoke Tests - Core Functionality', () => {
       .single();
 
     // Update the status
+    expect(campaign?.id).toBeDefined();
+    if (!campaign?.id) return;
+
     const { data: updated, error } = await supabase
       .from('campaigns')
       .update({ status: 'active' })
-      .eq('id', campaign?.id!)
+      .eq('id', campaign.id)
       .select()
       .single();
 
@@ -243,10 +250,13 @@ describe('Smoke Tests - Core Functionality', () => {
       .single();
 
     // Delete it
+    expect(campaign?.id).toBeDefined();
+    if (!campaign?.id) return;
+
     const { error: deleteError } = await supabase
       .from('campaigns')
       .delete()
-      .eq('id', campaign?.id!);
+      .eq('id', campaign.id);
 
     expect(deleteError).toBeNull();
 
@@ -254,7 +264,7 @@ describe('Smoke Tests - Core Functionality', () => {
     const { data: deleted } = await supabase
       .from('campaigns')
       .select('*')
-      .eq('id', campaign?.id!);
+      .eq('id', campaign.id);
 
     expect(deleted).toHaveLength(0);
 
@@ -284,10 +294,13 @@ describe('Smoke Tests - Core Functionality', () => {
     expect(agent?.voice_settings).toEqual(voiceSettings);
 
     // Query it back
+    expect(agent?.id).toBeDefined();
+    if (!agent?.id) return;
+
     const { data: queriedAgent } = await supabase
       .from('agents')
       .select('*')
-      .eq('id', agent?.id!)
+      .eq('id', agent.id)
       .single();
 
     expect(queriedAgent?.voice_settings).toEqual(voiceSettings);

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Tables, TablesInsert } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type CampaignLeadList = Tables<'campaign_lead_lists'>['Row'];
+type CampaignLeadList = Tables<'campaign_lead_lists'>;
 type CreateCampaignLeadListData = TablesInsert<'campaign_lead_lists'>;
 
 /**

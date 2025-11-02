@@ -11,7 +11,7 @@ import { GridSkeleton } from './IntegrationsGrid';
 import { SEED_INTEGRATIONS } from './mock-data';
 import type { UiIntegration } from './types';
 
-type Integration = Tables<'integrations'>['Row'];
+type Integration = Tables<'integrations'>;
 
 export function ClientController() {
   const { data: businessContext } = useBusinessContext();
