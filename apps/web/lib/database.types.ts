@@ -72,26 +72,33 @@ export type Database = {
       }
       agents: {
         Row: {
+          additional_languages: Json | null
           business_id: string
           caller_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           donor_context: string | null
+          eagerness: string | null
           elevenlabs_agent_id: string | null
           enabled_tools: Json | null
           faqs: Json | null
           id: string
           knowledge_base: Json | null
+          language: string
+          max_conversation_duration: number | null
           name: string
           organization_info: string | null
           personality: string | null
+          retention_period_days: number | null
           script_template: string | null
+          silence_end_call_timeout: number | null
           speaking_tone: string
           starting_message: string | null
           status: Database["public"]["Enums"]["agent_status"]
           transfer_rules: Json | null
           transfer_to_number_rules: Json | null
+          turn_timeout: number | null
           updated_at: string | null
           updated_by: string | null
           voice_id: string | null
@@ -100,26 +107,33 @@ export type Database = {
           workflow_config: Json | null
         }
         Insert: {
+          additional_languages?: Json | null
           business_id: string
           caller_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           donor_context?: string | null
+          eagerness?: string | null
           elevenlabs_agent_id?: string | null
           enabled_tools?: Json | null
           faqs?: Json | null
           id?: string
           knowledge_base?: Json | null
+          language?: string
+          max_conversation_duration?: number | null
           name: string
           organization_info?: string | null
           personality?: string | null
+          retention_period_days?: number | null
           script_template?: string | null
+          silence_end_call_timeout?: number | null
           speaking_tone?: string
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
           transfer_rules?: Json | null
           transfer_to_number_rules?: Json | null
+          turn_timeout?: number | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
@@ -128,26 +142,33 @@ export type Database = {
           workflow_config?: Json | null
         }
         Update: {
+          additional_languages?: Json | null
           business_id?: string
           caller_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           donor_context?: string | null
+          eagerness?: string | null
           elevenlabs_agent_id?: string | null
           enabled_tools?: Json | null
           faqs?: Json | null
           id?: string
           knowledge_base?: Json | null
+          language?: string
+          max_conversation_duration?: number | null
           name?: string
           organization_info?: string | null
           personality?: string | null
+          retention_period_days?: number | null
           script_template?: string | null
+          silence_end_call_timeout?: number | null
           speaking_tone?: string
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
           transfer_rules?: Json | null
           transfer_to_number_rules?: Json | null
+          turn_timeout?: number | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
@@ -2220,23 +2241,23 @@ export type Database = {
       get_latest_sync_status: {
         Args: { p_integration_id: string }
         Returns: {
-          records_failed: number
-          sync_status: string
-          last_sync_at: string
           records_processed: number
           records_created: number
           records_updated: number
+          records_failed: number
+          sync_status: string
+          last_sync_at: string
         }[]
       }
       get_next_queued_call: {
         Args: Record<PropertyKey, never> | { p_campaign_id: string }
         Returns: {
+          campaign_id: string
+          lead_id: string
           phone_number: string
           script: string
-          lead_id: string
-          agent_id: string
-          campaign_id: string
           call_id: string
+          agent_id: string
         }[]
       }
       trigger_campaign_orchestrator: {
@@ -2792,8 +2813,8 @@ export type Database = {
       get_size_by_bucket: {
         Args: Record<PropertyKey, never>
         Returns: {
-          bucket_id: string
           size: number
+          bucket_id: string
         }[]
       }
       list_multipart_uploads_with_delimiter: {
@@ -2806,9 +2827,9 @@ export type Database = {
           prefix_param: string
         }
         Returns: {
-          id: string
           key: string
           created_at: string
+          id: string
         }[]
       }
       list_objects_with_delimiter: {
@@ -2821,10 +2842,10 @@ export type Database = {
           start_after?: string
         }
         Returns: {
-          name: string
           id: string
-          updated_at: string
           metadata: Json
+          updated_at: string
+          name: string
         }[]
       }
       operation: {
@@ -2843,12 +2864,12 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
-          id: string
-          name: string
           metadata: Json
           last_accessed_at: string
           created_at: string
           updated_at: string
+          id: string
+          name: string
         }[]
       }
       search_legacy_v1: {
@@ -2863,9 +2884,9 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
+          created_at: string
           metadata: Json
           last_accessed_at: string
-          created_at: string
           updated_at: string
           id: string
           name: string
@@ -2883,12 +2904,12 @@ export type Database = {
           sortorder?: string
         }
         Returns: {
+          last_accessed_at: string
+          metadata: Json
+          created_at: string
           name: string
           id: string
           updated_at: string
-          created_at: string
-          last_accessed_at: string
-          metadata: Json
         }[]
       }
       search_v2: {
