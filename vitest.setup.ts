@@ -2,6 +2,14 @@ import '@testing-library/jest-dom';
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+// Mock navigator.clipboard for tests
+Object.assign(navigator, {
+  clipboard: {
+    writeText: vi.fn(),
+    readText: vi.fn(),
+  },
+});
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();
