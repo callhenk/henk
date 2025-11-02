@@ -15,6 +15,7 @@ export class Mailbox {
     const json = await this.getInviteEmail(email, params);
 
     if (!json?.HTML) {
+      console.error(`Email not found for ${email}. Response:`, json);
       throw new Error('Email body was not found');
     }
 
@@ -42,19 +43,27 @@ export class Mailbox {
   ) {
     const url = `http://127.0.0.1:54324/api/v1/search?query=to:${encodeURIComponent(email)}`;
 
+    console.log(`Checking Inbucket for email to ${email}...`);
+
     const response = await fetch(url);
 
     if (!response.ok) {
+      console.error(`Inbucket API error: ${response.statusText}`);
       throw new Error(`Failed to fetch emails: ${response.statusText}`);
     }
 
     const json = (await response.json()) as { messages: Array<{ ID: string }> };
 
+    console.log(`Inbucket search result:`, json);
+
     if (!json?.messages || !json.messages.length) {
-      return;
+      console.log(`No messages found for ${email} yet. Waiting for email to arrive...`);
+      throw new Error(`No email found for ${email} yet. Will retry...`);
     }
 
     const messageId = json.messages[0]?.ID;
+    console.log(`Found email with ID: ${messageId}`);
+
     const messageUrl = `http://127.0.0.1:54324/api/v1/message/${messageId}`;
 
     const messageResponse = await fetch(messageUrl);
