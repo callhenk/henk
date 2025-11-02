@@ -22,6 +22,15 @@ export {
   formatNumber,
 } from './formatting';
 
+// Phone utilities
+export {
+  validateE164,
+  maskE164,
+  normalizeToE164,
+  extractCountryCode,
+  phoneNumbersMatch,
+} from './phone';
+
 // Metrics utilities
 export {
   getConversionRate,
@@ -30,3 +39,6 @@ export {
   formatCurrency,
   calculatePercentageChange,
 } from './metrics';
+
+// Logging utilities
+export { logger, type LogContext } from './logger';

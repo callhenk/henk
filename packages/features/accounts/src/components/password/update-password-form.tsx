@@ -81,8 +81,8 @@ export const UpdatePasswordForm = ({
 
     // Verify current password by attempting to sign in
     try {
-      const { createBrowserClient } = await import('@kit/supabase/client');
-      const supabase = createBrowserClient();
+      const { getSupabaseBrowserClient } = await import('@kit/supabase/browser-client');
+      const supabase = getSupabaseBrowserClient();
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,

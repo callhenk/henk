@@ -570,6 +570,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           case AGENT_FIELDS.ENABLED_TOOLS:
             updateData = { ...baseUpdate, enabled_tools: value };
             break;
+          case AGENT_FIELDS.TRANSFER_RULES:
+            updateData = { ...baseUpdate, transfer_rules: value as Json };
+            break;
           default:
             updateData = baseUpdate;
         }

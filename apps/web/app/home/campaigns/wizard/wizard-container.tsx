@@ -22,6 +22,8 @@ import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { useBulkCreateLeads } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { Spinner } from '@kit/ui/spinner';
 
+import { TEST_PHONE_NUMBERS } from '~/lib/constants';
+
 import type { AudienceFormValues } from './_components/audience-step';
 import BasicsStep, { BasicsFormValues } from './_components/basics-step';
 import CallingStep, { CallingFormValues } from './_components/calling-step';
@@ -580,7 +582,7 @@ export function WizardContainer({
   };
 
   // TODO: Re-enable when multiple Twilio numbers are available
-  const _twilioNumbers = ['+12025550125', '+14155550142'];
+  const _twilioNumbers = TEST_PHONE_NUMBERS;
 
   if (loadingCampaign && currentCampaignId) {
     return (
@@ -595,7 +597,7 @@ export function WizardContainer({
       <WizardTopBar step={step} totalSteps={totalSteps} />
 
       {/* Step content */}
-      <div key={step} className="animate-in fade-in-0 zoom-in-95 duration-200">
+      <div key={step} className="animate-in fade-in duration-300">
         {step === 1 && (
           <div className="px-6 py-6">
             <BasicsStep

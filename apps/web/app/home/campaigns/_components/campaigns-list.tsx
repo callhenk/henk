@@ -69,6 +69,7 @@ import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { useDemoMode } from '~/lib/demo-mode-context';
 import { formatDate, getConversionRate } from '~/lib/utils';
 
+import { CampaignsEmptyState } from './empty-state';
 import { WizardContainer } from '../wizard/wizard-container';
 
 type Campaign = Tables<'campaigns'>['Row'];
@@ -341,7 +342,9 @@ export function CampaignsList() {
             />
           </div>
           <div className="mt-6">
-            {viewMode === 'grid' ? (
+            {enhancedCampaigns.length === 0 ? (
+              <CampaignsEmptyState onCreateCampaign={() => setShowWizard(true)} />
+            ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredCampaigns.map((c) => (
                   <CampaignCard
@@ -397,13 +400,10 @@ export function CampaignsList() {
 
       {/* Loading overlay during campaign creation */}
       {isCreatingCampaign && (
-        <div className="bg-background/80 animate-in fade-in pointer-events-none fixed inset-0 z-[100] backdrop-blur-sm duration-300">
+        <div className="bg-background/80 animate-in fade-in pointer-events-none fixed inset-0 z-[100] backdrop-blur-sm duration-200">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center space-y-3 px-4 text-center">
-              <div className="relative">
-                <div className="border-primary/30 h-8 w-8 rounded-full border-2"></div>
-                <div className="border-primary absolute inset-0 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
-              </div>
+              <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               <div className="space-y-1">
                 <p className="text-foreground text-sm font-medium">
                   Creating your campaign...
@@ -457,7 +457,7 @@ function CampaignCard({
     ? Math.round((campaign.conversions / campaign.contacted) * 100)
     : 0;
   return (
-    <Card className="glass-panel group transition-all duration-200">
+    <Card className="glass-panel group transition-colors duration-200">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>

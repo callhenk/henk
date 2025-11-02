@@ -91,7 +91,7 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative rounded-lg border bg-card transition-all ${
+      className={`group relative rounded-lg border bg-card transition-colors duration-200 ${
         isDragging ? 'shadow-lg opacity-90' : 'hover:bg-accent/5'
       }`}
     >
@@ -142,7 +142,7 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
               </div>
               <div className="w-16 h-1 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full bg-foreground/70 transition-all duration-500"
+                  className="h-full bg-foreground/70 transition-[width] duration-300"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -315,7 +315,7 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                   availableLists.map((list) => (
                     <div
                       key={list.id}
-                      className="group cursor-pointer rounded-lg border p-3 transition-all hover:bg-accent/5"
+                      className="group cursor-pointer rounded-lg border p-3 transition-colors duration-200 hover:bg-accent/5"
                       onClick={() => handleAssignList(list.id)}
                     >
                       <div className="flex items-center justify-between">

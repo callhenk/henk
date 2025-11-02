@@ -32,8 +32,7 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
   // Calculate time-of-day data based on real conversations
   const timeOfDayData = useMemo(() => {
     // Filter conversations based on date range and other filters
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filteredConversations = conversations.filter((conv: any) => {
+    const filteredConversations = conversations.filter((conv) => {
       const convDate = new Date(conv.created_at);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&
