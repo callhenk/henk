@@ -161,7 +161,7 @@ export function LeadDetail({ leadId }: { leadId: string }) {
               <h1 className="text-3xl font-bold">{fullName}</h1>
             </div>
             <div className="flex items-center gap-2 ml-12">
-              {getStatusBadge(lead.status)}
+              {getStatusBadge(lead.status ?? 'new')}
               {getQualityBadge(lead.quality_rating)}
               {lead.do_not_call && (
                 <Badge variant="destructive">Do Not Call</Badge>
@@ -445,13 +445,13 @@ export function LeadDetail({ leadId }: { leadId: string }) {
                   <div>
                     <p className="text-sm text-muted-foreground">Created</p>
                     <p className="text-sm font-medium">
-                      {format(new Date(lead.created_at), 'PPpp')}
+                      {lead.created_at ? format(new Date(lead.created_at), 'PPpp') : 'N/A'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Last Updated</p>
                     <p className="text-sm font-medium">
-                      {format(new Date(lead.updated_at), 'PPpp')}
+                      {lead.updated_at ? format(new Date(lead.updated_at), 'PPpp') : 'N/A'}
                     </p>
                   </div>
                   {lead.source_id && (
