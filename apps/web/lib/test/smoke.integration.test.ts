@@ -201,7 +201,7 @@ describe.skipIf(!supabaseAvailable)('Smoke Tests - Core Functionality', () => {
     expect(error).toBeNull();
     expect(vipDonors).toBeTruthy();
     expect(vipDonors?.length).toBeGreaterThan(0);
-    expect(vipDonors?.[0].first_name).toBe('VIP');
+    expect(vipDonors?.[0]?.first_name).toBe('VIP');
 
     console.log('✓ Querying and filtering works correctly');
   });
