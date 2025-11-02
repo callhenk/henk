@@ -8,9 +8,13 @@ import {
   createCampaign,
   createAgent,
   createTestClient,
+  isSupabaseAvailable,
 } from './index';
 
-describe('Database Integration Tests', () => {
+// Skip these tests if Supabase is not available (e.g., in CI without local Supabase)
+const supabaseAvailable = await isSupabaseAvailable();
+
+describe.skipIf(!supabaseAvailable)('Database Integration Tests', () => {
   let testContext: Awaited<ReturnType<typeof createTestContext>>;
   let supabase: ReturnType<typeof createTestClient>;
 

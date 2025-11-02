@@ -4,9 +4,13 @@ import {
   cleanupTestUser,
   cleanupTestBusiness,
   createTestClient,
+  isSupabaseAvailable,
 } from './index';
 
-describe('Smoke Tests - Core Functionality', () => {
+// Skip these tests if Supabase is not available (e.g., in CI without local Supabase)
+const supabaseAvailable = await isSupabaseAvailable();
+
+describe.skipIf(!supabaseAvailable)('Smoke Tests - Core Functionality', () => {
   let testContext: Awaited<ReturnType<typeof createTestContext>>;
   let supabase: ReturnType<typeof createTestClient>;
 
