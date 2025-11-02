@@ -30,7 +30,7 @@ import CallingStep, { CallingFormValues } from './_components/calling-step';
 import ReviewStep from './_components/review-step';
 import WizardTopBar from './_components/top-bar';
 
-type WizardCampaign = Tables<'campaigns'>['Row'] & {
+type WizardCampaign = Tables<'campaigns'> & {
   goal_metric?: string | null;
 
   call_window_start?: string | null;

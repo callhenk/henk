@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Tables } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type AgentKnowledgeBase = Tables<'agents_knowledge_bases'>['Row'];
+type AgentKnowledgeBase = Tables<'agents_knowledge_bases'>;
 
 /**
  * Link a knowledge base to an agent

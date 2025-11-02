@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Business = Tables<'businesses'>['Row'];
+type Business = Tables<'businesses'>;
 
 export interface BusinessesFilters {
   status?: Business['status'];

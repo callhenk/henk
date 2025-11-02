@@ -46,7 +46,7 @@ const DEFAULT_SETTINGS: VoiceSettings = {
 export function AgentVoiceSettings({
   agent,
   onSaveField,
-  onVoiceUpdate,
+  onVoiceUpdate: _onVoiceUpdate,
 }: AgentVoiceSettingsProps) {
   const defaultSettings = DEFAULT_SETTINGS;
 

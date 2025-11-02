@@ -225,7 +225,7 @@ jobs:
         run: sleep 10
 
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter web-e2e exec playwright install --with-deps chromium
 
       - name: Build application (test env)
         run: pnpm --filter web build:test

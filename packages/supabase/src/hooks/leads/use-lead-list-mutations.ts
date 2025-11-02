@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Json, Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type LeadList = Tables<'lead_lists'>['Row'];
+type LeadList = Tables<'lead_lists'>;
 type CreateLeadListData = TablesInsert<'lead_lists'>;
 type UpdateLeadListData = TablesUpdate<'lead_lists'> & { id: string };
 type CreateLeadListMemberData = TablesInsert<'lead_list_members'>;

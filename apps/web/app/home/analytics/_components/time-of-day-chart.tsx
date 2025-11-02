@@ -33,6 +33,7 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
   const timeOfDayData = useMemo(() => {
     // Filter conversations based on date range and other filters
     const filteredConversations = conversations.filter((conv) => {
+      if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&

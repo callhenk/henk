@@ -385,10 +385,12 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                       <span className="font-mono text-xs">{lead.source_id}</span>
                     </div>
                   )}
-                  <div>
-                    <span className="text-muted-foreground">Created:</span>{' '}
-                    {new Date(lead.created_at).toLocaleDateString()}
-                  </div>
+                  {lead.created_at && (
+                    <div>
+                      <span className="text-muted-foreground">Created:</span>{' '}
+                      {new Date(lead.created_at).toLocaleDateString()}
+                    </div>
+                  )}
                   {lead.last_activity_at && (
                     <div>
                       <span className="text-muted-foreground">Last Activity:</span>{' '}

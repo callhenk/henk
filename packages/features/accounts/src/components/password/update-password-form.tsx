@@ -97,7 +97,7 @@ export const UpdatePasswordForm = ({
 
       // Current password verified, proceed with update
       updatePasswordFromCredential(newPassword);
-    } catch (_error) {
+    } catch {
       const errorMessage = 'Unable to verify your current password. Please check and try again.';
       toast.error(errorMessage);
       return Promise.reject(errorMessage);

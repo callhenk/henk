@@ -17,7 +17,7 @@ export function createLeadData(overrides?: Partial<Lead>): Lead {
     first_name: faker.person.firstName(),
     last_name: faker.person.lastName(),
     email: faker.internet.email().toLowerCase(),
-    phone: faker.phone.number('+1##########'),
+    phone: faker.phone.number({ style: 'international' }),
     source: 'manual',
     tags: [],
     custom_fields: {},
@@ -156,7 +156,7 @@ export async function createAgent(
 export function createIntegrationData(
   overrides?: Partial<Integration>,
 ): Integration {
-  const types = ['crm', 'marketing', 'analytics', 'communication'] as const;
+  const types = ['crm', 'payment', 'communication', 'analytics', 'voice'] as const;
   const statuses = ['active', 'inactive', 'error'] as const;
 
   return {
@@ -206,7 +206,6 @@ export function createLeadListData(
     business_id: overrides?.business_id || faker.string.uuid(),
     name: faker.lorem.words(3),
     description: faker.lorem.sentence(),
-    type: 'static',
     ...overrides,
   };
 }

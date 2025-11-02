@@ -8,9 +8,13 @@ import {
   createCampaign,
   createAgent,
   createTestClient,
+  isSupabaseAvailable,
 } from './index';
 
-describe('Database Integration Tests', () => {
+// Skip these tests if Supabase is not available (e.g., in CI without local Supabase)
+const supabaseAvailable = await isSupabaseAvailable();
+
+describe.skipIf(!supabaseAvailable)('Database Integration Tests', () => {
   let testContext: Awaited<ReturnType<typeof createTestContext>>;
   let supabase: ReturnType<typeof createTestClient>;
 
@@ -66,7 +70,7 @@ describe('Database Integration Tests', () => {
       const leads = await createLeads(testContext.business.id, 5);
 
       expect(leads).toHaveLength(5);
-      expect(leads[0].business_id).toBe(testContext.business.id);
+      expect(leads[0]?.business_id).toBe(testContext.business.id);
     });
 
     it('queries leads by business', async () => {
@@ -108,7 +112,7 @@ describe('Database Integration Tests', () => {
 
       expect(error).toBeNull();
       expect(data).toHaveLength(1);
-      expect(data?.[0].email).toBe('vip@example.com');
+      expect(data?.[0]?.email).toBe('vip@example.com');
     });
 
     it('allows creating leads with same email (no unique constraint)', async () => {
@@ -164,7 +168,7 @@ describe('Database Integration Tests', () => {
 
       expect(error).toBeNull();
       expect(data).toHaveLength(1);
-      expect(data?.[0].name).toBe('Active Campaign');
+      expect(data?.[0]?.name).toBe('Active Campaign');
     });
 
     it('updates campaign status', async () => {
@@ -269,7 +273,7 @@ describe('Database Integration Tests', () => {
         .eq('business_id', testContext.business.id);
 
       expect(business1Leads).toHaveLength(1);
-      expect(business1Leads?.[0].email).toBe('business1@example.com');
+      expect(business1Leads?.[0]?.email).toBe('business1@example.com');
 
       // Query second business leads
       const { data: business2Leads } = await supabase
@@ -278,7 +282,7 @@ describe('Database Integration Tests', () => {
         .eq('business_id', otherContext.business.id);
 
       expect(business2Leads).toHaveLength(1);
-      expect(business2Leads?.[0].email).toBe('business2@example.com');
+      expect(business2Leads?.[0]?.email).toBe('business2@example.com');
 
       // Cleanup
       await cleanupTestBusiness(otherContext.business.id);
@@ -337,7 +341,7 @@ describe('Database Integration Tests', () => {
         .or(`first_name.ilike.%John%,last_name.ilike.%John%`);
 
       expect(data).toHaveLength(1);
-      expect(data?.[0].first_name).toBe('John');
+      expect(data?.[0]?.first_name).toBe('John');
     });
   });
 });

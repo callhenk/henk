@@ -60,7 +60,7 @@ import {
 } from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
-type Business = Tables<'businesses'>['Row'];
+type Business = Tables<'businesses'>;
 
 interface TeamSettingsContainerProps {
   _userId: string;

@@ -131,7 +131,7 @@ export function ViewListMembersDialog({
                 <DialogTitle className="flex items-center gap-2">
                   <div
                     className="h-3 w-3 flex-shrink-0 rounded-full"
-                    style={{ backgroundColor: list.color }}
+                    style={{ backgroundColor: list.color ?? undefined }}
                   />
                   {list.name} Members
                 </DialogTitle>
@@ -276,7 +276,7 @@ export function ViewListMembersDialog({
                           {getQualityBadge(lead.quality_rating)}
                         </TableCell>
                         <TableCell>
-                          {lead.lead_score > 0 && (
+                          {(lead.lead_score ?? 0) > 0 && (
                             <Badge variant="outline">{lead.lead_score}</Badge>
                           )}
                         </TableCell>

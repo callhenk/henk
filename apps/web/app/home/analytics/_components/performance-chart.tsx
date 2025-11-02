@@ -64,7 +64,8 @@ export function PerformanceChart({
   const performanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
     const filteredConversations = conversations.filter((conv) => {
-      const convDate = new Date(conv.created_at);
+      if (!conv.created_at) return false;
+      const convDate = new Date(conv.created_at!);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&
         convDate <= filters.dateRange.endDate;
@@ -83,7 +84,7 @@ export function PerformanceChart({
     // Group conversations by date
     const groupedByDate = filteredConversations.reduce(
       (acc: Record<string, { calls: number; conversions: number; revenue: number }>, conv) => {
-        const date = new Date(conv.created_at).toISOString().split('T')[0];
+        const date = new Date(conv.created_at!).toISOString().split('T')[0];
         if (!date) return acc;
 
         if (!acc[date]) {

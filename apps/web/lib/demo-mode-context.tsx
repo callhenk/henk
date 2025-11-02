@@ -15,12 +15,12 @@ interface VoiceSettings {
 export interface MockAgent {
   id: string;
   name: string;
-  status: 'active' | 'paused' | 'inactive' | 'agent_paused';
+  status: 'active' | 'training' | 'inactive' | 'agent_paused';
   created_at: string;
   updated_at: string;
   elevenlabs_agent_id: string | null;
   description: string | null;
-  voice_type: string;
+  voice_type: 'custom' | 'ai_generated';
   starting_message: string | null;
   organization_info: string | null;
   donor_context: string | null;
@@ -41,13 +41,16 @@ export interface MockAgent {
   created_by: string | null;
   updated_by: string | null;
   business_id: string;
+  enabled_tools: Json | null;
+  transfer_rules: Json | null;
+  transfer_to_number_rules: Json | null;
 }
 
 export interface MockCampaign {
   id: string;
   name: string;
   description: string | null;
-  status: string;
+  status: 'active' | 'completed' | 'cancelled' | 'paused' | 'draft';
   agent_id: string | null;
   start_date: string | null;
   end_date: string | null;
@@ -132,7 +135,7 @@ function generateMockData() {
       elevenlabs_agent_id: 'ell_agent_001',
       description:
         'Experienced fundraising specialist with excellent communication skills',
-      voice_type: 'AI Generated',
+      voice_type: 'ai_generated',
       starting_message:
         "Hello! I'm calling on behalf of our organization to discuss how you can help make a difference.",
       organization_info:
@@ -167,6 +170,9 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
+      enabled_tools: null,
+      transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-2',
@@ -179,7 +185,7 @@ function generateMockData() {
       elevenlabs_agent_id: 'ell_agent_002',
       description:
         'Bilingual outreach specialist focused on community engagement',
-      voice_type: 'AI Generated',
+      voice_type: 'ai_generated',
       starting_message:
         "Hi there! I hope you're having a great day. I'm reaching out to share an exciting opportunity to support our mission.",
       organization_info:
@@ -214,11 +220,14 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
+      enabled_tools: null,
+      transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-3',
       name: 'Emma Thompson',
-      status: 'paused',
+      status: 'training',
       created_at: new Date(
         now.getTime() - 21 * 24 * 60 * 60 * 1000,
       ).toISOString(),
@@ -226,7 +235,7 @@ function generateMockData() {
       elevenlabs_agent_id: 'ell_agent_003',
       description:
         'Senior development coordinator with expertise in major gift fundraising',
-      voice_type: 'AI Generated',
+      voice_type: 'ai_generated',
       starting_message:
         "Good day! I'm calling from our development team to discuss a meaningful way you can make an impact.",
       organization_info:
@@ -261,6 +270,9 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
+      enabled_tools: null,
+      transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-4',
@@ -273,7 +285,7 @@ function generateMockData() {
       elevenlabs_agent_id: 'ell_agent_004',
       description:
         'Digital outreach specialist with data-driven approach to fundraising',
-      voice_type: 'AI Generated',
+      voice_type: 'ai_generated',
       starting_message:
         "Hello! Thank you for your past support. I'd like to share how your continued partnership can create lasting change.",
       organization_info:
@@ -308,6 +320,9 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
+      enabled_tools: null,
+      transfer_rules: null,
+      transfer_to_number_rules: null,
     },
     {
       id: 'agent-5',
@@ -320,7 +335,7 @@ function generateMockData() {
       elevenlabs_agent_id: 'ell_agent_005',
       description:
         'Volunteer coordinator specializing in community outreach and stewardship',
-      voice_type: 'AI Generated',
+      voice_type: 'ai_generated',
       starting_message:
         'Hi! I hope this call finds you well. I wanted to personally reach out to talk about our upcoming initiatives.',
       organization_info:
@@ -355,6 +370,9 @@ function generateMockData() {
       created_by: null,
       updated_by: null,
       business_id: 'demo-business-id',
+      enabled_tools: null,
+      transfer_rules: null,
+      transfer_to_number_rules: null,
     },
   ];
 
@@ -436,7 +454,7 @@ function generateMockData() {
       name: 'Education Support Initiative',
       description:
         'Supporting educational opportunities and scholarships for underserved communities.',
-      status: 'paused',
+      status: 'draft',
       agent_id: 'agent-3',
       start_date: new Date(
         now.getTime() - 45 * 24 * 60 * 60 * 1000,

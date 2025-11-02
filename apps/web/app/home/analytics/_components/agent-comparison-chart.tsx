@@ -52,6 +52,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
     // Filter conversations based on date range and other filters
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filteredConversations = conversations.filter((conv: any) => {
+      if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       const inDateRange =
         convDate >= filters.dateRange.startDate &&

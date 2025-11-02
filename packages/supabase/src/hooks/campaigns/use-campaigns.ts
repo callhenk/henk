@@ -4,7 +4,7 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Campaign = Tables<'campaigns'>['Row'];
+type Campaign = Tables<'campaigns'>;
 
 export interface CampaignsFilters {
   status?: Campaign['status'];

@@ -3,9 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
-type Workflow = Tables<'workflows'>['Row'];
-type WorkflowNode = Tables<'workflow_nodes'>['Row'];
-type WorkflowEdge = Tables<'workflow_edges'>['Row'];
+type Workflow = Tables<'workflows'>;
+type WorkflowNode = Tables<'workflow_nodes'>;
+type WorkflowEdge = Tables<'workflow_edges'>;
 
 type CreateWorkflowData = Omit<TablesInsert<'workflows'>, 'business_id'>;
 type UpdateWorkflowData = TablesUpdate<'workflows'> & { id: string };
