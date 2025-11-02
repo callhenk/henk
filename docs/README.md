@@ -67,4 +67,4 @@ Before contributing, please read:
 
 ---
 
-_Last updated: November 2025_
+_Last updated: November 2024_

@@ -26,6 +26,7 @@ This document outlines a comprehensive Quality Assurance plan for the Henk platf
 ## Current Testing Infrastructure
 
 ### What We Have
+
 - ✅ Playwright E2E tests (auth & account flows)
 - ✅ Test environment configuration (`.env.test`)
 - ✅ Local Supabase instance capability
@@ -33,6 +34,7 @@ This document outlines a comprehensive Quality Assurance plan for the Henk platf
 - ✅ Page Object pattern for E2E tests
 
 ### Critical Gaps
+
 - ❌ No unit testing framework
 - ❌ No integration tests
 - ❌ No database tests (RLS, functions, migrations)
@@ -81,6 +83,7 @@ This document outlines a comprehensive Quality Assurance plan for the Henk platf
 ```
 
 ### Test Distribution Target
+
 - **Unit Tests:** 70% (Fast, isolated, many)
 - **Integration Tests:** 20% (Medium speed, external deps)
 - **E2E Tests:** 10% (Slow, critical flows)
@@ -148,6 +151,7 @@ pnpm supabase db seed
 #### 2. Test Data Management
 
 **Seed File Structure:**
+
 ```sql
 -- apps/web/supabase/seed.sql
 
@@ -188,6 +192,7 @@ VALUES (
 #### 3. Test Isolation Strategies
 
 **Option A: Transaction Rollback (Fastest)**
+
 ```typescript
 // Each test runs in a transaction that rolls back
 beforeEach(async () => {
@@ -200,6 +205,7 @@ afterEach(async () => {
 ```
 
 **Option B: Database Reset (Most Thorough)**
+
 ```typescript
 // Reset database between test suites
 beforeAll(async () => {
@@ -208,19 +214,18 @@ beforeAll(async () => {
 ```
 
 **Option C: Soft Delete Test Data (Recommended for Integration Tests)**
+
 ```typescript
 // Clean up specific test data
 afterEach(async () => {
-  await supabase
-    .from('contacts')
-    .delete()
-    .eq('email', 'like', '%test%');
+  await supabase.from('contacts').delete().eq('email', 'like', '%test%');
 });
 ```
 
 ### Environment Configuration
 
 **`.env.test` (Already Exists)**
+
 ```bash
 NEXT_PUBLIC_CI=true
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
@@ -234,9 +239,11 @@ ELEVENLABS_API_KEY=test_api_key_mock
 ```
 
 **Test Helper for Supabase Client:**
+
 ```typescript
 // lib/supabase/test-client.ts
 import { createClient } from '@supabase/supabase-js';
+
 import type { Database } from './database.types';
 
 export function createTestClient() {
@@ -248,7 +255,7 @@ export function createTestClient() {
         autoRefreshToken: false,
         persistSession: false,
       },
-    }
+    },
   );
 }
 
@@ -300,6 +307,7 @@ export async function createTestBusiness(name: string, ownerId: string) {
 **Location:** `apps/web/supabase/tests/`
 
 **Example: RLS Policy Test**
+
 ```sql
 -- apps/web/supabase/tests/rls_policies_test.sql
 
@@ -340,6 +348,7 @@ ROLLBACK;
 ```
 
 **Run Command:**
+
 ```bash
 pnpm supabase:test
 ```
@@ -358,10 +367,11 @@ pnpm add -D jsdom happy-dom
 ```
 
 **Configuration: `vitest.config.ts` (Root)**
+
 ```typescript
-import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
@@ -392,10 +402,11 @@ export default defineConfig({
 ```
 
 **Setup File: `vitest.setup.ts`**
+
 ```typescript
 import '@testing-library/jest-dom';
-import { expect, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { afterEach, expect } from 'vitest';
 
 // Cleanup after each test
 afterEach(() => {
@@ -408,6 +419,7 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 ```
 
 **Example: Component Test**
+
 ```typescript
 // packages/ui/src/button.test.tsx
 import { describe, it, expect, vi } from 'vitest';
@@ -442,9 +454,11 @@ describe('Button', () => {
 ```
 
 **Example: Utility Test**
+
 ```typescript
 // lib/format-phone.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { formatPhoneNumber } from './format-phone';
 
 describe('formatPhoneNumber', () => {
@@ -465,9 +479,11 @@ describe('formatPhoneNumber', () => {
 ```
 
 **Example: Validation Schema Test**
+
 ```typescript
 // lib/validators/contact.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { contactSchema } from './contact';
 
 describe('contactSchema', () => {
@@ -509,10 +525,16 @@ describe('contactSchema', () => {
 **Purpose:** Test interactions between components, API routes, database, and external services (mocked).
 
 **Example: API Route Test**
+
 ```typescript
 // app/api/contacts/route.test.ts
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { createTestClient, createTestUser, createTestBusiness } from '@/lib/supabase/test-client';
+import {
+  createTestBusiness,
+  createTestClient,
+  createTestUser,
+} from '@/lib/supabase/test-client';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { GET, POST } from './route';
 
 describe('Contacts API', () => {
@@ -639,6 +661,7 @@ describe('Contacts API', () => {
 ```
 
 **Example: React Query Hook Test**
+
 ```typescript
 // packages/supabase/src/hooks/contacts/use-contacts.test.ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -727,9 +750,11 @@ describe('useContacts', () => {
 ```
 
 **Example: Integration Test with Mocked External Service**
+
 ```typescript
 // app/api/integrations/salesforce/callback/route.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { GET } from './route';
 
 // Mock Salesforce OAuth
@@ -748,13 +773,15 @@ vi.mock('@/lib/integrations/salesforce', () => ({
 describe('Salesforce OAuth Callback', () => {
   it('exchanges code for tokens and updates integration', async () => {
     const request = new Request(
-      'http://localhost:3000/api/integrations/salesforce/callback?code=test_code&state=test_state'
+      'http://localhost:3000/api/integrations/salesforce/callback?code=test_code&state=test_state',
     );
 
     const response = await GET(request);
 
     expect(response.status).toBe(302); // Redirect
-    expect(response.headers.get('Location')).toBe('/home/integrations?success=true');
+    expect(response.headers.get('Location')).toBe(
+      '/home/integrations?success=true',
+    );
 
     // Verify integration was updated in database
     // (Would query Supabase here to verify)
@@ -762,7 +789,7 @@ describe('Salesforce OAuth Callback', () => {
 
   it('handles OAuth errors', async () => {
     const request = new Request(
-      'http://localhost:3000/api/integrations/salesforce/callback?error=access_denied'
+      'http://localhost:3000/api/integrations/salesforce/callback?error=access_denied',
     );
 
     const response = await GET(request);
@@ -780,11 +807,13 @@ describe('Salesforce OAuth Callback', () => {
 **Expand Current Coverage:**
 
 **Example: Donors/Contacts Flow**
+
 ```typescript
 // apps/e2e/tests/donors/donors.spec.ts
-import { test, expect } from '@playwright/test';
-import { DonorsPage } from './donors.po';
+import { expect, test } from '@playwright/test';
+
 import { AuthPage } from '../authentication/auth.po';
+import { DonorsPage } from './donors.po';
 
 test.describe('Donors Management', () => {
   let authPage: AuthPage;
@@ -826,7 +855,9 @@ test.describe('Donors Management', () => {
     expect(await donorsPage.getSuccessMessage()).toContain('Donor created');
 
     // Verify in table
-    expect(await donorsPage.findDonorByEmail(`test.donor.${Date.now()}@example.com`)).toBeTruthy();
+    expect(
+      await donorsPage.findDonorByEmail(`test.donor.${Date.now()}@example.com`),
+    ).toBeTruthy();
   });
 
   test('should import donors from CSV', async () => {
@@ -840,7 +871,7 @@ test.describe('Donors Management', () => {
     await donorsPage.mapCSVColumns({
       'First Name': 'firstName',
       'Last Name': 'lastName',
-      'Email': 'email',
+      Email: 'email',
     });
 
     await donorsPage.confirmImport();
@@ -873,9 +904,11 @@ test.describe('Donors Management', () => {
 ```
 
 **Example: Campaign Creation Flow**
+
 ```typescript
 // apps/e2e/tests/campaigns/campaign-creation.spec.ts
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
 import { CampaignsPage } from './campaigns.po';
 import { WorkflowBuilderPage } from './workflow-builder.po';
 
@@ -921,6 +954,7 @@ test.describe('Campaign Creation', () => {
 #### Tasks:
 
 1. **Install Testing Dependencies**
+
    ```bash
    # Unit & Integration Testing
    pnpm add -D vitest @vitejs/plugin-react
@@ -945,6 +979,7 @@ test.describe('Campaign Creation', () => {
    - Document database reset procedures
 
 4. **Create CI/CD Pipeline**
+
    ```yaml
    # .github/workflows/ci.yml
    name: CI
@@ -1025,6 +1060,7 @@ test.describe('Campaign Creation', () => {
    ```
 
 **Deliverables:**
+
 - ✅ Testing frameworks installed
 - ✅ Configuration files created
 - ✅ CI/CD pipeline running on PRs
@@ -1040,6 +1076,7 @@ test.describe('Campaign Creation', () => {
 #### Tasks:
 
 1. **Write RLS Policy Tests**
+
    ```sql
    -- apps/web/supabase/tests/rls_contacts_test.sql
    -- Test contacts table policies
@@ -1052,12 +1089,14 @@ test.describe('Campaign Creation', () => {
    ```
 
 2. **Test Database Functions**
+
    ```sql
    -- apps/web/supabase/tests/functions_test.sql
    -- Test any custom database functions
    ```
 
 3. **Migration Verification Tests**
+
    ```bash
    # Script to verify migrations apply cleanly
    # apps/web/supabase/scripts/verify-migrations.sh
@@ -1070,6 +1109,7 @@ test.describe('Campaign Creation', () => {
    ```
 
 **Deliverables:**
+
 - ✅ All RLS policies have tests
 - ✅ All database functions have tests
 - ✅ Migration verification automated
@@ -1102,11 +1142,13 @@ test.describe('Campaign Creation', () => {
    - Workflow validation
 
 **Test Coverage Targets:**
+
 - Utilities: 90%+
 - UI Components: 80%+
 - Business Logic: 85%+
 
 **Deliverables:**
+
 - ✅ All utilities have unit tests
 - ✅ All UI components have unit tests
 - ✅ All business logic has unit tests
@@ -1140,33 +1182,41 @@ test.describe('Campaign Creation', () => {
    - Twilio API mocks
 
 **Setup MSW (Mock Service Worker):**
+
 ```typescript
 // lib/test/mocks/handlers.ts
 import { rest } from 'msw';
 
 export const handlers = [
   // Mock Salesforce API
-  rest.post('https://login.salesforce.com/services/oauth2/token', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        access_token: 'mock_access_token',
-        refresh_token: 'mock_refresh_token',
-        instance_url: 'https://test.salesforce.com',
-      })
-    );
-  }),
+  rest.post(
+    'https://login.salesforce.com/services/oauth2/token',
+    (req, res, ctx) => {
+      return res(
+        ctx.json({
+          access_token: 'mock_access_token',
+          refresh_token: 'mock_refresh_token',
+          instance_url: 'https://test.salesforce.com',
+        }),
+      );
+    },
+  ),
 
   // Mock ElevenLabs API
-  rest.post('https://api.elevenlabs.io/v1/text-to-speech/:voiceId', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.body(new Blob(['mock audio data'], { type: 'audio/mpeg' }))
-    );
-  }),
+  rest.post(
+    'https://api.elevenlabs.io/v1/text-to-speech/:voiceId',
+    (req, res, ctx) => {
+      return res(
+        ctx.status(200),
+        ctx.body(new Blob(['mock audio data'], { type: 'audio/mpeg' })),
+      );
+    },
+  ),
 ];
 ```
 
 **Deliverables:**
+
 - ✅ All API routes have integration tests
 - ✅ All React Query hooks have tests
 - ✅ External services properly mocked
@@ -1216,6 +1266,7 @@ export const handlers = [
    - Campaign performance
 
 **Deliverables:**
+
 - ✅ Donors E2E tests
 - ✅ Campaigns E2E tests
 - ✅ Integrations E2E tests
@@ -1232,6 +1283,7 @@ export const handlers = [
 #### Tasks:
 
 1. **Visual Regression Testing**
+
    ```bash
    # Install Percy or Chromatic
    pnpm add -D @percy/cli @percy/playwright
@@ -1248,9 +1300,10 @@ export const handlers = [
    ```
 
 2. **Performance Testing**
+
    ```typescript
    // apps/e2e/tests/performance/load-times.spec.ts
-   import { test, expect } from '@playwright/test';
+   import { expect, test } from '@playwright/test';
 
    test('homepage loads under 2 seconds', async ({ page }) => {
      const start = Date.now();
@@ -1262,13 +1315,14 @@ export const handlers = [
    ```
 
 3. **Accessibility Testing**
+
    ```bash
    pnpm add -D @axe-core/playwright
    ```
 
    ```typescript
-   import { test, expect } from '@playwright/test';
-   import { injectAxe, checkA11y } from 'axe-playwright';
+   import { expect, test } from '@playwright/test';
+   import { checkA11y, injectAxe } from 'axe-playwright';
 
    test('donors page is accessible', async ({ page }) => {
      await page.goto('/home/donors');
@@ -1278,6 +1332,7 @@ export const handlers = [
    ```
 
 4. **Security Scanning**
+
    ```yaml
    # .github/workflows/security.yml
    - name: Run security audit
@@ -1288,6 +1343,7 @@ export const handlers = [
    ```
 
 **Deliverables:**
+
 - ✅ Visual regression tests for key pages
 - ✅ Performance budgets defined and monitored
 - ✅ Accessibility tests passing WCAG 2.1 AA
@@ -1320,6 +1376,7 @@ export const handlers = [
    - Parallelize test suites
 
 **Deliverables:**
+
 - ✅ TDD process adopted by team
 - ✅ Coverage gates enforced in CI
 - ✅ Test maintenance schedule
@@ -1333,8 +1390,8 @@ export const handlers = [
 
 ```typescript
 // lib/test/factories/contact.factory.ts
-import { faker } from '@faker-js/faker';
 import type { Database } from '@/lib/database.types';
+import { faker } from '@faker-js/faker';
 
 type Contact = Database['public']['Tables']['contacts']['Insert'];
 
@@ -1354,7 +1411,7 @@ export function createContactData(overrides?: Partial<Contact>): Contact {
 
 export async function createContact(
   supabase: any,
-  overrides?: Partial<Contact>
+  overrides?: Partial<Contact>,
 ) {
   const data = createContactData(overrides);
   const { data: contact, error } = await supabase
@@ -1449,7 +1506,7 @@ render(
 import { createTestClient } from '@/lib/supabase/test-client';
 
 export async function withTransaction<T>(
-  callback: (supabase: any) => Promise<T>
+  callback: (supabase: any) => Promise<T>,
 ): Promise<T> {
   const supabase = createTestClient();
 
@@ -1722,6 +1779,7 @@ jobs:
 ### Pull Request Checks
 
 All jobs must pass before PR can be merged:
+
 - ✅ Code quality (type check, lint, format)
 - ✅ Database tests pass
 - ✅ Unit tests pass with >80% coverage
@@ -1736,12 +1794,12 @@ All jobs must pass before PR can be merged:
 
 ### Coverage Targets
 
-| Test Type       | Current | Phase 1 | Phase 3 | Phase 5 | Target |
-|-----------------|---------|---------|---------|---------|--------|
-| Unit Tests      | 0%      | 30%     | 70%     | 75%     | 80%    |
-| Integration     | 0%      | 20%     | 50%     | 70%     | 75%    |
-| E2E (Features)  | 5%      | 10%     | 25%     | 40%     | 50%    |
-| Database (RLS)  | 0%      | 80%     | 90%     | 95%     | 100%   |
+| Test Type      | Current | Phase 1 | Phase 3 | Phase 5 | Target |
+| -------------- | ------- | ------- | ------- | ------- | ------ |
+| Unit Tests     | 0%      | 30%     | 70%     | 75%     | 80%    |
+| Integration    | 0%      | 20%     | 50%     | 70%     | 75%    |
+| E2E (Features) | 5%      | 10%     | 25%     | 40%     | 50%    |
+| Database (RLS) | 0%      | 80%     | 90%     | 95%     | 100%   |
 
 ### Quality Metrics
 
@@ -1785,6 +1843,7 @@ pnpm test:coverage
 ### Writing Your First Test
 
 1. **Create test file next to source:**
+
    ```
    src/
      utils/
@@ -1793,8 +1852,10 @@ pnpm test:coverage
    ```
 
 2. **Write test:**
+
    ```typescript
-   import { describe, it, expect } from 'vitest';
+   import { describe, expect, it } from 'vitest';
+
    import { formatPhoneNumber } from './format-phone';
 
    describe('formatPhoneNumber', () => {
@@ -1851,6 +1912,6 @@ pnpm test:coverage
 
 ---
 
-**Last Updated:** 2025-11-01
+**Last Updated:** 2024-11-01
 **Version:** 1.0
 **Status:** Ready for Implementation
