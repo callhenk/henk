@@ -194,11 +194,11 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                     {currentList.successful_leads || 0}
                   </span>
                 </div>
-                {currentList.successful_leads > 0 && currentList.contacted_leads > 0 && (
+                {(currentList.successful_leads ?? 0) > 0 && (currentList.contacted_leads ?? 0) > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">Rate:</span>
                     <span className="text-xs font-medium">
-                      {((currentList.successful_leads / currentList.contacted_leads) * 100).toFixed(1)}%
+                      {(((currentList.successful_leads ?? 0) / (currentList.contacted_leads ?? 1)) * 100).toFixed(1)}%
                     </span>
                   </div>
                 )}
@@ -240,7 +240,7 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                             <div className="text-sm truncate">{listDetails.name}</div>
                             <span className="text-xs text-muted-foreground">
                               {remaining} remaining
-                              {list.contacted_leads > 0 && ` • ${list.contacted_leads} contacted`}
+                              {(list.contacted_leads ?? 0) > 0 && ` • ${list.contacted_leads} contacted`}
                             </span>
                           </div>
                         </div>
@@ -278,8 +278,8 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                   if (!listDetails) return null;
 
                   const isSelected = selectedListId === list.lead_list_id;
-                  const successRate = list.contacted_leads > 0
-                    ? ((list.successful_leads || 0) / list.contacted_leads * 100).toFixed(1)
+                  const successRate = (list.contacted_leads ?? 0) > 0
+                    ? ((list.successful_leads || 0) / (list.contacted_leads ?? 1) * 100).toFixed(1)
                     : '0';
                   return (
                     <div
@@ -435,10 +435,10 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                         </Badge>
                       </div>
                       <div className="col-span-2 text-xs text-muted-foreground">
-                        {new Date(lead.created_at).toLocaleDateString('en-US', {
+                        {lead.created_at ? new Date(lead.created_at!).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric'
-                        })}
+                        }) : 'N/A'}
                       </div>
                     </div>
                   ))}

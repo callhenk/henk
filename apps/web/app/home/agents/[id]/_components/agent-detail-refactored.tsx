@@ -15,6 +15,14 @@ import { toast } from 'sonner';
 
 import type { Json } from '~/lib/database.types';
 
+interface VoiceSettings {
+  stability?: number;
+  similarity_boost?: number;
+  style?: number;
+  use_speaker_boost?: boolean;
+  optimize_streaming_latency?: number;
+}
+
 // Import our Supabase hooks
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
@@ -863,7 +871,13 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             {/* Voice & Tone Tab */}
             <TabsContent value="voice">
               <AgentVoice
-                agent={agent}
+                agent={{
+                  id: agent.id,
+                  voice_id: agent.voice_id,
+                  voice_type: agent.voice_type,
+                  voice_settings: agent.voice_settings as VoiceSettings | null,
+                  elevenlabs_agent_id: agent.elevenlabs_agent_id,
+                }}
                 voices={voices}
                 onSaveField={handleSaveField}
                 onVoiceUpdate={handleVoiceUpdate}

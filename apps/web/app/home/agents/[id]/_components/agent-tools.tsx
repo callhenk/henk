@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { ArrowRightLeft, Check, Loader2, Phone, PlayCircle, Settings, SkipForward, Voicemail, X } from 'lucide-react';
+import { ArrowRightLeft, Check, Loader2, Phone, PhoneForwarded, PlayCircle, Settings, SkipForward, Voicemail, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
@@ -21,6 +21,7 @@ const TOOL_IDS = {
   END_CALL: 'end_call',
   SKIP_TURN: 'skip_turn',
   TRANSFER_TO_AGENT: 'transfer_to_agent',
+  TRANSFER_TO_NUMBER: 'transfer_to_number',
   PLAY_KEYPAD_TONE: 'play_keypad_tone',
   VOICEMAIL_DETECTION: 'voicemail_detection',
 } as const;
@@ -32,6 +33,7 @@ interface AgentToolsProps {
     business_id: string;
     enabled_tools?: unknown;
     transfer_rules?: unknown;
+    transfer_to_number_rules?: unknown;
   };
   onSaveField: (fieldName: string, value: unknown) => Promise<void>;
 }
