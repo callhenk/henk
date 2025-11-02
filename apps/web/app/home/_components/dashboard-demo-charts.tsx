@@ -53,9 +53,9 @@ import {
   TableRow,
 } from '@kit/ui/table';
 
-type Agent = Tables<'agents'>['Row'];
-type Campaign = Tables<'campaigns'>['Row'];
-type Conversation = Tables<'conversations'>['Row'];
+type Agent = Tables<'agents'>;
+type Campaign = Tables<'campaigns'>;
+type Conversation = Tables<'conversations'>;
 
 export default function DashboardDemo() {
   // Get demo mode state and mock data

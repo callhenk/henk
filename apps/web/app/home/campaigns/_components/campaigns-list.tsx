@@ -72,7 +72,7 @@ import { formatDate, getConversionRate } from '~/lib/utils';
 import { CampaignsEmptyState } from './empty-state';
 import { WizardContainer } from '../wizard/wizard-container';
 
-type Campaign = Tables<'campaigns'>['Row'];
+type Campaign = Tables<'campaigns'>;
 
 // Enhanced campaign interface with calculated fields
 interface EnhancedCampaign extends Campaign {

@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import type { Tables } from '@kit/supabase/database';
+import type { Tables, TablesUpdate } from '@kit/supabase/database';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import {
   useDeleteCampaign,
@@ -51,7 +51,7 @@ export function useCampaignEditor(campaignId: string) {
   // Use demo data if demo mode is active
   const campaign = isDemoMode
     ? ((mockCampaigns.find((c) => c.id === campaignId) ||
-        mockCampaigns[0]) as Tables<'campaigns'>['Row'])
+        mockCampaigns[0]) as Tables<'campaigns'>)
     : realCampaign;
   const leads = useMemo(
     () => (isDemoMode ? [] : realLeads),
@@ -261,12 +261,12 @@ export function useCampaignEditor(campaignId: string) {
           return;
         }
 
-        const updateData: Partial<Tables<'campaigns'>['Update']> & {
+        const updateData: Partial<TablesUpdate<'campaigns'>> & {
           id: string;
         } = {
           id: campaignId,
           [fieldName]:
-            validatedValue as Tables<'campaigns'>['Update'][keyof Tables<'campaigns'>['Update']],
+            validatedValue as TablesUpdate<'campaigns'>[keyof TablesUpdate<'campaigns'>],
         };
         await updateCampaignMutation.mutateAsync(updateData);
 
@@ -427,7 +427,7 @@ export function useCampaignEditor(campaignId: string) {
         }
 
         // Save both dates in a single API call
-        const updateData: Partial<Tables<'campaigns'>['Update']> & {
+        const updateData: Partial<TablesUpdate<'campaigns'>> & {
           id: string;
         } = {
           id: campaignId,

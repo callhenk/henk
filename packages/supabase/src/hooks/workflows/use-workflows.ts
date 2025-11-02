@@ -4,9 +4,9 @@ import type { Tables } from '../../database.types';
 import { useBusinessContext } from '../use-business-context';
 import { useSupabase } from '../use-supabase';
 
-type Workflow = Tables<'workflows'>['Row'];
-type WorkflowNode = Tables<'workflow_nodes'>['Row'];
-type WorkflowEdge = Tables<'workflow_edges'>['Row'];
+type Workflow = Tables<'workflows'>;
+type WorkflowNode = Tables<'workflow_nodes'>;
+type WorkflowEdge = Tables<'workflow_edges'>;
 
 export interface WorkflowWithDetails extends Workflow {
   nodes: WorkflowNode[];

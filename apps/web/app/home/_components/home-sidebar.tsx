@@ -37,9 +37,9 @@ export function HomeSidebar(props: {
           account={
             props.account
               ? {
-                  id: props.account.Row.id,
-                  name: props.account.Row.name,
-                  picture_url: props.account.Row.picture_url,
+                  id: props.account.id,
+                  name: props.account.name,
+                  picture_url: props.account.picture_url,
                 }
               : undefined
           }

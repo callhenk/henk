@@ -1,5 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createTestClient } from './supabase-test-client';
 
 /**
  * Creates a fresh QueryClient for each test
@@ -14,11 +13,6 @@ export function createTestQueryClient() {
       mutations: {
         retry: false,
       },
-    },
-    logger: {
-      log: () => {},
-      warn: () => {},
-      error: () => {},
     },
   });
 }
@@ -43,7 +37,6 @@ export function QueryTestProvider({
  */
 export function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = createTestQueryClient();
-  const supabase = createTestClient();
 
   return (
     <QueryClientProvider client={queryClient}>

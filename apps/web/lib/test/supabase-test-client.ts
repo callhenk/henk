@@ -251,8 +251,9 @@ export async function cleanupTestBusiness(businessId: string) {
     if (error) {
       throw error;
     }
-  } catch (error: any) {
-    console.error(`Failed to cleanup test business: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to cleanup test business: ${message}`);
     throw error;
   }
 }

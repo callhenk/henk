@@ -568,7 +568,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, faqs: JSON.parse(value as string) };
             break;
           case AGENT_FIELDS.ENABLED_TOOLS:
-            updateData = { ...baseUpdate, enabled_tools: value };
+            updateData = { ...baseUpdate, enabled_tools: value as Json };
             break;
           case AGENT_FIELDS.TRANSFER_RULES:
             updateData = { ...baseUpdate, transfer_rules: value as Json };
