@@ -58,13 +58,17 @@ export class AuthPageObject {
       const res = await this.mailbox.visitMailbox(email, params);
 
       expect(res).not.toBeNull();
-    }).toPass();
+    }).toPass({
+      intervals: [1_000, 2_000, 5_000],
+      timeout: 45_000, // 45 seconds to wait for email
+    });
   }
 
   createRandomEmail() {
-    const value = Math.random() * 10000000000;
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
 
-    return `${value.toFixed(0)}@henk.dev`;
+    return `cyrus+e2e-${timestamp}-${random}@callhenk.com`;
   }
 
   async signUpFlow(path: string) {
