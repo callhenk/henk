@@ -113,8 +113,11 @@ export function useWorkflow(id: string) {
       }
 
       // Remove the agent object from the response
-      const { agent: _, ...workflow } = data as any;
-      return workflow as Workflow;
+      // The data includes agent for filtering, but we only want the workflow
+      const { agent: _, ...workflow } = data as Workflow & {
+        agent: { business_id: string };
+      };
+      return workflow;
     },
     enabled: !!id && !!businessContext?.business_id,
   });
@@ -153,7 +156,10 @@ export function useWorkflowWithDetails(id: string) {
       }
 
       // Remove the agent object from the response
-      const { agent: _, ...workflow } = workflowData as any;
+      // The data includes agent for filtering, but we only want the workflow
+      const { agent: _, ...workflow } = workflowData as Workflow & {
+        agent: { business_id: string };
+      };
 
       // Fetch nodes
       const { data: nodes, error: nodesError } = await supabase
