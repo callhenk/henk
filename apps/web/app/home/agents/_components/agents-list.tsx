@@ -71,6 +71,7 @@ import {
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 
+import { AgentsEmptyState } from './agents-empty-state';
 import { CreateAgentPanel } from './create-agent-panel';
 
 type Agent = Tables<'agents'>['Row'];
@@ -674,20 +675,24 @@ export function AgentsList() {
             </Button>
           </div>
 
-          {viewMode === 'grid' && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredAndSortedAgents.map((agent) => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  onView={handleView}
-                  onDelete={setAgentToDelete}
-                />
-              ))}
-            </div>
-          )}
+          {enhancedAgents.length === 0 ? (
+            <AgentsEmptyState onCreateAgent={() => setShowCreatePanel(true)} />
+          ) : (
+            <>
+              {viewMode === 'grid' && (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredAndSortedAgents.map((agent) => (
+                    <AgentCard
+                      key={agent.id}
+                      agent={agent}
+                      onView={handleView}
+                      onDelete={setAgentToDelete}
+                    />
+                  ))}
+                </div>
+              )}
 
-          {viewMode === 'list' && (
+              {viewMode === 'list' && (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -741,9 +746,11 @@ export function AgentsList() {
                 </TableBody>
               </Table>
             </div>
+              )}
+            </>
           )}
 
-          {filteredAndSortedAgents.length === 0 && (
+          {enhancedAgents.length > 0 && filteredAndSortedAgents.length === 0 && (
             <div className="py-12 text-center">
               <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                 <User className="text-muted-foreground h-6 w-6" />

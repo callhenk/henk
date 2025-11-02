@@ -35,6 +35,8 @@ import { IndustryStep } from './industry-step';
 import { DetailsStep } from './details-step';
 import { ReviewStep } from './review-step';
 import { generateAgentPrompts } from '~/lib/generate-agent-prompts';
+import { DEFAULT_PHONE_NUMBER_ID } from '~/lib/constants';
+import { logger } from '~/lib/utils';
 
 interface CreateAgentPanelProps {
   open: boolean;
@@ -212,8 +214,10 @@ export function CreateAgentPanel({
         },
       };
 
-      console.log('[create-agent] Sending full config to /api/elevenlabs-agent:', {
-        name: elevenLabsAgentConfig.name,
+      logger.debug('Sending agent config to ElevenLabs', {
+        component: 'CreateAgentPanel',
+        action: 'createElevenLabsAgent',
+        agentName: elevenLabsAgentConfig.name as string,
         agentType,
         useCase,
         industry,
@@ -237,10 +241,12 @@ export function CreateAgentPanel({
       }
 
       if (!resp.ok) {
-        console.error('[create-agent] ElevenLabs agent creation failed:', {
+        logger.error('ElevenLabs agent creation failed', new Error('API request failed'), {
+          component: 'CreateAgentPanel',
+          action: 'createElevenLabsAgent',
           status: resp.status,
-          body: raw?.slice(0, 500),
-          parsed: elevenlabsData,
+          responsePreview: raw?.slice(0, 500),
+          parsedData: elevenlabsData,
         });
         setIsSubmitting(false);
         throw new Error(
@@ -283,31 +289,39 @@ export function CreateAgentPanel({
       });
 
       // 3) Assign default phone to agent (caller_id)
-      const DEFAULT_PHONE_NUMBER_ID = 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
       if (created?.id) {
-        console.log('[create-agent] assign-phone start', {
-          agentId: created.id,
-          phoneNumberId: DEFAULT_PHONE_NUMBER_ID,
-        });
         try {
           const phoneResp = await fetch(`/api/agents/${created.id}/assign-phone`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
           }).catch((e) => {
-            console.warn('[create-agent] assign-phone network error', e);
+            logger.warn('Phone assignment network error', {
+              component: 'CreateAgentPanel',
+              action: 'assignPhone',
+              agentId: created.id,
+              error: e,
+            });
             return undefined as unknown as Response;
           });
           if (phoneResp) {
             const raw = await phoneResp.text().catch(() => '');
-            console.log('[create-agent] assign-phone response', {
+            logger.debug('Phone assignment response received', {
+              component: 'CreateAgentPanel',
+              action: 'assignPhone',
+              agentId: created.id,
               status: phoneResp.status,
               ok: phoneResp.ok,
-              bodyPreview: raw?.slice(0, 300),
+              responsePreview: raw?.slice(0, 300),
             });
           }
         } catch (err) {
-          console.warn('[create-agent] assign-phone failed', err);
+          logger.warn('Phone assignment failed', {
+            component: 'CreateAgentPanel',
+            action: 'assignPhone',
+            agentId: created.id,
+            error: err,
+          });
         }
       }
 
@@ -317,7 +331,14 @@ export function CreateAgentPanel({
       }
       toast.success('Agent created successfully!');
     } catch (err) {
-      console.error('Failed to create agent', err);
+      logger.error('Failed to create agent', err instanceof Error ? err : new Error(String(err)), {
+        component: 'CreateAgentPanel',
+        action: 'handleSubmit',
+        agentName: name,
+        agentType,
+        useCase,
+        industry,
+      });
       toast.error(
         err instanceof Error ? err.message : 'Failed to create agent'
       );
@@ -359,15 +380,15 @@ export function CreateAgentPanel({
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all duration-300 ease-in-out ${
+                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-colors duration-200 ${
                     idx <= stepIndex
-                      ? 'bg-primary text-primary-foreground font-semibold scale-105'
-                      : 'border bg-muted text-muted-foreground scale-100'
+                      ? 'bg-primary text-primary-foreground font-semibold'
+                      : 'border bg-muted text-muted-foreground'
                   }`}
                 >
-                  <div className="flex items-center justify-center h-4 sm:h-5 transition-all duration-300">
+                  <div className="flex items-center justify-center h-4 sm:h-5 transition-opacity duration-200">
                     {idx < stepIndex ? (
-                      <Check className="h-3 w-3 animate-in zoom-in duration-300" />
+                      <Check className="h-3 w-3" />
                     ) : (
                       <span className="text-[10px] sm:text-xs font-bold">{idx + 1}</span>
                     )}
@@ -382,25 +403,25 @@ export function CreateAgentPanel({
           <div className="flex-1 overflow-y-auto">
             <div className="px-4 sm:px-6 py-5 sm:py-6">
               {step === 'agent-type' && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="animate-in fade-in duration-300">
                   <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
                 </div>
               )}
 
               {step === 'use-case' && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="animate-in fade-in duration-300">
                   <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
                 </div>
               )}
 
               {step === 'industry' && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="animate-in fade-in duration-300">
                   <IndustryStep selectedIndustry={industry} onSelectIndustry={setIndustry} />
                 </div>
               )}
 
               {step === 'details' && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="animate-in fade-in duration-300">
                   <DetailsStep
                     name={name}
                     onNameChange={setName}
@@ -414,7 +435,7 @@ export function CreateAgentPanel({
               )}
 
               {step === 'review' && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="animate-in fade-in duration-300">
                   <ReviewStep
                     agentType={agentType}
                     useCase={useCase}
@@ -430,7 +451,7 @@ export function CreateAgentPanel({
 
           <DialogFooter className="border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 bg-muted/20">
             <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground transition-all duration-200">
+              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground transition-colors duration-200">
                 Cancel
               </Button>
               <div className="flex w-full sm:w-auto items-center gap-2">
@@ -439,12 +460,12 @@ export function CreateAgentPanel({
                   size="sm"
                   onClick={goBack}
                   disabled={stepIndex === 0}
-                  className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+                  className="flex-1 sm:flex-none transition-opacity duration-200"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {stepIndex < steps.length - 1 ? (
-                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
+                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none transition-opacity duration-200">
                     Next <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 ) : (
@@ -452,7 +473,7 @@ export function CreateAgentPanel({
                     onClick={handleSubmit}
                     disabled={isSubmitting || !canProceed()}
                     size="sm"
-                    className="flex-1 sm:flex-none transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+                    className="flex-1 sm:flex-none transition-opacity duration-200"
                   >
                     {isSubmitting ? (
                       <>
@@ -472,13 +493,10 @@ export function CreateAgentPanel({
 
       {/* Loading overlay during agent creation */}
       {isSubmitting && (
-        <div className="bg-background/80 animate-in fade-in pointer-events-none fixed inset-0 z-[100] backdrop-blur-sm duration-300">
+        <div className="bg-background/80 animate-in fade-in pointer-events-none fixed inset-0 z-[100] backdrop-blur-sm duration-200">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center space-y-3 px-4 text-center">
-              <div className="relative">
-                <div className="border-primary/30 h-8 w-8 rounded-full border-2"></div>
-                <div className="border-primary absolute inset-0 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
-              </div>
+              <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               <div className="space-y-1">
                 <p className="text-foreground text-sm font-medium">
                   Creating your agent...

@@ -40,7 +40,7 @@ export function DetailsStep({
       </div>
 
       <div className="space-y-4 sm:space-y-5">
-        <div className="space-y-2 animate-in fade-in slide-in-from-left-4 duration-500">
+        <div className="space-y-2 animate-in fade-in duration-300">
           <label className="block text-xs sm:text-sm font-semibold">
             Agent Name <span className="text-destructive">*</span>
           </label>
@@ -51,20 +51,20 @@ export function DetailsStep({
               onNameChange(e.target.value);
               onNameEdited?.();
             }}
-            className="h-10 sm:h-11 text-sm sm:text-base transition-all duration-200 focus:scale-[1.01]"
+            className="h-10 sm:h-11 text-sm sm:text-base"
           />
           <p className="text-xs text-muted-foreground">
             Choose a friendly, memorable name for your agent
           </p>
         </div>
 
-        <div className="space-y-2 animate-in fade-in slide-in-from-left-4 duration-500 delay-100">
+        <div className="space-y-2 animate-in fade-in duration-300">
           <label className="block text-xs sm:text-sm font-semibold">
             Context Prompt <span className="text-destructive">*</span>
           </label>
           <Textarea
             placeholder="Describe the agent's purpose, behavior, and context. This guides how the agent responds to users."
-            className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base resize-none transition-all duration-200 focus:scale-[1.01]"
+            className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base resize-none"
             value={contextPrompt}
             onChange={(e) => {
               onContextPromptChange(e.target.value);
@@ -75,13 +75,13 @@ export function DetailsStep({
           </p>
         </div>
 
-        <div className="space-y-2 animate-in fade-in slide-in-from-left-4 duration-500 delay-200">
+        <div className="space-y-2 animate-in fade-in duration-300">
           <label className="block text-xs sm:text-sm font-semibold">
             Starting Message <span className="text-destructive">*</span>
           </label>
           <Textarea
             placeholder="e.g., 'Hi there! How can I help you today?'"
-            className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base resize-none transition-all duration-200 focus:scale-[1.01]"
+            className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base resize-none"
             value={startingMessage}
             onChange={(e) => {
               onStartingMessageChange(e.target.value);

@@ -28,9 +28,9 @@ export function ReviewStep({
         </p>
       </div>
 
-      <div className="space-y-2 sm:space-y-3">
+      <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-300">
         {/* Agent Type */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Agent Type</p>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-2xl sm:text-3xl">{agentType ? AGENT_TYPES[agentType].icon : '❓'}</span>
@@ -41,31 +41,31 @@ export function ReviewStep({
         </div>
 
         {/* Use Case */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500 delay-75">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Use Case</p>
           <p className="font-bold text-sm sm:text-lg">{useCase || '(Not selected)'}</p>
         </div>
 
         {/* Industry */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Industry</p>
           <p className="font-bold text-sm sm:text-lg">{industry || '(Not selected)'}</p>
         </div>
 
         {/* Agent Name */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Agent Name</p>
           <p className="font-bold text-sm sm:text-lg">{name || '(Not provided)'}</p>
         </div>
 
         {/* Context Prompt */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Context Prompt</p>
           <p className="font-semibold text-xs sm:text-base text-foreground whitespace-pre-wrap line-clamp-3 sm:line-clamp-none">{contextPrompt || '(Not provided)'}</p>
         </div>
 
         {/* Starting Message */}
-        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-all duration-300 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[400ms]">
+        <div className="rounded-xl border-2 border-border p-3 sm:p-5 bg-gradient-to-br from-background to-muted/30 hover:border-primary/20 transition-colors duration-200">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Starting Message</p>
           <p className="font-semibold text-xs sm:text-base text-foreground line-clamp-2 sm:line-clamp-none">{startingMessage || '(Not provided)'}</p>
         </div>

@@ -40,17 +40,17 @@ export function IndustryStep({ selectedIndustry, onSelectIndustry }: IndustrySte
           <button
             key={ind}
             onClick={() => onSelectIndustry(ind)}
-            className={`rounded-xl border-2 p-3 sm:p-4 text-left transition-all duration-300 ease-in-out transform hover:scale-[1.03] active:scale-[0.97] font-medium ${
+            className={`rounded-xl border-2 p-3 sm:p-4 text-left transition-colors duration-200 font-medium ${
               selectedIndustry === ind
-                ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-md shadow-primary/15 scale-[1.03]'
+                ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-md shadow-primary/15'
                 : 'border-border hover:border-primary/30 hover:bg-muted/50'
             }`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs sm:text-sm">{ind}</span>
               {selectedIndustry === ind && (
-                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-in zoom-in duration-300">
-                  <Check className="h-3 w-3 text-primary-foreground animate-in zoom-in duration-200 delay-75" />
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-in fade-in duration-200">
+                  <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
             </div>

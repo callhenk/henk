@@ -67,15 +67,29 @@ export function useUpdateAgent() {
     mutationFn: async (data: UpdateAgentData): Promise<Agent> => {
       const { id, ...updateData } = data;
 
-      const { data: agent, error } = await supabase
+      // Perform the update without trying to return data
+      const { error: updateError } = await supabase
         .from('agents')
         .update(updateData)
+        .eq('id', id);
+
+      if (updateError) {
+        throw new Error(`Failed to update agent: ${updateError.message}`);
+      }
+
+      // Fetch the updated agent separately (this respects RLS properly)
+      const { data: agent, error: fetchError } = await supabase
+        .from('agents')
+        .select('*')
         .eq('id', id)
-        .select()
         .single();
 
-      if (error) {
-        throw new Error(`Failed to update agent: ${error.message}`);
+      if (fetchError) {
+        throw new Error(`Update succeeded but failed to fetch updated agent: ${fetchError.message}`);
+      }
+
+      if (!agent) {
+        throw new Error('Update succeeded but agent not found');
       }
 
       return agent;
