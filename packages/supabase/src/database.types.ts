@@ -90,6 +90,7 @@ export type Database = {
           speaking_tone: string
           starting_message: string | null
           status: Database["public"]["Enums"]["agent_status"]
+          transfer_rules: Json | null
           updated_at: string | null
           updated_by: string | null
           voice_id: string | null
@@ -116,6 +117,7 @@ export type Database = {
           speaking_tone?: string
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
+          transfer_rules?: Json | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           speaking_tone?: string
           starting_message?: string | null
           status?: Database["public"]["Enums"]["agent_status"]
+          transfer_rules?: Json | null
           updated_at?: string | null
           updated_by?: string | null
           voice_id?: string | null
