@@ -38,7 +38,7 @@ export function PasswordSignInContainer({
           setIsRedirecting(true);
           onSignIn(userId);
         }
-      } catch (error) {
+      } catch {
         // Only reset loading on error - keep it active on success for redirect
         setIsRedirecting(false);
       } finally {
