@@ -44,6 +44,13 @@ export interface MockAgent {
   enabled_tools: Json | null;
   transfer_rules: Json | null;
   transfer_to_number_rules: Json | null;
+  language: string;
+  additional_languages: Json | null;
+  retention_period_days: number | null;
+  turn_timeout: number | null;
+  eagerness: string | null;
+  silence_end_call_timeout: number | null;
+  max_conversation_duration: number | null;
 }
 
 export interface MockCampaign {
@@ -173,6 +180,13 @@ function generateMockData() {
       enabled_tools: null,
       transfer_rules: null,
       transfer_to_number_rules: null,
+      language: 'english',
+      additional_languages: [],
+      retention_period_days: 90,
+      turn_timeout: 7,
+      eagerness: 'normal',
+      silence_end_call_timeout: -1,
+      max_conversation_duration: 600,
     },
     {
       id: 'agent-2',
@@ -223,6 +237,13 @@ function generateMockData() {
       enabled_tools: null,
       transfer_rules: null,
       transfer_to_number_rules: null,
+      language: 'english',
+      additional_languages: ['spanish'],
+      retention_period_days: 90,
+      turn_timeout: 5,
+      eagerness: 'high',
+      silence_end_call_timeout: -1,
+      max_conversation_duration: 600,
     },
     {
       id: 'agent-3',
@@ -273,6 +294,13 @@ function generateMockData() {
       enabled_tools: null,
       transfer_rules: null,
       transfer_to_number_rules: null,
+      language: 'english',
+      additional_languages: [],
+      retention_period_days: 90,
+      turn_timeout: 10,
+      eagerness: 'low',
+      silence_end_call_timeout: 30,
+      max_conversation_duration: 900,
     },
     {
       id: 'agent-4',
@@ -323,6 +351,13 @@ function generateMockData() {
       enabled_tools: null,
       transfer_rules: null,
       transfer_to_number_rules: null,
+      language: 'english',
+      additional_languages: [],
+      retention_period_days: 90,
+      turn_timeout: 7,
+      eagerness: 'normal',
+      silence_end_call_timeout: -1,
+      max_conversation_duration: 600,
     },
     {
       id: 'agent-5',
@@ -373,6 +408,13 @@ function generateMockData() {
       enabled_tools: null,
       transfer_rules: null,
       transfer_to_number_rules: null,
+      language: 'english',
+      additional_languages: [],
+      retention_period_days: 90,
+      turn_timeout: 7,
+      eagerness: 'normal',
+      silence_end_call_timeout: -1,
+      max_conversation_duration: 600,
     },
   ];
 
