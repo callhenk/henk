@@ -174,7 +174,7 @@ export function CampaignQueueMonitor({ campaignId }: CampaignQueueMonitorProps) 
                 </div>
                 <div className="relative h-1 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="absolute inset-y-0 left-0 bg-foreground/80 transition-all duration-500"
+                    className="absolute inset-y-0 left-0 bg-foreground/80 transition-[width] duration-300"
                     style={{ width: `${currentProgress}%` }}
                   />
                 </div>

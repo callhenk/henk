@@ -49,8 +49,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
   // Calculate metrics based on filters and real data
   const metrics = useMemo(() => {
     // Filter conversations based on date range
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filteredConversations = conversations.filter((conv: any) => {
+    const filteredConversations = conversations.filter((conv) => {
       const convDate = new Date(conv.created_at);
       return (
         convDate >= filters.dateRange.startDate &&
@@ -136,8 +135,7 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
     previousPeriodStart.setTime(previousPeriodStart.getTime() - periodLength);
     previousPeriodEnd.setTime(previousPeriodEnd.getTime() - periodLength);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const previousPeriodConversations = conversations.filter((conv: any) => {
+    const previousPeriodConversations = conversations.filter((conv) => {
       const convDate = new Date(conv.created_at);
       return convDate >= previousPeriodStart && convDate <= previousPeriodEnd;
     });

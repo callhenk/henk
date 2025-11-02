@@ -56,6 +56,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { useDemoMode } from '~/lib/demo-mode-context';
+import { formatDate, formatDuration, getConversionRate } from '~/lib/utils';
 
 type Conversation = Tables<'conversations'>['Row'];
 type _Campaign = Tables<'campaigns'>['Row'];
@@ -295,25 +296,6 @@ export function ConversationsList() {
     (conv) => conv.sentiment === 'positive',
   ).length;
 
-  const formatDuration = (seconds: number) => {
-    if (seconds < 60) {
-      return `${seconds}s`;
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${remainingSeconds}s`;
-    }
-
-    if (remainingSeconds > 0) {
-      return `${minutes}m ${remainingSeconds}s`;
-    }
-
-    return `${minutes}m`;
-  };
 
   return (
     <div className="space-y-6">
@@ -522,25 +504,6 @@ function ConversationsTable({
 }) {
   const router = useRouter();
 
-  const formatDuration = (seconds: number) => {
-    if (seconds < 60) {
-      return `${seconds}s`;
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${remainingSeconds}s`;
-    }
-
-    if (remainingSeconds > 0) {
-      return `${minutes}m ${remainingSeconds}s`;
-    }
-
-    return `${minutes}m`;
-  };
 
   // Empty state
   if (conversations.length === 0) {
