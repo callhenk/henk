@@ -8,14 +8,14 @@
  * Default phone number ID used for agent assignments
  * This represents the primary outbound caller ID for ElevenLabs agents
  *
- * @deprecated Move to environment variable: NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID
+ * Can be configured via NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID environment variable
  */
 export const DEFAULT_PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID || 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
 
 /**
  * Test phone numbers for development/testing
  *
- * @deprecated Move to environment variable: NEXT_PUBLIC_TEST_PHONE_NUMBERS
+ * Can be configured via NEXT_PUBLIC_TEST_PHONE_NUMBERS environment variable (comma-separated)
  */
 export const TEST_PHONE_NUMBERS = (process.env.NEXT_PUBLIC_TEST_PHONE_NUMBERS?.split(',') || [
   '+12025550125',
