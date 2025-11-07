@@ -80,17 +80,23 @@ test.describe('Core Functionality Smoke Tests', () => {
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for React hydration
 
-    // Look for "Add" or "Create" button
-    const addButton = page.locator('button').filter({ hasText: /Add|Create|New/ }).first();
-    if (await addButton.isVisible({ timeout: 5000 })) {
+    // Look for "Add Lead" button specifically
+    const addButton = page.locator('button:has-text("Add Lead")').first();
+    if (await addButton.isVisible({ timeout: 10000 })) {
       await addButton.click();
+      await page.waitForTimeout(500);
+
+      // Wait for the form dialog to open and inputs to be visible
+      const firstNameInput = page.locator('input[name="first_name"]').first();
+      await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
 
       // Fill in contact form
       const timestamp = Date.now();
-      await page.fill('input[name="firstName"], input[placeholder*="First"]', 'Test');
-      await page.fill('input[name="lastName"], input[placeholder*="Last"]', 'Contact');
-      await page.fill('input[name="email"], input[type="email"]', `test-${timestamp}@example.com`);
+      await page.fill('input[name="first_name"]', 'Test');
+      await page.fill('input[name="last_name"]', 'Contact');
+      await page.fill('input[name="email"]', `test-${timestamp}@example.com`);
 
       // Submit form
       await page.click('button[type="submit"]', { force: true });
@@ -103,7 +109,7 @@ test.describe('Core Functionality Smoke Tests', () => {
 
       console.log('✓ Contact created successfully');
     } else {
-      console.log('⚠ Add contact button not found - skipping test');
+      console.log('⚠ Add Lead button not found - skipping test');
       test.skip();
     }
   });
@@ -115,11 +121,13 @@ test.describe('Core Functionality Smoke Tests', () => {
     // Wait for campaigns page to load
     await page.waitForURL(/\/home\/campaigns/, { timeout: 5000 });
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for React hydration
 
-    // Look for "Create" or "Add" button
-    const createButton = page.locator('button').filter({ hasText: /Create|Add|New/ }).first();
-    if (await createButton.isVisible({ timeout: 5000 })) {
+    // Look for "Create Campaign" button specifically
+    const createButton = page.locator('button:has-text("Create Campaign")').first();
+    if (await createButton.isVisible({ timeout: 10000 })) {
       await createButton.click();
+      await page.waitForTimeout(500);
 
       // Fill in campaign form
       const timestamp = Date.now();
@@ -147,7 +155,7 @@ test.describe('Core Functionality Smoke Tests', () => {
 
       console.log('✓ Campaign created successfully');
     } else {
-      console.log('⚠ Create campaign button not found - skipping test');
+      console.log('⚠ Create Campaign button not found - skipping test');
       test.skip();
     }
   });
@@ -159,38 +167,80 @@ test.describe('Core Functionality Smoke Tests', () => {
     // Wait for agents page to load
     await page.waitForURL(/\/home\/agents/, { timeout: 5000 });
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for React hydration
 
-    // Look for "Create" or "Add" button
-    const createButton = page.locator('button').filter({ hasText: /Create|Add|New/ }).first();
-    if (await createButton.isVisible({ timeout: 5000 })) {
+    // Look for "Create Agent" button specifically
+    const createButton = page.locator('button:has-text("Create Agent")').first();
+    if (await createButton.isVisible({ timeout: 10000 })) {
       await createButton.click();
+      await page.waitForTimeout(500);
 
-      // Fill in agent form
+      // This is now a 3-step wizard
+      // Step 1: Select agent type (Blank Agent)
+      const blankAgentButton = page.locator('button').filter({ hasText: /Blank Agent|Start from scratch/i }).first();
+      if (await blankAgentButton.isVisible({ timeout: 2000 })) {
+        await blankAgentButton.click();
+      }
+
+      // Click Next
+      const nextButton = page.locator('button:has-text("Next")');
+      if (await nextButton.isVisible({ timeout: 2000 })) {
+        await nextButton.click();
+        await page.waitForTimeout(500);
+      }
+
+      // Step 2: Select Use Case
+      const useCaseButton = page.locator('button').filter({ hasText: /Customer Support|Outbound Sales|Volunteer/i }).first();
+      if (await useCaseButton.isVisible({ timeout: 2000 })) {
+        await useCaseButton.click();
+      }
+
+      // Click Next
+      if (await nextButton.isVisible({ timeout: 2000 })) {
+        await nextButton.click();
+        await page.waitForTimeout(500);
+      }
+
+      // Step 3: Fill in details
       const timestamp = Date.now();
       const agentName = `Smoke Test Agent ${timestamp}`;
 
       await page.fill('input[name="name"], input[placeholder*="name" i]', agentName);
 
-      // Select a voice if there's a dropdown
-      const voiceDropdown = page.locator('select[name="voice"], select[name="voiceId"]');
-      if (await voiceDropdown.isVisible({ timeout: 1000 })) {
-        await voiceDropdown.selectOption({ index: 1 }); // Select first available voice
+      // Fill context prompt if visible
+      const contextField = page.locator('textarea[name="contextPrompt"], textarea[placeholder*="context" i]').first();
+      if (await contextField.isVisible({ timeout: 1000 })) {
+        await contextField.fill('This is a smoke test agent');
       }
 
-      // Submit form
-      const submitButton = page.locator('button').filter({ hasText: /Save|Create|Submit/ }).first();
+      // Fill starting message if visible
+      const startingMsgField = page.locator('textarea[name="startingMessage"], textarea[placeholder*="starting" i], textarea[placeholder*="message" i]').first();
+      if (await startingMsgField.isVisible({ timeout: 1000 })) {
+        await startingMsgField.fill('Hello! How can I help you?');
+      } else {
+        // Fallback: fill second textarea
+        const allTextareas = page.locator('textarea');
+        if (await allTextareas.count() >= 2) {
+          await allTextareas.nth(1).fill('Hello! How can I help you?');
+        }
+      }
+
+      // Submit form - now "Create Agent" button
       await page.waitForTimeout(500);
-      await submitButton.click({ force: true });
+      const submitButton = page.locator('button:has-text("Create Agent")').first();
+      if (await submitButton.isVisible({ timeout: 2000 })) {
+        await submitButton.click({ force: true });
+      }
 
       // Wait for success - page might redirect
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(5000);
 
       // Verify we're on agents page or agent detail page
       await expect(page).toHaveURL(/\/home\/agents/, { timeout: 5000 });
 
       console.log('✓ Agent created successfully');
     } else {
-      console.log('⚠ Create agent button not found - skipping test');
+      console.log('⚠ Create Agent button not found - skipping test');
       test.skip();
     }
   });
@@ -219,16 +269,23 @@ test.describe('Core Functionality Smoke Tests', () => {
     const leadsLink = page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")').first();
     await leadsLink.click();
     await page.waitForURL(/\/home\/(donors|contacts|leads)/, { timeout: 5000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for React hydration
 
     // Create a new contact first
-    const addContactButton = page.locator('button').filter({ hasText: /Add|Create|New/ }).first();
-    if (await addContactButton.isVisible({ timeout: 2000 })) {
+    const addContactButton = page.locator('button:has-text("Add Lead")').first();
+    if (await addContactButton.isVisible({ timeout: 10000 })) {
       await addContactButton.click();
+      await page.waitForTimeout(500);
+
+      // Wait for the form dialog to open and inputs to be visible
+      const firstNameInput = page.locator('input[name="first_name"]').first();
+      await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
 
       const timestamp = Date.now();
-      await page.fill('input[name="firstName"], input[placeholder*="First"]', 'WorkflowTest');
-      await page.fill('input[name="lastName"], input[placeholder*="Last"]', 'Contact');
-      await page.fill('input[name="email"], input[type="email"]', `workflow-${timestamp}@example.com`);
+      await page.fill('input[name="first_name"]', 'WorkflowTest');
+      await page.fill('input[name="last_name"]', 'Contact');
+      await page.fill('input[name="email"]', `workflow-${timestamp}@example.com`);
 
       await page.click('button[type="submit"]', { force: true });
       await page.waitForTimeout(3000);
@@ -240,7 +297,7 @@ test.describe('Core Functionality Smoke Tests', () => {
 
       console.log('✓ Complete workflow successful');
     } else {
-      console.log('⚠ Workflow test skipped - add button not found');
+      console.log('⚠ Workflow test skipped - Add Lead button not found');
       test.skip();
     }
   });

@@ -10,9 +10,7 @@ import {
   ChevronRight,
   Briefcase,
   Target,
-  Building2,
   Settings,
-  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -31,9 +29,7 @@ import { Spinner } from '@kit/ui/spinner';
 
 import { AgentTypesStep, AGENT_TYPES } from './agent-types-step';
 import { UseCaseStep } from './use-case-step';
-import { IndustryStep } from './industry-step';
 import { DetailsStep } from './details-step';
-import { ReviewStep } from './review-step';
 import { generateAgentPrompts } from '~/lib/generate-agent-prompts';
 import { DEFAULT_PHONE_NUMBER_ID } from '~/lib/constants';
 import { logger } from '~/lib/utils';
@@ -46,9 +42,7 @@ interface CreateAgentPanelProps {
 type StepType =
   | 'agent-type'
   | 'use-case'
-  | 'industry'
-  | 'details'
-  | 'review';
+  | 'details';
 
 export function CreateAgentPanel({
   open,
@@ -61,12 +55,12 @@ export function CreateAgentPanel({
   // ElevenLabs-aligned flow state
   const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(null);
   const [useCase, setUseCase] = useState<string | null>(null);
-  const [industry, setIndustry] = useState<string | null>(null);
+  // Industry is always "non profit" for this platform
+  const industry = 'non profit';
 
   // Agent details
   const [name, setName] = useState('');
   const [contextPrompt, setContextPrompt] = useState('');
-  const [startingMessage, setStartingMessage] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<StepType>('agent-type');
@@ -83,9 +77,13 @@ export function CreateAgentPanel({
         industry,
       });
 
-      // Update context prompt and starting message with generated content
+      // Update context prompt with generated content
       setContextPrompt(generatedPrompts.contextPrompt);
-      setStartingMessage(generatedPrompts.startingMessage);
+
+      // Set default name from generated prompts if user hasn't manually edited
+      if (!nameManuallyEdited && generatedPrompts.defaultName) {
+        setName(generatedPrompts.defaultName);
+      }
     } else if (agentType && (!useCase || !industry)) {
       // Only use basic template if use case or industry hasn't been selected yet
       const template = AGENT_TYPES[agentType];
@@ -93,16 +91,12 @@ export function CreateAgentPanel({
       if (!nameManuallyEdited && !name && template.defaultAgentName) {
         setName(template.defaultAgentName);
       }
-      // Auto-populate starting message from agent type if empty
-      if (!startingMessage && template.startingMessage) {
-        setStartingMessage(template.startingMessage);
-      }
       // Auto-populate context prompt from agent type if empty
       if (!contextPrompt && template.contextPrompt) {
         setContextPrompt(template.contextPrompt);
       }
     }
-  }, [agentType, useCase, industry, nameManuallyEdited, name, startingMessage, contextPrompt]);
+  }, [agentType, useCase, industry, nameManuallyEdited, name, contextPrompt]);
 
   const steps: Array<{
     key: StepType;
@@ -123,22 +117,10 @@ export function CreateAgentPanel({
       description: 'Primary purpose',
     },
     {
-      key: 'industry',
-      title: 'Industry',
-      icon: <Building2 className="h-4 w-4" />,
-      description: 'Your sector',
-    },
-    {
       key: 'details',
       title: 'Details',
       icon: <Settings className="h-4 w-4" />,
       description: 'Name & goal',
-    },
-    {
-      key: 'review',
-      title: 'Review',
-      icon: <Eye className="h-4 w-4" />,
-      description: 'Confirm & create',
     },
   ];
 
@@ -150,12 +132,8 @@ export function CreateAgentPanel({
         return agentType !== null;
       case 'use-case':
         return useCase !== null;
-      case 'industry':
-        return industry !== null;
       case 'details':
-        return Boolean(name.trim() && contextPrompt.trim() && startingMessage.trim());
-      case 'review':
-        return true;
+        return Boolean(name.trim() && contextPrompt.trim());
       default:
         return false;
     }
@@ -192,10 +170,18 @@ export function CreateAgentPanel({
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
       const baseSystemPrompt = agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
 
+      // Generate the starting message for ElevenLabs
+      const generatedPrompts = generateAgentPrompts({
+        agentType: agentType || 'blank',
+        useCase,
+        industry,
+      });
+      const startingMessage = generatedPrompts.startingMessage;
+
       // Build conversation config with required fields for ElevenLabs
       const conversationConfig = {
         agent: {
-          first_message: startingMessage.trim(),
+          first_message: startingMessage,
           language: 'en',
           prompt: {
             prompt: contextPrompt.trim(), // Use the context prompt as the main prompt
@@ -267,7 +253,7 @@ export function CreateAgentPanel({
       const created = await createAgentMutation.mutateAsync({
         name: name.trim(),
         donor_context: contextPrompt.trim() || null, // Save context prompt to donor_context field
-        starting_message: startingMessage.trim() || null, // Save starting message as top-level field
+        starting_message: startingMessage || null, // Save starting message as top-level field
         voice_type: 'ai_generated',
         voice_id: '',
         knowledge_base: {
@@ -276,8 +262,8 @@ export function CreateAgentPanel({
           industry,
           contextPrompt: contextPrompt.trim(), // User-provided context prompt
           systemPrompt: baseSystemPrompt, // System prompt from agent type
-          startingMessage: startingMessage.trim(), // User-provided starting message
-          firstMessage: startingMessage.trim(), // For compatibility
+          startingMessage: startingMessage, // Generated starting message
+          firstMessage: startingMessage, // For compatibility
           llmModel: 'gpt-4o-mini',
           temperature: 0.7,
           maxTokens: 1024,
@@ -357,10 +343,8 @@ export function CreateAgentPanel({
             // Reset form
             setAgentType(null);
             setUseCase(null);
-            setIndustry(null);
             setName('');
             setContextPrompt('');
-            setStartingMessage('');
           }
         }}
       >
@@ -376,7 +360,7 @@ export function CreateAgentPanel({
             </div>
 
             {/* Step indicator */}
-            <div className="mt-3 sm:mt-4 grid grid-cols-5 gap-1 sm:gap-2">
+            <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-1 sm:gap-2">
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
@@ -414,12 +398,6 @@ export function CreateAgentPanel({
                 </div>
               )}
 
-              {step === 'industry' && (
-                <div className="animate-in fade-in duration-300">
-                  <IndustryStep selectedIndustry={industry} onSelectIndustry={setIndustry} />
-                </div>
-              )}
-
               {step === 'details' && (
                 <div className="animate-in fade-in duration-300">
                   <DetailsStep
@@ -428,21 +406,6 @@ export function CreateAgentPanel({
                     onNameEdited={() => setNameManuallyEdited(true)}
                     contextPrompt={contextPrompt}
                     onContextPromptChange={setContextPrompt}
-                    startingMessage={startingMessage}
-                    onStartingMessageChange={setStartingMessage}
-                  />
-                </div>
-              )}
-
-              {step === 'review' && (
-                <div className="animate-in fade-in duration-300">
-                  <ReviewStep
-                    agentType={agentType}
-                    useCase={useCase}
-                    industry={industry}
-                    name={name}
-                    contextPrompt={contextPrompt}
-                    startingMessage={startingMessage}
                   />
                 </div>
               )}

@@ -1,39 +1,87 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import {
+  Headphones,
+  TrendingUp,
+  BookOpen,
+  Calendar,
+  Users,
+  Phone,
+  Heart,
+  CreditCard,
+  Info,
+  PartyPopper,
+  BarChart,
+  HelpCircle
+} from 'lucide-react';
 
-const USE_CASES = {
-  customer_support: {
-    category: 'Customer Support',
-    icon: '🎯',
-    uses: ['FAQ Handling', 'Complaint Resolution', 'Order Tracking', 'Technical Support'],
+const USE_CASES = [
+  {
+    id: 'customer_support',
+    label: 'Customer Support',
+    icon: Headphones,
   },
-  outbound_sales: {
-    category: 'Outbound Sales',
-    icon: '📞',
-    uses: ['Lead Qualification', 'Sales Calls', 'Product Demos', 'Appointment Setting'],
+  {
+    id: 'outbound_sales',
+    label: 'Outbound Sales',
+    icon: TrendingUp,
   },
-  learning_development: {
-    category: 'Learning & Development',
-    icon: '📚',
-    uses: ['Online Tutoring', 'Course Q&A', 'Skill Training', 'Assessment Assistance'],
+  {
+    id: 'learning_development',
+    label: 'Learning and Development',
+    icon: BookOpen,
   },
-  hr_recruiting: {
-    category: 'HR & Recruiting',
-    icon: '👥',
-    uses: ['Interview Scheduling', 'Candidate Screening', 'Onboarding Support', 'Benefits Q&A'],
+  {
+    id: 'scheduling',
+    label: 'Scheduling',
+    icon: Calendar,
   },
-  healthcare: {
-    category: 'Healthcare',
-    icon: '⚕️',
-    uses: ['Appointment Scheduling', 'Patient Intake', 'Health Info', 'Symptom Triage'],
+  {
+    id: 'lead_qualification',
+    label: 'Lead Qualification',
+    icon: Users,
   },
-  finance_banking: {
-    category: 'Finance & Banking',
-    icon: '💰',
-    uses: ['Account Inquiries', 'Transaction Support', 'Loan Information', 'Financial Advice'],
+  {
+    id: 'answering_service',
+    label: 'Answering Service',
+    icon: Phone,
   },
-};
+  {
+    id: 'volunteer_coordination',
+    label: 'Volunteer Coordination',
+    icon: Users,
+  },
+  {
+    id: 'donation_processing',
+    label: 'Donation Processing',
+    icon: CreditCard,
+  },
+  {
+    id: 'program_information',
+    label: 'Program Information',
+    icon: Info,
+  },
+  {
+    id: 'event_management',
+    label: 'Event Management',
+    icon: PartyPopper,
+  },
+  {
+    id: 'beneficiary_support',
+    label: 'Beneficiary Support',
+    icon: Heart,
+  },
+  {
+    id: 'impact_reporting',
+    label: 'Impact Reporting',
+    icon: BarChart,
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    icon: HelpCircle,
+  },
+];
 
 interface UseCaseStepProps {
   selectedUseCase: string | null;
@@ -44,42 +92,49 @@ export function UseCaseStep({ selectedUseCase, onSelectUseCase }: UseCaseStepPro
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-1 sm:space-y-2">
-        <h3 className="text-xl sm:text-2xl font-bold">What will this agent do?</h3>
+        <h3 className="text-xl sm:text-2xl font-bold">Use case</h3>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Select the primary use case for your agent
+          What will your agent help with?
         </p>
       </div>
-      <div className="space-y-4 sm:space-y-6">
-        {(Object.entries(USE_CASES) as Array<[string, typeof USE_CASES.customer_support]>).map(([key, useCaseGroup]) => (
-          <div key={key} className="space-y-2 sm:space-y-3">
-            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2">
-              <span className="text-xl sm:text-2xl">{useCaseGroup.icon}</span>
-              <h4 className="font-bold text-sm sm:text-base">{useCaseGroup.category}</h4>
-            </div>
-            <div className="space-y-1.5 sm:space-y-2 pl-8 sm:pl-12">
-              {useCaseGroup.uses.map((u) => (
-                <button
-                  key={u}
-                  onClick={() => onSelectUseCase(u)}
-                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-colors duration-200 ${
-                    selectedUseCase === u
-                      ? 'border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-md shadow-primary/10'
-                      : 'border-border hover:border-primary/30 hover:bg-muted/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs sm:text-sm font-medium">{u}</span>
-                    {selectedUseCase === u && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-in fade-in duration-200">
-                        <Check className="h-3 w-3 text-primary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        {USE_CASES.map((useCase) => {
+          const Icon = useCase.icon;
+          const isSelected = selectedUseCase === useCase.id;
+
+          return (
+            <button
+              key={useCase.id}
+              onClick={() => onSelectUseCase(useCase.id)}
+              className={`flex flex-col items-center justify-center gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-2 transition-all duration-200 ${
+                isSelected
+                  ? 'border-primary bg-primary/5 shadow-md'
+                  : useCase.id === 'other'
+                  ? 'border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30'
+                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+              }`}
+            >
+              <div className={`rounded-full p-3 ${
+                isSelected
+                  ? 'bg-primary/10'
+                  : 'bg-muted'
+              }`}>
+                <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                  isSelected
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                }`} />
+              </div>
+              <span className={`text-xs sm:text-sm font-medium text-center leading-tight ${
+                isSelected
+                  ? 'text-foreground'
+                  : 'text-muted-foreground'
+              }`}>
+                {useCase.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
