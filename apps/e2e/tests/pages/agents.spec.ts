@@ -32,7 +32,7 @@ test.describe('Agents Page Tests', () => {
     console.log('✓ Agents page loaded');
   });
 
-  test('can create a new agent through 5-step wizard', async ({ page }) => {
+  test('can create a new agent through 3-step wizard', async ({ page }) => {
     const createButton = page.locator('button').filter({ hasText: /Create|Add|New/ }).first();
 
     if (await createButton.isVisible({ timeout: 5000 })) {
@@ -55,8 +55,10 @@ test.describe('Agents Page Tests', () => {
         await page.waitForTimeout(500);
       }
 
-      // Step 2: Select Use Case
-      const useCaseOption = page.locator('button, [role="button"]').filter({ hasText: /Customer Support|Sales|Learning/i }).first();
+      // Step 2: Select Use Case (updated to match new nonprofit-focused use cases)
+      const useCaseOption = page.locator('button, [role="button"]').filter({
+        hasText: /Customer Support|Outbound Sales|Learning and Development|Scheduling|Lead Qualification|Answering Service|Volunteer Coordination|Donation Processing|Program Information|Event Management|Beneficiary Support|Impact Reporting/i
+      }).first();
       if (await useCaseOption.isVisible({ timeout: 2000 })) {
         await useCaseOption.click();
         console.log('✓ Step 2: Selected Use Case');
@@ -68,41 +70,28 @@ test.describe('Agents Page Tests', () => {
         await page.waitForTimeout(500);
       }
 
-      // Step 3: Select Industry
-      const industryOption = page.locator('button, [role="button"]').filter({ hasText: /Technology|Healthcare|Finance|Education/i }).first();
-      if (await industryOption.isVisible({ timeout: 2000 })) {
-        await industryOption.click();
-        console.log('✓ Step 3: Selected Industry');
-      }
-
-      // Click Next
-      if (await nextButton.isVisible({ timeout: 1000 })) {
-        await nextButton.click();
-        await page.waitForTimeout(500);
-      }
-
-      // Step 4: Fill in Details
+      // Step 3: Fill in Details (this is now the final step)
       const timestamp = Date.now();
       const agentName = `Test Agent ${timestamp}`;
 
       const nameInput = page.locator('input[name="name"], input[placeholder*="name" i]').first();
       if (await nameInput.isVisible({ timeout: 2000 })) {
         await nameInput.fill(agentName);
-        console.log(`✓ Step 4: Entered agent name: ${agentName}`);
+        console.log(`✓ Step 3: Entered agent name: ${agentName}`);
       }
 
       // Fill context prompt (required)
       const contextInput = page.locator('textarea[name="contextPrompt"], textarea[placeholder*="context" i], textarea[placeholder*="prompt" i]').first();
       if (await contextInput.isVisible({ timeout: 1000 })) {
         await contextInput.fill('This is a test agent for E2E testing purposes.');
-        console.log('✓ Step 4: Entered context prompt');
+        console.log('✓ Step 3: Entered context prompt');
       }
 
       // Fill starting message (required)
       const startingMsgInput = page.locator('textarea[name="startingMessage"], textarea[placeholder*="starting" i], textarea[placeholder*="greeting" i], textarea[placeholder*="message" i]').first();
       if (await startingMsgInput.isVisible({ timeout: 1000 })) {
         await startingMsgInput.fill('Hello! How can I help you today?');
-        console.log('✓ Step 4: Entered starting message');
+        console.log('✓ Step 3: Entered starting message');
       } else {
         // Try finding all textareas if the specific one isn't found
         const allTextareas = page.locator('textarea');
@@ -110,29 +99,18 @@ test.describe('Agents Page Tests', () => {
         console.log(`Found ${count} textareas, filling the second one if it exists`);
         if (count >= 2) {
           await allTextareas.nth(1).fill('Hello! How can I help you today?');
-          console.log('✓ Step 4: Entered starting message (fallback)');
+          console.log('✓ Step 3: Entered starting message (fallback)');
         }
       }
 
-      // Click Next to go to Review (wait for button to be enabled)
+      // Click Create Agent button (now appears on the Details step instead of a separate Review step)
       await page.waitForTimeout(500); // Give form time to validate
-      const nextButtonEnabled = page.locator('button').filter({ hasText: /Next/i }).and(page.locator(':not([disabled])'));
-      if (await nextButtonEnabled.isVisible({ timeout: 2000 })) {
-        await nextButtonEnabled.click();
-        await page.waitForTimeout(500);
-        console.log('✓ Step 4: Clicked Next to proceed to Review');
-      } else {
-        console.log('⚠ Step 4: Next button not enabled, may be missing required field');
-      }
-
-      // Step 5: Review and Create
-      console.log('✓ Step 5: Reached Review step');
-
-      // Click Create button
-      const createFinalButton = page.locator('button').filter({ hasText: /Create Agent|Create|Finish/i }).first();
+      const createFinalButton = page.locator('button').filter({ hasText: /Create Agent|Create|Finish/i }).and(page.locator(':not([disabled])')).first();
       if (await createFinalButton.isVisible({ timeout: 2000 })) {
         await createFinalButton.click({ force: true });
-        console.log('✓ Step 5: Clicked Create button');
+        console.log('✓ Step 3: Clicked Create Agent button');
+      } else {
+        console.log('⚠ Step 3: Create Agent button not enabled, may be missing required field');
       }
 
       // Verify success - should redirect to agents list or agent detail page

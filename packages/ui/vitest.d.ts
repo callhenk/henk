@@ -1,7 +1,7 @@
 import 'vitest';
 
 declare module 'vitest' {
-  interface Assertion<T = unknown> {
+  interface Assertion<_T = unknown> {
     // @testing-library/jest-dom matchers
     toBeInTheDocument(): void;
     toBeDisabled(): void;
