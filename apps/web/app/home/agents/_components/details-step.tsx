@@ -21,6 +21,9 @@ interface DetailsStepProps {
   enableAiGeneration?: boolean;
   agentName?: string;
   industry?: string;
+  voiceGender?: 'male' | 'female';
+  onVoiceGenderChange?: (gender: 'male' | 'female') => void;
+  showVoiceSelection?: boolean;
 }
 
 export function DetailsStep({
@@ -34,6 +37,9 @@ export function DetailsStep({
   enableAiGeneration = false,
   agentName,
   industry,
+  voiceGender = 'female',
+  onVoiceGenderChange,
+  showVoiceSelection = false,
 }: DetailsStepProps) {
   const [aiDescription, setAiDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -202,6 +208,60 @@ export function DetailsStep({
             Choose a friendly, memorable name for your agent
           </p>
         </div>
+
+        {showVoiceSelection && (
+          <div className="animate-in fade-in space-y-2 duration-300">
+            <label className="block text-xs font-semibold sm:text-sm">
+              Voice Gender <span className="text-destructive">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => onVoiceGenderChange?.('female')}
+                className={`hover:border-primary/50 flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                  voiceGender === 'female'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border'
+                }`}
+              >
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-colors ${
+                    voiceGender === 'female'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30'
+                      : 'bg-muted'
+                  }`}
+                >
+                  👩
+                </div>
+                <span className="text-sm font-medium">Female</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onVoiceGenderChange?.('male')}
+                className={`hover:border-primary/50 flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                  voiceGender === 'male'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border'
+                }`}
+              >
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-colors ${
+                    voiceGender === 'male'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30'
+                      : 'bg-muted'
+                  }`}
+                >
+                  👨
+                </div>
+                <span className="text-sm font-medium">Male</span>
+              </button>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Select a default voice. You can customize voice settings and
+              choose from hundreds of voices after creation.
+            </p>
+          </div>
+        )}
 
         {enableAiGeneration && (
           <div className="animate-in fade-in space-y-3 rounded-lg border bg-gray-50 p-4 transition-all duration-300 sm:p-5 dark:bg-gray-800/50">
