@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEMO_RATE_LIMITS } from '~/lib/constants';
 import rateLimiter, { getClientIp } from '~/lib/simple-rate-limit';
 import { logger } from '~/lib/utils';
+import featuresFlagConfig from '~/config/feature-flags.config';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,6 +26,14 @@ interface CreateDemoAgentRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if self-onboard demo is enabled
+    if (!featuresFlagConfig.enableSelfOnboardDemo) {
+      return NextResponse.json(
+        { error: 'This feature is currently disabled' },
+        { status: 403, headers: corsHeaders },
+      );
+    }
+
     // Get client IP for rate limiting
     const clientIp = getClientIp(request);
 
