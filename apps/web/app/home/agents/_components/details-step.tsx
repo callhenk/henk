@@ -112,37 +112,32 @@ export function DetailsStep({
         </div>
 
         {enableAiGeneration && (
-          <div className="animate-in fade-in space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 duration-300 dark:border-blue-800 dark:bg-blue-900/10">
+          <div className="animate-in fade-in space-y-3 rounded-lg border p-4 sm:p-5">
             <div className="flex items-start gap-2">
-              <Sparkles className="text-blue-600 dark:text-blue-400 mt-0.5 h-4 w-4 flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <label className="block text-xs font-semibold sm:text-sm">
-                  Generate with AI (Optional)
-                </label>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  Describe what you want your agent to do, and AI will generate
-                  the context prompt and first message for you.
-                </p>
-
-                {/* Example */}
-                <div className="bg-background/50 rounded-md border p-3">
-                  <p className="text-muted-foreground text-xs italic">
-                    <strong>Example:</strong> &quot;Your name is {name || 'Sarah'} and you work
-                    for Helping Hands Charity. You&apos;re calling donors to
-                    invite them to the Annual Fundraising Gala event.&quot;
+              <Sparkles className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Generate with AI</p>
+                  <p className="text-muted-foreground text-xs">
+                    Describe what you want your agent to do, and AI will
+                    generate the context prompt and first message for you.
                   </p>
                 </div>
 
-                {/* Input */}
+                <p className="text-muted-foreground text-xs italic">
+                  Example: &quot;Your name is {name || 'Sarah'} and you work for
+                  Helping Hands Charity. You&apos;re calling donors to invite
+                  them to the Annual Fundraising Gala event.&quot;
+                </p>
+
                 <Textarea
                   placeholder="Describe your agent's role and purpose..."
                   value={aiDescription}
                   onChange={(e) => setAiDescription(e.target.value)}
-                  className="min-h-[100px] resize-y text-sm sm:text-base"
+                  className="min-h-[100px] resize-y text-sm"
                   rows={4}
                 />
 
-                {/* Generate Button */}
                 <Button
                   type="button"
                   onClick={handleGeneratePrompt}
