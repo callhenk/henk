@@ -283,6 +283,7 @@ export default function SelfOnboardDemoPage() {
           name: name.trim(),
           contextPrompt: contextPrompt.trim(),
           startingMessage,
+          voiceGender, // Include voice gender selection
           knowledgeBase,
           conversationConfig,
         }),

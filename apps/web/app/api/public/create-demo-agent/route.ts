@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import featuresFlagConfig from '~/config/feature-flags.config';
-import { DEMO_RATE_LIMITS } from '~/lib/constants';
+import {
+  DEMO_RATE_LIMITS,
+  type VoiceGender,
+  getDefaultVoiceId,
+} from '~/lib/constants';
 import { extractAgentName } from '~/lib/extract-agent-name';
 import rateLimiter, { getClientIp } from '~/lib/simple-rate-limit';
 import { logger } from '~/lib/utils';
@@ -21,6 +25,7 @@ interface CreateDemoAgentRequest {
   name: string;
   contextPrompt: string;
   startingMessage?: string;
+  voiceGender?: VoiceGender;
   knowledgeBase?: Record<string, unknown>;
   conversationConfig?: Record<string, unknown>;
 }
@@ -128,6 +133,7 @@ export async function POST(request: NextRequest) {
       name,
       contextPrompt,
       startingMessage,
+      voiceGender = 'feminine', // Default to feminine if not specified
       knowledgeBase,
       conversationConfig,
     } = body;
@@ -176,6 +182,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the default voice ID based on gender
+    const voiceId = getDefaultVoiceId(voiceGender);
+
     const elevenLabsAgentConfig: Record<string, unknown> = {
       name: finalAgentName,
       conversation_config: conversationConfig || {
@@ -188,6 +197,9 @@ export async function POST(request: NextRequest) {
             max_tokens: 1024,
           },
         },
+        tts: {
+          voice_id: voiceId, // Set the voice based on gender selection
+        },
       },
       context_data: {
         donor_context: contextPrompt.trim(),
@@ -198,6 +210,8 @@ export async function POST(request: NextRequest) {
       component: 'PublicDemoAgent',
       action: 'createElevenLabsAgent',
       agentName: finalAgentName,
+      voiceGender,
+      voiceId,
     });
 
     const headers: Record<string, string> = {
