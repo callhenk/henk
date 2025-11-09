@@ -44,11 +44,7 @@
   },
   "prettier": "@kit/prettier-config",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --cache --cache-location 'node_modules/.cache/.eslintcache'",
-      "prettier --write --cache --cache-location='node_modules/.cache/.prettiercache'"
-    ],
-    "*.{json,md,mdx,css,yaml,yml}": [
+    "*.{js,jsx,ts,tsx,json,md,mdx,css,yaml,yml}": [
       "prettier --write --cache --cache-location='node_modules/.cache/.prettiercache'"
     ],
     "*.md": [

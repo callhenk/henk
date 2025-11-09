@@ -10,11 +10,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Run lint-staged for formatting and linting
-echo "🎨 Checking formatting and linting..."
+# Run lint-staged for formatting
+echo "🎨 Checking formatting..."
 pnpm lint-staged
 
-# Run type checking
+# Run type checking (catches most issues)
 echo "📝 Type checking..."
 pnpm typecheck
 
@@ -23,3 +23,4 @@ echo "📚 Validating documentation..."
 node scripts/validate-docs.mjs
 
 echo "✅ Pre-commit checks passed!"
+echo "💡 Tip: Run 'pnpm lint' before pushing to catch any linting issues"
