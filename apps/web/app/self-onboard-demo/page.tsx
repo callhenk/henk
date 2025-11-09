@@ -46,6 +46,8 @@ export default function SelfOnboardDemoPage() {
   const [contextPrompt, setContextPrompt] = useState('');
   const [firstMessage, setFirstMessage] = useState('');
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
+  const [contextPromptManuallyEdited, setContextPromptManuallyEdited] = useState(false);
+  const [firstMessageManuallyEdited, setFirstMessageManuallyEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdAgent, setCreatedAgent] = useState<CreatedAgent | null>(null);
 
@@ -67,9 +69,13 @@ export default function SelfOnboardDemoPage() {
         industry,
       });
 
-      setContextPrompt(generatedPrompts.contextPrompt);
-      setFirstMessage(generatedPrompts.startingMessage || '');
-
+      // Only update if user hasn't manually edited
+      if (!contextPromptManuallyEdited) {
+        setContextPrompt(generatedPrompts.contextPrompt);
+      }
+      if (!firstMessageManuallyEdited) {
+        setFirstMessage(generatedPrompts.startingMessage || '');
+      }
       if (!nameManuallyEdited && generatedPrompts.defaultName) {
         setName(generatedPrompts.defaultName);
       }
@@ -78,14 +84,14 @@ export default function SelfOnboardDemoPage() {
       if (!nameManuallyEdited && !name && template.defaultAgentName) {
         setName(template.defaultAgentName);
       }
-      if (!contextPrompt && template.contextPrompt) {
+      if (!contextPromptManuallyEdited && !contextPrompt && template.contextPrompt) {
         setContextPrompt(template.contextPrompt);
       }
-      if (!firstMessage && template.startingMessage) {
+      if (!firstMessageManuallyEdited && !firstMessage && template.startingMessage) {
         setFirstMessage(template.startingMessage);
       }
     }
-  }, [agentType, useCase, industry, nameManuallyEdited, name, contextPrompt, firstMessage]);
+  }, [agentType, useCase, industry, nameManuallyEdited, contextPromptManuallyEdited, firstMessageManuallyEdited, name, contextPrompt, firstMessage]);
 
   const steps: Array<{
     key: StepType;
@@ -343,9 +349,15 @@ export default function SelfOnboardDemoPage() {
                   onNameChange={setName}
                   onNameEdited={() => setNameManuallyEdited(true)}
                   contextPrompt={contextPrompt}
-                  onContextPromptChange={setContextPrompt}
+                  onContextPromptChange={(value) => {
+                    setContextPrompt(value);
+                    setContextPromptManuallyEdited(true);
+                  }}
                   firstMessage={firstMessage}
-                  onFirstMessageChange={setFirstMessage}
+                  onFirstMessageChange={(value) => {
+                    setFirstMessage(value);
+                    setFirstMessageManuallyEdited(true);
+                  }}
                 />
               </div>
             )}
