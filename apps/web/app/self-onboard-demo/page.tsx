@@ -134,16 +134,15 @@ export default function SelfOnboardDemoPage() {
         setFirstMessage(template.startingMessage);
       }
     }
+    // We intentionally don't include name, contextPrompt, firstMessage, nameManuallyEdited
+    // to prevent circular dependencies. This effect should only run when use case changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     agentType,
     useCase,
     industry,
-    nameManuallyEdited,
     contextPromptManuallyEdited,
     firstMessageManuallyEdited,
-    name,
-    contextPrompt,
-    firstMessage,
   ]);
 
   // Dynamically update first message when name changes (unless manually edited or AI-generated)

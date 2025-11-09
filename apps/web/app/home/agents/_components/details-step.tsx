@@ -313,8 +313,8 @@ export function DetailsStep({
               </button>
             </div>
             <p className="text-muted-foreground text-xs">
-              Choose a default voice style. You can customize voice settings and
-              select from hundreds of voices after creation.
+              Choose a default voice style. You can customize voices further in
+              the dashboard once you onboard.
             </p>
           </div>
         )}
