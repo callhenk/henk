@@ -632,7 +632,7 @@ const INDUSTRY_CONTEXTS: Record<string, {
  * 1. Personality, 2. Environment, 3. Tone, 4. Goal, 5. Guardrails, 6. Tools
  */
 export function generateAgentPrompts(params: PromptGenerationParams): GeneratedPrompts {
-  const { agentType, useCase, industry, businessName, companyWebsite } = params;
+  const { agentType, useCase, industry, businessName } = params;
 
   const useCaseConfig = useCase ? USE_CASE_CONFIGS[useCase] : null;
   const industryContext = industry ? INDUSTRY_CONTEXTS[industry] : null;
@@ -650,7 +650,7 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
 
     // Add personality traits naturally
     contextPrompt += 'You are efficient, polite, and focused on ';
-    if (useCaseConfig.goals.length > 0) {
+    if (useCaseConfig.goals.length > 0 && useCaseConfig.goals[0]) {
       contextPrompt += `${useCaseConfig.goals[0].toLowerCase()}.\n`;
     } else {
       contextPrompt += 'helping callers effectively.\n';
@@ -658,8 +658,10 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
 
     // Add approach from capabilities
     if (useCaseConfig.capabilities.length > 0) {
-      const approach = useCaseConfig.capabilities[0].toLowerCase();
-      contextPrompt += `You ${approach}.\n`;
+      const approach = useCaseConfig.capabilities[0]?.toLowerCase();
+      if (approach) {
+        contextPrompt += `You ${approach}.\n`;
+      }
     }
   } else {
     const defaultRole = agentType === 'personal_assistant'
@@ -677,7 +679,7 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   contextPrompt += '# Environment\n\n';
   contextPrompt += 'You are engaging with callers over the phone.\n';
 
-  if (useCaseConfig && useCaseConfig.goals.length > 0) {
+  if (useCaseConfig && useCaseConfig.goals.length > 0 && useCaseConfig.goals[0]) {
     contextPrompt += `Your goal is to ${useCaseConfig.goals[0].toLowerCase()}.\n`;
   }
 
@@ -712,7 +714,7 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   // ===== 4. GOAL =====
   contextPrompt += '# Goal\n\n';
 
-  if (useCaseConfig) {
+  if (useCaseConfig && useCaseConfig.goals[0]) {
     contextPrompt += `Your primary goal is to ${useCaseConfig.goals[0].toLowerCase()} by:\n\n`;
 
     // Create structured steps from capabilities and guidelines
