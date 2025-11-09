@@ -5,13 +5,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  Briefcase,
   Check,
   ChevronLeft,
   ChevronRight,
-  Briefcase,
-  Target,
-  Settings,
   PhoneCall,
+  Settings,
+  Target,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,13 +19,16 @@ import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Spinner } from '@kit/ui/spinner';
 
-import { AgentTypesStep, AGENT_TYPES } from '../home/agents/_components/agent-types-step';
-import { UseCaseStep } from '../home/agents/_components/use-case-step';
-import { DetailsStep } from '../home/agents/_components/details-step';
-import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voice-chat';
+import featuresFlagConfig from '../../config/feature-flags.config';
 import { generateAgentPrompts } from '../../lib/generate-agent-prompts';
 import { logger } from '../../lib/utils';
-import featuresFlagConfig from '../../config/feature-flags.config';
+import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voice-chat';
+import {
+  AGENT_TYPES,
+  AgentTypesStep,
+} from '../home/agents/_components/agent-types-step';
+import { DetailsStep } from '../home/agents/_components/details-step';
+import { UseCaseStep } from '../home/agents/_components/use-case-step';
 
 type StepType = 'agent-type' | 'use-case' | 'details' | 'conversation';
 
@@ -40,25 +43,22 @@ export default function SelfOnboardDemoPage() {
 
   // Agent creation state - must be before any conditional returns
   const [step, setStep] = useState<StepType>('agent-type');
-  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(null);
+  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(
+    null,
+  );
   const [useCase, setUseCase] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [contextPrompt, setContextPrompt] = useState('');
   const [firstMessage, setFirstMessage] = useState('');
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
-  const [contextPromptManuallyEdited, setContextPromptManuallyEdited] = useState(false);
-  const [firstMessageManuallyEdited, setFirstMessageManuallyEdited] = useState(false);
+  const [contextPromptManuallyEdited, setContextPromptManuallyEdited] =
+    useState(false);
+  const [firstMessageManuallyEdited, setFirstMessageManuallyEdited] =
+    useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdAgent, setCreatedAgent] = useState<CreatedAgent | null>(null);
 
   const industry = 'non profit';
-
-  // Check if self-onboard demo is enabled
-  useEffect(() => {
-    if (!featuresFlagConfig.enableSelfOnboardDemo) {
-      router.push('/');
-    }
-  }, [router]);
 
   // Generate dynamic prompts based on use case and industry
   useEffect(() => {
@@ -84,14 +84,32 @@ export default function SelfOnboardDemoPage() {
       if (!nameManuallyEdited && !name && template.defaultAgentName) {
         setName(template.defaultAgentName);
       }
-      if (!contextPromptManuallyEdited && !contextPrompt && template.contextPrompt) {
+      if (
+        !contextPromptManuallyEdited &&
+        !contextPrompt &&
+        template.contextPrompt
+      ) {
         setContextPrompt(template.contextPrompt);
       }
-      if (!firstMessageManuallyEdited && !firstMessage && template.startingMessage) {
+      if (
+        !firstMessageManuallyEdited &&
+        !firstMessage &&
+        template.startingMessage
+      ) {
         setFirstMessage(template.startingMessage);
       }
     }
-  }, [agentType, useCase, industry, nameManuallyEdited, contextPromptManuallyEdited, firstMessageManuallyEdited, name, contextPrompt, firstMessage]);
+  }, [
+    agentType,
+    useCase,
+    industry,
+    nameManuallyEdited,
+    contextPromptManuallyEdited,
+    firstMessageManuallyEdited,
+    name,
+    contextPrompt,
+    firstMessage,
+  ]);
 
   const steps: Array<{
     key: StepType;
@@ -144,7 +162,11 @@ export default function SelfOnboardDemoPage() {
 
   const goNext = () => {
     const currentStepIndex = steps.findIndex((s) => s.key === step);
-    if (currentStepIndex >= 0 && currentStepIndex < steps.length - 1 && canProceed()) {
+    if (
+      currentStepIndex >= 0 &&
+      currentStepIndex < steps.length - 1 &&
+      canProceed()
+    ) {
       const nextStep = steps[currentStepIndex + 1];
       if (nextStep) {
         setStep(nextStep.key);
@@ -171,10 +193,12 @@ export default function SelfOnboardDemoPage() {
     try {
       // Get system prompt from agent type template
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
-      const baseSystemPrompt = agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
+      const baseSystemPrompt =
+        agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
 
       // Use the user's custom first message or fall back to generated one
-      const startingMessage = firstMessage.trim() || 'Hello! How can I help you today?';
+      const startingMessage =
+        firstMessage.trim() || 'Hello! How can I help you today?';
 
       // Build conversation config with required fields for ElevenLabs
       const conversationConfig = {
@@ -231,7 +255,9 @@ export default function SelfOnboardDemoPage() {
 
         // Handle rate limiting
         if (resp.status === 429) {
-          toast.error(data.message || 'Rate limit exceeded. Please try again later.');
+          toast.error(
+            data.message || 'Rate limit exceeded. Please try again later.',
+          );
           return;
         }
 
@@ -257,14 +283,27 @@ export default function SelfOnboardDemoPage() {
           action: 'handleCreateAgent',
         },
       );
-      toast.error(err instanceof Error ? err.message : 'Failed to create agent');
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to create agent',
+      );
       setIsSubmitting(false);
     }
   };
 
-  // If feature is disabled, show nothing while redirecting
+  // If feature is disabled, show a friendly message
   if (!featuresFlagConfig.enableSelfOnboardDemo) {
-    return null;
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="max-w-md space-y-4 text-center">
+          <div className="text-6xl">🚧</div>
+          <h1 className="text-2xl font-bold">Demo Currently Unavailable</h1>
+          <p className="text-muted-foreground">
+            The self-onboard demo is currently disabled. Please contact us to
+            learn more about our AI voice agents.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -284,44 +323,49 @@ export default function SelfOnboardDemoPage() {
             Create Your AI Voice Agent
           </h1>
           <p className="text-muted-foreground mb-4 max-w-2xl text-base leading-relaxed sm:text-lg">
-            Build and test your own AI voice agent in minutes. Once created, you can have a real-time
-            conversation with it directly in your browser. <strong className="font-semibold">No sign-up required!</strong>
+            Build and test your own AI voice agent in minutes. Once created, you
+            can have a real-time conversation with it directly in your browser.{' '}
+            <strong className="font-semibold">No sign-up required!</strong>
           </p>
           <div className="inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-900/20">
             <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
               <span className="text-xs">ℹ️</span>
             </div>
             <div className="text-sm text-blue-800 dark:text-blue-200">
-              <strong className="font-semibold">Demo Mode:</strong> Agents are created for testing purposes only
-              and are not saved to an account.
+              <strong className="font-semibold">Demo Mode:</strong> Agents are
+              created for testing purposes only and are not saved to an account.
             </div>
           </div>
         </div>
 
         {/* Main Card */}
         <Card className="border-2">
-          <CardHeader className="border-b px-4 sm:px-6 py-5 sm:py-6">
-            <CardTitle className="text-lg sm:text-xl font-semibold">Agent Setup</CardTitle>
+          <CardHeader className="border-b px-4 py-5 sm:px-6 sm:py-6">
+            <CardTitle className="text-lg font-semibold sm:text-xl">
+              Agent Setup
+            </CardTitle>
 
             {/* Step indicator */}
-            <div className="mt-3 sm:mt-4 grid grid-cols-4 gap-1 sm:gap-2">
+            <div className="mt-3 grid grid-cols-4 gap-1 sm:mt-4 sm:gap-2">
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-colors duration-200 ${
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-xs transition-colors duration-200 sm:gap-1 sm:px-3 sm:py-2 ${
                     idx <= stepIndex
                       ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'border bg-muted text-muted-foreground'
+                      : 'bg-muted text-muted-foreground border'
                   }`}
                 >
-                  <div className="flex items-center justify-center h-4 sm:h-5 transition-opacity duration-200">
+                  <div className="flex h-4 items-center justify-center transition-opacity duration-200 sm:h-5">
                     {idx < stepIndex ? (
                       <Check className="h-3 w-3" />
                     ) : (
-                      <span className="text-[10px] sm:text-xs font-bold">{idx + 1}</span>
+                      <span className="text-[10px] font-bold sm:text-xs">
+                        {idx + 1}
+                      </span>
                     )}
                   </div>
-                  <span className="font-medium text-[7px] sm:text-[9px] leading-tight text-center">
+                  <span className="text-center text-[7px] leading-tight font-medium sm:text-[9px]">
                     {s.title}
                   </span>
                 </div>
@@ -332,13 +376,19 @@ export default function SelfOnboardDemoPage() {
           <CardContent className="p-4 sm:p-6">
             {step === 'agent-type' && (
               <div className="animate-in fade-in duration-300">
-                <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
+                <AgentTypesStep
+                  selectedType={agentType}
+                  onSelectType={setAgentType}
+                />
               </div>
             )}
 
             {step === 'use-case' && (
               <div className="animate-in fade-in duration-300">
-                <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
+                <UseCaseStep
+                  selectedUseCase={useCase}
+                  onSelectUseCase={setUseCase}
+                />
               </div>
             )}
 
@@ -377,8 +427,12 @@ export default function SelfOnboardDemoPage() {
                         🎉 Your Agent is Ready!
                       </h3>
                       <p className="mt-2 text-sm leading-relaxed text-green-800 dark:text-green-200">
-                        Meet <strong className="font-semibold">{createdAgent.name}</strong>, your new AI voice assistant.
-                        Tap the call button below to have a real-time conversation!
+                        Meet{' '}
+                        <strong className="font-semibold">
+                          {createdAgent.name}
+                        </strong>
+                        , your new AI voice assistant. Tap the call button below
+                        to have a real-time conversation!
                       </p>
                     </div>
                   </div>
@@ -396,8 +450,8 @@ export default function SelfOnboardDemoPage() {
           </CardContent>
 
           {/* Footer with action buttons */}
-          <div className="border-t px-4 sm:px-6 py-3 sm:py-4 bg-muted/20">
-            <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
+          <div className="bg-muted/20 border-t px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex w-full flex-col-reverse items-center justify-between gap-2 sm:flex-row">
               {step === 'conversation' ? (
                 <Button
                   variant="outline"
@@ -407,7 +461,7 @@ export default function SelfOnboardDemoPage() {
                     // Clear created agent when going back to edit
                     setCreatedAgent(null);
                   }}
-                  className="w-full sm:w-auto transition-colors duration-200"
+                  className="w-full transition-colors duration-200 sm:w-auto"
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Back to Edit
@@ -417,12 +471,12 @@ export default function SelfOnboardDemoPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => router.back()}
-                  className="w-full sm:w-auto text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="text-muted-foreground hover:text-foreground w-full transition-colors duration-200 sm:w-auto"
                 >
                   Exit
                 </Button>
               )}
-              <div className="flex w-full sm:w-auto items-center gap-2">
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 {step !== 'conversation' && (
                   <>
                     <Button
@@ -430,7 +484,7 @@ export default function SelfOnboardDemoPage() {
                       size="sm"
                       onClick={goBack}
                       disabled={stepIndex === 0}
-                      className="flex-1 sm:flex-none transition-opacity duration-200"
+                      className="flex-1 transition-opacity duration-200 sm:flex-none"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -439,7 +493,7 @@ export default function SelfOnboardDemoPage() {
                         onClick={goNext}
                         disabled={!canProceed()}
                         size="sm"
-                        className="flex-1 sm:flex-none transition-opacity duration-200"
+                        className="flex-1 transition-opacity duration-200 sm:flex-none"
                       >
                         Next <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -448,15 +502,17 @@ export default function SelfOnboardDemoPage() {
                         onClick={handleCreateAgent}
                         disabled={isSubmitting || !canProceed()}
                         size="sm"
-                        className="flex-1 sm:flex-none transition-opacity duration-200"
+                        className="flex-1 transition-opacity duration-200 sm:flex-none"
                       >
                         {isSubmitting ? (
                           <>
                             <Spinner className="mr-2 h-3 w-3" />
                             {createdAgent ? 'Updating...' : 'Creating...'}
                           </>
+                        ) : createdAgent ? (
+                          'Update & Test Agent'
                         ) : (
-                          createdAgent ? 'Update & Test Agent' : 'Create & Test Agent'
+                          'Create & Test Agent'
                         )}
                       </Button>
                     )}
@@ -475,8 +531,12 @@ export default function SelfOnboardDemoPage() {
             <div className="flex flex-col items-center space-y-3 px-4 text-center">
               <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               <div className="space-y-1">
-                <p className="text-foreground text-sm font-medium">Creating your agent...</p>
-                <p className="text-muted-foreground text-xs">This will only take a moment</p>
+                <p className="text-foreground text-sm font-medium">
+                  Creating your agent...
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  This will only take a moment
+                </p>
               </div>
             </div>
           </div>
