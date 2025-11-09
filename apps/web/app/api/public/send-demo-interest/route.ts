@@ -18,9 +18,16 @@ export async function OPTIONS() {
 
 interface SendDemoInterestRequest {
   email: string;
+  name?: string;
   agentName: string;
   useCase: string | null;
   contextPrompt: string;
+  metadata?: {
+    timezone?: string;
+    locale?: string;
+    userAgent?: string;
+    timestamp?: string;
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = (await request.json()) as SendDemoInterestRequest;
-    const { email, agentName, useCase, contextPrompt } = body;
+    const { email, name, agentName, useCase, contextPrompt, metadata } = body;
 
     if (!email?.trim()) {
       return NextResponse.json(
@@ -69,20 +76,37 @@ export async function POST(request: NextRequest) {
     // Initialize Resend
     const resend = new Resend(resendApiKey);
 
+    // Build browser/location info section
+    let metadataHtml = '';
+    if (metadata) {
+      metadataHtml = `
+        <h3>Location & Browser Info</h3>
+        <ul>
+          ${metadata.timezone ? `<li><strong>Timezone:</strong> ${metadata.timezone}</li>` : ''}
+          ${metadata.locale ? `<li><strong>Locale:</strong> ${metadata.locale}</li>` : ''}
+          ${metadata.timestamp ? `<li><strong>Timestamp:</strong> ${new Date(metadata.timestamp).toLocaleString()}</li>` : ''}
+          ${metadata.userAgent ? `<li><strong>User Agent:</strong> ${metadata.userAgent}</li>` : ''}
+        </ul>
+      `;
+    }
+
     // Send email to jerome@callhenk.com
     const { error } = await resend.emails.send({
       from: 'Henk Demo <demo@callhenk.com>',
-      to: 'jerome@callhenk.com',
+      to: 'cyrus@callhenk.com',
       replyTo: email.trim(),
-      subject: `New Demo Interest: ${agentName}`,
+      subject: `New Demo Interest${name ? ` from ${name}` : ''}: ${agentName}`,
       html: `
         <h2>New Self-Onboard Demo Interest</h2>
-        <p><strong>Client Email:</strong> ${email.trim()}</p>
+        ${name ? `<p><strong>Name:</strong> ${name}</p>` : ''}
+        <p><strong>Email:</strong> ${email.trim()}</p>
         <p><strong>Agent Name:</strong> ${agentName}</p>
         <p><strong>Use Case:</strong> ${useCase || 'Not specified'}</p>
 
         <h3>Context Prompt Used:</h3>
         <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;">${contextPrompt}</pre>
+
+        ${metadataHtml}
 
         <hr style="margin: 20px 0;" />
         <p style="color: #666; font-size: 14px;">This lead was generated from the self-onboard demo at ${request.nextUrl.origin}/self-onboard-demo</p>

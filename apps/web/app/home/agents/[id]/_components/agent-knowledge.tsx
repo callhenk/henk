@@ -1,17 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
-  Sparkles,
   Building2,
-  MessageSquare,
-  FileText,
-  HelpCircle,
-  Database,
   ChevronDown,
   ChevronUp,
+  Database,
+  FileText,
+  HelpCircle,
+  MessageSquare,
+  Sparkles,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Json } from '@kit/supabase/database';
 import { Button } from '@kit/ui/button';
@@ -24,7 +25,6 @@ import {
 } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
 import { Textarea } from '@kit/ui/textarea';
-import { toast } from 'sonner';
 
 import { EnhancedKnowledgeBase } from './enhanced-knowledge-base';
 import { FAQEditor } from './faq-editor';
@@ -74,10 +74,15 @@ export function AgentKnowledge({
   const [generatingField, setGeneratingField] = useState<'context' | null>(
     null,
   );
+  const [generatingChars, setGeneratingChars] = useState(0);
+  const [generatingWords, setGeneratingWords] = useState(0);
   const [showSaveReminder, setShowSaveReminder] = useState(false);
 
   // State for collapsible sections
   const [showDynamicVariables, setShowDynamicVariables] = useState(false);
+
+  // Ref for auto-scrolling
+  const donorContextRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if there are unsaved changes for each field
   const hasOrganizationChanges =
@@ -97,6 +102,8 @@ export function AgentKnowledge({
     }
 
     setGeneratingField('context');
+    setGeneratingChars(0);
+    setGeneratingWords(0);
     setDonorContext(''); // Clear existing content
 
     try {
@@ -150,7 +157,10 @@ export function AgentKnowledge({
               eventType = line.substring(7).trim();
             } else if (line.startsWith('data: ')) {
               try {
-                eventData = JSON.parse(line.substring(6)) as Record<string, string>;
+                eventData = JSON.parse(line.substring(6)) as Record<
+                  string,
+                  string
+                >;
               } catch (e) {
                 console.error('Failed to parse event data:', e);
               }
@@ -162,12 +172,25 @@ export function AgentKnowledge({
             // Update content immediately as chunks arrive
             accumulatedContent += eventData.chunk;
             setDonorContext(accumulatedContent);
-          } else if (eventType === 'context_prompt_complete' && eventData?.content) {
+            setGeneratingChars(accumulatedContent.length);
+            setGeneratingWords(
+              accumulatedContent.trim().split(/\s+/).filter(Boolean).length,
+            );
+            // Auto-scroll to bottom
+            if (donorContextRef.current) {
+              donorContextRef.current.scrollTop =
+                donorContextRef.current.scrollHeight;
+            }
+          } else if (
+            eventType === 'context_prompt_complete' &&
+            eventData?.content
+          ) {
             // Set final content (in case of any discrepancies)
             setDonorContext(eventData.content);
             setShowSaveReminder(true);
             toast.success('✨ Context prompt generated successfully!', {
-              description: 'Please review the content and click "Save Changes" below to apply it.',
+              description:
+                'Please review the content and click "Save Changes" below to apply it.',
               duration: 6000,
             });
           } else if (eventType === 'error') {
@@ -183,6 +206,8 @@ export function AgentKnowledge({
       // Don't clear the content if we got partial results
     } finally {
       setGeneratingField(null);
+      setGeneratingChars(0);
+      setGeneratingWords(0);
     }
   };
 
@@ -195,7 +220,7 @@ export function AgentKnowledge({
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
+                <Building2 className="text-primary h-4 w-4" />
                 <CardTitle className="text-base">
                   Organization Information
                 </CardTitle>
@@ -234,7 +259,7 @@ export function AgentKnowledge({
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
+                <MessageSquare className="text-primary h-4 w-4" />
                 <CardTitle className="text-base">Starting Message</CardTitle>
               </div>
               <CardDescription>
@@ -246,10 +271,10 @@ export function AgentKnowledge({
               <div className="overflow-hidden rounded-lg border">
                 <button
                   onClick={() => setShowDynamicVariables(!showDynamicVariables)}
-                  className="flex w-full items-center justify-between p-3 transition-colors hover:bg-muted/50"
+                  className="hover:bg-muted/50 flex w-full items-center justify-between p-3 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full">
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                       <span className="text-xs font-bold">i</span>
                     </div>
                     <span className="text-xs font-medium">
@@ -257,34 +282,36 @@ export function AgentKnowledge({
                     </span>
                   </div>
                   {showDynamicVariables ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    <ChevronUp className="text-muted-foreground h-4 w-4" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="text-muted-foreground h-4 w-4" />
                   )}
                 </button>
 
                 {showDynamicVariables && (
-                  <div className="space-y-3 border-t bg-muted/20 p-4 pt-4">
+                  <div className="bg-muted/20 space-y-3 border-t p-4 pt-4">
                     <p className="text-muted-foreground text-xs leading-relaxed">
                       Variables like{' '}
-                      <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
+                      <code className="bg-background rounded px-1.5 py-0.5 font-mono text-xs">
                         {'{{donor_name}}'}
                       </code>{' '}
                       will be replaced with actual values during calls.
                     </p>
                     <div className="space-y-2">
-                      <p className="text-xs font-medium">Available variables:</p>
+                      <p className="text-xs font-medium">
+                        Available variables:
+                      </p>
                       <div className="grid grid-cols-2 gap-2">
-                        <code className="rounded bg-background px-2 py-1.5 font-mono text-xs">
+                        <code className="bg-background rounded px-2 py-1.5 font-mono text-xs">
                           {'{{donor_name}}'}
                         </code>
-                        <code className="rounded bg-background px-2 py-1.5 font-mono text-xs">
+                        <code className="bg-background rounded px-2 py-1.5 font-mono text-xs">
                           {'{{campaign_name}}'}
                         </code>
-                        <code className="rounded bg-background px-2 py-1.5 font-mono text-xs">
+                        <code className="bg-background rounded px-2 py-1.5 font-mono text-xs">
                           {'{{company}}'}
                         </code>
-                        <code className="rounded bg-background px-2 py-1.5 font-mono text-xs">
+                        <code className="bg-background rounded px-2 py-1.5 font-mono text-xs">
                           {'{{attempt_no}}'}
                         </code>
                       </div>
@@ -324,7 +351,7 @@ export function AgentKnowledge({
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
+                <FileText className="text-primary h-4 w-4" />
                 <CardTitle className="text-base">Context Prompt</CardTitle>
               </div>
               <CardDescription>
@@ -334,14 +361,29 @@ export function AgentKnowledge({
             </CardHeader>
             <CardContent className="space-y-4">
               {/* AI Generation */}
-              <div className="space-y-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+              <div className="border-primary/20 from-primary/5 to-primary/10 space-y-3 rounded-lg border bg-gradient-to-br p-4">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-primary/10 p-1">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <div className="bg-primary/10 rounded-full p-1">
+                    <Sparkles className="text-primary h-3.5 w-3.5" />
                   </div>
-                  <span className="text-sm font-medium text-primary">
+                  <span className="text-primary text-sm font-medium">
                     AI Generate Prompt
                   </span>
+                </div>
+                <div className="bg-background/50 space-y-2 rounded-md p-3">
+                  <p className="text-muted-foreground text-xs font-medium">
+                    Examples:
+                  </p>
+                  <p className="text-muted-foreground text-xs italic">
+                    &ldquo;Empathetic fundraising specialist who builds rapport
+                    with donors, handles objections gracefully, and focuses on
+                    the mission impact&rdquo;
+                  </p>
+                  <p className="text-muted-foreground text-xs italic">
+                    &ldquo;Your name is Sarah and you work for Green Earth
+                    Foundation. You&apos;re calling donors to invite them to the
+                    annual gala fundraiser&rdquo;
+                  </p>
                 </div>
                 <Input
                   value={contextPromptDescription}
@@ -379,13 +421,28 @@ export function AgentKnowledge({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">Prompt Content</label>
-                  {donorContext && (
-                    <span className="text-xs text-muted-foreground">
-                      {donorContext.length} characters
+                  {generatingField === 'context' ? (
+                    <span className="text-primary animate-in fade-in flex items-center gap-2 text-xs font-medium">
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-mono">{generatingWords}</span>{' '}
+                        words
+                        <span className="text-muted-foreground">·</span>
+                        <span className="font-mono">
+                          {generatingChars}
+                        </span>{' '}
+                        chars
+                      </span>
                     </span>
-                  )}
+                  ) : donorContext ? (
+                    <span className="text-muted-foreground text-xs">
+                      {donorContext.trim().split(/\s+/).filter(Boolean).length}{' '}
+                      words · {donorContext.length} chars
+                    </span>
+                  ) : null}
                 </div>
                 <Textarea
+                  ref={donorContextRef}
                   value={donorContext}
                   onChange={(e) => {
                     setDonorContext(e.target.value);
@@ -395,17 +452,18 @@ export function AgentKnowledge({
                   placeholder="Or write your own prompt..."
                 />
                 {showSaveReminder && hasDonorContextChanges && (
-                  <div className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-lg border-2 border-primary bg-primary/10 p-4">
+                  <div className="animate-in fade-in slide-in-from-top-2 border-primary bg-primary/10 rounded-lg border-2 p-4 duration-300">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-full bg-primary/20 p-1">
-                        <Sparkles className="h-4 w-4 text-primary" />
+                      <div className="bg-primary/20 mt-0.5 rounded-full p-1">
+                        <Sparkles className="text-primary h-4 w-4" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-primary">
+                        <h4 className="text-primary font-semibold">
                           Generated content ready to save!
                         </h4>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Your AI-generated context prompt is ready. Click the button below to save it to your agent.
+                        <p className="text-muted-foreground mt-1 text-sm">
+                          Your AI-generated context prompt is ready. Click the
+                          button below to save it to your agent.
                         </p>
                       </div>
                     </div>
@@ -422,7 +480,7 @@ export function AgentKnowledge({
                       disabled={savingField === 'donor_context'}
                       className={
                         showSaveReminder
-                          ? 'animate-pulse ring-2 ring-primary ring-offset-2'
+                          ? 'ring-primary animate-pulse ring-2 ring-offset-2'
                           : ''
                       }
                     >
@@ -443,7 +501,7 @@ export function AgentKnowledge({
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-primary" />
+                <HelpCircle className="text-primary h-4 w-4" />
                 <CardTitle className="text-base">
                   Frequently Asked Questions
                 </CardTitle>
@@ -469,7 +527,7 @@ export function AgentKnowledge({
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Database className="h-4 w-4 text-primary" />
+                <Database className="text-primary h-4 w-4" />
                 <CardTitle className="text-base">Knowledge Base</CardTitle>
               </div>
               <CardDescription>

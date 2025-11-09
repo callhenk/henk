@@ -31,13 +31,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const {
-      agent_id,
-      account_id,
-      business_id,
-      initial_message,
-      conversation_type,
-    } = await request.json();
+    let agent_id, account_id, business_id, initial_message, conversation_type;
+    try {
+      const body = await request.json();
+      agent_id = body.agent_id;
+      account_id = body.account_id;
+      business_id = body.business_id;
+      initial_message = body.initial_message;
+      conversation_type = body.conversation_type;
+    } catch (parseError) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON in request body' },
+        { status: 400, headers: corsHeaders },
+      );
+    }
 
     if (!agent_id || !account_id || !business_id) {
       return NextResponse.json(
