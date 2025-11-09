@@ -133,9 +133,16 @@ export async function POST(request: NextRequest) {
     // Create ElevenLabs agent
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
+      logger.warn('ElevenLabs API key not configured', {
+        component: 'PublicDemoAgent',
+        action: 'createAgent',
+      });
       return NextResponse.json(
-        { error: 'Service configuration error' },
-        { status: 500, headers: corsHeaders },
+        {
+          error: 'Demo service temporarily unavailable',
+          message: 'The demo service is not configured. Please contact support.',
+        },
+        { status: 503, headers: corsHeaders },
       );
     }
 
