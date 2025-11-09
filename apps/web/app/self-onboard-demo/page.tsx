@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
-  Briefcase,
+  Calendar,
   Check,
   ChevronLeft,
   ChevronRight,
+  Mail,
   PhoneCall,
   Settings,
   Target,
@@ -17,20 +18,18 @@ import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+import { Input } from '@kit/ui/input';
 import { Spinner } from '@kit/ui/spinner';
 
 import featuresFlagConfig from '../../config/feature-flags.config';
 import { generateAgentPrompts } from '../../lib/generate-agent-prompts';
 import { logger } from '../../lib/utils';
 import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voice-chat';
-import {
-  AGENT_TYPES,
-  AgentTypesStep,
-} from '../home/agents/_components/agent-types-step';
+import { AGENT_TYPES } from '../home/agents/_components/agent-types-step';
 import { DetailsStep } from '../home/agents/_components/details-step';
 import { UseCaseStep } from '../home/agents/_components/use-case-step';
 
-type StepType = 'agent-type' | 'use-case' | 'details' | 'conversation';
+type StepType = 'use-case' | 'details' | 'conversation';
 
 interface CreatedAgent {
   id: string;
@@ -42,10 +41,8 @@ export default function SelfOnboardDemoPage() {
   const router = useRouter();
 
   // Agent creation state - must be before any conditional returns
-  const [step, setStep] = useState<StepType>('agent-type');
-  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(
-    null,
-  );
+  const [step, setStep] = useState<StepType>('use-case');
+  const [agentType] = useState<keyof typeof AGENT_TYPES>('business_agent');
   const [useCase, setUseCase] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [contextPrompt, setContextPrompt] = useState('');
@@ -57,6 +54,9 @@ export default function SelfOnboardDemoPage() {
     useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdAgent, setCreatedAgent] = useState<CreatedAgent | null>(null);
+  const [email, setEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const industry = 'non profit';
 
@@ -118,12 +118,6 @@ export default function SelfOnboardDemoPage() {
     description?: string;
   }> = [
     {
-      key: 'agent-type',
-      title: 'Agent Type',
-      icon: <Briefcase className="h-4 w-4" />,
-      description: 'Choose template',
-    },
-    {
       key: 'use-case',
       title: 'Use Case',
       icon: <Target className="h-4 w-4" />,
@@ -147,8 +141,6 @@ export default function SelfOnboardDemoPage() {
 
   const canProceed = () => {
     switch (step) {
-      case 'agent-type':
-        return agentType !== null;
       case 'use-case':
         return useCase !== null;
       case 'details':
@@ -374,15 +366,6 @@ export default function SelfOnboardDemoPage() {
           </CardHeader>
 
           <CardContent className="p-4 sm:p-6">
-            {step === 'agent-type' && (
-              <div className="animate-in fade-in duration-300">
-                <AgentTypesStep
-                  selectedType={agentType}
-                  onSelectType={setAgentType}
-                />
-              </div>
-            )}
-
             {step === 'use-case' && (
               <div className="animate-in fade-in duration-300">
                 <UseCaseStep
@@ -448,6 +431,140 @@ export default function SelfOnboardDemoPage() {
                   elevenlabsAgentId={createdAgent.elevenlabs_agent_id}
                   inline={true}
                 />
+
+                {/* Email Capture & Calendly */}
+                {!emailSent ? (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Mail className="mt-1 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="flex-1 space-y-2">
+                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                            Interested in using AI agents for your organization?
+                          </h4>
+                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                            Leave your email and we&apos;ll send you more
+                            information, or book a demo call directly.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <Input
+                          type="email"
+                          placeholder="your@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="flex-1"
+                          disabled={isSendingEmail}
+                        />
+                        <Button
+                          onClick={async () => {
+                            if (!email.trim()) {
+                              toast.error('Please enter your email');
+                              return;
+                            }
+
+                            setIsSendingEmail(true);
+
+                            try {
+                              const response = await fetch(
+                                '/api/public/send-demo-interest',
+                                {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    email: email.trim(),
+                                    agentName: createdAgent.name,
+                                    useCase: useCase,
+                                    contextPrompt: contextPrompt,
+                                  }),
+                                },
+                              );
+
+                              if (!response.ok) {
+                                throw new Error('Failed to send email');
+                              }
+
+                              setEmailSent(true);
+                              toast.success(
+                                "Thank you! We'll be in touch soon.",
+                              );
+                            } catch (error) {
+                              toast.error('Failed to send. Please try again.');
+                            } finally {
+                              setIsSendingEmail(false);
+                            }
+                          }}
+                          disabled={isSendingEmail || !email.trim()}
+                          className="sm:w-auto"
+                        >
+                          {isSendingEmail ? (
+                            <>
+                              <Spinner className="mr-2 h-3 w-3" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Send'
+                          )}
+                        </Button>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <div className="bg-muted h-px flex-1" />
+                        <span className="text-muted-foreground text-xs">
+                          or
+                        </span>
+                        <div className="bg-muted h-px flex-1" />
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          window.open(
+                            'https://calendly.com/jerome-callhenk/30min',
+                            '_blank',
+                          );
+                        }}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Book a 30-min Demo Call
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
+                    <div className="flex items-start gap-3">
+                      <Check className="mt-1 h-5 w-5 text-green-600 dark:text-green-400" />
+                      <div>
+                        <h4 className="font-semibold text-green-900 dark:text-green-100">
+                          Thank you for your interest!
+                        </h4>
+                        <p className="mt-1 text-sm text-green-800 dark:text-green-200">
+                          We&apos;ve received your information and will be in
+                          touch soon.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => {
+                            window.open(
+                              'https://calendly.com/jerome-callhenk/30min',
+                              '_blank',
+                            );
+                          }}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Or Book a Call Now
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
