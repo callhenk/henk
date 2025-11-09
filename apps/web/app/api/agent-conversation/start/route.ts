@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       business_id = body.business_id;
       initial_message = body.initial_message;
       conversation_type = body.conversation_type;
-    } catch (parseError) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid JSON in request body' },
         { status: 400, headers: corsHeaders },
