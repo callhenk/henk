@@ -27,4 +27,4 @@ export {
 } from './time';
 
 // Demo constants
-export { DEMO_RATE_LIMITS } from './demo';
+export { DEMO_RATE_LIMITS, PROMPT_GENERATION_RATE_LIMITS } from './demo';
