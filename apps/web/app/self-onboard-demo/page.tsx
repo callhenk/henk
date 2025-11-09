@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -302,8 +302,8 @@ export default function SelfOnboardDemoPage() {
     <div className="bg-background min-h-screen p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8 sm:mb-10">
-          <div className="mb-4 flex items-center gap-2">
+        <div className="mb-8 text-center sm:mb-10">
+          <div className="mb-4 flex justify-center">
             <div className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1.5 dark:bg-green-900/30">
               <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
               <span className="text-xs font-semibold text-green-700 dark:text-green-400">
@@ -311,15 +311,15 @@ export default function SelfOnboardDemoPage() {
               </span>
             </div>
           </div>
-          <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="mb-3 text-4xl font-bold tracking-tight sm:text-5xl">
             Create Your AI Voice Agent
           </h1>
-          <p className="text-muted-foreground mb-4 max-w-2xl text-base leading-relaxed sm:text-lg">
+          <p className="text-muted-foreground mx-auto mb-4 max-w-2xl text-base leading-relaxed sm:text-lg">
             Build and test your own AI voice agent in minutes. Once created, you
             can have a real-time conversation with it directly in your browser.{' '}
             <strong className="font-semibold">No sign-up required!</strong>
           </p>
-          <div className="inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-900/20">
+          <div className="mx-auto inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-900/20">
             <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
               <span className="text-xs">ℹ️</span>
             </div>
@@ -333,33 +333,51 @@ export default function SelfOnboardDemoPage() {
         {/* Main Card */}
         <Card className="border-2">
           <CardHeader className="border-b px-4 py-5 sm:px-6 sm:py-6">
-            <CardTitle className="text-lg font-semibold sm:text-xl">
+            <CardTitle className="text-center text-lg font-semibold sm:text-xl">
               Agent Setup
             </CardTitle>
 
             {/* Step indicator */}
-            <div className="mt-3 grid grid-cols-4 gap-1 sm:mt-4 sm:gap-2">
+            <div className="mt-6 flex items-center justify-center gap-2 sm:gap-3">
               {steps.map((s, idx) => (
-                <div
-                  key={s.key}
-                  className={`flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-xs transition-colors duration-200 sm:gap-1 sm:px-3 sm:py-2 ${
-                    idx <= stepIndex
-                      ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'bg-muted text-muted-foreground border'
-                  }`}
-                >
-                  <div className="flex h-4 items-center justify-center transition-opacity duration-200 sm:h-5">
-                    {idx < stepIndex ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <span className="text-[10px] font-bold sm:text-xs">
-                        {idx + 1}
+                <div key={s.key} className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 sm:h-11 sm:w-11 ${
+                        idx < stepIndex
+                          ? 'bg-green-500 text-white'
+                          : idx === stepIndex
+                            ? 'bg-primary text-primary-foreground ring-primary/20 font-semibold ring-2 ring-offset-2'
+                            : 'bg-muted text-muted-foreground border-2'
+                      }`}
+                    >
+                      {idx < stepIndex ? (
+                        <Check className="h-5 w-5" />
+                      ) : (
+                        <div className="flex h-4 w-4 items-center justify-center sm:h-5 sm:w-5">
+                          {s.icon}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-center gap-0">
+                      <span
+                        className={`text-center text-[10px] font-medium sm:text-xs ${
+                          idx <= stepIndex
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {s.title}
                       </span>
-                    )}
+                    </div>
                   </div>
-                  <span className="text-center text-[7px] leading-tight font-medium sm:text-[9px]">
-                    {s.title}
-                  </span>
+                  {idx < steps.length - 1 && (
+                    <div
+                      className={`mb-5 h-0.5 w-8 transition-colors duration-200 sm:w-12 ${
+                        idx < stepIndex ? 'bg-green-500' : 'bg-muted'
+                      }`}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -492,7 +510,7 @@ export default function SelfOnboardDemoPage() {
                               toast.success(
                                 "Thank you! We'll be in touch soon.",
                               );
-                            } catch (error) {
+                            } catch {
                               toast.error('Failed to send. Please try again.');
                             } finally {
                               setIsSendingEmail(false);

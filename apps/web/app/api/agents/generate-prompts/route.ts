@@ -239,43 +239,23 @@ ${STANDARD_CONVERSATION_FLOW}`;
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    // 1. Verify authentication
+    // 1. Check authentication (optional - allows public access)
     const supabase = getSupabaseServerClient();
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 },
-      );
-    }
+    // Determine rate limit key - use user ID if authenticated, otherwise use a generic key
+    // Note: NextRequest doesn't expose IP directly, so we use 'public' for unauthenticated
+    const rateLimitKey = user?.id || 'public';
+    const isAuthenticated = !!user;
 
-    // 2. Get user's business context
-    const { data: teamMember, error: teamError } = await supabase
-      .from('team_members')
-      .select('business_id, role, status')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single();
-
-    if (teamError || !teamMember) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No active business membership found',
-        },
-        { status: 403 },
-      );
-    }
-
-    // 3. Apply rate limiting per authenticated user
-    // Use user ID for more accurate rate limiting (not affected by shared IPs)
+    // 3. Apply rate limiting (stricter for unauthenticated users)
     const minuteLimit = rateLimiter.check(
-      `prompt-gen:minute:${user.id}`,
-      PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE,
+      `prompt-gen:minute:${rateLimitKey}`,
+      isAuthenticated
+        ? PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE
+        : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE / 2), // Half the limit for public
       60 * 1000, // 1 minute
     );
 
@@ -284,13 +264,15 @@ export async function POST(request: NextRequest): Promise<Response> {
         {
           success: false,
           error: 'Rate limit exceeded',
-          message: `You can generate up to ${PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE} prompts per minute. Please try again in ${Math.ceil((minuteLimit.resetAt - Date.now()) / 1000)} seconds.`,
+          message: `You can generate up to ${isAuthenticated ? PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE / 2)} prompts per minute. Please try again in ${Math.ceil((minuteLimit.resetAt - Date.now()) / 1000)} seconds.`,
         },
         {
           status: 429,
           headers: {
             'X-RateLimit-Limit': String(
-              PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE,
+              isAuthenticated
+                ? PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE
+                : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_MINUTE / 2),
             ),
             'X-RateLimit-Remaining': String(minuteLimit.remaining),
             'X-RateLimit-Reset': new Date(minuteLimit.resetAt).toISOString(),
@@ -302,10 +284,12 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    // Apply per-hour rate limit per user
+    // Apply per-hour rate limit
     const hourLimit = rateLimiter.check(
-      `prompt-gen:hour:${user.id}`,
-      PROMPT_GENERATION_RATE_LIMITS.PER_HOUR,
+      `prompt-gen:hour:${rateLimitKey}`,
+      isAuthenticated
+        ? PROMPT_GENERATION_RATE_LIMITS.PER_HOUR
+        : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_HOUR / 2), // Half the limit for public
       60 * 60 * 1000, // 1 hour
     );
 
@@ -314,12 +298,16 @@ export async function POST(request: NextRequest): Promise<Response> {
         {
           success: false,
           error: 'Hourly rate limit exceeded',
-          message: `You can generate up to ${PROMPT_GENERATION_RATE_LIMITS.PER_HOUR} prompts per hour. Please try again later.`,
+          message: `You can generate up to ${isAuthenticated ? PROMPT_GENERATION_RATE_LIMITS.PER_HOUR : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_HOUR / 2)} prompts per hour. Please try again later.`,
         },
         {
           status: 429,
           headers: {
-            'X-RateLimit-Limit': String(PROMPT_GENERATION_RATE_LIMITS.PER_HOUR),
+            'X-RateLimit-Limit': String(
+              isAuthenticated
+                ? PROMPT_GENERATION_RATE_LIMITS.PER_HOUR
+                : Math.floor(PROMPT_GENERATION_RATE_LIMITS.PER_HOUR / 2),
+            ),
             'X-RateLimit-Remaining': String(hourLimit.remaining),
             'X-RateLimit-Reset': new Date(hourLimit.resetAt).toISOString(),
             'Retry-After': String(
