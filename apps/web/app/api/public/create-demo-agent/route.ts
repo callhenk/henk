@@ -6,7 +6,6 @@ import {
   type VoiceGender,
   getDefaultVoiceId,
 } from '~/lib/constants';
-import { extractAgentName } from '~/lib/extract-agent-name';
 import rateLimiter, { getClientIp } from '~/lib/simple-rate-limit';
 import { logger } from '~/lib/utils';
 
@@ -152,17 +151,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract name from context prompt using LLM
-    const extractedName = await extractAgentName(contextPrompt.trim());
-    // Use extracted name if found, otherwise use provided name
-    const finalAgentName = extractedName || name.trim();
+    // Use the provided name directly for demos (no extraction needed)
+    // The name is already set to match the use case on the frontend
+    const finalAgentName = name.trim();
 
-    logger.debug('Agent name extraction result', {
+    logger.debug('Using provided agent name for demo', {
       component: 'PublicDemoAgent',
-      action: 'extractName',
-      providedName: name.trim(),
-      extractedName,
-      finalName: finalAgentName,
+      action: 'setName',
+      agentName: finalAgentName,
     });
 
     // Create ElevenLabs agent
@@ -185,22 +181,33 @@ export async function POST(request: NextRequest) {
     // Get the default voice ID based on gender
     const voiceId = getDefaultVoiceId(voiceGender);
 
+    // Build or merge conversation config with TTS settings
+    const finalConversationConfig = conversationConfig
+      ? {
+          ...conversationConfig,
+          tts: {
+            voice_id: voiceId, // Always set the voice based on gender selection
+          },
+        }
+      : {
+          agent: {
+            first_message:
+              startingMessage || 'Hello! How can I help you today?',
+            language: 'en',
+            prompt: {
+              prompt: contextPrompt.trim(),
+              llm: 'gpt-4o-mini',
+              max_tokens: 1024,
+            },
+          },
+          tts: {
+            voice_id: voiceId,
+          },
+        };
+
     const elevenLabsAgentConfig: Record<string, unknown> = {
       name: finalAgentName,
-      conversation_config: conversationConfig || {
-        agent: {
-          first_message: startingMessage || 'Hello! How can I help you today?',
-          language: 'en',
-          prompt: {
-            prompt: contextPrompt.trim(),
-            llm: 'gpt-4o-mini',
-            max_tokens: 1024,
-          },
-        },
-        tts: {
-          voice_id: voiceId, // Set the voice based on gender selection
-        },
-      },
+      conversation_config: finalConversationConfig,
       context_data: {
         donor_context: contextPrompt.trim(),
       },
