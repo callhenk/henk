@@ -25,15 +25,15 @@ export function DetailsStep({
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-1 sm:space-y-2">
-        <h3 className="text-xl sm:text-2xl font-bold">Agent Details</h3>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <h3 className="text-xl font-bold sm:text-2xl">Agent Details</h3>
+        <p className="text-muted-foreground text-sm sm:text-base">
           Review and customize your agent&apos;s configuration
         </p>
       </div>
 
       <div className="space-y-4 sm:space-y-5">
-        <div className="space-y-2 animate-in fade-in duration-300">
-          <label className="block text-xs sm:text-sm font-semibold">
+        <div className="animate-in fade-in space-y-2 duration-300">
+          <label className="block text-xs font-semibold sm:text-sm">
             Agent Name <span className="text-destructive">*</span>
           </label>
           <Input
@@ -43,45 +43,46 @@ export function DetailsStep({
               onNameChange(e.target.value);
               onNameEdited?.();
             }}
-            className="h-10 sm:h-11 text-sm sm:text-base"
+            className="h-10 text-sm sm:h-11 sm:text-base"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Choose a friendly, memorable name for your agent
           </p>
         </div>
 
         {onFirstMessageChange && (
-          <div className="space-y-2 animate-in fade-in duration-300">
-            <label className="block text-xs sm:text-sm font-semibold">
+          <div className="animate-in fade-in space-y-2 duration-300">
+            <label className="block text-xs font-semibold sm:text-sm">
               First Message
             </label>
-            <Input
+            <Textarea
               placeholder="e.g., Hello! How can I help you today?"
               value={firstMessage || ''}
               onChange={(e) => {
                 onFirstMessageChange(e.target.value);
               }}
-              className="h-10 sm:h-11 text-sm sm:text-base"
+              className="min-h-[80px] resize-y text-sm sm:text-base"
+              rows={3}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               The agent&apos;s opening greeting when the call starts
             </p>
           </div>
         )}
 
-        <div className="space-y-2 animate-in fade-in duration-300">
-          <label className="block text-xs sm:text-sm font-semibold">
+        <div className="animate-in fade-in space-y-2 duration-300">
+          <label className="block text-xs font-semibold sm:text-sm">
             Context Prompt <span className="text-destructive">*</span>
           </label>
           <Textarea
             placeholder="Describe the agent's purpose, behavior, and context. This guides how the agent responds to users."
-            className="min-h-[250px] sm:min-h-[300px] text-sm sm:text-base resize-y"
+            className="min-h-[250px] resize-y text-sm sm:min-h-[300px] sm:text-base"
             value={contextPrompt}
             onChange={(e) => {
               onContextPromptChange(e.target.value);
             }}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             The prompt or context that guides the agent&apos;s responses
           </p>
         </div>
