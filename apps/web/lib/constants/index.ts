@@ -28,3 +28,6 @@ export {
 
 // Demo constants
 export { DEMO_RATE_LIMITS, PROMPT_GENERATION_RATE_LIMITS } from './demo';
+
+// Voice constants
+export { DEFAULT_VOICES, getDefaultVoiceId, type VoiceGender } from './voices';
