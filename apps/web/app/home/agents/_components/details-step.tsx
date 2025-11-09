@@ -9,6 +9,8 @@ interface DetailsStepProps {
   onNameEdited?: () => void;
   contextPrompt: string;
   onContextPromptChange: (contextPrompt: string) => void;
+  firstMessage?: string;
+  onFirstMessageChange?: (firstMessage: string) => void;
 }
 
 export function DetailsStep({
@@ -17,6 +19,8 @@ export function DetailsStep({
   onNameEdited,
   contextPrompt,
   onContextPromptChange,
+  firstMessage,
+  onFirstMessageChange,
 }: DetailsStepProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -46,13 +50,32 @@ export function DetailsStep({
           </p>
         </div>
 
+        {onFirstMessageChange && (
+          <div className="space-y-2 animate-in fade-in duration-300">
+            <label className="block text-xs sm:text-sm font-semibold">
+              First Message
+            </label>
+            <Input
+              placeholder="e.g., Hello! How can I help you today?"
+              value={firstMessage || ''}
+              onChange={(e) => {
+                onFirstMessageChange(e.target.value);
+              }}
+              className="h-10 sm:h-11 text-sm sm:text-base"
+            />
+            <p className="text-xs text-muted-foreground">
+              The agent&apos;s opening greeting when the call starts
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2 animate-in fade-in duration-300">
           <label className="block text-xs sm:text-sm font-semibold">
             Context Prompt <span className="text-destructive">*</span>
           </label>
           <Textarea
             placeholder="Describe the agent's purpose, behavior, and context. This guides how the agent responds to users."
-            className="min-h-[300px] sm:min-h-[350px] text-sm sm:text-base resize-y"
+            className="min-h-[250px] sm:min-h-[300px] text-sm sm:text-base resize-y"
             value={contextPrompt}
             onChange={(e) => {
               onContextPromptChange(e.target.value);

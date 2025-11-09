@@ -25,3 +25,6 @@ export {
   SUCCESS_MESSAGE_DURATION_MS,
   DEFAULT_POLLING_INTERVAL_MS,
 } from './time';
+
+// Demo constants
+export { DEMO_RATE_LIMITS } from './demo';
