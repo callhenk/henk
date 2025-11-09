@@ -80,19 +80,22 @@ export class Mailbox {
       throw new Error(`Failed to fetch email: ${messageResponse.statusText}`);
     }
 
-    // delete message
+    // Get the message content first
+    const messageData = await messageResponse.json();
+
+    // Delete message asynchronously (don't wait or fail if it doesn't work)
     if (params.deleteAfter) {
       console.log(`Deleting email ${messageId} ...`);
 
-      const res = await fetch(messageUrl, {
+      // Delete asynchronously without blocking
+      fetch(messageUrl, {
         method: 'DELETE',
+      }).catch((error) => {
+        // Silently ignore deletion errors - they don't affect test functionality
+        console.warn(`Email deletion failed (non-critical): ${error.message}`);
       });
-
-      if (!res.ok) {
-        console.error(`Failed to delete email: ${res.statusText}`);
-      }
     }
 
-    return await messageResponse.json();
+    return messageData;
   }
 }
