@@ -5,6 +5,7 @@ These E2E tests verify that the core functionality of the Henk platform works en
 ## What Gets Tested
 
 ### ✓ User Flow
+
 1. Login with real credentials
 2. Navigate to main sections
 3. Create core entities (contacts, campaigns, agents)
@@ -12,6 +13,7 @@ These E2E tests verify that the core functionality of the Henk platform works en
 5. Sign out
 
 ### ✓ Core Functionality
+
 - **Contacts/Donors**: Create new contacts
 - **Campaigns**: Create new campaigns
 - **Agents**: Create new AI agents
@@ -22,6 +24,7 @@ These E2E tests verify that the core functionality of the Henk platform works en
 ## Running the Tests
 
 ### Quick Run (Headless)
+
 ```bash
 # From project root
 pnpm test:e2e
@@ -31,6 +34,7 @@ pnpm --filter e2e test tests/core-functionality/smoke-test.spec.ts
 ```
 
 ### Interactive Mode (See the browser)
+
 ```bash
 # From project root
 pnpm --filter e2e test:ui
@@ -39,6 +43,7 @@ pnpm --filter e2e test:ui
 ```
 
 ### Watch a Specific Test
+
 ```bash
 cd apps/e2e
 pnpm exec playwright test smoke-test.spec.ts --headed --slowMo=500
@@ -47,12 +52,14 @@ pnpm exec playwright test smoke-test.spec.ts --headed --slowMo=500
 ## Test Credentials
 
 The tests use these credentials (already configured):
+
 - **Email:** `cyrus@callhenk.com`
 - **Password:** `Test123?`
 
 ## Prerequisites
 
 1. **Application Running:**
+
    ```bash
    # Terminal 1: Start the app
    pnpm dev
@@ -60,6 +67,7 @@ The tests use these credentials (already configured):
 
 2. **Database Ready:**
    Make sure Supabase is running if using local:
+
    ```bash
    pnpm supabase:web:start
    ```
@@ -72,18 +80,23 @@ The tests use these credentials (already configured):
 ## Understanding the Tests
 
 Each test is designed to be **resilient**:
+
 - If a button isn't found, the test skips gracefully
 - Tests wait for elements to appear
 - Tests verify success by checking for created items
 
 ### Test Structure
+
 ```typescript
 test('can create a contact', async ({ page }) => {
   // 1. Navigate to section
   await page.click('text=Donors');
 
   // 2. Find and click create button
-  const createButton = page.locator('button').filter({ hasText: /Add|Create/ }).first();
+  const createButton = page
+    .locator('button')
+    .filter({ hasText: /Add|Create/ })
+    .first();
 
   // 3. Fill form
   await page.fill('input[name="firstName"]', 'Test');
@@ -101,20 +114,23 @@ test('can create a contact', async ({ page }) => {
 ### Tests Failing?
 
 1. **Check app is running:**
+
    ```bash
    curl http://localhost:3000
    ```
 
 2. **Check credentials work:**
    - Try logging in manually at http://localhost:3000/auth/sign-in
-   - Use: cyrus@callhenk.com / Avatar123?
+   - Use: cyrus@callhenk.com / Test123?
 
 3. **Check browser:**
+
    ```bash
    pnpm exec playwright install chromium
    ```
 
 4. **Run in headed mode to see what's happening:**
+
    ```bash
    pnpm exec playwright test smoke-test.spec.ts --headed
    ```
@@ -127,21 +143,25 @@ test('can create a contact', async ({ page }) => {
 ### Common Issues
 
 **"Timeout waiting for URL"**
+
 - App might not be running
 - Check `http://localhost:3000` is accessible
 
 **"Element not found"**
+
 - UI might have changed
 - Check the selector in the test
 - Run in headed mode to see the actual UI
 
 **"Login failed"**
+
 - Credentials might have changed
 - Database might need resetting
 
 ## Viewing Results
 
 After running tests:
+
 ```bash
 # View HTML report
 pnpm --filter e2e report
@@ -153,6 +173,7 @@ ls apps/e2e/test-results/
 ## CI/CD Integration
 
 These tests run automatically on:
+
 - Pull requests
 - Pushes to `main`
 
@@ -163,6 +184,7 @@ See `.github/workflows/ci.yml` for configuration.
 To add a new smoke test:
 
 1. **Add to existing file:**
+
    ```typescript
    test('can create integration', async ({ page }) => {
      await page.click('text=Integrations');
@@ -171,6 +193,7 @@ To add a new smoke test:
    ```
 
 2. **Create new file:**
+
    ```bash
    cp smoke-test.spec.ts advanced-workflow.spec.ts
    ```
@@ -184,6 +207,7 @@ To add a new smoke test:
 ## Best Practices
 
 ✅ **DO:**
+
 - Test real user workflows
 - Use semantic selectors (text, role, label)
 - Wait for elements to appear
@@ -191,6 +215,7 @@ To add a new smoke test:
 - Clean up test data if needed
 
 ❌ **DON'T:**
+
 - Rely on brittle CSS class selectors
 - Use hardcoded waits (use `waitFor` instead)
 - Leave test data in production DB

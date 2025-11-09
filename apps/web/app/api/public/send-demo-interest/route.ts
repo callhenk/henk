@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     // Send email to jerome@callhenk.com
     const { error } = await resend.emails.send({
       from: 'Henk Demo <demo@callhenk.com>',
-      to: 'cyrus@callhenk.com',
+      to: 'jerome+demo-request@callhenk.com',
       replyTo: email.trim(),
       subject: `New Demo Interest${name ? ` from ${name}` : ''}: ${agentName}`,
       html: `
