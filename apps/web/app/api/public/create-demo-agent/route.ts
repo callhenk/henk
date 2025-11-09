@@ -248,6 +248,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!elevenLabsResp.ok) {
+      const errorDetail = elevenlabsData as Record<string, unknown>;
       logger.error(
         'ElevenLabs agent creation failed',
         new Error('API request failed'),
@@ -255,14 +256,18 @@ export async function POST(request: NextRequest) {
           component: 'PublicDemoAgent',
           action: 'createElevenLabsAgent',
           status: elevenLabsResp.status,
+          responseBody: raw, // Log the raw response
+          errorDetail:
+            errorDetail?.detail || errorDetail?.error || 'No error detail',
+          sentConfig: JSON.stringify(elevenLabsAgentConfig, null, 2),
         },
       );
       return NextResponse.json(
         {
           error:
-            ((elevenlabsData as Record<string, unknown>)?.error as
-              | string
-              | undefined) || 'Failed to create voice agent',
+            (errorDetail?.error as string | undefined) ||
+            (errorDetail?.detail as string | undefined) ||
+            'Failed to create voice agent',
         },
         { status: elevenLabsResp.status, headers: corsHeaders },
       );
