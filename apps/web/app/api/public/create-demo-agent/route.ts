@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import featuresFlagConfig from '~/config/feature-flags.config';
 import { DEMO_RATE_LIMITS } from '~/lib/constants';
+import { extractAgentName } from '~/lib/extract-agent-name';
 import rateLimiter, { getClientIp } from '~/lib/simple-rate-limit';
 import { logger } from '~/lib/utils';
-import featuresFlagConfig from '~/config/feature-flags.config';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -123,7 +124,13 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = (await request.json()) as CreateDemoAgentRequest;
-    const { name, contextPrompt, startingMessage, knowledgeBase, conversationConfig } = body;
+    const {
+      name,
+      contextPrompt,
+      startingMessage,
+      knowledgeBase,
+      conversationConfig,
+    } = body;
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -139,6 +146,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract name from context prompt using LLM
+    const extractedName = await extractAgentName(contextPrompt.trim());
+    // Use extracted name if found, otherwise use provided name
+    const finalAgentName = extractedName || name.trim();
+
+    logger.debug('Agent name extraction result', {
+      component: 'PublicDemoAgent',
+      action: 'extractName',
+      providedName: name.trim(),
+      extractedName,
+      finalName: finalAgentName,
+    });
+
     // Create ElevenLabs agent
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
@@ -149,14 +169,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Demo service temporarily unavailable',
-          message: 'The demo service is not configured. Please contact support.',
+          message:
+            'The demo service is not configured. Please contact support.',
         },
         { status: 503, headers: corsHeaders },
       );
     }
 
     const elevenLabsAgentConfig: Record<string, unknown> = {
-      name: name.trim(),
+      name: finalAgentName,
       conversation_config: conversationConfig || {
         agent: {
           first_message: startingMessage || 'Hello! How can I help you today?',
@@ -176,7 +197,7 @@ export async function POST(request: NextRequest) {
     logger.debug('Creating ElevenLabs agent for demo', {
       component: 'PublicDemoAgent',
       action: 'createElevenLabsAgent',
-      agentName: name.trim(),
+      agentName: finalAgentName,
     });
 
     const headers: Record<string, string> = {
@@ -244,7 +265,7 @@ export async function POST(request: NextRequest) {
     logger.info('Demo agent created successfully', {
       component: 'PublicDemoAgent',
       action: 'createAgent',
-      agentName: name.trim(),
+      agentName: finalAgentName,
       elevenlabsAgentId,
       clientIp,
     });
@@ -253,7 +274,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         agent: {
-          name: name.trim(),
+          name: finalAgentName,
           elevenlabs_agent_id: elevenlabsAgentId,
         },
       },

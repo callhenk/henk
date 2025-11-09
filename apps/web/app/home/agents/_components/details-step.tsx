@@ -21,8 +21,8 @@ interface DetailsStepProps {
   enableAiGeneration?: boolean;
   agentName?: string;
   industry?: string;
-  voiceGender?: 'male' | 'female';
-  onVoiceGenderChange?: (gender: 'male' | 'female') => void;
+  voiceGender?: 'masculine' | 'feminine';
+  onVoiceGenderChange?: (gender: 'masculine' | 'feminine') => void;
   showVoiceSelection?: boolean;
 }
 
@@ -37,7 +37,7 @@ export function DetailsStep({
   enableAiGeneration = false,
   agentName,
   industry,
-  voiceGender = 'female',
+  voiceGender = 'feminine',
   onVoiceGenderChange,
   showVoiceSelection = false,
 }: DetailsStepProps) {
@@ -210,55 +210,111 @@ export function DetailsStep({
         </div>
 
         {showVoiceSelection && (
-          <div className="animate-in fade-in space-y-2 duration-300">
+          <div className="animate-in fade-in space-y-3 duration-300">
             <label className="block text-xs font-semibold sm:text-sm">
-              Voice Gender <span className="text-destructive">*</span>
+              Voice Style <span className="text-destructive">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <button
                 type="button"
-                onClick={() => onVoiceGenderChange?.('female')}
-                className={`hover:border-primary/50 flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
-                  voiceGender === 'female'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border'
+                onClick={() => onVoiceGenderChange?.('feminine')}
+                className={`group relative flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all hover:shadow-md sm:p-5 ${
+                  voiceGender === 'feminine'
+                    ? 'border-primary bg-primary/10 shadow-primary/20 shadow-lg'
+                    : 'border-border hover:border-primary/30'
                 }`}
               >
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-colors ${
-                    voiceGender === 'female'
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30'
-                      : 'bg-muted'
+                  className={`flex h-14 w-14 items-center justify-center rounded-full text-3xl transition-all sm:h-16 sm:w-16 ${
+                    voiceGender === 'feminine'
+                      ? 'bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg shadow-pink-500/40'
+                      : 'bg-muted group-hover:bg-muted/80'
                   }`}
                 >
-                  👩
+                  <span
+                    className={voiceGender === 'feminine' ? 'scale-110' : ''}
+                  >
+                    👩
+                  </span>
                 </div>
-                <span className="text-sm font-medium">Female</span>
+                <div className="text-center">
+                  <span className="block text-sm font-semibold sm:text-base">
+                    Feminine
+                  </span>
+                  <span className="text-muted-foreground mt-0.5 block text-xs">
+                    Softer tone
+                  </span>
+                </div>
+                {voiceGender === 'feminine' && (
+                  <div className="bg-primary absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full">
+                    <svg
+                      className="h-3 w-3 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                )}
               </button>
               <button
                 type="button"
-                onClick={() => onVoiceGenderChange?.('male')}
-                className={`hover:border-primary/50 flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
-                  voiceGender === 'male'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border'
+                onClick={() => onVoiceGenderChange?.('masculine')}
+                className={`group relative flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all hover:shadow-md sm:p-5 ${
+                  voiceGender === 'masculine'
+                    ? 'border-primary bg-primary/10 shadow-primary/20 shadow-lg'
+                    : 'border-border hover:border-primary/30'
                 }`}
               >
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-colors ${
-                    voiceGender === 'male'
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30'
-                      : 'bg-muted'
+                  className={`flex h-14 w-14 items-center justify-center rounded-full text-3xl transition-all sm:h-16 sm:w-16 ${
+                    voiceGender === 'masculine'
+                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/40'
+                      : 'bg-muted group-hover:bg-muted/80'
                   }`}
                 >
-                  👨
+                  <span
+                    className={voiceGender === 'masculine' ? 'scale-110' : ''}
+                  >
+                    👨
+                  </span>
                 </div>
-                <span className="text-sm font-medium">Male</span>
+                <div className="text-center">
+                  <span className="block text-sm font-semibold sm:text-base">
+                    Masculine
+                  </span>
+                  <span className="text-muted-foreground mt-0.5 block text-xs">
+                    Deeper tone
+                  </span>
+                </div>
+                {voiceGender === 'masculine' && (
+                  <div className="bg-primary absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full">
+                    <svg
+                      className="h-3 w-3 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                )}
               </button>
             </div>
             <p className="text-muted-foreground text-xs">
-              Select a default voice. You can customize voice settings and
-              choose from hundreds of voices after creation.
+              Choose a default voice style. You can customize voice settings and
+              select from hundreds of voices after creation.
             </p>
           </div>
         )}

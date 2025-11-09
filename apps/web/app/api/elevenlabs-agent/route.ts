@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { extractAgentName } from '~/lib/extract-agent-name';
 import { getSupabaseServerClient } from '~/lib/supabase/server';
 
 const corsHeaders = {
@@ -69,12 +70,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract name from context prompt if available in conversation_config
+    let finalAgentName = agentConfig.name;
+    const conversationConfig = agentConfig?.conversation_config as
+      | Record<string, unknown>
+      | undefined;
+    const agentPromptConfig = conversationConfig?.agent as
+      | Record<string, unknown>
+      | undefined;
+    const promptConfig = agentPromptConfig?.prompt as
+      | Record<string, unknown>
+      | undefined;
+    const contextPrompt = promptConfig?.prompt as string | undefined;
+
+    if (contextPrompt && typeof contextPrompt === 'string') {
+      const extractedName = await extractAgentName(contextPrompt);
+      if (extractedName) {
+        finalAgentName = extractedName;
+        console.log('[elevenlabs-agent] Extracted name from prompt:', {
+          providedName: agentConfig.name,
+          extractedName,
+          finalName: finalAgentName,
+        });
+      }
+    }
+
     const payload: Record<string, unknown> = {
-      name: agentConfig.name,
+      name: finalAgentName,
     };
 
     // Only include conversation_config if it's provided and has content
-    if (agentConfig?.conversation_config && Object.keys(agentConfig.conversation_config).length > 0) {
+    if (
+      agentConfig?.conversation_config &&
+      Object.keys(agentConfig.conversation_config).length > 0
+    ) {
       payload.conversation_config = agentConfig.conversation_config;
     }
 
@@ -110,7 +139,10 @@ export async function POST(request: NextRequest) {
       hasWorkspaceHeader: Boolean(process.env.ELEVENLABS_WORKSPACE_ID),
       apiKeyLength: apiKey?.length,
     });
-    console.log('[elevenlabs-agent] Full payload being sent:', JSON.stringify(payload, null, 2));
+    console.log(
+      '[elevenlabs-agent] Full payload being sent:',
+      JSON.stringify(payload, null, 2),
+    );
 
     const resp = await fetch(
       'https://api.elevenlabs.io/v1/convai/agents/create',

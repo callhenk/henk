@@ -48,7 +48,9 @@ export default function SelfOnboardDemoPage() {
   const [name, setName] = useState('');
   const [contextPrompt, setContextPrompt] = useState('');
   const [firstMessage, setFirstMessage] = useState('');
-  const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('female');
+  const [voiceGender, setVoiceGender] = useState<'masculine' | 'feminine'>(
+    'feminine',
+  );
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
   const [contextPromptManuallyEdited, setContextPromptManuallyEdited] =
     useState(false);
@@ -88,38 +90,6 @@ export default function SelfOnboardDemoPage() {
     };
   }, [createdAgent, emailSent]);
 
-  // Extract name from context prompt using LLM when it changes
-  useEffect(() => {
-    // Only auto-extract if user hasn't manually edited the name field
-    if (!nameManuallyEdited && contextPrompt && contextPrompt.length > 10) {
-      // Debounce the API call to avoid too many requests while user is typing
-      const timeoutId = setTimeout(async () => {
-        try {
-          const response = await fetch('/api/agents/extract-name', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: contextPrompt }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.name) {
-              // Only update if the extracted name is different from current
-              if (data.name !== name) {
-                setName(data.name);
-              }
-            }
-          }
-        } catch (error) {
-          // Silently fail - name extraction is a nice-to-have feature
-          console.debug('Name extraction failed:', error);
-        }
-      }, 1000); // Wait 1 second after user stops typing
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [contextPrompt, nameManuallyEdited, name]);
-
   // Generate dynamic prompts based on use case and industry
   useEffect(() => {
     if (agentType && useCase && industry) {
@@ -127,6 +97,7 @@ export default function SelfOnboardDemoPage() {
         agentType,
         useCase,
         industry,
+        agentName: name || undefined, // Pass the current name if available
       });
 
       // Only update if user hasn't manually edited
@@ -170,6 +141,23 @@ export default function SelfOnboardDemoPage() {
     contextPrompt,
     firstMessage,
   ]);
+
+  // Dynamically update first message when name changes (unless manually edited or AI-generated)
+  useEffect(() => {
+    // Only update if the message hasn't been manually edited
+    if (!firstMessageManuallyEdited && name && name.trim()) {
+      // Extract organization name from context prompt if possible
+      const orgMatch = contextPrompt.match(
+        /(?:for|at|with|from)\s+([A-Z][A-Za-z\s]+?)(?:\.|,|\s+is|\s+business)/i,
+      );
+      const organizationName =
+        orgMatch && orgMatch[1] ? orgMatch[1].trim() : '[Organization]';
+
+      // Update first message with current name
+      const updatedMessage = `Hi there! This is ${name} from ${organizationName}. Did I catch you at a good time?`;
+      setFirstMessage(updatedMessage);
+    }
+  }, [name, contextPrompt, firstMessageManuallyEdited]);
 
   const steps: Array<{
     key: StepType;
