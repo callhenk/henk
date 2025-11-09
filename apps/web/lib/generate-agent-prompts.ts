@@ -658,12 +658,8 @@ export function generateAgentPrompts(
     const companyInfo = businessName || 'a';
     const industryInfo = industryContext ? ` ${industry}` : '';
 
-    // Use custom name if provided, otherwise use the default role description
-    if (agentName) {
-      contextPrompt += `Your name is ${agentName}. You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
-    } else {
-      contextPrompt += `You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
-    }
+    // Always include the name in the context prompt (use custom name or default)
+    contextPrompt += `Your name is ${nameForPrompt}. You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
 
     // Add personality traits naturally
     contextPrompt += 'You are efficient, polite, and focused on ';

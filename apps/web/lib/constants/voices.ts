@@ -5,7 +5,7 @@
 
 export const DEFAULT_VOICES = {
   // Feminine voices
-  feminine: 'pNInz6obpgDQGcFmaJgB', // Sarah - warm, friendly female voice
+  feminine: '56bWURjYFHyYyVf490Dp', // Warm, friendly female voice
   // Masculine voices
   masculine: 'XrExE9yKIg1WjnnlVkGX', // Adam - confident, friendly male voice
 } as const;

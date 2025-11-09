@@ -97,8 +97,15 @@ export default function SelfOnboardDemoPage() {
         agentType,
         useCase,
         industry,
-        agentName: name || undefined, // Pass the current name if available
+        // Don't pass agentName so it always uses the use case's defaultName
       });
+
+      // Always update name to match the use case
+      if (generatedPrompts.defaultName) {
+        setName(generatedPrompts.defaultName);
+        // Reset the manual edit flag when use case changes
+        setNameManuallyEdited(false);
+      }
 
       // Only update if user hasn't manually edited
       if (!contextPromptManuallyEdited) {
@@ -106,9 +113,6 @@ export default function SelfOnboardDemoPage() {
       }
       if (!firstMessageManuallyEdited) {
         setFirstMessage(generatedPrompts.startingMessage || '');
-      }
-      if (!nameManuallyEdited && generatedPrompts.defaultName) {
-        setName(generatedPrompts.defaultName);
       }
     } else if (agentType && (!useCase || !industry)) {
       const template = AGENT_TYPES[agentType];
