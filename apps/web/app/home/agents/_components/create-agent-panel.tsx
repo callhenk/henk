@@ -68,38 +68,6 @@ export function CreateAgentPanel({
   // Track if user has manually edited name
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
 
-  // Extract name from context prompt using LLM when it changes
-  useEffect(() => {
-    // Only auto-extract if user hasn't manually edited the name field
-    if (!nameManuallyEdited && contextPrompt && contextPrompt.length > 10) {
-      // Debounce the API call to avoid too many requests while user is typing
-      const timeoutId = setTimeout(async () => {
-        try {
-          const response = await fetch('/api/agents/extract-name', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: contextPrompt }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.name) {
-              // Only update if the extracted name is different from current
-              if (data.name !== name) {
-                setName(data.name);
-              }
-            }
-          }
-        } catch (error) {
-          // Silently fail - name extraction is a nice-to-have feature
-          console.debug('Name extraction failed:', error);
-        }
-      }, 1000); // Wait 1 second after user stops typing
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [contextPrompt, nameManuallyEdited, name]);
-
   // Generate dynamic prompts based on use case and industry (takes priority)
   useEffect(() => {
     if (agentType && useCase && industry) {
@@ -107,6 +75,7 @@ export function CreateAgentPanel({
         agentType,
         useCase,
         industry,
+        agentName: name || undefined, // Pass the current name if available
       });
 
       // Update context prompt with generated content
@@ -212,6 +181,7 @@ export function CreateAgentPanel({
         agentType: agentType || 'blank',
         useCase,
         industry,
+        agentName: name.trim() || undefined, // Pass the agent name
       });
       const startingMessage = generatedPrompts.startingMessage;
 

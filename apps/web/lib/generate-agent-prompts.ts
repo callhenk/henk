@@ -15,6 +15,7 @@ interface PromptGenerationParams {
   industry?: string | null;
   businessName?: string;
   companyWebsite?: string;
+  agentName?: string;
 }
 
 interface GeneratedPrompts {
@@ -638,10 +639,14 @@ const INDUSTRY_CONTEXTS: Record<
 export function generateAgentPrompts(
   params: PromptGenerationParams,
 ): GeneratedPrompts {
-  const { agentType, useCase, industry, businessName } = params;
+  const { agentType, useCase, industry, businessName, agentName } = params;
 
   const useCaseConfig = useCase ? USE_CASE_CONFIGS[useCase] : null;
   const industryContext = industry ? INDUSTRY_CONTEXTS[industry] : null;
+
+  // Determine the agent name to use in the context prompt
+  // Use custom name if provided, otherwise use the default from use case config
+  const nameForPrompt = agentName || useCaseConfig?.defaultName || 'AI Agent';
 
   // Build context prompt following ElevenLabs six building blocks
   let contextPrompt = '';
@@ -652,7 +657,13 @@ export function generateAgentPrompts(
   if (useCaseConfig) {
     const companyInfo = businessName || 'a';
     const industryInfo = industryContext ? ` ${industry}` : '';
-    contextPrompt += `You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
+
+    // Use custom name if provided, otherwise use the default role description
+    if (agentName) {
+      contextPrompt += `Your name is ${agentName}. You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
+    } else {
+      contextPrompt += `You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
+    }
 
     // Add personality traits naturally
     contextPrompt += 'You are efficient, polite, and focused on ';
@@ -801,26 +812,30 @@ export function generateAgentPrompts(
   contextPrompt +=
     'Access to a knowledge base with information about your organization.\n';
 
+  // Use the name we already determined at the beginning
+  // This includes custom name if provided, or default from use case config
+  const defaultName = nameForPrompt;
+
   // System prompt (shorter, for LLM system message)
   const systemPrompt = useCaseConfig
     ? `You are ${useCaseConfig.role}. ${useCaseConfig.goals[0]}`
     : 'You are a helpful AI assistant. Be professional and concise.';
 
-  // Starting message
-  const startingMessage =
-    useCaseConfig && useCaseConfig.keyPoints.length > 0
-      ? `Hello! I'm here to help with ${useCaseConfig.keyPoints[0]?.toLowerCase()}. How can I assist you today?`
-      : 'Hello! How can I help you today?';
+  // Starting message - use personalized format with agent name and organization
+  // Determine organization reference based on industry and businessName
+  let organizationRef: string;
+  if (businessName) {
+    organizationRef = businessName;
+  } else if (industry === 'non profit') {
+    organizationRef = '[Organization]';
+  } else if (industry) {
+    organizationRef = '[Company]';
+  } else {
+    organizationRef = '[Organization]';
+  }
 
-  // Extract name from context prompt if present (e.g., "Your name is Sarah")
-  // This takes priority over the default use case name
-  const nameMatch = contextPrompt.match(
-    /(?:your name is|name is|called)\s+([A-Z][a-z]+)/i,
-  );
-  const extractedName = nameMatch ? nameMatch[1] : null;
-
-  // Use extracted name if found, otherwise fall back to use case default
-  const defaultName = extractedName || useCaseConfig?.defaultName || 'AI Agent';
+  // Use format: "Hi there! This is [Agent Name] from [Organization]. Did I catch you at a good time?"
+  const startingMessage = `Hi there! This is ${defaultName} from ${organizationRef}. Did I catch you at a good time?`;
 
   return {
     contextPrompt: contextPrompt.trim(),
