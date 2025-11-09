@@ -2,6 +2,14 @@
 
 echo "🔍 Running pre-commit checks..."
 
+# Check for secrets and API keys FIRST (most important)
+echo "🔐 Checking for secrets and API keys..."
+node scripts/check-secrets.mjs
+if [ $? -ne 0 ]; then
+  echo "❌ Secret detection failed! Commit blocked."
+  exit 1
+fi
+
 # Run lint-staged for formatting and linting
 echo "🎨 Checking formatting and linting..."
 pnpm lint-staged
