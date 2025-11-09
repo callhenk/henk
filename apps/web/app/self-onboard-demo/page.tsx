@@ -408,6 +408,9 @@ export default function SelfOnboardDemoPage() {
                     setFirstMessage(value);
                     setFirstMessageManuallyEdited(true);
                   }}
+                  enableAiGeneration={true}
+                  agentName={name}
+                  industry={industry}
                 />
               </div>
             )}
