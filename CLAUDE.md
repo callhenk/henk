@@ -3,6 +3,7 @@
 This document provides context and guidelines for working on the Henk platform with Claude Code.
 
 > **Documentation Note:** The project documentation has been cleaned and organized (Nov 2024). All available documentation is in the `docs/` folder. See `docs/README.md` for the complete index. Additional documentation includes:
+>
 > - `docs/demo-system.md` - Demo and self-onboarding system
 > - `docs/development-workflow.md` - Development workflow guide
 > - `docs/environment.md` - Environment setup and configuration
@@ -128,6 +129,54 @@ pnpm supabase:db:dump:local
 - **Icons**: Use `lucide-react` for icons
 - **Forms**: Use `react-hook-form` with `zod` validation
 
+### UI Design Principles
+
+**Keep It Simple:**
+
+- Avoid over-complicating designs with excessive gradients, shadows, or complex animations
+- Prefer clean, straightforward layouts over overly "fancy" designs
+- Use Tailwind's utility classes judiciously - more classes ≠ better design
+- The best UI is often the simplest one that clearly communicates its purpose
+
+**Step Indicators & Progress:**
+
+- Use horizontal layouts for step indicators (not vertical or complex wrapped layouts)
+- Prefer numbered steps (1, 2, 3) or simple icons
+- Completed steps: checkmark icons with green/success color
+- Current step: highlighted with primary color and optional ring
+- Future steps: muted color with border
+- Keep step labels short (1-2 words max)
+
+**Alignment & Spacing:**
+
+- **Center-align headers and titles** for landing/demo pages
+- **Left-align content** for dashboard/app pages
+- Use consistent spacing with Tailwind's spacing scale (gap-2, gap-3, gap-4, etc.)
+- Avoid mixing different spacing systems in the same component
+
+**Colors & Theming:**
+
+- Stick to the project's color palette (primary, secondary, muted, etc.)
+- Use semantic colors: green for success, red for errors, blue for info
+- Support both light and dark modes with `dark:` prefixes
+- Avoid hardcoded colors - use Tailwind theme colors
+
+**Responsive Design:**
+
+- Mobile-first approach: design for mobile, enhance for desktop
+- Use `sm:`, `md:`, `lg:` prefixes for responsive adjustments
+- Test on mobile viewport (375px width minimum)
+- Ensure touch targets are at least 44x44px on mobile
+
+**Common Mistakes to Avoid:**
+
+- ❌ Adding complex gradient backgrounds to simple pages
+- ❌ Using excessive blur effects (`blur-3xl`, backdrop-blur)
+- ❌ Creating overly complex step indicators with multiple layers
+- ❌ Mixing center and left alignment in the same section
+- ❌ Using `React.cloneElement` for simple icon rendering (just render the icon directly)
+- ❌ Forgetting to import React when using JSX features like `React.cloneElement`
+
 ### File Naming
 
 - **Components**: PascalCase (e.g., `IntegrationCard.tsx`)
@@ -143,7 +192,10 @@ pnpm supabase:db:dump:local
 
 // 2. Imports (external, then internal)
 import { useState } from 'react';
+
 import { Button } from '@kit/ui/button';
+
+// 1. 'use client' directive (if needed)
 
 // 3. Types/Interfaces
 interface MyComponentProps {
@@ -191,6 +243,7 @@ The project uses environment-specific configuration:
 - Use `pnpm with-env:test` to run commands with `.env.test`
 
 **Required Variables:**
+
 - `NEXT_PUBLIC_APP_URL` - Application URL (e.g., `http://localhost:3000`)
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key (safe for client-side)
@@ -199,11 +252,13 @@ The project uses environment-specific configuration:
 - `OPENAI_API_KEY` - OpenAI API key for agent prompt generation
 
 **Optional Variables:**
+
 - `SUPABASE_PROJECT_REF` - Supabase project reference for deployment
 - `ANALYZE` - Set to `true` to enable bundle analysis (`pnpm analyze`)
 - `NODE_ENV` - Environment mode (`development`, `production`, `test`)
 
 **Security Notes:**
+
 - **NEVER commit `.env.local` or `.env.test`** - they are gitignored for security
 - **Server-only secrets**: `SUPABASE_SERVICE_ROLE_KEY`, `ELEVENLABS_API_KEY`, `OPENAI_API_KEY` should only be used in server components, API routes, or server actions
 - **Client-safe variables**: Only `NEXT_PUBLIC_*` prefixed variables are exposed to the browser
@@ -214,22 +269,26 @@ The project uses environment-specific configuration:
 ### Key Tables
 
 **Core Business:**
+
 - `businesses` - Business/organization records (multi-tenant root)
 - `team_members` - User memberships in businesses (access control)
 
 **Donors/Contacts:**
+
 - `contacts` - Donor/contact records from multiple sources (Salesforce, CSV, manual, HubSpot)
   - Contains: name, email, phone, tags (JSONB), source_metadata (JSONB), custom_fields (JSONB)
 - `contact_lists` - Grouping donors for campaigns (static/dynamic lists)
 - `contact_list_members` - Many-to-many join table for contacts and lists
 
 **Campaigns & Workflows:**
+
 - `campaigns` - Campaign records with status, goals, and metrics
 - `workflows` - Workflow definitions for campaigns (ReactFlow graphs)
 - `workflow_nodes` - Nodes in workflow graphs (call actions, conditions, delays)
 - `workflow_edges` - Edges connecting workflow nodes (flow logic)
 
 **AI Agents & Conversations:**
+
 - `agents` - AI voice agents configuration with ElevenLabs integration
   - Contains: name, voice settings, context_prompt, starting_message, ElevenLabs agent_id
   - Prompts follow ElevenLabs best practices (tone, guardrails, conversation flow)
@@ -237,11 +296,13 @@ The project uses environment-specific configuration:
 - `conversation_events` - Event stream for call progress tracking
 
 **Integrations & Data:**
+
 - `integrations` - Third-party integration connections (Salesforce, HubSpot, etc.)
   - Contains: credentials (JSONB), config (JSONB), status
 - `leads` - Lead records with `contact_id` foreign key
 
 **Performance & Monitoring:**
+
 - `performance_metrics` - Agent and campaign performance tracking
 - `call_attempts` - Individual call attempt records
 - `call_logs` - Detailed call logs and outcomes
@@ -249,6 +310,7 @@ The project uses environment-specific configuration:
 ### Integration Schema
 
 Integrations use flexible JSONB columns:
+
 - `credentials` - OAuth tokens, API keys (encrypted)
 - `config` - Integration-specific configuration
 - `status` - One of: `active`, `inactive`, `connected`, `disconnected`, `needs_attention`, `error`, `coming_soon`, `deprecated`
@@ -258,21 +320,27 @@ Integrations use flexible JSONB columns:
 The `apps/web/config/` directory contains centralized application configuration:
 
 ### app.config.ts
+
 Application-wide settings (name, description, URLs, features)
 
 ### auth.config.ts
+
 Authentication settings (providers, session duration, redirects)
 
 ### feature-flags.config.ts
+
 Feature toggles for enabling/disabling functionality
 
 ### navigation.config.tsx
+
 Sidebar navigation structure with icons and paths
 
 ### paths.config.ts
+
 Path definitions with Zod validation for type-safe routing
 
 **Pattern for adding new routes:**
+
 ```typescript
 // 1. Add to paths.config.ts
 export const pathsConfig = z.object({
@@ -311,12 +379,15 @@ await createIntegration.mutateAsync({
 
 ```typescript
 // lib/middleware/auth.ts
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+
+import { createClient } from '@/lib/supabase/server';
 
 export async function requireAuth() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/auth/sign-in');
@@ -329,8 +400,8 @@ export async function requireAuth() {
 ### Rate Limiting
 
 ```typescript
-import rateLimiter from '~/lib/simple-rate-limit';
 import { RATE_LIMITS } from '~/lib/constants';
+import rateLimiter from '~/lib/simple-rate-limit';
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
@@ -338,14 +409,11 @@ export async function POST(request: NextRequest) {
   const rateLimitResult = await rateLimiter.check(
     RATE_LIMITS.PROMPT_GENERATION.requests,
     RATE_LIMITS.PROMPT_GENERATION.window,
-    `prompt-gen:${ip}`
+    `prompt-gen:${ip}`,
   );
 
   if (!rateLimitResult.success) {
-    return NextResponse.json(
-      { error: 'Too many requests' },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
   // Process request...
@@ -356,13 +424,16 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
+
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   // Get authenticated user
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -405,6 +476,7 @@ export default async function IntegrationsPage() {
 ### Commit Messages
 
 Follow conventional commits format:
+
 - `feat: Add Salesforce integration`
 - `fix: Resolve OAuth callback error`
 - `refactor: Simplify integration drawer logic`
@@ -475,9 +547,9 @@ interface GeneratePromptsRequest {
 
 ```typescript
 interface AgentVoiceSettings {
-  stability: number;        // 0-1, how consistent the voice is
+  stability: number; // 0-1, how consistent the voice is
   similarity_boost: number; // 0-1, how closely it matches the voice
-  style: number;           // 0-1, exaggeration level
+  style: number; // 0-1, exaggeration level
   use_speaker_boost: boolean;
 }
 ```
@@ -494,6 +566,7 @@ interface AgentVoiceSettings {
 ### Agent Knowledge Base
 
 Agents can access knowledge through:
+
 - **Context Prompt**: Background information about the organization
 - **Integration Data**: Real-time data from CRM (Salesforce, HubSpot)
 - **Contact Information**: Donor history, preferences, giving patterns
@@ -593,6 +666,7 @@ pnpm supabase:start
 ### Common Workflows
 
 **Starting a new feature:**
+
 ```bash
 # 1. Ensure Supabase is running
 pnpm supabase:start
@@ -608,6 +682,7 @@ pnpm lint
 ```
 
 **After making database changes:**
+
 ```bash
 # 1. Create migration
 supabase migration new feature_name
@@ -628,6 +703,7 @@ pnpm typecheck
 ```
 
 **Before pushing code:**
+
 ```bash
 # Run all checks
 pnpm typecheck
@@ -648,6 +724,7 @@ pnpm build
 ## Security Best Practices
 
 ### Secret Management
+
 - **Never commit secrets**: Use environment variables (`.env.local`, `.env.test`)
 - **Pre-commit hook**: Automatic secret detection prevents accidental commits
 - **Server-only secrets**: Keep API keys in server components/routes only
@@ -655,30 +732,35 @@ pnpm build
 - **Encrypt sensitive data**: Store encrypted credentials in database JSONB columns
 
 ### Authentication & Authorization
+
 - **Always verify authentication**: Use `requireAuth()` middleware in protected routes
 - **RLS policies**: All tables have Row Level Security enabled
 - **Multi-tenant isolation**: Always filter by `business_id` via `team_members` join
 - **Never bypass RLS**: Use service role key only when absolutely necessary
 
 ### Input Validation & Sanitization
+
 - **Validate all inputs**: Use zod schemas for type-safe validation
 - **Sanitize database queries**: Use Supabase's parameterized queries
 - **Prevent injection**: Never concatenate user input into queries
 - **Validate file uploads**: Check file types, sizes, and content
 
 ### Rate Limiting
+
 - **Protect expensive operations**: Use rate limiter for AI generation, bulk operations
 - **Per-IP limits**: Track by IP address for anonymous endpoints
 - **Per-user limits**: Track by user ID for authenticated endpoints
 - **Example**: Prompt generation limited to 10 requests/60 seconds
 
 ### API Security
+
 - **CORS**: Only allow trusted origins
 - **CSRF protection**: Use `@edge-csrf/nextjs` for form submissions
 - **Error handling**: Never expose sensitive info in error messages
 - **Logging**: Log security events without exposing credentials
 
 ### Data Protection
+
 - **PII handling**: Treat donor data as sensitive personal information
 - **Data retention**: Follow compliance requirements for donor data
 - **Audit trail**: Log access to sensitive data
@@ -687,18 +769,21 @@ pnpm build
 ## Troubleshooting
 
 ### Supabase Connection Issues
+
 ```bash
 pnpm supabase:stop
 pnpm supabase:start
 ```
 
 ### Type Generation Issues
+
 ```bash
 pnpm supabase:typegen
 pnpm typecheck
 ```
 
 ### Build Errors
+
 ```bash
 # Clean and rebuild
 pnpm clean
@@ -709,6 +794,7 @@ pnpm build
 ## Resources
 
 ### External Documentation
+
 - [Next.js Documentation](https://nextjs.org/docs) - App Router, Server Components, API Routes
 - [Supabase Documentation](https://supabase.com/docs) - Database, Auth, Realtime, Storage
 - [ElevenLabs Conversational AI](https://elevenlabs.io/docs/conversational-ai) - Voice agents, best practices
@@ -720,7 +806,9 @@ pnpm build
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
 
 ### Internal Documentation
+
 All project documentation is in the `docs/` folder:
+
 - `docs/README.md` - Complete documentation index
 - `docs/quick-start.md` - Getting started guide
 - `docs/development-workflow.md` - Development best practices
@@ -738,12 +826,15 @@ All project documentation is in the `docs/` folder:
 ## Important Notes for Claude
 
 ### Terminology
+
 - **UI uses "Donors"** terminology (`/home/donors` route, "Donors" in navigation)
 - **Backend/database uses "contacts"** (`contacts` table, `useContacts()` hooks)
 - **Do NOT rename database tables/hooks** to match UI terminology - this is intentional
 
 ### Database Type Generation
+
 After any migration that modifies the schema, you MUST regenerate types in TWO locations:
+
 ```bash
 pnpm supabase:typegen  # Generates both:
 # 1. packages/supabase/src/database.types.ts (shared across packages)
@@ -751,7 +842,9 @@ pnpm supabase:typegen  # Generates both:
 ```
 
 ### Multi-Tenancy Pattern
+
 All data queries MUST be scoped by business:
+
 ```typescript
 const { data: businessContext } = useBusinessContext();
 // Always filter by business_id
@@ -759,34 +852,44 @@ const { data: businessContext } = useBusinessContext();
 ```
 
 ### Row Level Security (RLS)
+
 - All tables have RLS enabled
 - Policies check `team_members` table for access
 - Never bypass RLS policies in application code
 
 ### Integration Development
+
 When checking if integration is database-backed vs. mock:
+
 ```typescript
 const isDbIntegration = item.id.length > 20; // UUIDs are longer than simple IDs
 ```
 
 ### Hooks Pattern
+
 - **Query hooks**: `packages/supabase/src/hooks/[domain]/use-[domain].ts`
 - **Mutation hooks**: `packages/supabase/src/hooks/[domain]/use-[domain]-mutations.ts`
 - Always invalidate queries after mutations using `queryClient.invalidateQueries()`
 
 ### Navigation Changes
+
 When adding new routes, update BOTH:
+
 1. `config/paths.config.ts` - Define path with Zod validation
 2. `config/navigation.config.tsx` - Add to sidebar with icon
 
 ### Type Safety with JSONB
+
 JSONB columns (tags, source_metadata, custom_fields) need explicit casting:
+
 ```typescript
 {(contact.tags as string[]).map(...)}
 ```
 
-### Workspace Packages (@kit/*)
+### Workspace Packages (@kit/\*)
+
 The monorepo uses workspace packages with the `@kit/` prefix:
+
 - `@kit/ui` - Shared UI components (shadcn/ui)
 - `@kit/supabase` - Supabase client, hooks, and types
 - `@kit/next` - Next.js utilities
@@ -795,12 +898,14 @@ The monorepo uses workspace packages with the `@kit/` prefix:
 - `@kit/accounts` - Account management
 
 **Import pattern:**
+
 ```typescript
-import { Button } from '@kit/ui/button';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { Button } from '@kit/ui/button';
 ```
 
 ### OpenAI Integration
+
 - **Purpose**: Generate optimized AI agent prompts
 - **Location**: `apps/web/app/api/agents/generate-prompts/route.ts`
 - **Rate limit**: 10 requests per 60 seconds per IP
@@ -808,19 +913,25 @@ import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 - **Pattern**: Hardcoded best practice sections + dynamic generation
 
 ### Constants Organization
+
 Store constants in `apps/web/lib/constants/`:
+
 - `index.ts` - General constants (rate limits, features)
 - `demo.ts` - Demo system configuration
 - Domain-specific constants as needed
 
 ### Demo System
+
 The platform includes a self-onboarding demo:
+
 - Public access for prospects to test the platform
 - Pre-configured demo data (agents, campaigns, donors)
 - See `docs/demo-system.md` for details
 
 ### ElevenLabs Agent Best Practices
+
 When working with AI agents:
+
 - **Always include hardcoded sections**: Tone, Guardrails, Tools
 - **Keep prompts concise**: Agents perform better with clear, brief instructions
 - **Test voice settings**: stability, similarity_boost, style affect quality
@@ -828,6 +939,7 @@ When working with AI agents:
 - **Handle missing API key gracefully**: Check for `ELEVENLABS_API_KEY` before using
 
 ### Development Checklist
+
 - Always use `pnpm` instead of `npm` or `yarn`
 - Run `pnpm typecheck` before committing
 - Run `pnpm lint` to catch issues early
