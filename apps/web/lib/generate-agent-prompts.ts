@@ -641,108 +641,133 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   let contextPrompt = '';
 
   // ===== 1. PERSONALITY =====
-  // Establish identity through name, role, core traits
+  contextPrompt += '# Personality\n\n';
+
   if (useCaseConfig) {
-    const companyInfo = businessName ? `${businessName}'s` : 'a';
-    contextPrompt += `# Personality\n\n`;
-    contextPrompt += `You are ${companyInfo} ${useCaseConfig.defaultName}, ${useCaseConfig.role}.\n\n`;
+    const companyInfo = businessName || 'a';
+    const industryInfo = industryContext ? ` ${industry}` : '';
+    contextPrompt += `You are a${industryInfo ? 'n' : ''} ${useCaseConfig.defaultName.toLowerCase()} for ${companyInfo}${industryInfo} business.\n`;
+
+    // Add personality traits naturally
+    contextPrompt += 'You are efficient, polite, and focused on ';
+    if (useCaseConfig.goals.length > 0) {
+      contextPrompt += `${useCaseConfig.goals[0].toLowerCase()}.\n`;
+    } else {
+      contextPrompt += 'helping callers effectively.\n';
+    }
+
+    // Add approach from capabilities
+    if (useCaseConfig.capabilities.length > 0) {
+      const approach = useCaseConfig.capabilities[0].toLowerCase();
+      contextPrompt += `You ${approach}.\n`;
+    }
   } else {
     const defaultRole = agentType === 'personal_assistant'
       ? 'a personal assistant helping with scheduling, tasks, and organization'
       : agentType === 'business_agent'
       ? 'a professional business support agent'
       : 'a helpful AI assistant';
-    contextPrompt += `# Personality\n\n`;
-    contextPrompt += `You are ${defaultRole}.\n\n`;
+    contextPrompt += `You are ${defaultRole}.\n`;
+    contextPrompt += 'You are efficient, polite, and focused on helping callers.\n';
   }
 
-  // Company/Industry context (part of personality)
-  if (companyWebsite || industryContext) {
-    contextPrompt += '## About Your Organization\n';
-    if (companyWebsite) {
-      contextPrompt += `- Website: ${companyWebsite}\n`;
-    }
-    if (industryContext) {
-      contextPrompt += `- Industry: You operate ${industryContext.context}\n`;
-    }
-    contextPrompt += '\n';
-  }
+  contextPrompt += '\n';
 
   // ===== 2. ENVIRONMENT =====
-  // Define communication context (voice calls for this platform)
   contextPrompt += '# Environment\n\n';
-  contextPrompt += 'You are conducting voice calls with donors, supporters, and community members.\n';
-  contextPrompt += '- Medium: Phone calls\n';
-  contextPrompt += '- Adjust your pace and verbosity for voice communication\n';
-  contextPrompt += '- Be mindful that callers may be multitasking or in various environments\n\n';
+  contextPrompt += 'You are engaging with callers over the phone.\n';
+
+  if (useCaseConfig && useCaseConfig.goals.length > 0) {
+    contextPrompt += `Your goal is to ${useCaseConfig.goals[0].toLowerCase()}.\n`;
+  }
+
+  // Add tools/capabilities mention
+  contextPrompt += 'You have access to a CRM to input data.\n';
+  contextPrompt += '\n';
 
   // ===== 3. TONE =====
-  // Control linguistic style, speech patterns, conversational elements
+  contextPrompt += '# Tone\n\n';
+
+  contextPrompt += 'Your responses are professional, clear, and concise.\n';
+
   if (useCaseConfig && useCaseConfig.tone.length > 0) {
-    contextPrompt += '# Tone\n\n';
-    useCaseConfig.tone.forEach(toneGuideline => {
-      contextPrompt += `- ${toneGuideline}\n`;
-    });
-    contextPrompt += '\n';
+    // Extract tone characteristics naturally
+    const toneDesc = useCaseConfig.tone[1]?.toLowerCase() || '';
+    if (toneDesc.includes('warm') || toneDesc.includes('patient') || toneDesc.includes('reassuring')) {
+      contextPrompt += 'You use a polite and helpful tone.\n';
+    } else if (toneDesc.includes('confident') || toneDesc.includes('professional')) {
+      contextPrompt += 'You use a confident and professional tone.\n';
+    } else {
+      contextPrompt += 'You use a polite and helpful tone.\n';
+    }
+  } else {
+    contextPrompt += 'You use a polite and helpful tone.\n';
   }
+
+  contextPrompt += 'You avoid jargon and explain things simply.\n';
+  contextPrompt += 'You speak at a moderate pace and ensure the caller understands each question.\n';
+
+  contextPrompt += '\n';
 
   // ===== 4. GOAL =====
-  // Set clear objectives with sequential pathways and decision logic
+  contextPrompt += '# Goal\n\n';
+
   if (useCaseConfig) {
-    contextPrompt += '# Goals\n\n';
-    useCaseConfig.goals.forEach(goal => {
-      contextPrompt += `- ${goal}\n`;
-    });
-    contextPrompt += '\n';
+    contextPrompt += `Your primary goal is to ${useCaseConfig.goals[0].toLowerCase()} by:\n\n`;
 
-    // Key Capabilities (support achieving goals)
-    contextPrompt += '## Your Capabilities\n\n';
-    useCaseConfig.capabilities.forEach(capability => {
-      contextPrompt += `- ${capability}\n`;
+    // Create structured steps from capabilities and guidelines
+    contextPrompt += '1. **Gathering Information**:\n';
+    useCaseConfig.capabilities.slice(0, 4).forEach(item => {
+      contextPrompt += `   * ${item}\n`;
     });
-    contextPrompt += '\n';
 
-    // Conversation Guidelines (how to achieve goals)
-    contextPrompt += '## Conversation Guidelines\n\n';
-    useCaseConfig.guidelines.forEach(guideline => {
-      contextPrompt += `- ${guideline}\n`;
+    contextPrompt += '2. **Executing Your Role**:\n';
+    useCaseConfig.guidelines.slice(0, 4).forEach(item => {
+      contextPrompt += `   * ${item}\n`;
     });
-    contextPrompt += '\n';
+
+    contextPrompt += '3. **Providing Next Steps**:\n';
+    contextPrompt += '   * Thank the caller for their time and offer further assistance.\n';
+    if (useCase === 'scheduling' || useCase === 'customer_support' || useCase === 'lead_qualification') {
+      contextPrompt += '   * Schedule a follow-up call if needed.\n';
+    }
+    contextPrompt += '   * Provide helpful resources or next steps.\n';
+  } else {
+    contextPrompt += 'Your primary goal is to assist callers effectively and professionally.\n';
   }
+
+  contextPrompt += '\n';
 
   // ===== 5. GUARDRAILS =====
-  // Define boundaries and rules for appropriate behavior
-  if (useCaseConfig && useCaseConfig.guardrails.length > 0) {
-    contextPrompt += '# Guardrails\n\n';
-    useCaseConfig.guardrails.forEach(guardrail => {
-      contextPrompt += `- ${guardrail}\n`;
+  contextPrompt += '# Guardrails\n\n';
+
+  // Add industry-specific guardrails first
+  if (industryContext && industryContext.considerations.length > 0) {
+    industryContext.considerations.forEach(consideration => {
+      contextPrompt += `${consideration}\n`;
     });
-    contextPrompt += '\n';
   }
 
-  // Industry-specific considerations (additional guardrails)
-  if (industryContext && industryContext.considerations.length > 0) {
-    contextPrompt += '## Industry-Specific Requirements\n\n';
-    industryContext.considerations.forEach(consideration => {
-      contextPrompt += `- ${consideration}\n`;
+  // Add use case specific guardrails
+  if (useCaseConfig && useCaseConfig.guardrails.length > 0) {
+    useCaseConfig.guardrails.forEach(guardrail => {
+      contextPrompt += `${guardrail}\n`;
     });
-    contextPrompt += '\n';
+  } else {
+    // Default guardrails
+    contextPrompt += 'Only ask questions relevant to your role.\n';
+    contextPrompt += 'Respect the caller\'s privacy and do not share their information without consent.\n';
+    contextPrompt += 'Maintain a professional and courteous demeanor at all times.\n';
+    contextPrompt += 'If the caller becomes upset or uncooperative, politely end the call.\n';
   }
+
+  contextPrompt += '\n';
 
   // ===== 6. TOOLS =====
-  // Specify external capabilities and resources
-  contextPrompt += '# Tools & Resources\n\n';
-  contextPrompt += '- You have access to organization knowledge base and documentation\n';
-  contextPrompt += '- You can transfer calls to human team members when needed\n';
-  contextPrompt += '- You can schedule follow-up calls and send reminders\n\n';
-
-  // Core Principles (universal across all agents)
-  contextPrompt += '# Core Principles\n\n';
-  contextPrompt += '- Be authentic and conversational - you\'re having a real conversation\n';
-  contextPrompt += '- Listen actively and acknowledge what you hear\n';
-  contextPrompt += '- Keep responses concise and actionable\n';
-  contextPrompt += '- If you don\'t know something, acknowledge it honestly\n';
-  contextPrompt += '- Always prioritize the caller\'s needs and satisfaction\n';
+  contextPrompt += '# Tools\n\n';
+  contextPrompt += 'CRM integration for data input.\n';
+  contextPrompt += 'Calendar access for scheduling follow-up calls.\n';
+  contextPrompt += 'Access to a knowledge base with information about your organization.\n';
 
   // System prompt (shorter, for LLM system message)
   const systemPrompt = useCaseConfig
