@@ -25,6 +25,7 @@ import { DetailsStep } from '../home/agents/_components/details-step';
 import { RealtimeVoiceChat } from '../home/agents/[id]/_components/realtime-voice-chat';
 import { generateAgentPrompts } from '../../lib/generate-agent-prompts';
 import { logger } from '../../lib/utils';
+import featuresFlagConfig from '../../config/feature-flags.config';
 
 type StepType = 'agent-type' | 'use-case' | 'details' | 'conversation';
 
@@ -37,7 +38,7 @@ interface CreatedAgent {
 export default function SelfOnboardDemoPage() {
   const router = useRouter();
 
-  // Agent creation state
+  // Agent creation state - must be before any conditional returns
   const [step, setStep] = useState<StepType>('agent-type');
   const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(null);
   const [useCase, setUseCase] = useState<string | null>(null);
@@ -49,6 +50,13 @@ export default function SelfOnboardDemoPage() {
   const [createdAgent, setCreatedAgent] = useState<CreatedAgent | null>(null);
 
   const industry = 'non profit';
+
+  // Check if self-onboard demo is enabled
+  useEffect(() => {
+    if (!featuresFlagConfig.enableSelfOnboardDemo) {
+      router.push('/');
+    }
+  }, [router]);
 
   // Generate dynamic prompts based on use case and industry
   useEffect(() => {
@@ -248,6 +256,11 @@ export default function SelfOnboardDemoPage() {
     }
   };
 
+  // If feature is disabled, show nothing while redirecting
+  if (!featuresFlagConfig.enableSelfOnboardDemo) {
+    return null;
+  }
+
   return (
     <div className="bg-background min-h-screen p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
@@ -373,7 +386,21 @@ export default function SelfOnboardDemoPage() {
           {/* Footer with action buttons */}
           <div className="border-t px-4 sm:px-6 py-3 sm:py-4 bg-muted/20">
             <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
-              {step !== 'conversation' && (
+              {step === 'conversation' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setStep('details');
+                    // Clear created agent when going back to edit
+                    setCreatedAgent(null);
+                  }}
+                  className="w-full sm:w-auto transition-colors duration-200"
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back to Edit
+                </Button>
+              ) : (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -414,10 +441,10 @@ export default function SelfOnboardDemoPage() {
                         {isSubmitting ? (
                           <>
                             <Spinner className="mr-2 h-3 w-3" />
-                            Creating...
+                            {createdAgent ? 'Updating...' : 'Creating...'}
                           </>
                         ) : (
-                          'Create & Test Agent'
+                          createdAgent ? 'Update & Test Agent' : 'Create & Test Agent'
                         )}
                       </Button>
                     )}

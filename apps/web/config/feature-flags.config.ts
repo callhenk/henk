@@ -17,6 +17,9 @@ const FeatureFlagsSchema = z.object({
     description: 'Enable version updater',
     required_error: 'Provide the variable NEXT_PUBLIC_ENABLE_VERSION_UPDATER',
   }),
+  enableSelfOnboardDemo: z.boolean({
+    description: 'Enable public self-onboard demo page',
+  }),
 });
 
 const featuresFlagConfig = FeatureFlagsSchema.parse({
@@ -28,6 +31,10 @@ const featuresFlagConfig = FeatureFlagsSchema.parse({
     .NEXT_PUBLIC_LANGUAGE_PRIORITY as LanguagePriority,
   enableVersionUpdater: getBoolean(
     process.env.NEXT_PUBLIC_ENABLE_VERSION_UPDATER,
+    false,
+  ),
+  enableSelfOnboardDemo: getBoolean(
+    process.env.NEXT_PUBLIC_ENABLE_SELF_ONBOARD_DEMO,
     false,
   ),
 } satisfies z.infer<typeof FeatureFlagsSchema>);
