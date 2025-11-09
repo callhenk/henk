@@ -4,10 +4,10 @@
  */
 
 export const DEFAULT_VOICES = {
-  // Feminine voices
-  feminine: '56bWURjYFHyYyVf490Dp', // Warm, friendly female voice
-  // Masculine voices
-  masculine: 'XrExE9yKIg1WjnnlVkGX', // Adam - confident, friendly male voice
+  // Feminine voices - using ElevenLabs premade voices
+  feminine: '21m00Tcm4TlvDq8ikWAM', // Rachel - warm, friendly female voice
+  // Masculine voices - using ElevenLabs premade voices
+  masculine: 'pNInz6obpgDQGcFmaJgB', // Adam - confident, friendly male voice
 } as const;
 
 export type VoiceGender = 'feminine' | 'masculine';
