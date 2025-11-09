@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 
-import { Clock, Info, Phone, TrendingUp } from 'lucide-react';
+import {
+  Clock,
+  Phone,
+  TrendingUp,
+  MessageSquare,
+  Calendar,
+  Mic
+} from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
 import {
@@ -13,10 +20,7 @@ import {
   CardTitle,
 } from '@kit/ui/card';
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@kit/ui/tooltip';
 
 interface AgentOverviewProps {
@@ -72,11 +76,9 @@ export function AgentOverview({
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: 'numeric',
     });
   };
 
@@ -89,42 +91,50 @@ export function AgentOverview({
     <TooltipProvider>
       <div className="space-y-6">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="text-base">Calls Handled</CardTitle>
-              <CardDescription>Total calls made</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <p className="text-2xl font-bold">{callsHandled}</p>
-              <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                <Phone className="h-5 w-5" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Calls Handled</p>
+                  <p className="mt-2 text-3xl font-bold">{callsHandled}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Total conversations</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                  <Phone className="h-6 w-6" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="text-base">Conversion Rate</CardTitle>
-              <CardDescription>Successful calls</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <p className="text-2xl font-bold">{conversionRate}%</p>
-              <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                <TrendingUp className="h-5 w-5" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
+                  <p className="mt-2 text-3xl font-bold">{conversionRate}%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {successfulCalls} of {callsHandled} successful
+                  </p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="text-base">Active Hours</CardTitle>
-              <CardDescription>Hours this month</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <p className="text-2xl font-bold">{activeHours}</p>
-              <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                <Clock className="h-5 w-5" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Hours</p>
+                  <p className="mt-2 text-3xl font-bold">{activeHours}h</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Total talk time</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                  <Clock className="h-6 w-6" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -134,111 +144,85 @@ export function AgentOverview({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column - Agent Details & Campaigns */}
           <div className="space-y-6 lg:col-span-2">
-            <Card className="glass-panel">
-              <CardHeader>
-                <CardTitle>Agent Details</CardTitle>
-                <CardDescription>
-                  Key information about your agent
-                </CardDescription>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Quick Details</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <label className="text-sm font-medium">Language</label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="About language"
-                            className="text-muted-foreground hover:text-foreground inline-flex h-4 w-4 items-center justify-center"
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          The language your agent uses during calls.
-                        </TooltipContent>
-                      </Tooltip>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="flex items-start gap-3 rounded-lg border p-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950">
+                      <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <p className="mt-1 text-lg font-semibold">English</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-muted-foreground">Language</p>
+                      <p className="mt-0.5 truncate font-semibold">English</p>
+                    </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <label className="text-sm font-medium">Voice Type</label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="About voice type"
-                            className="text-muted-foreground hover:text-foreground inline-flex h-4 w-4 items-center justify-center"
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          The selected voice profile used for speech synthesis.
-                        </TooltipContent>
-                      </Tooltip>
+
+                  <div className="flex items-start gap-3 rounded-lg border p-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950">
+                      <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <p className="mt-1 text-lg font-semibold">
-                      {getVoiceTypeLabel(agent.voice_type)}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-muted-foreground">Voice Type</p>
+                      <p className="mt-0.5 truncate font-semibold">
+                        {getVoiceTypeLabel(agent.voice_type)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <label className="text-sm font-medium">Last Edited</label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="About last edited"
-                            className="text-muted-foreground hover:text-foreground inline-flex h-4 w-4 items-center justify-center"
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          The last time this agent configuration was updated.
-                        </TooltipContent>
-                      </Tooltip>
+
+                  <div className="flex items-start gap-3 rounded-lg border p-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950">
+                      <Calendar className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <p className="mt-1 text-lg font-semibold">
-                      {agent.updated_at
-                        ? formatDate(agent.updated_at)
-                        : 'Never'}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-muted-foreground">Last Edited</p>
+                      <p className="mt-0.5 truncate text-sm font-semibold">
+                        {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-panel">
-              <CardHeader>
-                <CardTitle>Linked Campaigns</CardTitle>
-                <CardDescription>
-                  Campaigns this agent is assigned to
-                </CardDescription>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Linked Campaigns</CardTitle>
+                    <CardDescription>
+                      {agentCampaigns.length} {agentCampaigns.length === 1 ? 'campaign' : 'campaigns'} using this agent
+                    </CardDescription>
+                  </div>
+                  {agentCampaigns.length > 0 && (
+                    <Badge variant="secondary">{agentCampaigns.length}</Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                   {agentCampaigns.length > 0 ? (
                     agentCampaigns.map((campaign) => (
                       <Link
                         key={campaign.id}
                         href={`/home/campaigns/${campaign.id}`}
-                        className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
+                        className="group flex items-center justify-between rounded-lg border p-3 transition-all hover:border-primary hover:bg-primary/5"
                       >
-                        <span className="font-medium underline-offset-2 hover:underline">
+                        <span className="font-medium group-hover:text-primary">
                           {campaign.name}
                         </span>
-                        <Badge variant="success">Active</Badge>
+                        <Badge variant="success" className="text-xs">Active</Badge>
                       </Link>
                     ))
                   ) : (
-                    <div className="rounded-lg border p-6 text-center">
-                      <p className="text-muted-foreground text-sm">
+                    <div className="rounded-lg border border-dashed p-8 text-center">
+                      <p className="text-sm text-muted-foreground">
                         No campaigns assigned yet
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Create a campaign to start using this agent
                       </p>
                     </div>
                   )}
@@ -249,7 +233,7 @@ export function AgentOverview({
 
           {/* Right Column */}
           <div className="space-y-6 lg:col-span-1">
-            <Card className="glass-panel">
+            <Card>
               <CardHeader>
                 <CardTitle>Context Prompt</CardTitle>
                 <CardDescription>
@@ -257,15 +241,15 @@ export function AgentOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-lg border p-4">
-                  <p className="text-sm whitespace-pre-wrap">
+                <div className="max-h-64 overflow-y-auto rounded-lg border bg-muted/30 p-4">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
                     {agent.donor_context || 'No context prompt available'}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-panel">
+            <Card>
               <CardHeader>
                 <CardTitle>Starting Message</CardTitle>
                 <CardDescription>
@@ -273,8 +257,8 @@ export function AgentOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-lg border p-4">
-                  <p className="text-sm">
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <p className="text-sm leading-relaxed">
                     {agent.starting_message || 'No starting message available'}
                   </p>
                 </div>

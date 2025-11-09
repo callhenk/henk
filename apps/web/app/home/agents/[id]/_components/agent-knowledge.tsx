@@ -74,6 +74,7 @@ export function AgentKnowledge({
   const [generatingField, setGeneratingField] = useState<'context' | null>(
     null,
   );
+  const [showSaveReminder, setShowSaveReminder] = useState(false);
 
   // State for collapsible sections
   const [showDynamicVariables, setShowDynamicVariables] = useState(false);
@@ -85,7 +86,7 @@ export function AgentKnowledge({
   const hasStartingMessageChanges =
     startingMessage !== (agent?.starting_message || '');
 
-  // Generate context prompt using AI
+  // Generate context prompt using AI with streaming
   const generatePrompt = async (
     fieldType: 'context_prompt',
     description: string,
@@ -96,6 +97,7 @@ export function AgentKnowledge({
     }
 
     setGeneratingField('context');
+    setDonorContext(''); // Clear existing content
 
     try {
       const response = await fetch('/api/agents/generate-prompts', {
@@ -113,17 +115,72 @@ export function AgentKnowledge({
         throw new Error(error.error || 'Failed to generate prompt');
       }
 
-      const result = await response.json();
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      if (result.data?.contextPrompt) {
-        setDonorContext(result.data.contextPrompt);
-        toast.success('Context prompt generated! Review and save when ready.');
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+
+      let buffer = '';
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete events (events are separated by double newlines)
+        const events = buffer.split('\n\n');
+        // Keep the last potentially incomplete event in the buffer
+        buffer = events.pop() || '';
+
+        for (const event of events) {
+          if (!event.trim()) continue;
+
+          const lines = event.split('\n');
+          let eventType = '';
+          let eventData: Record<string, string> | null = null;
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              eventType = line.substring(7).trim();
+            } else if (line.startsWith('data: ')) {
+              try {
+                eventData = JSON.parse(line.substring(6)) as Record<string, string>;
+              } catch (e) {
+                console.error('Failed to parse event data:', e);
+              }
+            }
+          }
+
+          // Handle different event types
+          if (eventType === 'context_prompt_chunk' && eventData?.chunk) {
+            // Update content immediately as chunks arrive
+            accumulatedContent += eventData.chunk;
+            setDonorContext(accumulatedContent);
+          } else if (eventType === 'context_prompt_complete' && eventData?.content) {
+            // Set final content (in case of any discrepancies)
+            setDonorContext(eventData.content);
+            setShowSaveReminder(true);
+            toast.success('✨ Context prompt generated successfully!', {
+              description: 'Please review the content and click "Save Changes" below to apply it.',
+              duration: 6000,
+            });
+          } else if (eventType === 'error') {
+            throw new Error(eventData?.error || 'Generation failed');
+          }
+        }
       }
     } catch (error) {
       console.error('Error generating prompt:', error);
       toast.error(
         error instanceof Error ? error.message : 'Failed to generate prompt',
       );
+      // Don't clear the content if we got partial results
     } finally {
       setGeneratingField(null);
     }
@@ -330,16 +387,44 @@ export function AgentKnowledge({
                 </div>
                 <Textarea
                   value={donorContext}
-                  onChange={(e) => setDonorContext(e.target.value)}
+                  onChange={(e) => {
+                    setDonorContext(e.target.value);
+                    setShowSaveReminder(false);
+                  }}
                   className="min-h-[300px] resize-y font-mono text-sm sm:min-h-[350px]"
                   placeholder="Or write your own prompt..."
                 />
+                {showSaveReminder && hasDonorContextChanges && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-lg border-2 border-primary bg-primary/10 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-full bg-primary/20 p-1">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-primary">
+                          Generated content ready to save!
+                        </h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Your AI-generated context prompt is ready. Click the button below to save it to your agent.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {hasDonorContextChanges && (
                   <div className="flex justify-end">
                     <Button
                       size="sm"
-                      onClick={() => onSaveField('donor_context', donorContext)}
+                      onClick={() => {
+                        onSaveField('donor_context', donorContext);
+                        setShowSaveReminder(false);
+                      }}
                       disabled={savingField === 'donor_context'}
+                      className={
+                        showSaveReminder
+                          ? 'animate-pulse ring-2 ring-primary ring-offset-2'
+                          : ''
+                      }
                     >
                       {savingField === 'donor_context'
                         ? 'Saving...'
