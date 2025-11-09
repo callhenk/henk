@@ -1,6 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
+import { Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { Button } from '@kit/ui/button';
 import { Input } from '@kit/ui/input';
+import { Spinner } from '@kit/ui/spinner';
 import { Textarea } from '@kit/ui/textarea';
 
 interface DetailsStepProps {
@@ -11,6 +18,9 @@ interface DetailsStepProps {
   onContextPromptChange: (contextPrompt: string) => void;
   firstMessage?: string;
   onFirstMessageChange?: (firstMessage: string) => void;
+  enableAiGeneration?: boolean;
+  agentName?: string;
+  industry?: string;
 }
 
 export function DetailsStep({
@@ -21,7 +31,58 @@ export function DetailsStep({
   onContextPromptChange,
   firstMessage,
   onFirstMessageChange,
+  enableAiGeneration = false,
+  agentName,
+  industry,
 }: DetailsStepProps) {
+  const [aiDescription, setAiDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGeneratePrompt = async () => {
+    if (!aiDescription.trim()) {
+      toast.error('Please describe what you want your agent to do');
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const response = await fetch('/api/agents/generate-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: aiDescription.trim(),
+          fieldType: 'both',
+          agentName: name || agentName || 'AI Agent',
+          industry: industry || 'non profit',
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to generate prompts');
+      }
+
+      const data = await response.json();
+
+      if (data.contextPrompt) {
+        onContextPromptChange(data.contextPrompt);
+      }
+      if (data.startingMessage && onFirstMessageChange) {
+        onFirstMessageChange(data.startingMessage);
+      }
+
+      toast.success('Prompts generated successfully!');
+      setAiDescription('');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to generate prompts',
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-1 sm:space-y-2">
@@ -49,6 +110,62 @@ export function DetailsStep({
             Choose a friendly, memorable name for your agent
           </p>
         </div>
+
+        {enableAiGeneration && (
+          <div className="animate-in fade-in space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 duration-300 dark:border-blue-800 dark:bg-blue-900/10">
+            <div className="flex items-start gap-2">
+              <Sparkles className="text-blue-600 dark:text-blue-400 mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <label className="block text-xs font-semibold sm:text-sm">
+                  Generate with AI (Optional)
+                </label>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Describe what you want your agent to do, and AI will generate
+                  the context prompt and first message for you.
+                </p>
+
+                {/* Example */}
+                <div className="bg-background/50 rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs italic">
+                    <strong>Example:</strong> &quot;Your name is {name || 'Sarah'} and you work
+                    for Helping Hands Charity. You&apos;re calling donors to
+                    invite them to the Annual Fundraising Gala event.&quot;
+                  </p>
+                </div>
+
+                {/* Input */}
+                <Textarea
+                  placeholder="Describe your agent's role and purpose..."
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  className="min-h-[100px] resize-y text-sm sm:text-base"
+                  rows={4}
+                />
+
+                {/* Generate Button */}
+                <Button
+                  type="button"
+                  onClick={handleGeneratePrompt}
+                  disabled={isGenerating || !aiDescription.trim()}
+                  className="w-full"
+                  size="sm"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Spinner className="mr-2 h-3 w-3" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-3 w-3" />
+                      Generate Prompts
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {onFirstMessageChange && (
           <div className="animate-in fade-in space-y-2 duration-300">
