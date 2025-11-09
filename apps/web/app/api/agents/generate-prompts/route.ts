@@ -68,14 +68,20 @@ async function* streamContextPrompt(
   agentName?: string,
   industry?: string,
 ): AsyncGenerator<string, void, unknown> {
-  const agentNameText = agentName || 'AI Assistant';
+  // Extract name from description if present
+  const nameMatch = description.match(
+    /(?:your name is|name is|called)\s+([A-Z][a-z]+)/i,
+  );
+  const extractedName = nameMatch ? nameMatch[1] : null;
+  const finalAgentName = extractedName || agentName || 'AI Assistant';
+
   const industryContext = industry ? ` in the ${industry} sector` : '';
 
   const systemPrompt = `You are an expert at creating voice agent prompts following ElevenLabs best practices.
 Generate a comprehensive system prompt that follows this exact structure:
 
 # Personality
-- **Name**: [Agent Name]
+- **Name**: [Agent Name - USE EXACTLY THE NAME PROVIDED]
 - **Role**: [Description of what the agent does]
 - **Traits**: [3-5 relevant personality traits]
 - **Background**: [Brief context about the agent's expertise]
@@ -97,18 +103,20 @@ ${GUARDRAILS_SECTION}
 
 ${TOOLS_SECTION}
 
-IMPORTANT:
-- Keep the Tone, Guardrails, and Tools sections exactly as provided above
-- Customize only the Personality, Environment, and Goal sections
-- Make the Goal section specific to the agent's role
-- Keep it concise and actionable
-- Optimize for voice conversation`;
+CRITICAL RULES - YOU MUST FOLLOW THESE EXACTLY:
+1. Keep the Tone, Guardrails, and Tools sections exactly as provided above
+2. Customize only the Personality, Environment, and Goal sections
+3. For the Name field, you MUST use the EXACT name provided - DO NOT make up a different name
+4. DO NOT change, substitute, or modify any names, organizations, or specific details
+5. Optimize for voice conversation`;
 
-  const userPrompt = `Create a voice agent system prompt for:
-- Agent Name: ${agentNameText}
+  const userPrompt = `Create a voice agent system prompt with these EXACT details:
+- Agent Name: ${finalAgentName} (USE THIS EXACT NAME - DO NOT CHANGE IT)
 - Role/Description: ${description}${industryContext}
 
-Generate a complete prompt following the structure provided. Be specific and relevant to this particular use case.`;
+YOU MUST USE THE NAME "${finalAgentName}" IN THE NAME FIELD. DO NOT USE ANY OTHER NAME.
+
+Generate a complete prompt following the structure provided.`;
 
   try {
     const stream = await openai.chat.completions.create({
@@ -117,7 +125,7 @@ Generate a complete prompt following the structure provided. Be specific and rel
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.7,
+      temperature: 0.3, // Lower temperature for more accurate following of instructions
       max_tokens: 1500,
       stream: true,
     });
@@ -125,7 +133,14 @@ Generate a complete prompt following the structure provided. Be specific and rel
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
-        yield content;
+        // Filter out training data references that OpenAI might add (including preceding commas/spaces)
+        const filtered = content.replace(
+          /[,\s]*You are trained on data up to [^.]+\.\s*/gi,
+          '',
+        );
+        if (filtered) {
+          yield filtered;
+        }
       }
     }
   } catch (error) {
@@ -133,7 +148,7 @@ Generate a complete prompt following the structure provided. Be specific and rel
     // Stream the fallback prompt character by character for consistency
     const fallback = createFallbackPrompt(
       description,
-      agentNameText,
+      finalAgentName,
       industryContext,
     );
     yield fallback;
@@ -183,8 +198,12 @@ Generate ONLY the greeting message, nothing else.`;
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
-        // Remove quotes if OpenAI adds them
-        const cleaned = content.replace(/^["']|["']$/g, '');
+        // Remove quotes if OpenAI adds them and filter training data references
+        let cleaned = content.replace(/^["']|["']$/g, '');
+        cleaned = cleaned.replace(
+          /[,\s]*You are trained on data up to [^.]+\.\s*/gi,
+          '',
+        );
         if (cleaned) {
           yield cleaned;
         }

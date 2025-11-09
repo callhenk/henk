@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -55,10 +56,36 @@ export default function SelfOnboardDemoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdAgent, setCreatedAgent] = useState<CreatedAgent | null>(null);
   const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showFloatingBar, setShowFloatingBar] = useState(false);
 
   const industry = 'non profit';
+
+  // Track visibility of email capture section
+  useEffect(() => {
+    if (!createdAgent || emailSent) return;
+
+    const emailSection = document.getElementById('email-capture-section');
+    if (!emailSection) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setShowFloatingBar(!entry.isIntersecting);
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(emailSection);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [createdAgent, emailSent]);
 
   // Generate dynamic prompts based on use case and industry
   useEffect(() => {
@@ -303,14 +330,25 @@ export default function SelfOnboardDemoPage() {
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8 text-center sm:mb-10">
-          <div className="mb-4 flex justify-center">
-            <div className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1.5 dark:bg-green-900/30">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-              <span className="text-xs font-semibold text-green-700 dark:text-green-400">
-                Public Demo • Free to Try
-              </span>
-            </div>
+          {/* Logo and Company Name */}
+          <div className="mb-8 flex justify-center">
+            <a
+              href="https://callhenk.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 transition-opacity hover:opacity-80"
+            >
+              <Image
+                src="/images/logo-clear.png"
+                alt="Henk Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+              />
+              <span className="text-xl font-bold">Henk</span>
+            </a>
           </div>
+
           <h1 className="mb-3 text-4xl font-bold tracking-tight sm:text-5xl">
             Create Your AI Voice Agent
           </h1>
@@ -319,15 +357,6 @@ export default function SelfOnboardDemoPage() {
             can have a real-time conversation with it directly in your browser.{' '}
             <strong className="font-semibold">No sign-up required!</strong>
           </p>
-          <div className="mx-auto inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-900/20">
-            <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
-              <span className="text-xs">ℹ️</span>
-            </div>
-            <div className="text-sm text-blue-800 dark:text-blue-200">
-              <strong className="font-semibold">Demo Mode:</strong> Agents are
-              created for testing purposes only and are not saved to an account.
-            </div>
-          </div>
         </div>
 
         {/* Main Card */}
@@ -345,7 +374,7 @@ export default function SelfOnboardDemoPage() {
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 sm:h-11 sm:w-11 ${
                         idx < stepIndex
-                          ? 'bg-green-500 text-white'
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/30'
                           : idx === stepIndex
                             ? 'bg-primary text-primary-foreground ring-primary/20 font-semibold ring-2 ring-offset-2'
                             : 'bg-muted text-muted-foreground border-2'
@@ -374,7 +403,9 @@ export default function SelfOnboardDemoPage() {
                   {idx < steps.length - 1 && (
                     <div
                       className={`mb-5 h-0.5 w-8 transition-colors duration-200 sm:w-12 ${
-                        idx < stepIndex ? 'bg-green-500' : 'bg-muted'
+                        idx < stepIndex
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600'
+                          : 'bg-muted'
                       }`}
                     />
                   )}
@@ -419,20 +450,20 @@ export default function SelfOnboardDemoPage() {
             {step === 'conversation' && createdAgent && (
               <div className="animate-in fade-in space-y-6 duration-300">
                 {/* Success Banner */}
-                <div className="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/30">
+                <div className="bg-muted/30 rounded-xl border p-6 transition-all duration-300">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 shadow-lg">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110">
                         <Check className="h-7 w-7 text-white" />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-green-900 dark:text-green-100">
-                        🎉 Your Agent is Ready!
+                      <h3 className="text-lg font-bold">
+                        Your Agent is Ready!
                       </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-green-800 dark:text-green-200">
+                      <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                         Meet{' '}
-                        <strong className="font-semibold">
+                        <strong className="text-foreground font-semibold">
                           {createdAgent.name}
                         </strong>
                         , your new AI voice assistant. Tap the call button below
@@ -452,95 +483,126 @@ export default function SelfOnboardDemoPage() {
 
                 {/* Email Capture & Calendly */}
                 {!emailSent ? (
-                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <Mail className="mt-1 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                        <div className="flex-1 space-y-2">
-                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                            Interested in using AI agents for your organization?
-                          </h4>
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
-                            Leave your email and we&apos;ll send you more
-                            information, or book a demo call directly.
-                          </p>
-                        </div>
+                  <div
+                    id="email-capture-section"
+                    className="space-y-8 transition-all duration-300"
+                  >
+                    <div className="space-y-4 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110">
+                        <Mail className="h-6 w-6 text-white" />
                       </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-bold tracking-tight">
+                          Want AI Agents for Your Organization?
+                        </h3>
+                        <p className="text-muted-foreground mx-auto max-w-md text-sm leading-relaxed">
+                          Get personalized insights and learn how AI voice
+                          agents can transform your operations
+                        </p>
+                      </div>
+                    </div>
 
-                      <div className="flex flex-col gap-3 sm:flex-row">
+                    <div className="space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
                         <Input
-                          type="email"
-                          placeholder="your@email.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="flex-1"
+                          type="text"
+                          placeholder="Your name (optional)"
+                          value={userName}
+                          onChange={(e) => setUserName(e.target.value)}
+                          className="h-11"
                           disabled={isSendingEmail}
                         />
-                        <Button
-                          onClick={async () => {
-                            if (!email.trim()) {
-                              toast.error('Please enter your email');
-                              return;
-                            }
-
-                            setIsSendingEmail(true);
-
-                            try {
-                              const response = await fetch(
-                                '/api/public/send-demo-interest',
-                                {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({
-                                    email: email.trim(),
-                                    agentName: createdAgent.name,
-                                    useCase: useCase,
-                                    contextPrompt: contextPrompt,
-                                  }),
-                                },
-                              );
-
-                              if (!response.ok) {
-                                throw new Error('Failed to send email');
-                              }
-
-                              setEmailSent(true);
-                              toast.success(
-                                "Thank you! We'll be in touch soon.",
-                              );
-                            } catch {
-                              toast.error('Failed to send. Please try again.');
-                            } finally {
-                              setIsSendingEmail(false);
-                            }
-                          }}
-                          disabled={isSendingEmail || !email.trim()}
-                          className="sm:w-auto"
-                        >
-                          {isSendingEmail ? (
-                            <>
-                              <Spinner className="mr-2 h-3 w-3" />
-                              Sending...
-                            </>
-                          ) : (
-                            'Send'
-                          )}
-                        </Button>
+                        <Input
+                          type="email"
+                          placeholder="Your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="h-11"
+                          disabled={isSendingEmail}
+                        />
                       </div>
+                      <Button
+                        onClick={async () => {
+                          if (!email.trim()) {
+                            toast.error('Please enter your email');
+                            return;
+                          }
 
-                      <div className="flex items-center gap-2 pt-2">
-                        <div className="bg-muted h-px flex-1" />
-                        <span className="text-muted-foreground text-xs">
-                          or
-                        </span>
-                        <div className="bg-muted h-px flex-1" />
+                          setIsSendingEmail(true);
+
+                          try {
+                            // Gather location and browser information
+                            const timezone =
+                              Intl.DateTimeFormat().resolvedOptions().timeZone;
+                            const locale = navigator.language;
+                            const userAgent = navigator.userAgent;
+
+                            const response = await fetch(
+                              '/api/public/send-demo-interest',
+                              {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  email: email.trim(),
+                                  name: userName.trim() || undefined,
+                                  agentName: createdAgent.name,
+                                  useCase: useCase,
+                                  contextPrompt: contextPrompt,
+                                  metadata: {
+                                    timezone,
+                                    locale,
+                                    userAgent,
+                                    timestamp: new Date().toISOString(),
+                                  },
+                                }),
+                              },
+                            );
+
+                            if (!response.ok) {
+                              throw new Error('Failed to send email');
+                            }
+
+                            setEmailSent(true);
+                            toast.success("Thank you! We'll be in touch soon.");
+                          } catch {
+                            toast.error('Failed to send. Please try again.');
+                          } finally {
+                            setIsSendingEmail(false);
+                          }
+                        }}
+                        disabled={isSendingEmail || !email.trim()}
+                        className="h-11 w-full px-8"
+                        size="default"
+                      >
+                        {isSendingEmail ? (
+                          <>
+                            <Spinner className="mr-2 h-4 w-4" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Get Info
+                          </>
+                        )}
+                      </Button>
+
+                      <div className="relative py-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="bg-border w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-background text-muted-foreground px-4 text-sm">
+                            or schedule a call
+                          </span>
+                        </div>
                       </div>
 
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="hover:border-primary hover:bg-accent h-11 w-full border-2 transition-all"
                         onClick={() => {
                           window.open(
                             'https://calendly.com/jerome-callhenk/30min',
@@ -548,38 +610,39 @@ export default function SelfOnboardDemoPage() {
                           );
                         }}
                       >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Book a 30-min Demo Call
+                        <Calendar className="mr-2 h-5 w-5" />
+                        Book a 30-Minute Demo Call
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
-                    <div className="flex items-start gap-3">
-                      <Check className="mt-1 h-5 w-5 text-green-600 dark:text-green-400" />
-                      <div>
-                        <h4 className="font-semibold text-green-900 dark:text-green-100">
-                          Thank you for your interest!
-                        </h4>
-                        <p className="mt-1 text-sm text-green-800 dark:text-green-200">
-                          We&apos;ve received your information and will be in
-                          touch soon.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-3"
-                          onClick={() => {
-                            window.open(
-                              'https://calendly.com/jerome-callhenk/30min',
-                              '_blank',
-                            );
-                          }}
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          Or Book a Call Now
-                        </Button>
-                      </div>
+                  <div className="space-y-4 text-center transition-all duration-300">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 transition-transform duration-300 hover:scale-110">
+                      <Check className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold tracking-tight">
+                        Thank You!
+                      </h3>
+                      <p className="text-muted-foreground mx-auto max-w-md text-sm leading-relaxed">
+                        We&apos;ve received your information and will be in
+                        touch soon with more details.
+                      </p>
+                    </div>
+                    <div className="pt-2">
+                      <Button
+                        variant="outline"
+                        className="hover:border-primary hover:bg-accent h-11 border-2 transition-all duration-300"
+                        onClick={() => {
+                          window.open(
+                            'https://calendly.com/jerome-callhenk/30min',
+                            '_blank',
+                          );
+                        }}
+                      >
+                        <Calendar className="mr-2 h-5 w-5" />
+                        Book a Call Now
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -675,6 +738,57 @@ export default function SelfOnboardDemoPage() {
                 <p className="text-muted-foreground text-xs">
                   This will only take a moment
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating bar when email section is not visible */}
+      {showFloatingBar && createdAgent && !emailSent && (
+        <div className="animate-in slide-in-from-bottom-4 fade-in bg-background fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg duration-300">
+          <div className="mx-auto max-w-4xl p-4">
+            <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+              <div className="flex items-center gap-3 text-center sm:text-left">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">
+                    Want AI Agents for Your Organization?
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Get personalized insights and learn more
+                  </p>
+                </div>
+              </div>
+              <div className="flex w-full gap-2 sm:w-auto">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    document
+                      .getElementById('email-capture-section')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Get Info
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    window.open(
+                      'https://calendly.com/jerome-callhenk/30min',
+                      '_blank',
+                    );
+                  }}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Book Call
+                </Button>
               </div>
             </div>
           </div>

@@ -2,27 +2,42 @@
 
 import React, { useState } from 'react';
 
-import { Camera, Minimize2, Maximize2, Play, Square, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
-import { Button } from '@kit/ui/button';
+import { Camera, Maximize2, Minimize2, Play, Square, X } from 'lucide-react';
+
 import { Badge } from '@kit/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
+import { Button } from '@kit/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
 
 import { useDemoMode } from '~/lib/demo-mode-context';
 
 export function DemoPopup() {
-  const { isDemoMode, isDemoVisible, toggleDemoMode, toggleDemoVisibility } = useDemoMode();
+  const { isDemoMode, isDemoVisible, toggleDemoMode, toggleDemoVisibility } =
+    useDemoMode();
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Don't render on self-onboard demo page
+  if (pathname === '/self-onboard-demo') {
+    return null;
+  }
 
   // Don't render if demo popup is hidden
   if (!isDemoVisible) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed right-4 bottom-4 z-50">
         <Button
           onClick={toggleDemoVisibility}
           variant="outline"
           size="sm"
-          className="h-10 w-10 rounded-full p-0 shadow-lg border-2 bg-background/80 backdrop-blur-sm hover:bg-background/90"
+          className="bg-background/80 hover:bg-background/90 h-10 w-10 rounded-full border-2 p-0 shadow-lg backdrop-blur-sm"
           title="Show demo controls"
         >
           <Maximize2 className="h-4 w-4" />
@@ -34,17 +49,17 @@ export function DemoPopup() {
   // Show minimized floating button when not open
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed right-4 bottom-4 z-50">
         <Button
           onClick={() => setIsOpen(true)}
           variant="default"
           size="sm"
-          className="h-12 px-4 rounded-full shadow-lg bg-primary/90 hover:bg-primary text-primary-foreground"
+          className="bg-primary/90 hover:bg-primary text-primary-foreground h-12 rounded-full px-4 shadow-lg"
           title="Open demo controls"
         >
           {isDemoMode && (
-            <Badge variant="secondary" className="mr-2 text-xs px-2 py-0.5">
-              <Camera className="h-3 w-3 mr-1" />
+            <Badge variant="secondary" className="mr-2 px-2 py-0.5 text-xs">
+              <Camera className="mr-1 h-3 w-3" />
               Demo
             </Badge>
           )}
@@ -56,12 +71,12 @@ export function DemoPopup() {
 
   // Show full popup when open
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Card className="w-80 shadow-2xl border-2 bg-background/95 backdrop-blur-sm">
+    <div className="fixed right-4 bottom-4 z-50">
+      <Card className="bg-background/95 w-80 border-2 shadow-2xl backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Play className="h-4 w-4 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Play className="text-primary h-4 w-4" />
               Demo Mode
             </CardTitle>
             <div className="flex items-center gap-1">
@@ -69,7 +84,7 @@ export function DemoPopup() {
                 onClick={toggleDemoVisibility}
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-7 w-7 p-0"
                 title="Hide demo controls"
               >
                 <Minimize2 className="h-3 w-3" />
@@ -78,7 +93,7 @@ export function DemoPopup() {
                 onClick={() => setIsOpen(false)}
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-7 w-7 p-0"
                 title="Close popup"
               >
                 <X className="h-3 w-3" />
@@ -92,9 +107,9 @@ export function DemoPopup() {
         <CardContent className="pt-0">
           <div className="space-y-3">
             {isDemoMode && (
-              <div className="flex items-center gap-2 p-2 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-900/20">
                 <Camera className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-green-800 dark:text-green-200 font-medium">
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">
                   Demo mode active
                 </span>
               </div>
@@ -109,12 +124,12 @@ export function DemoPopup() {
               >
                 {isDemoMode ? (
                   <>
-                    <Square className="h-3 w-3 mr-2" />
+                    <Square className="mr-2 h-3 w-3" />
                     Exit Demo
                   </>
                 ) : (
                   <>
-                    <Play className="h-3 w-3 mr-2" />
+                    <Play className="mr-2 h-3 w-3" />
                     Start Demo
                   </>
                 )}
@@ -122,7 +137,7 @@ export function DemoPopup() {
             </div>
 
             {isDemoMode && (
-              <div className="text-xs text-muted-foreground space-y-1">
+              <div className="text-muted-foreground space-y-1 text-xs">
                 <p>✓ Mock agents and campaigns active</p>
                 <p>✓ Sample conversations and metrics</p>
                 <p>✓ Perfect for screenshots and demos</p>
