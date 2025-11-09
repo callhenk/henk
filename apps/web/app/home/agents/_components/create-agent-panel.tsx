@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import {
+  Briefcase,
   Check,
   ChevronLeft,
   ChevronRight,
-  Briefcase,
-  Target,
   Settings,
+  Target,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,22 +27,20 @@ import {
 } from '@kit/ui/dialog';
 import { Spinner } from '@kit/ui/spinner';
 
-import { AgentTypesStep, AGENT_TYPES } from './agent-types-step';
-import { UseCaseStep } from './use-case-step';
-import { DetailsStep } from './details-step';
-import { generateAgentPrompts } from '~/lib/generate-agent-prompts';
 import { DEFAULT_PHONE_NUMBER_ID } from '~/lib/constants';
+import { generateAgentPrompts } from '~/lib/generate-agent-prompts';
 import { logger } from '~/lib/utils';
+
+import { AGENT_TYPES, AgentTypesStep } from './agent-types-step';
+import { DetailsStep } from './details-step';
+import { UseCaseStep } from './use-case-step';
 
 interface CreateAgentPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type StepType =
-  | 'agent-type'
-  | 'use-case'
-  | 'details';
+type StepType = 'agent-type' | 'use-case' | 'details';
 
 export function CreateAgentPanel({
   open,
@@ -53,7 +51,9 @@ export function CreateAgentPanel({
   const createAgentMutation = useCreateAgent();
 
   // ElevenLabs-aligned flow state
-  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(null);
+  const [agentType, setAgentType] = useState<keyof typeof AGENT_TYPES | null>(
+    null,
+  );
   const [useCase, setUseCase] = useState<string | null>(null);
   // Industry is always "non profit" for this platform
   const industry = 'non profit';
@@ -67,6 +67,38 @@ export function CreateAgentPanel({
 
   // Track if user has manually edited name
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
+
+  // Extract name from context prompt using LLM when it changes
+  useEffect(() => {
+    // Only auto-extract if user hasn't manually edited the name field
+    if (!nameManuallyEdited && contextPrompt && contextPrompt.length > 10) {
+      // Debounce the API call to avoid too many requests while user is typing
+      const timeoutId = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/agents/extract-name', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: contextPrompt }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.name) {
+              // Only update if the extracted name is different from current
+              if (data.name !== name) {
+                setName(data.name);
+              }
+            }
+          }
+        } catch (error) {
+          // Silently fail - name extraction is a nice-to-have feature
+          console.debug('Name extraction failed:', error);
+        }
+      }, 1000); // Wait 1 second after user stops typing
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [contextPrompt, nameManuallyEdited, name]);
 
   // Generate dynamic prompts based on use case and industry (takes priority)
   useEffect(() => {
@@ -141,7 +173,11 @@ export function CreateAgentPanel({
 
   const goNext = () => {
     const currentStepIndex = steps.findIndex((s) => s.key === step);
-    if (currentStepIndex >= 0 && currentStepIndex < steps.length - 1 && canProceed()) {
+    if (
+      currentStepIndex >= 0 &&
+      currentStepIndex < steps.length - 1 &&
+      canProceed()
+    ) {
       const nextStep = steps[currentStepIndex + 1];
       if (nextStep) {
         setStep(nextStep.key);
@@ -168,7 +204,8 @@ export function CreateAgentPanel({
     try {
       // Get system prompt from agent type template
       const agentTypeTemplate = agentType ? AGENT_TYPES[agentType] : null;
-      const baseSystemPrompt = agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
+      const baseSystemPrompt =
+        agentTypeTemplate?.systemPrompt || 'You are a helpful AI assistant.';
 
       // Generate the starting message for ElevenLabs
       const generatedPrompts = generateAgentPrompts({
@@ -207,7 +244,9 @@ export function CreateAgentPanel({
         agentType,
         useCase,
         industry,
-        hasConversationConfig: Boolean(elevenLabsAgentConfig.conversation_config),
+        hasConversationConfig: Boolean(
+          elevenLabsAgentConfig.conversation_config,
+        ),
         hasWorkflow: Boolean(elevenLabsAgentConfig.workflow),
         hasVoiceId: Boolean(elevenLabsAgentConfig.voice_id),
       });
@@ -227,13 +266,17 @@ export function CreateAgentPanel({
       }
 
       if (!resp.ok) {
-        logger.error('ElevenLabs agent creation failed', new Error('API request failed'), {
-          component: 'CreateAgentPanel',
-          action: 'createElevenLabsAgent',
-          status: resp.status,
-          responsePreview: raw?.slice(0, 500),
-          parsedData: elevenlabsData,
-        });
+        logger.error(
+          'ElevenLabs agent creation failed',
+          new Error('API request failed'),
+          {
+            component: 'CreateAgentPanel',
+            action: 'createElevenLabsAgent',
+            status: resp.status,
+            responsePreview: raw?.slice(0, 500),
+            parsedData: elevenlabsData,
+          },
+        );
         setIsSubmitting(false);
         throw new Error(
           ((elevenlabsData as Record<string, unknown>)?.error as
@@ -277,11 +320,16 @@ export function CreateAgentPanel({
       // 3) Assign default phone to agent (caller_id)
       if (created?.id) {
         try {
-          const phoneResp = await fetch(`/api/agents/${created.id}/assign-phone`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone_number_id: DEFAULT_PHONE_NUMBER_ID }),
-          }).catch((e) => {
+          const phoneResp = await fetch(
+            `/api/agents/${created.id}/assign-phone`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone_number_id: DEFAULT_PHONE_NUMBER_ID,
+              }),
+            },
+          ).catch((e) => {
             logger.warn('Phone assignment network error', {
               component: 'CreateAgentPanel',
               action: 'assignPhone',
@@ -317,16 +365,20 @@ export function CreateAgentPanel({
       }
       toast.success('Agent created successfully!');
     } catch (err) {
-      logger.error('Failed to create agent', err instanceof Error ? err : new Error(String(err)), {
-        component: 'CreateAgentPanel',
-        action: 'handleSubmit',
-        agentName: name,
-        agentType,
-        useCase,
-        industry,
-      });
+      logger.error(
+        'Failed to create agent',
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          component: 'CreateAgentPanel',
+          action: 'handleSubmit',
+          agentName: name,
+          agentType,
+          useCase,
+          industry,
+        },
+      );
       toast.error(
-        err instanceof Error ? err.message : 'Failed to create agent'
+        err instanceof Error ? err.message : 'Failed to create agent',
       );
       setIsSubmitting(false);
     }
@@ -348,10 +400,10 @@ export function CreateAgentPanel({
           }
         }}
       >
-        <DialogContent className="w-full sm:max-w-2xl p-0 max-h-[100vh] sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-lg">
-          <DialogHeader className="border-b px-4 sm:px-6 py-5 sm:py-6 flex-shrink-0">
+        <DialogContent className="flex max-h-[100vh] w-full flex-col rounded-none p-0 sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg">
+          <DialogHeader className="flex-shrink-0 border-b px-4 py-5 sm:px-6 sm:py-6">
             <div className="space-y-1">
-              <DialogTitle className="text-lg sm:text-xl font-semibold">
+              <DialogTitle className="text-lg font-semibold sm:text-xl">
                 Create Agent
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
@@ -360,24 +412,28 @@ export function CreateAgentPanel({
             </div>
 
             {/* Step indicator */}
-            <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-1 sm:gap-2">
+            <div className="mt-3 grid grid-cols-3 gap-1 sm:mt-4 sm:gap-2">
               {steps.map((s, idx) => (
                 <div
                   key={s.key}
-                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-colors duration-200 ${
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-xs transition-colors duration-200 sm:gap-1 sm:px-3 sm:py-2 ${
                     idx <= stepIndex
                       ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'border bg-muted text-muted-foreground'
+                      : 'bg-muted text-muted-foreground border'
                   }`}
                 >
-                  <div className="flex items-center justify-center h-4 sm:h-5 transition-opacity duration-200">
+                  <div className="flex h-4 items-center justify-center transition-opacity duration-200 sm:h-5">
                     {idx < stepIndex ? (
                       <Check className="h-3 w-3" />
                     ) : (
-                      <span className="text-[10px] sm:text-xs font-bold">{idx + 1}</span>
+                      <span className="text-[10px] font-bold sm:text-xs">
+                        {idx + 1}
+                      </span>
                     )}
                   </div>
-                  <span className="font-medium text-[7px] sm:text-[9px] leading-tight text-center">{s.title}</span>
+                  <span className="text-center text-[7px] leading-tight font-medium sm:text-[9px]">
+                    {s.title}
+                  </span>
                 </div>
               ))}
             </div>
@@ -385,16 +441,22 @@ export function CreateAgentPanel({
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
-            <div className="px-4 sm:px-6 py-5 sm:py-6">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
               {step === 'agent-type' && (
                 <div className="animate-in fade-in duration-300">
-                  <AgentTypesStep selectedType={agentType} onSelectType={setAgentType} />
+                  <AgentTypesStep
+                    selectedType={agentType}
+                    onSelectType={setAgentType}
+                  />
                 </div>
               )}
 
               {step === 'use-case' && (
                 <div className="animate-in fade-in duration-300">
-                  <UseCaseStep selectedUseCase={useCase} onSelectUseCase={setUseCase} />
+                  <UseCaseStep
+                    selectedUseCase={useCase}
+                    onSelectUseCase={setUseCase}
+                  />
                 </div>
               )}
 
@@ -412,23 +474,33 @@ export function CreateAgentPanel({
             </div>
           </div>
 
-          <DialogFooter className="border-t px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 bg-muted/20">
-            <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <DialogFooter className="bg-muted/20 flex-shrink-0 border-t px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex w-full flex-col-reverse items-center justify-between gap-2 sm:flex-row">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenChange(false)}
+                className="text-muted-foreground hover:text-foreground w-full transition-colors duration-200 sm:w-auto"
+              >
                 Cancel
               </Button>
-              <div className="flex w-full sm:w-auto items-center gap-2">
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={goBack}
                   disabled={stepIndex === 0}
-                  className="flex-1 sm:flex-none transition-opacity duration-200"
+                  className="flex-1 transition-opacity duration-200 sm:flex-none"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {stepIndex < steps.length - 1 ? (
-                  <Button onClick={goNext} disabled={!canProceed()} size="sm" className="flex-1 sm:flex-none transition-opacity duration-200">
+                  <Button
+                    onClick={goNext}
+                    disabled={!canProceed()}
+                    size="sm"
+                    className="flex-1 transition-opacity duration-200 sm:flex-none"
+                  >
                     Next <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 ) : (
@@ -436,7 +508,7 @@ export function CreateAgentPanel({
                     onClick={handleSubmit}
                     disabled={isSubmitting || !canProceed()}
                     size="sm"
-                    className="flex-1 sm:flex-none transition-opacity duration-200"
+                    className="flex-1 transition-opacity duration-200 sm:flex-none"
                   >
                     {isSubmitting ? (
                       <>

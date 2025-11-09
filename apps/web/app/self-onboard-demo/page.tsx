@@ -48,6 +48,7 @@ export default function SelfOnboardDemoPage() {
   const [name, setName] = useState('');
   const [contextPrompt, setContextPrompt] = useState('');
   const [firstMessage, setFirstMessage] = useState('');
+  const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('female');
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
   const [contextPromptManuallyEdited, setContextPromptManuallyEdited] =
     useState(false);
@@ -86,6 +87,38 @@ export default function SelfOnboardDemoPage() {
       observer.disconnect();
     };
   }, [createdAgent, emailSent]);
+
+  // Extract name from context prompt using LLM when it changes
+  useEffect(() => {
+    // Only auto-extract if user hasn't manually edited the name field
+    if (!nameManuallyEdited && contextPrompt && contextPrompt.length > 10) {
+      // Debounce the API call to avoid too many requests while user is typing
+      const timeoutId = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/agents/extract-name', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: contextPrompt }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.name) {
+              // Only update if the extracted name is different from current
+              if (data.name !== name) {
+                setName(data.name);
+              }
+            }
+          }
+        } catch (error) {
+          // Silently fail - name extraction is a nice-to-have feature
+          console.debug('Name extraction failed:', error);
+        }
+      }, 1000); // Wait 1 second after user stops typing
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [contextPrompt, nameManuallyEdited, name]);
 
   // Generate dynamic prompts based on use case and industry
   useEffect(() => {
@@ -443,6 +476,9 @@ export default function SelfOnboardDemoPage() {
                   enableAiGeneration={true}
                   agentName={name}
                   industry={industry}
+                  voiceGender={voiceGender}
+                  onVoiceGenderChange={setVoiceGender}
+                  showVoiceSelection={true}
                 />
               </div>
             )}

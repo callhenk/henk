@@ -28,18 +28,21 @@ interface GeneratedPrompts {
  * Use case specific prompt configurations
  * Following ElevenLabs six building blocks structure
  */
-const USE_CASE_CONFIGS: Record<string, {
-  defaultName: string;
-  role: string;
-  tone: string[];
-  capabilities: string[];
-  goals: string[];
-  guidelines: string[];
-  guardrails: string[];
-  keyPoints: string[];
-}> = {
+const USE_CASE_CONFIGS: Record<
+  string,
+  {
+    defaultName: string;
+    role: string;
+    tone: string[];
+    capabilities: string[];
+    goals: string[];
+    guidelines: string[];
+    guardrails: string[];
+    keyPoints: string[];
+  }
+> = {
   // Customer Support
-  'customer_support': {
+  customer_support: {
     defaultName: 'Customer Support Agent',
     role: 'a knowledgeable support agent specialized in helping customers',
     tone: [
@@ -62,11 +65,11 @@ const USE_CASE_CONFIGS: Record<string, {
     guidelines: [
       'Keep answers concise and easy to understand',
       'If unsure about an answer, admit it and offer to connect with a specialist',
-      'Always verify you\'ve fully answered the question before closing',
+      "Always verify you've fully answered the question before closing",
     ],
     guardrails: [
       'Never make promises you cannot keep',
-      'If you don\'t know an answer, acknowledge it honestly and offer to find help',
+      "If you don't know an answer, acknowledge it honestly and offer to find help",
       'Never share confidential information about other customers',
       'Always maintain a professional and respectful tone, even if the customer is frustrated',
     ],
@@ -77,13 +80,13 @@ const USE_CASE_CONFIGS: Record<string, {
     ],
   },
   // Outbound Sales
-  'outbound_sales': {
+  outbound_sales: {
     defaultName: 'Sales Agent',
     role: 'a professional sales agent trained to conduct effective outbound sales conversations',
     tone: [
       'Sound confident but not pushy',
       'Use enthusiasm naturally when discussing benefits',
-      'Mirror the prospect\'s energy level and pace',
+      "Mirror the prospect's energy level and pace",
       'Incorporate brief pauses to let information sink in',
     ],
     capabilities: [
@@ -108,7 +111,7 @@ const USE_CASE_CONFIGS: Record<string, {
       'Respect "no" and don\'t be pushy',
       'Never pressure prospects into decisions',
       'Be transparent about pricing and terms',
-      'If a product isn\'t the right fit, acknowledge it honestly',
+      "If a product isn't the right fit, acknowledge it honestly",
     ],
     keyPoints: [
       'Clear value communication',
@@ -118,7 +121,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Learning and Development
-  'learning_development': {
+  learning_development: {
     defaultName: 'Learning Specialist',
     role: 'an educational support specialist focused on learning and development',
     tone: [
@@ -146,9 +149,9 @@ const USE_CASE_CONFIGS: Record<string, {
     ],
     guardrails: [
       'Never make learners feel inadequate or slow',
-      'If a concept isn\'t clear, try a different explanation approach',
-      'Avoid jargon unless it\'s part of the learning objective',
-      'Never rush through material - adapt to learner\'s pace',
+      "If a concept isn't clear, try a different explanation approach",
+      "Avoid jargon unless it's part of the learning objective",
+      "Never rush through material - adapt to learner's pace",
     ],
     keyPoints: [
       'Clear instruction',
@@ -158,7 +161,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Scheduling
-  'scheduling': {
+  scheduling: {
     defaultName: 'Scheduling Assistant',
     role: 'an efficient scheduler focused on coordinating meetings and appointments',
     tone: [
@@ -176,7 +179,7 @@ const USE_CASE_CONFIGS: Record<string, {
     goals: [
       'Schedule appointments efficiently',
       'Minimize no-shows with clear communication',
-      'Respect everyone\'s time',
+      "Respect everyone's time",
     ],
     guidelines: [
       'Offer 2-3 specific time options rather than asking open-ended',
@@ -187,7 +190,7 @@ const USE_CASE_CONFIGS: Record<string, {
     guardrails: [
       'Always confirm time zones to avoid confusion',
       'Never double-book or overcommit',
-      'If a requested time isn\'t available, offer alternatives immediately',
+      "If a requested time isn't available, offer alternatives immediately",
       'Respect calendar boundaries and working hours',
     ],
     keyPoints: [
@@ -198,14 +201,14 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Lead Qualification
-  'lead_qualification': {
+  lead_qualification: {
     defaultName: 'Lead Qualifier',
     role: 'a consultative agent focused on identifying and qualifying potential supporters',
     tone: [
       'Sound curious and genuinely interested',
       'Use a consultative, not salesy approach',
       'Ask questions with natural pauses for responses',
-      'Mirror prospect\'s communication style',
+      "Mirror prospect's communication style",
     ],
     capabilities: [
       'Ask strategic questions to understand needs',
@@ -222,12 +225,12 @@ const USE_CASE_CONFIGS: Record<string, {
       'Be consultative and mission-focused',
       'Ask open-ended questions to encourage conversation',
       'Listen more than you talk',
-      'Respect if timing isn\'t right',
+      "Respect if timing isn't right",
     ],
     guardrails: [
       'Never be pushy or aggressive in qualification',
-      'Respect when timing isn\'t right and note for future follow-up',
-      'Don\'t make assumptions about budget or capacity',
+      "Respect when timing isn't right and note for future follow-up",
+      "Don't make assumptions about budget or capacity",
       'Always be transparent about next steps',
     ],
     keyPoints: [
@@ -238,7 +241,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Answering Service
-  'answering_service': {
+  answering_service: {
     defaultName: 'Answering Service Agent',
     role: 'a professional answering service agent handling incoming calls',
     tone: [
@@ -266,7 +269,7 @@ const USE_CASE_CONFIGS: Record<string, {
     ],
     guardrails: [
       'Never promise a specific callback time unless confirmed',
-      'Don\'t share sensitive information about staff availability or schedules',
+      "Don't share sensitive information about staff availability or schedules",
       'If unsure about routing, err on the side of taking a detailed message',
       'Always spell back contact information for accuracy',
     ],
@@ -278,7 +281,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Volunteer Coordination
-  'volunteer_coordination': {
+  volunteer_coordination: {
     defaultName: 'Volunteer Coordinator',
     role: 'a volunteer coordinator focused on organizing and supporting volunteers',
     tone: [
@@ -307,8 +310,8 @@ const USE_CASE_CONFIGS: Record<string, {
     guardrails: [
       'Never take volunteers for granted or treat them as free labor',
       'Always acknowledge their time and contribution',
-      'Don\'t overcommit volunteers - respect their availability',
-      'If an opportunity isn\'t a good fit, help find one that is',
+      "Don't overcommit volunteers - respect their availability",
+      "If an opportunity isn't a good fit, help find one that is",
     ],
     keyPoints: [
       'Volunteer engagement',
@@ -318,7 +321,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Donation Processing
-  'donation_processing': {
+  donation_processing: {
     defaultName: 'Donation Specialist',
     role: 'a donation specialist focused on processing and acknowledging contributions',
     tone: [
@@ -347,7 +350,7 @@ const USE_CASE_CONFIGS: Record<string, {
     guardrails: [
       'Never pressure donors to give more than they indicated',
       'Protect all payment and personal information',
-      'If there\'s a processing issue, explain clearly and offer alternatives',
+      "If there's a processing issue, explain clearly and offer alternatives",
       'Always confirm donation amounts before processing',
     ],
     keyPoints: [
@@ -358,7 +361,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Program Information
-  'program_information': {
+  program_information: {
     defaultName: 'Program Information Specialist',
     role: 'a program specialist providing information about services and initiatives',
     tone: [
@@ -386,8 +389,8 @@ const USE_CASE_CONFIGS: Record<string, {
     ],
     guardrails: [
       'Never give false hope about eligibility or benefits',
-      'If you don\'t know program details, acknowledge it and offer to find out',
-      'Don\'t make promises about application outcomes',
+      "If you don't know program details, acknowledge it and offer to find out",
+      "Don't make promises about application outcomes",
       'Respect privacy when discussing programs',
     ],
     keyPoints: [
@@ -398,7 +401,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Event Management
-  'event_management': {
+  event_management: {
     defaultName: 'Event Coordinator',
     role: 'an event coordinator managing registrations and event logistics',
     tone: [
@@ -438,7 +441,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Beneficiary Support
-  'beneficiary_support': {
+  beneficiary_support: {
     defaultName: 'Support Specialist',
     role: 'a compassionate support specialist helping program beneficiaries',
     tone: [
@@ -465,9 +468,9 @@ const USE_CASE_CONFIGS: Record<string, {
       'Provide clear, actionable guidance',
     ],
     guardrails: [
-      'Never judge someone\'s circumstances or situation',
+      "Never judge someone's circumstances or situation",
       'Maintain absolute confidentiality',
-      'Don\'t make assumptions about what someone needs',
+      "Don't make assumptions about what someone needs",
       'If you encounter a crisis situation, escalate appropriately',
       'Treat everyone with dignity and respect',
     ],
@@ -479,7 +482,7 @@ const USE_CASE_CONFIGS: Record<string, {
   },
 
   // Impact Reporting
-  'impact_reporting': {
+  impact_reporting: {
     defaultName: 'Impact Reporter',
     role: 'an impact reporting specialist sharing organizational outcomes and stories',
     tone: [
@@ -509,22 +512,18 @@ const USE_CASE_CONFIGS: Record<string, {
       'Never exaggerate or embellish impact',
       'Protect beneficiary privacy when sharing stories',
       'Be honest about challenges alongside successes',
-      'Don\'t manipulate emotions - let authentic stories speak',
+      "Don't manipulate emotions - let authentic stories speak",
     ],
-    keyPoints: [
-      'Compelling storytelling',
-      'Clear metrics',
-      'Donor connection',
-    ],
+    keyPoints: ['Compelling storytelling', 'Clear metrics', 'Donor connection'],
   },
 
   // Other
-  'other': {
+  other: {
     defaultName: 'AI Agent',
     role: 'a versatile support agent ready to assist with various needs',
     tone: [
       'Sound professional and adaptable',
-      'Match the caller\'s energy and formality level',
+      "Match the caller's energy and formality level",
       'Use natural conversational markers',
       'Be warm and approachable',
     ],
@@ -548,34 +547,35 @@ const USE_CASE_CONFIGS: Record<string, {
     guardrails: [
       'Never make assumptions about what the caller needs',
       'If uncertain, ask clarifying questions',
-      'Don\'t overpromise on capabilities',
+      "Don't overpromise on capabilities",
       'Know your limitations and when to escalate',
     ],
-    keyPoints: [
-      'Flexible support',
-      'Professional service',
-      'Needs assessment',
-    ],
+    keyPoints: ['Flexible support', 'Professional service', 'Needs assessment'],
   },
 };
 
 /**
  * Industry-specific context that shapes the agent's knowledge and approach
  */
-const INDUSTRY_CONTEXTS: Record<string, {
-  context: string;
-  considerations: string[];
-}> = {
-  'Technology': {
-    context: 'in the technology sector, familiar with software, hardware, cloud services, and digital transformation',
+const INDUSTRY_CONTEXTS: Record<
+  string,
+  {
+    context: string;
+    considerations: string[];
+  }
+> = {
+  Technology: {
+    context:
+      'in the technology sector, familiar with software, hardware, cloud services, and digital transformation',
     considerations: [
       'Technical accuracy is critical',
       'Customers may have varying technical expertise',
       'Fast-paced industry with rapid changes',
     ],
   },
-  'Healthcare': {
-    context: 'in healthcare, understanding HIPAA compliance, patient privacy, and medical terminology',
+  Healthcare: {
+    context:
+      'in healthcare, understanding HIPAA compliance, patient privacy, and medical terminology',
     considerations: [
       'NEVER provide medical diagnoses or advice',
       'Maintain strict patient confidentiality',
@@ -583,8 +583,9 @@ const INDUSTRY_CONTEXTS: Record<string, {
       'Always clarify when professional medical consultation is needed',
     ],
   },
-  'Finance': {
-    context: 'in financial services, knowledgeable about banking, investments, compliance, and regulations',
+  Finance: {
+    context:
+      'in financial services, knowledgeable about banking, investments, compliance, and regulations',
     considerations: [
       'Maintain strict confidentiality',
       'Verify identity before discussing accounts',
@@ -592,16 +593,18 @@ const INDUSTRY_CONTEXTS: Record<string, {
       'Comply with financial regulations',
     ],
   },
-  'Retail': {
-    context: 'in retail, focused on customer experience, product knowledge, and sales',
+  Retail: {
+    context:
+      'in retail, focused on customer experience, product knowledge, and sales',
     considerations: [
       'Product knowledge is key',
       'Focus on customer satisfaction',
       'Handle returns and exchanges gracefully',
     ],
   },
-  'Education': {
-    context: 'in education, understanding student needs, learning processes, and academic environments',
+  Education: {
+    context:
+      'in education, understanding student needs, learning processes, and academic environments',
     considerations: [
       'Adapt to different learning styles',
       'Be patient and encouraging',
@@ -609,7 +612,8 @@ const INDUSTRY_CONTEXTS: Record<string, {
     ],
   },
   'non profit': {
-    context: 'serving a non-profit organization, focused on mission impact and donor relationships',
+    context:
+      'serving a non-profit organization, focused on mission impact and donor relationships',
     considerations: [
       'Emphasize mission and impact',
       'Build donor relationships',
@@ -617,7 +621,7 @@ const INDUSTRY_CONTEXTS: Record<string, {
       'Show gratitude for support',
     ],
   },
-  'Other': {
+  Other: {
     context: 'serving diverse industries with adaptable, professional support',
     considerations: [
       'Stay flexible and adaptable',
@@ -631,7 +635,9 @@ const INDUSTRY_CONTEXTS: Record<string, {
  * Following ElevenLabs six building blocks:
  * 1. Personality, 2. Environment, 3. Tone, 4. Goal, 5. Guardrails, 6. Tools
  */
-export function generateAgentPrompts(params: PromptGenerationParams): GeneratedPrompts {
+export function generateAgentPrompts(
+  params: PromptGenerationParams,
+): GeneratedPrompts {
   const { agentType, useCase, industry, businessName } = params;
 
   const useCaseConfig = useCase ? USE_CASE_CONFIGS[useCase] : null;
@@ -664,13 +670,15 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
       }
     }
   } else {
-    const defaultRole = agentType === 'personal_assistant'
-      ? 'a personal assistant helping with scheduling, tasks, and organization'
-      : agentType === 'business_agent'
-      ? 'a professional business support agent'
-      : 'a helpful AI assistant';
+    const defaultRole =
+      agentType === 'personal_assistant'
+        ? 'a personal assistant helping with scheduling, tasks, and organization'
+        : agentType === 'business_agent'
+          ? 'a professional business support agent'
+          : 'a helpful AI assistant';
     contextPrompt += `You are ${defaultRole}.\n`;
-    contextPrompt += 'You are efficient, polite, and focused on helping callers.\n';
+    contextPrompt +=
+      'You are efficient, polite, and focused on helping callers.\n';
   }
 
   contextPrompt += '\n';
@@ -679,7 +687,11 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   contextPrompt += '# Environment\n\n';
   contextPrompt += 'You are engaging with callers over the phone.\n';
 
-  if (useCaseConfig && useCaseConfig.goals.length > 0 && useCaseConfig.goals[0]) {
+  if (
+    useCaseConfig &&
+    useCaseConfig.goals.length > 0 &&
+    useCaseConfig.goals[0]
+  ) {
     contextPrompt += `Your goal is to ${useCaseConfig.goals[0].toLowerCase()}.\n`;
   }
 
@@ -695,9 +707,16 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   if (useCaseConfig && useCaseConfig.tone.length > 0) {
     // Extract tone characteristics naturally
     const toneDesc = useCaseConfig.tone[1]?.toLowerCase() || '';
-    if (toneDesc.includes('warm') || toneDesc.includes('patient') || toneDesc.includes('reassuring')) {
+    if (
+      toneDesc.includes('warm') ||
+      toneDesc.includes('patient') ||
+      toneDesc.includes('reassuring')
+    ) {
       contextPrompt += 'You use a polite and helpful tone.\n';
-    } else if (toneDesc.includes('confident') || toneDesc.includes('professional')) {
+    } else if (
+      toneDesc.includes('confident') ||
+      toneDesc.includes('professional')
+    ) {
       contextPrompt += 'You use a confident and professional tone.\n';
     } else {
       contextPrompt += 'You use a polite and helpful tone.\n';
@@ -707,7 +726,8 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   }
 
   contextPrompt += 'You avoid jargon and explain things simply.\n';
-  contextPrompt += 'You speak at a moderate pace and ensure the caller understands each question.\n';
+  contextPrompt +=
+    'You speak at a moderate pace and ensure the caller understands each question.\n';
 
   contextPrompt += '\n';
 
@@ -719,23 +739,29 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
 
     // Create structured steps from capabilities and guidelines
     contextPrompt += '1. **Gathering Information**:\n';
-    useCaseConfig.capabilities.slice(0, 4).forEach(item => {
+    useCaseConfig.capabilities.slice(0, 4).forEach((item) => {
       contextPrompt += `   * ${item}\n`;
     });
 
     contextPrompt += '2. **Executing Your Role**:\n';
-    useCaseConfig.guidelines.slice(0, 4).forEach(item => {
+    useCaseConfig.guidelines.slice(0, 4).forEach((item) => {
       contextPrompt += `   * ${item}\n`;
     });
 
     contextPrompt += '3. **Providing Next Steps**:\n';
-    contextPrompt += '   * Thank the caller for their time and offer further assistance.\n';
-    if (useCase === 'scheduling' || useCase === 'customer_support' || useCase === 'lead_qualification') {
+    contextPrompt +=
+      '   * Thank the caller for their time and offer further assistance.\n';
+    if (
+      useCase === 'scheduling' ||
+      useCase === 'customer_support' ||
+      useCase === 'lead_qualification'
+    ) {
       contextPrompt += '   * Schedule a follow-up call if needed.\n';
     }
     contextPrompt += '   * Provide helpful resources or next steps.\n';
   } else {
-    contextPrompt += 'Your primary goal is to assist callers effectively and professionally.\n';
+    contextPrompt +=
+      'Your primary goal is to assist callers effectively and professionally.\n';
   }
 
   contextPrompt += '\n';
@@ -745,22 +771,25 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
 
   // Add industry-specific guardrails first
   if (industryContext && industryContext.considerations.length > 0) {
-    industryContext.considerations.forEach(consideration => {
+    industryContext.considerations.forEach((consideration) => {
       contextPrompt += `${consideration}\n`;
     });
   }
 
   // Add use case specific guardrails
   if (useCaseConfig && useCaseConfig.guardrails.length > 0) {
-    useCaseConfig.guardrails.forEach(guardrail => {
+    useCaseConfig.guardrails.forEach((guardrail) => {
       contextPrompt += `${guardrail}\n`;
     });
   } else {
     // Default guardrails
     contextPrompt += 'Only ask questions relevant to your role.\n';
-    contextPrompt += 'Respect the caller\'s privacy and do not share their information without consent.\n';
-    contextPrompt += 'Maintain a professional and courteous demeanor at all times.\n';
-    contextPrompt += 'If the caller becomes upset or uncooperative, politely end the call.\n';
+    contextPrompt +=
+      "Respect the caller's privacy and do not share their information without consent.\n";
+    contextPrompt +=
+      'Maintain a professional and courteous demeanor at all times.\n';
+    contextPrompt +=
+      'If the caller becomes upset or uncooperative, politely end the call.\n';
   }
 
   contextPrompt += '\n';
@@ -769,7 +798,8 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
   contextPrompt += '# Tools\n\n';
   contextPrompt += 'CRM integration for data input.\n';
   contextPrompt += 'Calendar access for scheduling follow-up calls.\n';
-  contextPrompt += 'Access to a knowledge base with information about your organization.\n';
+  contextPrompt +=
+    'Access to a knowledge base with information about your organization.\n';
 
   // System prompt (shorter, for LLM system message)
   const systemPrompt = useCaseConfig
@@ -777,12 +807,20 @@ export function generateAgentPrompts(params: PromptGenerationParams): GeneratedP
     : 'You are a helpful AI assistant. Be professional and concise.';
 
   // Starting message
-  const startingMessage = useCaseConfig && useCaseConfig.keyPoints.length > 0
-    ? `Hello! I'm here to help with ${useCaseConfig.keyPoints[0]?.toLowerCase()}. How can I assist you today?`
-    : 'Hello! How can I help you today?';
+  const startingMessage =
+    useCaseConfig && useCaseConfig.keyPoints.length > 0
+      ? `Hello! I'm here to help with ${useCaseConfig.keyPoints[0]?.toLowerCase()}. How can I assist you today?`
+      : 'Hello! How can I help you today?';
 
-  // Default name
-  const defaultName = useCaseConfig?.defaultName || 'AI Agent';
+  // Extract name from context prompt if present (e.g., "Your name is Sarah")
+  // This takes priority over the default use case name
+  const nameMatch = contextPrompt.match(
+    /(?:your name is|name is|called)\s+([A-Z][a-z]+)/i,
+  );
+  const extractedName = nameMatch ? nameMatch[1] : null;
+
+  // Use extracted name if found, otherwise fall back to use case default
+  const defaultName = extractedName || useCaseConfig?.defaultName || 'AI Agent';
 
   return {
     contextPrompt: contextPrompt.trim(),
