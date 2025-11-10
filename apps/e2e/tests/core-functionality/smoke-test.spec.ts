@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 // Test credentials
 const TEST_EMAIL = 'cyrus@callhenk.com';
@@ -57,11 +57,11 @@ test.describe('Core Functionality Smoke Tests', () => {
 
   test('can navigate to main sections', async ({ page }) => {
     // Check that main navigation items are visible
-    const leadsLink = page.locator('a:has-text("Leads")').or(
-      page.locator('a:has-text("Donors")')
-    ).or(
-      page.locator('a:has-text("Contacts")')
-    ).first();
+    const leadsLink = page
+      .locator('a:has-text("Leads")')
+      .or(page.locator('a:has-text("Donors")'))
+      .or(page.locator('a:has-text("Contacts")'))
+      .first();
 
     await expect(leadsLink).toBeVisible();
     await expect(page.locator('a:has-text("Campaigns")').first()).toBeVisible();
@@ -72,7 +72,11 @@ test.describe('Core Functionality Smoke Tests', () => {
 
   test('can create a contact/donor', async ({ page }) => {
     // Navigate to donors/contacts/leads page
-    const leadsLink = page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")').first();
+    const leadsLink = page
+      .locator(
+        'a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")',
+      )
+      .first();
     await leadsLink.click();
 
     // Wait for page to load
@@ -105,7 +109,9 @@ test.describe('Core Functionality Smoke Tests', () => {
       await page.waitForTimeout(3000);
 
       // Verify we're still on leads/contacts/donors page
-      await expect(page).toHaveURL(/\/home\/(donors|contacts|leads)/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/home\/(donors|contacts|leads)/, {
+        timeout: 5000,
+      });
 
       console.log('✓ Contact created successfully');
     } else {
@@ -124,7 +130,9 @@ test.describe('Core Functionality Smoke Tests', () => {
     await page.waitForTimeout(1000); // Extra wait for React hydration
 
     // Look for "Create Campaign" button specifically
-    const createButton = page.locator('button:has-text("Create Campaign")').first();
+    const createButton = page
+      .locator('button:has-text("Create Campaign")')
+      .first();
     if (await createButton.isVisible({ timeout: 10000 })) {
       await createButton.click();
       await page.waitForTimeout(500);
@@ -133,16 +141,24 @@ test.describe('Core Functionality Smoke Tests', () => {
       const timestamp = Date.now();
       const campaignName = `Smoke Test Campaign ${timestamp}`;
 
-      await page.fill('input[name="name"], input[placeholder*="name" i]', campaignName);
+      await page.fill(
+        'input[name="name"], input[placeholder*="name" i]',
+        campaignName,
+      );
 
       // Fill description if present
-      const descriptionField = page.locator('textarea[name="description"], textarea[placeholder*="description" i]');
+      const descriptionField = page.locator(
+        'textarea[name="description"], textarea[placeholder*="description" i]',
+      );
       if (await descriptionField.isVisible({ timeout: 1000 })) {
         await descriptionField.fill('This is a smoke test campaign');
       }
 
       // Submit form (might be "Save", "Create", or "Next")
-      const submitButton = page.locator('button').filter({ hasText: /Save|Create|Next|Submit/ }).first();
+      const submitButton = page
+        .locator('button')
+        .filter({ hasText: /Save|Create|Next|Submit/ })
+        .first();
       // Wait for any overlays to disappear, then click
       await page.waitForTimeout(500);
       await submitButton.click({ force: true });
@@ -170,14 +186,19 @@ test.describe('Core Functionality Smoke Tests', () => {
     await page.waitForTimeout(1000); // Extra wait for React hydration
 
     // Look for "Create Agent" button specifically
-    const createButton = page.locator('button:has-text("Create Agent")').first();
+    const createButton = page
+      .locator('button:has-text("Create Agent")')
+      .first();
     if (await createButton.isVisible({ timeout: 10000 })) {
       await createButton.click();
       await page.waitForTimeout(500);
 
       // This is now a 3-step wizard
       // Step 1: Select agent type (Blank Agent)
-      const blankAgentButton = page.locator('button').filter({ hasText: /Blank Agent|Start from scratch/i }).first();
+      const blankAgentButton = page
+        .locator('button')
+        .filter({ hasText: /Blank Agent|Start from scratch/i })
+        .first();
       if (await blankAgentButton.isVisible({ timeout: 2000 })) {
         await blankAgentButton.click();
       }
@@ -190,7 +211,10 @@ test.describe('Core Functionality Smoke Tests', () => {
       }
 
       // Step 2: Select Use Case
-      const useCaseButton = page.locator('button').filter({ hasText: /Customer Support|Outbound Sales|Volunteer/i }).first();
+      const useCaseButton = page
+        .locator('button')
+        .filter({ hasText: /Customer Support|Outbound Fundraising|Volunteer/i })
+        .first();
       if (await useCaseButton.isVisible({ timeout: 2000 })) {
         await useCaseButton.click();
       }
@@ -205,29 +229,42 @@ test.describe('Core Functionality Smoke Tests', () => {
       const timestamp = Date.now();
       const agentName = `Smoke Test Agent ${timestamp}`;
 
-      await page.fill('input[name="name"], input[placeholder*="name" i]', agentName);
+      await page.fill(
+        'input[name="name"], input[placeholder*="name" i]',
+        agentName,
+      );
 
       // Fill context prompt if visible
-      const contextField = page.locator('textarea[name="contextPrompt"], textarea[placeholder*="context" i]').first();
+      const contextField = page
+        .locator(
+          'textarea[name="contextPrompt"], textarea[placeholder*="context" i]',
+        )
+        .first();
       if (await contextField.isVisible({ timeout: 1000 })) {
         await contextField.fill('This is a smoke test agent');
       }
 
       // Fill starting message if visible
-      const startingMsgField = page.locator('textarea[name="startingMessage"], textarea[placeholder*="starting" i], textarea[placeholder*="message" i]').first();
+      const startingMsgField = page
+        .locator(
+          'textarea[name="startingMessage"], textarea[placeholder*="starting" i], textarea[placeholder*="message" i]',
+        )
+        .first();
       if (await startingMsgField.isVisible({ timeout: 1000 })) {
         await startingMsgField.fill('Hello! How can I help you?');
       } else {
         // Fallback: fill second textarea
         const allTextareas = page.locator('textarea');
-        if (await allTextareas.count() >= 2) {
+        if ((await allTextareas.count()) >= 2) {
           await allTextareas.nth(1).fill('Hello! How can I help you?');
         }
       }
 
       // Submit form - now "Create Agent" button
       await page.waitForTimeout(500);
-      const submitButton = page.locator('button:has-text("Create Agent")').first();
+      const submitButton = page
+        .locator('button:has-text("Create Agent")')
+        .first();
       if (await submitButton.isVisible({ timeout: 2000 })) {
         await submitButton.click({ force: true });
       }
@@ -255,7 +292,11 @@ test.describe('Core Functionality Smoke Tests', () => {
       await page.waitForURL(/\/home\/integrations/, { timeout: 5000 });
 
       // Verify integration cards are visible
-      await expect(page.locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")').first()).toBeVisible({ timeout: 5000 });
+      await expect(
+        page
+          .locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")')
+          .first(),
+      ).toBeVisible({ timeout: 5000 });
 
       console.log('✓ Integrations page is accessible');
     } else {
@@ -264,16 +305,24 @@ test.describe('Core Functionality Smoke Tests', () => {
     }
   });
 
-  test('complete workflow: create contact list and add contacts', async ({ page }) => {
+  test('complete workflow: create contact list and add contacts', async ({
+    page,
+  }) => {
     // Navigate to leads/donors/contacts
-    const leadsLink = page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")').first();
+    const leadsLink = page
+      .locator(
+        'a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")',
+      )
+      .first();
     await leadsLink.click();
     await page.waitForURL(/\/home\/(donors|contacts|leads)/, { timeout: 5000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000); // Extra wait for React hydration
 
     // Create a new contact first
-    const addContactButton = page.locator('button:has-text("Add Lead")').first();
+    const addContactButton = page
+      .locator('button:has-text("Add Lead")')
+      .first();
     if (await addContactButton.isVisible({ timeout: 10000 })) {
       await addContactButton.click();
       await page.waitForTimeout(500);
@@ -285,7 +334,10 @@ test.describe('Core Functionality Smoke Tests', () => {
       const timestamp = Date.now();
       await page.fill('input[name="first_name"]', 'WorkflowTest');
       await page.fill('input[name="last_name"]', 'Contact');
-      await page.fill('input[name="email"]', `workflow-${timestamp}@example.com`);
+      await page.fill(
+        'input[name="email"]',
+        `workflow-${timestamp}@example.com`,
+      );
 
       await page.click('button[type="submit"]', { force: true });
       await page.waitForTimeout(3000);
@@ -293,7 +345,9 @@ test.describe('Core Functionality Smoke Tests', () => {
       console.log('✓ Created test contact for workflow');
 
       // Verify we're still on the page
-      await expect(page).toHaveURL(/\/home\/(donors|contacts|leads)/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/home\/(donors|contacts|leads)/, {
+        timeout: 5000,
+      });
 
       console.log('✓ Complete workflow successful');
     } else {
@@ -304,12 +358,18 @@ test.describe('Core Functionality Smoke Tests', () => {
 
   test('can search and filter data', async ({ page }) => {
     // Navigate to leads/donors/contacts
-    const leadsLink = page.locator('a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")').first();
+    const leadsLink = page
+      .locator(
+        'a:has-text("Leads"), a:has-text("Donors"), a:has-text("Contacts")',
+      )
+      .first();
     await leadsLink.click();
     await page.waitForURL(/\/home\/(donors|contacts|leads)/, { timeout: 5000 });
 
     // Look for search input
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Search" i]');
+    const searchInput = page.locator(
+      'input[type="search"], input[placeholder*="Search" i]',
+    );
     if (await searchInput.isVisible({ timeout: 2000 })) {
       // Type in search
       await searchInput.fill('test');
@@ -321,7 +381,9 @@ test.describe('Core Functionality Smoke Tests', () => {
     }
 
     // Check for filter options
-    const filterButton = page.locator('button').filter({ hasText: /Filter|Filters/ });
+    const filterButton = page
+      .locator('button')
+      .filter({ hasText: /Filter|Filters/ });
     if (await filterButton.isVisible({ timeout: 2000 })) {
       console.log('✓ Filter functionality available');
     }
@@ -329,7 +391,9 @@ test.describe('Core Functionality Smoke Tests', () => {
 
   test('can access analytics/dashboard', async ({ page }) => {
     // Look for Dashboard or Analytics link in navigation
-    const dashboardLink = page.locator('a:has-text("Dashboard"), a:has-text("Analytics")').first();
+    const dashboardLink = page
+      .locator('a:has-text("Dashboard"), a:has-text("Analytics")')
+      .first();
     if (await dashboardLink.isVisible({ timeout: 2000 })) {
       await dashboardLink.click();
 
@@ -337,7 +401,11 @@ test.describe('Core Functionality Smoke Tests', () => {
       await page.waitForTimeout(2000);
 
       // Check for charts or metrics
-      const hasMetrics = await page.locator('text=Total').or(page.locator('[class*="chart"]')).first().isVisible({ timeout: 3000 });
+      const hasMetrics = await page
+        .locator('text=Total')
+        .or(page.locator('[class*="chart"]'))
+        .first()
+        .isVisible({ timeout: 3000 });
       if (hasMetrics) {
         console.log('✓ Analytics/Dashboard is accessible');
       }
@@ -348,15 +416,17 @@ test.describe('Core Functionality Smoke Tests', () => {
 
   test('can sign out', async ({ page }) => {
     // Look for profile menu or sign out button
-    const profileButton = page.locator('button[aria-label="Profile"], button[aria-label="Account"]').or(
-      page.locator('[class*="avatar"]').first()
-    );
+    const profileButton = page
+      .locator('button[aria-label="Profile"], button[aria-label="Account"]')
+      .or(page.locator('[class*="avatar"]').first());
 
     if (await profileButton.isVisible({ timeout: 2000 })) {
       await profileButton.click();
 
       // Look for sign out option
-      const signOutButton = page.locator('text=Sign Out').or(page.locator('text=Log Out'));
+      const signOutButton = page
+        .locator('text=Sign Out')
+        .or(page.locator('text=Log Out'));
       if (await signOutButton.isVisible({ timeout: 2000 })) {
         await signOutButton.click();
 
