@@ -80,10 +80,10 @@ const USE_CASE_CONFIGS: Record<
       'Patient and thorough explanations',
     ],
   },
-  // Outbound Sales
+  // Outbound Fundraising
   outbound_sales: {
-    defaultName: 'Sales Agent',
-    role: 'a professional sales agent trained to conduct effective outbound sales conversations',
+    defaultName: 'Fundraising Agent',
+    role: 'a professional fundraising agent trained to conduct effective outbound fundraising conversations',
     tone: [
       'Sound confident but not pushy',
       'Use enthusiasm naturally when discussing benefits',
