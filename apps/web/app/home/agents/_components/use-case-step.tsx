@@ -23,7 +23,7 @@ const USE_CASES = [
   },
   {
     id: 'outbound_sales',
-    label: 'Outbound Sales',
+    label: 'Outbound Fundraising',
     icon: TrendingUp,
   },
   {
@@ -132,7 +132,7 @@ export function UseCaseStep({
                 />
               </div>
               <span
-                className={`text-center text-xs leading-tight font-medium transition-colors duration-300 sm:text-sm ${
+                className={`text-center text-xs font-medium leading-tight transition-colors duration-300 sm:text-sm ${
                   isSelected ? 'text-foreground' : 'text-muted-foreground'
                 }`}
               >
