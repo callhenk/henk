@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Call, Device } from '@twilio/voice-sdk';
 import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from 'lucide-react';
@@ -146,7 +146,7 @@ export function CallsController() {
             });
             const { data } = await response.json();
             device.updateToken(data.token);
-          } catch (error) {
+          } catch {
             addLog('Failed to refresh token');
           }
         });
@@ -205,6 +205,7 @@ export function CallsController() {
         clearInterval(durationTimerRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
   // Handle making a call
@@ -221,14 +222,31 @@ export function CallsController() {
 
     try {
       setCallState((prev) => ({ ...prev, status: 'connecting' }));
+      addLog('Requesting microphone access...');
 
-      // Make the call
+      // Request microphone permissions first
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        // Stop the test stream immediately - Twilio will create its own
+        stream.getTracks().forEach((track) => track.stop());
+        addLog('✅ Microphone access granted');
+      } catch (permError) {
+        addLog(`❌ Microphone permission denied: ${permError}`);
+        toast.error(
+          'Microphone access denied. Please allow microphone access and try again.',
+        );
+        setCallState((prev) => ({ ...prev, status: 'idle' }));
+        return;
+      }
+
+      addLog(`Making call to ${callState.phoneNumber}...`);
+
+      // Make the call - don't specify rtcConstraints, let Twilio handle it
       const call = await deviceRef.current.connect({
         params: {
           To: callState.phoneNumber,
-        },
-        rtcConstraints: {
-          audio: true,
         },
       });
 
