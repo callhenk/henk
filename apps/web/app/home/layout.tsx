@@ -1,6 +1,7 @@
 import { use } from 'react';
 
 import { Metadata } from 'next';
+
 import { cookies } from 'next/headers';
 
 import {
@@ -67,10 +68,12 @@ function SidebarLayout({ children }: React.PropsWithChildren) {
 }
 
 function HeaderLayout({ children }: React.PropsWithChildren) {
+  const [user] = use(Promise.all([requireUserInServerComponent()]));
+
   return (
     <Page style={'header'}>
       <PageNavigation>
-        <HomeMenuNavigation />
+        <HomeMenuNavigation user={user} />
       </PageNavigation>
 
       <PageMobileNavigation

@@ -6,13 +6,6 @@ import { Call, Device } from '@twilio/voice-sdk';
 import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
-// Conversation creation disabled until agent selection is implemented
-// import {
-//   useCreateConversation,
-//   useUpdateConversation,
-// } from '@kit/supabase/hooks/conversations/use-conversation-mutations';
-import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -24,21 +17,11 @@ import {
 } from '@kit/ui/card';
 import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
-import { Separator } from '@kit/ui/separator';
 
 interface CallState {
   status: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
   duration: number;
   phoneNumber: string;
-  contactId?: string;
-  conversationId?: string;
 }
 
 export function CallsController() {
@@ -57,40 +40,6 @@ export function CallsController() {
   });
   const [isMuted, setIsMuted] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
-  const [selectedLead, setSelectedLead] = useState<string>('');
-  const [selectedCampaign, setSelectedCampaign] = useState<string>('');
-
-  // Hooks for data
-  const { data: leads } = useLeads();
-  const { data: campaigns } = useCampaigns();
-  // Conversation mutations disabled until agent selection is implemented
-  // const createConversation = useCreateConversation();
-  // const updateConversation = useUpdateConversation();
-
-  // Domain safeguarding
-  useEffect(() => {
-    const checkDomain = () => {
-      if (process.env.NODE_ENV === 'production') {
-        const hostname = window.location.hostname;
-        const allowedDomains = [
-          'callhenk.com',
-          'www.callhenk.com',
-          'app.callhenk.com',
-        ];
-
-        if (!allowedDomains.includes(hostname)) {
-          toast.error('This service is only available on callhenk.com');
-          return false;
-        }
-      }
-      return true;
-    };
-
-    if (!checkDomain()) {
-      // Disable the calling functionality if not on allowed domain
-      setCallState((prev) => ({ ...prev, status: 'error' }));
-    }
-  }, []);
 
   // Initialize Twilio Device
   const initializeDevice = useCallback(async () => {
@@ -154,7 +103,9 @@ export function CallsController() {
       deviceRef.current = device;
     } catch (error) {
       console.error('Failed to initialize Twilio Device:', error);
-      toast.error('Failed to initialize phone system');
+      toast.error(
+        'Failed to initialize phone system - please check configuration',
+      );
       setCallState((prev) => ({ ...prev, status: 'error' }));
     } finally {
       setIsInitializing(false);
@@ -211,33 +162,6 @@ export function CallsController() {
         durationTimerRef.current = setInterval(() => {
           setCallState((prev) => ({ ...prev, duration: prev.duration + 1 }));
         }, 1000);
-
-        // Note: Conversation creation requires agent_id which we don't have for direct calls
-        // This feature would need to be updated to either:
-        // 1. Create a default "manual call" agent
-        // 2. Select an agent before making calls
-        // 3. Store call records in a different table
-
-        // For now, we'll skip conversation creation for direct Twilio calls
-        // You could uncomment and modify this when you have agent selection:
-        /*
-        if (selectedLead && selectedCampaign && selectedAgent) {
-          const conversationData = {
-            lead_id: selectedLead,
-            campaign_id: selectedCampaign,
-            agent_id: selectedAgent,
-            status: 'in_progress' as const,
-            started_at: new Date().toISOString(),
-            call_sid: (call.parameters as Record<string, unknown>)?.CallSid as string | null,
-          };
-
-          createConversation.mutate(conversationData, {
-            onSuccess: (data) => {
-              setCallState((prev) => ({ ...prev, conversationId: data.id }));
-            },
-          });
-        }
-        */
       });
 
       call.on('disconnect', () => {
@@ -279,25 +203,11 @@ export function CallsController() {
       durationTimerRef.current = null;
     }
 
-    // Update conversation record if exists (currently disabled for direct calls)
-    // Uncomment when agent selection is implemented
-    /*
-    if (callState.conversationId) {
-      updateConversation.mutate({
-        id: callState.conversationId,
-        status: 'completed' as const,
-        ended_at: new Date().toISOString(),
-        duration_seconds: callState.duration,
-      });
-    }
-    */
-
     // Reset state
     setCallState((prev) => ({
       ...prev,
       status: 'idle',
       duration: 0,
-      conversationId: undefined,
     }));
     setIsMuted(false);
     callRef.current = null;
@@ -327,74 +237,33 @@ export function CallsController() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle lead selection
-  const handleLeadSelect = (leadId: string) => {
-    setSelectedLead(leadId);
-    const lead = leads?.find(
-      (l: { id: string; phone?: string | null }) => l.id === leadId,
-    );
-    if (lead?.phone) {
-      setCallState((prev) => ({ ...prev, phoneNumber: lead.phone || '' }));
+  // Handle pressing Enter key to make call
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.key === 'Enter' &&
+      callState.status === 'idle' &&
+      callState.phoneNumber &&
+      isInitialized
+    ) {
+      makeCall();
     }
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {/* Call Controls Card */}
+    <div className="max-w-2xl">
+      {/* Simple Call Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Make a Call</CardTitle>
+          <CardTitle>Direct Call</CardTitle>
           <CardDescription>
             {isInitialized
-              ? 'Phone system ready'
-              : 'Initializing phone system...'}
+              ? 'Phone system ready - Enter a number and press Call'
+              : isInitializing
+                ? 'Initializing phone system...'
+                : 'Phone system offline - Check Twilio configuration'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Lead Selection */}
-          <div className="space-y-2">
-            <Label>Select Lead (Optional)</Label>
-            <Select value={selectedLead} onValueChange={handleLeadSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a lead" />
-              </SelectTrigger>
-              <SelectContent>
-                {leads?.map(
-                  (lead: {
-                    id: string;
-                    first_name?: string | null;
-                    last_name?: string | null;
-                    phone?: string | null;
-                  }) => (
-                    <SelectItem key={lead.id} value={lead.id}>
-                      {lead.first_name} {lead.last_name} - {lead.phone}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Campaign Selection */}
-          <div className="space-y-2">
-            <Label>Campaign (Optional)</Label>
-            <Select
-              value={selectedCampaign}
-              onValueChange={setSelectedCampaign}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Associate with campaign" />
-              </SelectTrigger>
-              <SelectContent>
-                {campaigns?.map((campaign: { id: string; name: string }) => (
-                  <SelectItem key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Phone Number Input */}
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -409,8 +278,13 @@ export function CallsController() {
                   phoneNumber: e.target.value,
                 }))
               }
+              onKeyPress={handleKeyPress}
               disabled={callState.status !== 'idle'}
+              className="text-lg"
             />
+            <p className="text-muted-foreground text-sm">
+              Enter the phone number in international format (e.g., +1234567890)
+            </p>
           </div>
 
           {/* Call Status */}
@@ -424,7 +298,7 @@ export function CallsController() {
                 >
                   {callState.status}
                 </Badge>
-                <span className="text-sm font-medium">
+                <span className="text-lg font-medium">
                   {formatDuration(callState.duration)}
                 </span>
               </div>
@@ -462,6 +336,7 @@ export function CallsController() {
             {callState.status === 'idle' ? (
               <Button
                 className="flex-1"
+                size="lg"
                 onClick={makeCall}
                 disabled={!isInitialized || !callState.phoneNumber}
               >
@@ -471,6 +346,7 @@ export function CallsController() {
             ) : (
               <Button
                 className="flex-1"
+                size="lg"
                 variant="destructive"
                 onClick={endCall}
               >
@@ -479,61 +355,19 @@ export function CallsController() {
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Instructions Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Use</CardTitle>
-          <CardDescription>
-            Make outbound calls to your prospects directly from Henk
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3 text-sm">
-            <div>
-              <strong>1. Select a Lead (Optional)</strong>
-              <p className="text-muted-foreground">
-                Choose from your existing leads to auto-fill their phone number
-                and track the conversation.
+          {/* Error State */}
+          {callState.status === 'error' && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/50">
+              <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                Connection Error
+              </p>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                Unable to connect to phone system. Please check Twilio
+                configuration and try again.
               </p>
             </div>
-            <Separator />
-            <div>
-              <strong>2. Associate with Campaign (Optional)</strong>
-              <p className="text-muted-foreground">
-                Link the call to a campaign for better tracking and analytics.
-              </p>
-            </div>
-            <Separator />
-            <div>
-              <strong>3. Enter Phone Number</strong>
-              <p className="text-muted-foreground">
-                Enter the phone number in international format (e.g.,
-                +1234567890).
-              </p>
-            </div>
-            <Separator />
-            <div>
-              <strong>4. Make the Call</strong>
-              <p className="text-muted-foreground">
-                Click the Call button to initiate the call. Use the controls to
-                mute/unmute and manage audio.
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/50">
-            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-              Security Notice
-            </p>
-            <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-              This calling feature is only available on callhenk.com domains for
-              security purposes. All calls are logged and associated with your
-              business account.
-            </p>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

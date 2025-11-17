@@ -11,12 +11,35 @@ import {
 import { AppLogo } from '~/components/app-logo';
 import { ProfileAccountDropdownContainer } from '~/components/personal-account-dropdown-container';
 import { navigationConfig } from '~/config/navigation.config';
+import pathsConfig from '~/config/paths.config';
 import { Tables } from '~/lib/database.types';
 
 export function HomeSidebar(props: {
   account?: Tables<'accounts'>;
   user: User;
 }) {
+  // Filter navigation routes based on user's email domain
+  const isCallHenkUser = props.user.email?.endsWith('@callhenk.com') ?? false;
+
+  const filteredConfig = {
+    ...navigationConfig,
+    routes: navigationConfig.routes.map((section) => {
+      if ('children' in section) {
+        return {
+          ...section,
+          children: section.children.filter((route) => {
+            // Hide Calls route for non-callhenk.com users
+            if (route.path === pathsConfig.app.calls && !isCallHenkUser) {
+              return false;
+            }
+            return true;
+          }),
+        };
+      }
+      return section;
+    }),
+  };
+
   return (
     <Sidebar collapsible={'icon'} variant={'floating'}>
       <SidebarHeader className={'h-16 border-b px-4'}>
@@ -27,7 +50,7 @@ export function HomeSidebar(props: {
 
       <SidebarContent className={'flex-1'}>
         <div className={'p-4'}>
-          <SidebarNavigation config={navigationConfig} />
+          <SidebarNavigation config={filteredConfig} />
         </div>
       </SidebarContent>
 

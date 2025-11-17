@@ -1,3 +1,5 @@
+import type { User } from '@supabase/supabase-js';
+
 import {
   BorderedNavigationMenu,
   BorderedNavigationMenuItem,
@@ -6,8 +8,12 @@ import {
 import { AppLogo } from '~/components/app-logo';
 import { ProfileAccountDropdownContainer } from '~/components/personal-account-dropdown-container';
 import { navigationConfig } from '~/config/navigation.config';
+import pathsConfig from '~/config/paths.config';
 
-export function HomeMenuNavigation() {
+export function HomeMenuNavigation({ user }: { user: User }) {
+  // Filter navigation routes based on user's email domain
+  const isCallHenkUser = user.email?.endsWith('@callhenk.com') ?? false;
+
   const routes = navigationConfig.routes.reduce<
     Array<{
       path: string;
@@ -17,7 +23,14 @@ export function HomeMenuNavigation() {
     }>
   >((acc, item) => {
     if ('children' in item) {
-      return [...acc, ...item.children];
+      const filteredChildren = item.children.filter((route) => {
+        // Hide Calls route for non-callhenk.com users
+        if (route.path === pathsConfig.app.calls && !isCallHenkUser) {
+          return false;
+        }
+        return true;
+      });
+      return [...acc, ...filteredChildren];
     }
 
     if ('divider' in item) {
