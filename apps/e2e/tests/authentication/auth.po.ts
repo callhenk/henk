@@ -20,7 +20,24 @@ export class AuthPageObject {
   }
 
   async signOut() {
-    await this.page.click('[data-test="account-dropdown-trigger"]');
+    // Wait for any existing portals/animations to clear
+    await this.page.waitForTimeout(500);
+
+    const trigger = this.page.locator('[data-test="account-dropdown-trigger"]');
+
+    // Wait for the trigger to be visible and clickable (not just attached)
+    await trigger.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Click the dropdown trigger
+    await trigger.click();
+
+    // Wait for dropdown menu content to be visible with longer timeout
+    await this.page.waitForSelector('[data-test="account-dropdown-sign-out"]', {
+      state: 'visible',
+      timeout: 10000,
+    });
+
+    // Click sign out button
     await this.page.click('[data-test="account-dropdown-sign-out"]');
   }
 
