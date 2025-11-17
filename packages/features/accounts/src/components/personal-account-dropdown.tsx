@@ -76,7 +76,7 @@ export function PersonalAccountDropdown({
         aria-label="Open your profile menu"
         data-test={'account-dropdown-trigger'}
         className={cn(
-          'animate-in fade-in focus:outline-primary flex cursor-pointer items-center duration-500 group-data-[minimized=true]:px-0',
+          'animate-in fade-in focus:outline-primary relative z-[60] flex cursor-pointer items-center duration-500 group-data-[minimized=true]:px-0',
           className ?? '',
           {
             ['active:bg-secondary/50 items-center gap-x-4 rounded-md' +
