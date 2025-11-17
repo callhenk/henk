@@ -17,7 +17,7 @@ interface TwilioConfig {
 }
 
 interface AuthContext {
-  user: { id: string };
+  user: { id: string; email?: string };
   business_id: string;
 }
 
@@ -28,34 +28,18 @@ interface AuthContext {
 export const POST = withAuth(
   async (request: NextRequest, context: AuthContext) => {
     try {
-      // Domain safeguarding - only allow requests from callhenk.com
-      const origin = request.headers.get('origin') || '';
-      const referer = request.headers.get('referer') || '';
-      const host = request.headers.get('host') || '';
-
-      // In production, enforce domain restriction
-      if (process.env.NODE_ENV === 'production') {
-        const allowedDomains = [
-          'callhenk.com',
-          'www.callhenk.com',
-          'app.callhenk.com',
-        ];
-        const isAllowed = allowedDomains.some(
-          (domain) =>
-            origin.includes(domain) ||
-            referer.includes(domain) ||
-            host.includes(domain),
+      // Check if user has permission (must be @callhenk.com email)
+      // This check is done in the API level to ensure security
+      // The page-level check handles the UI access
+      const userEmail = context.user.email;
+      if (!userEmail || !userEmail.endsWith('@callhenk.com')) {
+        return NextResponse.json(
+          {
+            error:
+              'Unauthorized. This service is only available to callhenk.com users.',
+          },
+          { status: 403 },
         );
-
-        if (!isAllowed) {
-          return NextResponse.json(
-            {
-              error:
-                'Unauthorized domain. This service is only available on callhenk.com',
-            },
-            { status: 403 },
-          );
-        }
       }
 
       // Get Twilio configuration from environment variables

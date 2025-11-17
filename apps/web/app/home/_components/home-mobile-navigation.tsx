@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { LogOut, Menu } from 'lucide-react';
 
 import { useSignOut } from '@kit/supabase/hooks/use-sign-out';
+import { useUser } from '@kit/supabase/hooks/use-user';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ import {
 import { Trans } from '@kit/ui/trans';
 
 import { navigationConfig } from '~/config/navigation.config';
+import pathsConfig from '~/config/paths.config';
 
 /**
  * Mobile navigation for the home page
@@ -23,10 +25,22 @@ import { navigationConfig } from '~/config/navigation.config';
  */
 export function HomeMobileNavigation() {
   const signOut = useSignOut();
+  const { data: user } = useUser();
+
+  // Filter navigation routes based on user's email domain
+  const isCallHenkUser = user?.email?.endsWith('@callhenk.com') ?? false;
 
   const Links = navigationConfig.routes.map((item, index) => {
     if ('children' in item) {
-      return item.children.map((child) => {
+      const filteredChildren = item.children.filter((child) => {
+        // Hide Calls route for non-callhenk.com users
+        if (child.path === pathsConfig.app.calls && !isCallHenkUser) {
+          return false;
+        }
+        return true;
+      });
+
+      return filteredChildren.map((child) => {
         return (
           <DropdownLink
             key={child.path}
