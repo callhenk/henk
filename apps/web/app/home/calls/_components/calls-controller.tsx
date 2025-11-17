@@ -40,92 +40,172 @@ export function CallsController() {
   });
   const [isMuted, setIsMuted] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
-  // Initialize Twilio Device
-  const initializeDevice = useCallback(async () => {
-    if (isInitializing || isInitialized) return;
+  // Helper to add debug logs
+  const addLog = (message: string) => {
+    console.log(message);
+    setDebugLogs((prev) =>
+      [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10),
+    );
+  };
 
-    setIsInitializing(true);
-    try {
-      // Fetch token from API
-      const response = await fetch('/api/twilio/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  // Initialize on mount - using useEffect with empty dependency array
+  useEffect(() => {
+    // Use a ref to prevent multiple initializations
+    let cancelled = false;
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get token');
+    const initializeDevice = async () => {
+      // Check if already initialized or initializing
+      if (deviceRef.current || isInitialized || isInitializing) {
+        addLog('Device already initialized or initializing, skipping');
+        return;
       }
 
-      const { data } = await response.json();
-      const { token } = data;
+      setIsInitializing(true);
+      addLog('Starting initialization...');
 
-      // Create and setup Twilio Device
-      const device = new Device(token, {
-        codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
-      });
-
-      // Register device event handlers
-      device.on('ready', () => {
-        console.log('Twilio Device is ready');
-        setIsInitialized(true);
-        toast.success('Phone system ready');
-      });
-
-      device.on('error', (error) => {
-        console.error('Twilio Device error:', error);
-        toast.error(`Phone system error: ${error.message}`);
-        setCallState((prev) => ({ ...prev, status: 'error' }));
-      });
-
-      device.on('incoming', (call) => {
-        console.log('Incoming call from', call.parameters.From);
-        // Handle incoming calls if needed
-        toast.info(`Incoming call from ${call.parameters.From}`);
-      });
-
-      device.on('tokenWillExpire', async () => {
-        console.log('Token will expire, refreshing...');
-        // Refresh the token
+      try {
+        // Fetch token from API
+        addLog('Fetching token from API...');
         const response = await fetch('/api/twilio/token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
+        if (!response.ok) {
+          const error = await response.json();
+          const errorMessage = error.error || 'Failed to get token';
+          addLog(`Token API error: ${errorMessage}`);
+          toast.error(`Token error: ${errorMessage}`);
+          throw new Error(errorMessage);
+        }
+
         const { data } = await response.json();
-        device.updateToken(data.token);
-      });
+        const { token } = data;
+        addLog('Token received successfully');
 
-      // Register the device
-      await device.register();
-      deviceRef.current = device;
-    } catch (error) {
-      console.error('Failed to initialize Twilio Device:', error);
-      toast.error(
-        'Failed to initialize phone system - please check configuration',
-      );
-      setCallState((prev) => ({ ...prev, status: 'error' }));
-    } finally {
-      setIsInitializing(false);
-    }
-  }, [isInitializing, isInitialized]);
+        if (cancelled) return;
 
-  // Initialize on mount
-  useEffect(() => {
+        addLog('Creating Twilio Device...');
+        // Create and setup Twilio Device
+        const device = new Device(token, {
+          codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
+          logLevel: 1, // Enable debug logging
+        });
+
+        // Register device event handlers
+        device.on('ready', () => {
+          addLog('✅ Device is ready!');
+          if (!cancelled) {
+            setIsInitialized(true);
+            setIsInitializing(false);
+            toast.success('Phone system ready');
+          }
+        });
+
+        device.on('error', (error) => {
+          addLog(`❌ Device error: ${error.message}`);
+          toast.error(`Phone system error: ${error.message}`);
+          setCallState((prev) => ({ ...prev, status: 'error' }));
+          setIsInitializing(false);
+        });
+
+        device.on('registering', () => {
+          addLog('📞 Device is registering...');
+        });
+
+        device.on('registered', () => {
+          addLog('✅ Device registered successfully');
+          // Sometimes 'ready' event doesn't fire, so we treat 'registered' as ready
+          if (!cancelled && !isInitialized) {
+            addLog('Setting device as ready (registered event)');
+            setIsInitialized(true);
+            setIsInitializing(false);
+            toast.success('Phone system ready');
+          }
+        });
+
+        device.on('unregistered', () => {
+          addLog('📵 Device unregistered');
+        });
+
+        device.on('incoming', (call) => {
+          addLog(`📲 Incoming call from ${call.parameters.From}`);
+          toast.info(`Incoming call from ${call.parameters.From}`);
+        });
+
+        device.on('tokenWillExpire', async () => {
+          addLog('🔄 Token expiring, refreshing...');
+          try {
+            const response = await fetch('/api/twilio/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+            });
+            const { data } = await response.json();
+            device.updateToken(data.token);
+          } catch (error) {
+            addLog('Failed to refresh token');
+          }
+        });
+
+        if (cancelled) {
+          device.destroy();
+          return;
+        }
+
+        // Register the device with timeout
+        addLog('🔌 Registering device...');
+        const registerTimeout = setTimeout(() => {
+          addLog('⏱️ Registration timeout after 10 seconds');
+          toast.error('Connection timeout - Check Twilio configuration');
+          setCallState((prev) => ({ ...prev, status: 'error' }));
+          setIsInitializing(false);
+        }, 10000);
+
+        try {
+          await device.register();
+          clearTimeout(registerTimeout);
+          addLog('✅ Device.register() completed');
+          deviceRef.current = device;
+        } catch (regError) {
+          clearTimeout(registerTimeout);
+          addLog(`❌ Device.register() failed: ${regError}`);
+          throw regError;
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to initialize Twilio Device:', error);
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+
+          // Only show toast if we haven't already shown one for the API error
+          if (!errorMessage.includes('Unauthorized')) {
+            toast.error(`Phone system error: ${errorMessage}`);
+          }
+
+          setCallState((prev) => ({ ...prev, status: 'error' }));
+          setIsInitializing(false);
+        }
+      }
+    };
+
     initializeDevice();
 
     return () => {
+      cancelled = true;
       // Cleanup on unmount
       if (deviceRef.current) {
         deviceRef.current.destroy();
+        deviceRef.current = null;
       }
       if (durationTimerRef.current) {
         clearInterval(durationTimerRef.current);
       }
     };
-  }, [initializeDevice]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Handle making a call
   const makeCall = async () => {
@@ -259,7 +339,7 @@ export function CallsController() {
             {isInitialized
               ? 'Phone system ready - Enter a number and press Call'
               : isInitializing
-                ? 'Initializing phone system...'
+                ? 'Initializing phone system... (Check browser console if this takes too long)'
                 : 'Phone system offline - Check Twilio configuration'}
           </CardDescription>
         </CardHeader>
@@ -366,6 +446,25 @@ export function CallsController() {
                 Unable to connect to phone system. Please check Twilio
                 configuration and try again.
               </p>
+            </div>
+          )}
+
+          {/* Debug Logs */}
+          {debugLogs.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/50">
+              <p className="mb-2 text-sm font-medium text-blue-900 dark:text-blue-100">
+                Debug Log
+              </p>
+              <div className="max-h-40 space-y-1 overflow-y-auto">
+                {debugLogs.map((log, index) => (
+                  <p
+                    key={index}
+                    className="font-mono text-xs text-blue-700 dark:text-blue-300"
+                  >
+                    {log}
+                  </p>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
