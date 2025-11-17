@@ -7,10 +7,11 @@ import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
-import {
-  useCreateConversation,
-  useUpdateConversation,
-} from '@kit/supabase/hooks/conversations/use-conversation-mutations';
+// Conversation creation disabled until agent selection is implemented
+// import {
+//   useCreateConversation,
+//   useUpdateConversation,
+// } from '@kit/supabase/hooks/conversations/use-conversation-mutations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
@@ -60,10 +61,11 @@ export function CallsController() {
   const [selectedCampaign, setSelectedCampaign] = useState<string>('');
 
   // Hooks for data
-  const { data: leads, isLoading: leadsLoading } = useLeads();
-  const { data: campaigns, isLoading: campaignsLoading } = useCampaigns();
-  const createConversation = useCreateConversation();
-  const updateConversation = useUpdateConversation();
+  const { data: leads } = useLeads();
+  const { data: campaigns } = useCampaigns();
+  // Conversation mutations disabled until agent selection is implemented
+  // const createConversation = useCreateConversation();
+  // const updateConversation = useUpdateConversation();
 
   // Domain safeguarding
   useEffect(() => {
@@ -189,9 +191,6 @@ export function CallsController() {
     try {
       setCallState((prev) => ({ ...prev, status: 'connecting' }));
 
-      // Get TwiML app URL
-      const twimlUrl = `${window.location.origin}/api/twilio/twiml`;
-
       // Make the call
       const call = await deviceRef.current.connect({
         params: {
@@ -213,20 +212,24 @@ export function CallsController() {
           setCallState((prev) => ({ ...prev, duration: prev.duration + 1 }));
         }, 1000);
 
-        // Create conversation record if lead selected
-        if (selectedLead && selectedCampaign) {
-          const conversationData: any = {
+        // Note: Conversation creation requires agent_id which we don't have for direct calls
+        // This feature would need to be updated to either:
+        // 1. Create a default "manual call" agent
+        // 2. Select an agent before making calls
+        // 3. Store call records in a different table
+
+        // For now, we'll skip conversation creation for direct Twilio calls
+        // You could uncomment and modify this when you have agent selection:
+        /*
+        if (selectedLead && selectedCampaign && selectedAgent) {
+          const conversationData = {
             lead_id: selectedLead,
             campaign_id: selectedCampaign,
-            status: 'in_progress',
+            agent_id: selectedAgent,
+            status: 'in_progress' as const,
             started_at: new Date().toISOString(),
+            call_sid: (call.parameters as Record<string, unknown>)?.CallSid as string | null,
           };
-
-          // Add call_sid if available
-          const callSid = (call.parameters as any)?.CallSid;
-          if (callSid) {
-            conversationData.call_sid = callSid;
-          }
 
           createConversation.mutate(conversationData, {
             onSuccess: (data) => {
@@ -234,6 +237,7 @@ export function CallsController() {
             },
           });
         }
+        */
       });
 
       call.on('disconnect', () => {
@@ -275,15 +279,18 @@ export function CallsController() {
       durationTimerRef.current = null;
     }
 
-    // Update conversation record if exists
+    // Update conversation record if exists (currently disabled for direct calls)
+    // Uncomment when agent selection is implemented
+    /*
     if (callState.conversationId) {
       updateConversation.mutate({
         id: callState.conversationId,
-        status: 'completed',
+        status: 'completed' as const,
         ended_at: new Date().toISOString(),
         duration_seconds: callState.duration,
       });
     }
+    */
 
     // Reset state
     setCallState((prev) => ({
@@ -323,7 +330,9 @@ export function CallsController() {
   // Handle lead selection
   const handleLeadSelect = (leadId: string) => {
     setSelectedLead(leadId);
-    const lead = leads?.find((l: any) => l.id === leadId);
+    const lead = leads?.find(
+      (l: { id: string; phone?: string | null }) => l.id === leadId,
+    );
     if (lead?.phone) {
       setCallState((prev) => ({ ...prev, phoneNumber: lead.phone || '' }));
     }
@@ -350,11 +359,18 @@ export function CallsController() {
                 <SelectValue placeholder="Choose a lead" />
               </SelectTrigger>
               <SelectContent>
-                {leads?.map((lead: any) => (
-                  <SelectItem key={lead.id} value={lead.id}>
-                    {lead.first_name} {lead.last_name} - {lead.phone}
-                  </SelectItem>
-                ))}
+                {leads?.map(
+                  (lead: {
+                    id: string;
+                    first_name?: string | null;
+                    last_name?: string | null;
+                    phone?: string | null;
+                  }) => (
+                    <SelectItem key={lead.id} value={lead.id}>
+                      {lead.first_name} {lead.last_name} - {lead.phone}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -370,7 +386,7 @@ export function CallsController() {
                 <SelectValue placeholder="Associate with campaign" />
               </SelectTrigger>
               <SelectContent>
-                {campaigns?.map((campaign: any) => (
+                {campaigns?.map((campaign: { id: string; name: string }) => (
                   <SelectItem key={campaign.id} value={campaign.id}>
                     {campaign.name}
                   </SelectItem>

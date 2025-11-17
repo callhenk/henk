@@ -1,0 +1,32 @@
+# Supabase Edge Functions (deployed separately to Supabase, not Vercel)
+supabase/functions/
+supabase/seed.sql
+supabase/.gitignore
+
+# Local Supabase files
+supabase/.temp/
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/test/
+**/tests/
+
+# Development files
+.env.local
+.env.test
+
+# Documentation
+*.md
+LICENSE
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Deno files
+deno.json
+deno.lock
