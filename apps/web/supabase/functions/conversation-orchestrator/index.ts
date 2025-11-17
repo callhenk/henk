@@ -31,11 +31,31 @@ interface ConversationMessage {
   timestamp?: string;
 }
 
+// Define conversation history response type
+interface ConversationHistory {
+  conversation_id: string;
+  messages: ConversationMessage[];
+  demo_mode?: boolean;
+}
+
+// Define conversation event insert type
+interface ConversationEventInsert {
+  conversation_id: string;
+  event_type: string;
+  sequence_number: number;
+  agent_text: string | null;
+  user_response: string | null;
+  started_at: string;
+  created_at: string;
+}
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-async function getConversationHistory(conversationId: string) {
+async function getConversationHistory(
+  conversationId: string,
+): Promise<ConversationHistory> {
   try {
     const res = await fetch(
       `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}/messages`,
@@ -48,7 +68,7 @@ async function getConversationHistory(conversationId: string) {
     );
     if (!res.ok) {
       // Fallback to demo history if endpoint not available
-      const demo = {
+      const demo: ConversationHistory = {
         conversation_id: conversationId,
         messages: [
           {
@@ -63,12 +83,13 @@ async function getConversationHistory(conversationId: string) {
           },
         ],
         demo_mode: true,
-      } as any;
+      };
       return demo;
     }
-    return await res.json();
-  } catch {
-    // Demo fallback
+    return (await res.json()) as ConversationHistory;
+  } catch (error) {
+    // Demo fallback - log error for debugging
+    console.error('Failed to fetch conversation history:', error);
     return {
       conversation_id: conversationId,
       messages: [
@@ -79,7 +100,7 @@ async function getConversationHistory(conversationId: string) {
         },
       ],
       demo_mode: true,
-    } as any;
+    };
   }
 }
 
@@ -174,7 +195,7 @@ async function getExistingEventCount(conversationId: string) {
 
 async function upsertConversationEvents(
   conversationId: string,
-  messages: any[],
+  messages: ConversationMessage[],
 ) {
   // Append-only: skip messages already represented by existing events count
   const existingCount = await getExistingEventCount(conversationId);
@@ -182,7 +203,7 @@ async function upsertConversationEvents(
   if (newMessages.length === 0) return;
 
   let seq = existingCount + 1;
-  const rows = newMessages.map((m) => ({
+  const rows: ConversationEventInsert[] = newMessages.map((m) => ({
     conversation_id: conversationId,
     event_type: m.role === 'agent' ? 'response_processed' : 'speech_detected',
     sequence_number: seq++,
@@ -197,9 +218,7 @@ async function upsertConversationEvents(
   );
   for (let i = 0; i < rows.length; i += batchSize) {
     const chunk = rows.slice(i, i + batchSize);
-    const { error } = await supabase
-      .from('conversation_events')
-      .insert(chunk as any);
+    const { error } = await supabase.from('conversation_events').insert(chunk);
     if (error) console.error('conversation_events insert error', error);
   }
 }
@@ -313,7 +332,7 @@ export async function processTick(options?: {
       updates.updated_at = new Date().toISOString();
       const { error: uErr } = await supabase
         .from('conversations')
-        .update(updates as any)
+        .update(updates)
         .eq('id', c.id);
       if (uErr) console.error(`[conversations] update failed id=${c.id}`, uErr);
       else console.log(`[conversations] update ok id=${c.id}`);
@@ -349,10 +368,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    let body: any = {};
+    let body: { lookbackHours?: number; batchLimit?: number } = {};
     try {
-      body = await req.json();
-    } catch {}
+      const parsed = await req.json();
+      if (parsed && typeof parsed === 'object') {
+        body = parsed as { lookbackHours?: number; batchLimit?: number };
+      }
+    } catch {
+      // Empty body is valid, use defaults
+    }
     const result = await processTick({
       lookbackHours:
         typeof body?.lookbackHours === 'number'

@@ -10,7 +10,9 @@ import type { Database } from '../../../database.types.ts';
 // Extract types from Database schema
 type CampaignRow = Database['public']['Tables']['campaigns']['Row'];
 type LeadRow = Database['public']['Tables']['leads']['Row'];
-type AgentRow = Database['public']['Tables']['agents']['Row'];
+type ConversationInsert =
+  Database['public']['Tables']['conversations']['Insert'];
+type CallLogInsert = Database['public']['Tables']['call_logs']['Insert'];
 
 // Enriched lead row includes both lead data and campaign_lead relationship data
 interface EnrichedLeadRow extends LeadRow {
@@ -20,6 +22,30 @@ interface EnrichedLeadRow extends LeadRow {
   campaign_status: string;
   last_attempt_at: string | null;
   name: string; // Computed from first_name + last_name
+}
+
+// Type for the campaign_leads joined query result
+interface CampaignLeadQueryResult {
+  id: string;
+  campaign_id: string;
+  lead_id: string;
+  status: string;
+  attempts: number | null;
+  last_attempt_at: string | null;
+  pledged_amount: number | null;
+  donated_amount: number | null;
+  leads: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string | null;
+    timezone: string | null;
+    do_not_call: boolean | null;
+    company: string | null;
+    quality_rating: number | null;
+    lead_score: number | null;
+    last_activity_at: string | null;
+  };
 }
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -139,18 +165,19 @@ export async function processTick() {
       );
 
       try {
+        const conversationInsert: ConversationInsert = {
+          campaign_id: c.id,
+          agent_id: c.agent_id!,
+          lead_id: lead.id,
+          status: 'initiated',
+          call_sid: callSid,
+          conversation_id,
+          started_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        };
         const { data: convoData, error: convoError } = await supabase
           .from('conversations')
-          .insert({
-            campaign_id: c.id,
-            agent_id: c.agent_id!,
-            lead_id: lead.id,
-            status: 'initiated',
-            call_sid: callSid,
-            conversation_id,
-            started_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-          } as any);
+          .insert(conversationInsert);
 
         if (convoError) {
           console.error(
@@ -158,21 +185,22 @@ export async function processTick() {
             convoError,
           );
           // Fallback: write to call_logs if conversations insert fails
+          const callLogInsert: CallLogInsert = {
+            campaign_id: c.id,
+            agent_id: c.agent_id!,
+            lead_id: lead.id,
+            conversation_id,
+            call_sid: callSid,
+            from_number: callerId,
+            to_number: lead.phone,
+            status: 'initiated',
+            direction: 'outbound',
+            queued_at: new Date().toISOString(),
+            initiated_at: new Date().toISOString(),
+          };
           const { data: logData, error: logError } = await supabase
             .from('call_logs')
-            .insert({
-              campaign_id: c.id,
-              agent_id: c.agent_id!,
-              lead_id: lead.id,
-              conversation_id,
-              call_sid: callSid,
-              from_number: callerId,
-              to_number: lead.phone,
-              status: 'initiated',
-              direction: 'outbound',
-              queued_at: new Date().toISOString(),
-              initiated_at: new Date().toISOString(),
-            } as any);
+            .insert(callLogInsert);
           if (logError) {
             console.error(
               `[call_logs] insert failed campaign=${c.id} lead=${lead.id}`,
@@ -180,16 +208,16 @@ export async function processTick() {
             );
           } else {
             const logId = Array.isArray(logData)
-              ? ((logData[0] as any)?.id ?? 'unknown')
-              : ((logData as any)?.id ?? 'unknown');
+              ? ((logData[0] as Record<string, unknown>)?.id ?? 'unknown')
+              : ((logData as Record<string, unknown>)?.id ?? 'unknown');
             console.log(
               `[call_logs] insert ok campaign=${c.id} lead=${lead.id} call_log_id=${logId}`,
             );
           }
         } else {
           const convoId = Array.isArray(convoData)
-            ? ((convoData[0] as any)?.id ?? 'unknown')
-            : ((convoData as any)?.id ?? 'unknown');
+            ? ((convoData[0] as Record<string, unknown>)?.id ?? 'unknown')
+            : ((convoData as Record<string, unknown>)?.id ?? 'unknown');
           console.log(
             `[convo] insert ok campaign=${c.id} lead=${lead.id} conversation_id=${convoId}`,
           );
@@ -201,21 +229,22 @@ export async function processTick() {
         );
         // Fallback on exception as well
         try {
+          const callLogInsertFallback: CallLogInsert = {
+            campaign_id: c.id,
+            agent_id: c.agent_id!,
+            lead_id: lead.id,
+            conversation_id,
+            call_sid: callSid,
+            from_number: callerId,
+            to_number: lead.phone,
+            status: 'initiated',
+            direction: 'outbound',
+            queued_at: new Date().toISOString(),
+            initiated_at: new Date().toISOString(),
+          };
           const { data: logData, error: logError } = await supabase
             .from('call_logs')
-            .insert({
-              campaign_id: c.id,
-              agent_id: c.agent_id!,
-              lead_id: lead.id,
-              conversation_id,
-              call_sid: callSid,
-              from_number: callerId,
-              to_number: lead.phone,
-              status: 'initiated',
-              direction: 'outbound',
-              queued_at: new Date().toISOString(),
-              initiated_at: new Date().toISOString(),
-            } as any);
+            .insert(callLogInsertFallback);
           if (logError) {
             console.error(
               `[call_logs] insert failed campaign=${c.id} lead=${lead.id}`,
@@ -223,8 +252,8 @@ export async function processTick() {
             );
           } else {
             const logId = Array.isArray(logData)
-              ? ((logData[0] as any)?.id ?? 'unknown')
-              : ((logData as any)?.id ?? 'unknown');
+              ? ((logData[0] as Record<string, unknown>)?.id ?? 'unknown')
+              : ((logData as Record<string, unknown>)?.id ?? 'unknown');
             console.log(
               `[call_logs] insert ok campaign=${c.id} lead=${lead.id} call_log_id=${logId}`,
             );
@@ -365,23 +394,25 @@ async function pickEligibleLeads(
   }
 
   // Transform the nested structure into EnrichedLeadRow
-  let rows: EnrichedLeadRow[] = (data ?? []).map((cl: any) => {
-    const lead = cl.leads;
-    // Compute full name from first_name and last_name
-    const name =
-      [lead.first_name, lead.last_name].filter(Boolean).join(' ').trim() ||
-      'Unknown';
+  let rows: EnrichedLeadRow[] = (data ?? []).map(
+    (cl: CampaignLeadQueryResult) => {
+      const lead = cl.leads;
+      // Compute full name from first_name and last_name
+      const name =
+        [lead.first_name, lead.last_name].filter(Boolean).join(' ').trim() ||
+        'Unknown';
 
-    return {
-      ...lead,
-      name, // Add computed name field
-      campaign_lead_id: cl.id,
-      campaign_id: cl.campaign_id,
-      attempts: cl.attempts ?? 0,
-      campaign_status: cl.status,
-      last_attempt_at: cl.last_attempt_at,
-    };
-  });
+      return {
+        ...lead,
+        name, // Add computed name field
+        campaign_lead_id: cl.id,
+        campaign_id: cl.campaign_id,
+        attempts: cl.attempts ?? 0,
+        campaign_status: cl.status,
+        last_attempt_at: cl.last_attempt_at,
+      };
+    },
+  );
 
   // Apply DNC filter in JavaScript (easier than complex OR logic in PostgREST)
   if (c.exclude_dnc) {
