@@ -41,6 +41,7 @@ export function CallsController() {
   const [isMuted, setIsMuted] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [callerId, setCallerId] = useState<string>('');
 
   // Helper to add debug logs
   const addLog = (message: string) => {
@@ -84,10 +85,13 @@ export function CallsController() {
         }
 
         const { data } = await response.json();
-        const { token } = data;
+        const { token, callerId: twilioCallerId } = data;
         addLog('Token received successfully');
 
         if (cancelled) return;
+
+        // Save callerId for use in connect()
+        setCallerId(twilioCallerId || '');
 
         addLog('Creating Twilio Device...');
         // Create and setup Twilio Device
@@ -243,10 +247,12 @@ export function CallsController() {
 
       addLog(`Making call to ${callState.phoneNumber}...`);
 
-      // Make the call - don't specify rtcConstraints, let Twilio handle it
+      // Make the call with required parameters
+      // Note: callerId parameter is sometimes required to avoid connection errors
       const call = await deviceRef.current.connect({
         params: {
           To: callState.phoneNumber,
+          CallerId: callerId,
         },
       });
 
