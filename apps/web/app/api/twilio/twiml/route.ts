@@ -116,10 +116,16 @@ export async function POST(request: NextRequest) {
 
 // GET handler for testing
 export async function GET(request: NextRequest) {
+  console.log('========== TwiML GET Request ==========');
+  console.log('Request URL:', request.url);
+
   const url = new URL(request.url);
   const To = url.searchParams.get('To') || '+1234567890';
   const CallerId =
     url.searchParams.get('CallerId') || process.env.TWILIO_PHONE_NUMBER;
+
+  console.log('GET params:', { To, CallerId });
+  console.log('========== TwiML GET Request End ==========');
 
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
