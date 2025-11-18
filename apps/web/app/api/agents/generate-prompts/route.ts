@@ -13,10 +13,17 @@ interface GeneratePromptsRequest {
   industry?: string;
 }
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client to avoid build-time errors
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiClient;
+}
 
 // Hardcoded sections that follow ElevenLabs best practices
 // These rarely change and ensure consistent quality
@@ -119,6 +126,7 @@ YOU MUST USE THE NAME "${finalAgentName}" IN THE NAME FIELD. DO NOT USE ANY OTHE
 Generate a complete prompt following the structure provided.`;
 
   try {
+    const openai = getOpenAIClient();
     const stream = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -184,6 +192,7 @@ Keep it professional yet warm. Avoid being too formal or robotic.`;
 Generate ONLY the greeting message, nothing else.`;
 
   try {
+    const openai = getOpenAIClient();
     const stream = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
