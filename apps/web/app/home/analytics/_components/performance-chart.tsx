@@ -5,10 +5,10 @@ import { useMemo } from 'react';
 import { BarChart3, DollarSign, Phone, TrendingUp } from 'lucide-react';
 
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-
-import { useDemoMode } from '~/lib/demo-mode-context';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 interface PerformanceChartProps {
   filters: {
@@ -31,21 +31,23 @@ const metricOptions = [
     label: 'Calls',
     icon: Phone,
     selectedClass: 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500',
-    unselectedClass: 'border-blue-200 text-blue-600 hover:bg-blue-50'
+    unselectedClass: 'border-blue-200 text-blue-600 hover:bg-blue-50',
   },
   {
     key: 'conversions',
     label: 'Conversions',
     icon: TrendingUp,
-    selectedClass: 'bg-green-500 hover:bg-green-600 text-white border-green-500',
-    unselectedClass: 'border-green-200 text-green-600 hover:bg-green-50'
+    selectedClass:
+      'bg-green-500 hover:bg-green-600 text-white border-green-500',
+    unselectedClass: 'border-green-200 text-green-600 hover:bg-green-50',
   },
   {
     key: 'revenue',
     label: 'Revenue',
     icon: DollarSign,
-    selectedClass: 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500',
-    unselectedClass: 'border-purple-200 text-purple-600 hover:bg-purple-50'
+    selectedClass:
+      'bg-purple-500 hover:bg-purple-600 text-white border-purple-500',
+    unselectedClass: 'border-purple-200 text-purple-600 hover:bg-purple-50',
   },
 ];
 
@@ -83,7 +85,13 @@ export function PerformanceChart({
 
     // Group conversations by date
     const groupedByDate = filteredConversations.reduce(
-      (acc: Record<string, { calls: number; conversions: number; revenue: number }>, conv) => {
+      (
+        acc: Record<
+          string,
+          { calls: number; conversions: number; revenue: number }
+        >,
+        conv,
+      ) => {
         const date = new Date(conv.created_at!).toISOString().split('T')[0];
         if (!date) return acc;
 
@@ -187,22 +195,31 @@ export function PerformanceChart({
         ) : (
           <>
             <div className="bg-muted/20 rounded-lg border p-4">
-              <div className="h-64 flex items-end justify-between space-x-1">
+              <div className="flex h-64 items-end justify-between space-x-1">
                 {performanceData.slice(-7).map((data, index) => {
                   // Calculate max value for each selected metric
-                  const maxCalls = Math.max(...performanceData.map(d => d.calls));
-                  const maxConversions = Math.max(...performanceData.map(d => d.conversions));
-                  const maxRevenue = Math.max(...performanceData.map(d => d.revenue));
+                  const maxCalls = Math.max(
+                    ...performanceData.map((d) => d.calls),
+                  );
+                  const maxConversions = Math.max(
+                    ...performanceData.map((d) => d.conversions),
+                  );
+                  const maxRevenue = Math.max(
+                    ...performanceData.map((d) => d.revenue),
+                  );
 
                   return (
-                    <div key={index} className="flex-1 flex flex-col items-center">
-                      <div className="h-48 flex items-end justify-center space-x-0.5">
+                    <div
+                      key={index}
+                      className="flex flex-1 flex-col items-center"
+                    >
+                      <div className="flex h-48 items-end justify-center space-x-0.5">
                         {selectedMetrics.includes('calls') && (
                           <div className="flex flex-col items-center">
                             <div
-                              className="w-4 bg-blue-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              className="min-h-[4px] w-4 rounded-t-sm bg-blue-500 transition-all duration-300"
                               style={{
-                                height: `${Math.max((data.calls / maxCalls) * 180, 4)}px`
+                                height: `${Math.max((data.calls / maxCalls) * 180, 4)}px`,
                               }}
                               title={`${data.calls} calls on ${new Date(data.date).toLocaleDateString()}`}
                             />
@@ -211,9 +228,9 @@ export function PerformanceChart({
                         {selectedMetrics.includes('conversions') && (
                           <div className="flex flex-col items-center">
                             <div
-                              className="w-4 bg-green-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              className="min-h-[4px] w-4 rounded-t-sm bg-green-500 transition-all duration-300"
                               style={{
-                                height: `${Math.max((data.conversions / maxConversions) * 180, 4)}px`
+                                height: `${Math.max((data.conversions / maxConversions) * 180, 4)}px`,
                               }}
                               title={`${data.conversions} conversions on ${new Date(data.date).toLocaleDateString()}`}
                             />
@@ -222,19 +239,19 @@ export function PerformanceChart({
                         {selectedMetrics.includes('revenue') && (
                           <div className="flex flex-col items-center">
                             <div
-                              className="w-4 bg-purple-500 rounded-t-sm transition-all duration-300 min-h-[4px]"
+                              className="min-h-[4px] w-4 rounded-t-sm bg-purple-500 transition-all duration-300"
                               style={{
-                                height: `${Math.max((data.revenue / maxRevenue) * 180, 4)}px`
+                                height: `${Math.max((data.revenue / maxRevenue) * 180, 4)}px`,
                               }}
                               title={`$${data.revenue} revenue on ${new Date(data.date).toLocaleDateString()}`}
                             />
                           </div>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground text-center mt-2">
+                      <div className="text-muted-foreground mt-2 text-center text-xs">
                         {new Date(data.date).toLocaleDateString(undefined, {
                           month: 'short',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                       </div>
                     </div>
@@ -246,19 +263,19 @@ export function PerformanceChart({
               <div className="mt-4 flex justify-center space-x-6 text-xs">
                 {selectedMetrics.includes('calls') && (
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <div className="h-3 w-3 rounded bg-blue-500"></div>
                     <span>Calls</span>
                   </div>
                 )}
                 {selectedMetrics.includes('conversions') && (
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <div className="h-3 w-3 rounded bg-green-500"></div>
                     <span>Conversions</span>
                   </div>
                 )}
                 {selectedMetrics.includes('revenue') && (
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-purple-500 rounded"></div>
+                    <div className="h-3 w-3 rounded bg-purple-500"></div>
                     <span>Revenue</span>
                   </div>
                 )}

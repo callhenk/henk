@@ -45,11 +45,14 @@ class Logger {
   error(message: string, error?: Error | unknown, context?: LogContext): void {
     const errorContext = {
       ...context,
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      } : error,
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+            }
+          : error,
     };
 
     this.log('error', message, errorContext);
@@ -84,16 +87,32 @@ class Logger {
 
       switch (level) {
         case 'debug':
-          console.debug(`${prefix}${componentInfo}${actionInfo}`, message, context || '');
+          console.debug(
+            `${prefix}${componentInfo}${actionInfo}`,
+            message,
+            context || '',
+          );
           break;
         case 'info':
-          console.info(`${prefix}${componentInfo}${actionInfo}`, message, context || '');
+          console.info(
+            `${prefix}${componentInfo}${actionInfo}`,
+            message,
+            context || '',
+          );
           break;
         case 'warn':
-          console.warn(`${prefix}${componentInfo}${actionInfo}`, message, context || '');
+          console.warn(
+            `${prefix}${componentInfo}${actionInfo}`,
+            message,
+            context || '',
+          );
           break;
         case 'error':
-          console.error(`${prefix}${componentInfo}${actionInfo}`, message, context || '');
+          console.error(
+            `${prefix}${componentInfo}${actionInfo}`,
+            message,
+            context || '',
+          );
           break;
       }
     } else {
@@ -109,7 +128,11 @@ class Logger {
     const scopedLogger = new Logger();
     const originalLog = scopedLogger.log.bind(scopedLogger);
 
-    scopedLogger.log = (level: LogLevel, message: string, context?: LogContext) => {
+    scopedLogger.log = (
+      level: LogLevel,
+      message: string,
+      context?: LogContext,
+    ) => {
       originalLog(level, message, { ...defaultContext, ...context });
     };
 

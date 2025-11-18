@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
-  formatDate,
-  formatRelativeTime,
-  formatPhoneNumber,
-  formatDuration,
-  truncateText,
   capitalize,
+  formatDate,
+  formatDuration,
   formatNumber,
+  formatPhoneNumber,
+  formatRelativeTime,
+  truncateText,
 } from './formatting';
 
 describe('formatDate', () => {

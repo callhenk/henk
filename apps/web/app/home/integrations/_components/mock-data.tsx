@@ -71,7 +71,8 @@ export const SEED_INTEGRATIONS = (businessId: string): UiIntegration[] => [
     id: 'salesforce',
     business_id: businessId,
     name: 'Salesforce',
-    description: 'Import contacts from Salesforce to create targeted campaigns.',
+    description:
+      'Import contacts from Salesforce to create targeted campaigns.',
     type: 'crm',
     status: 'disconnected',
     config: null,

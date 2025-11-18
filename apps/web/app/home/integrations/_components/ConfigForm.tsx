@@ -32,7 +32,9 @@ export function ConfigForm({
           <div className="flex items-center justify-between">
             <Label htmlFor={f.key}>{f.label}</Label>
             {f.helpText ? (
-              <span className="text-muted-foreground text-xs">{f.helpText}</span>
+              <span className="text-muted-foreground text-xs">
+                {f.helpText}
+              </span>
             ) : null}
           </div>
 
@@ -69,5 +71,3 @@ export function ConfigForm({
     </div>
   );
 }
-
-

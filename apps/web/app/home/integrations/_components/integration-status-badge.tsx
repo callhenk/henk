@@ -6,12 +6,19 @@ import type { IntegrationStatus } from './types';
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant'];
 
-export function IntegrationStatusBadge({ status }: { status: IntegrationStatus }) {
+export function IntegrationStatusBadge({
+  status,
+}: {
+  status: IntegrationStatus;
+}) {
   const { variant, label } = get(status);
   return <Badge variant={variant}>{label}</Badge>;
 }
 
-function get(status: IntegrationStatus): { variant: BadgeVariant; label: string } {
+function get(status: IntegrationStatus): {
+  variant: BadgeVariant;
+  label: string;
+} {
   switch (status) {
     case 'connected':
       return { variant: 'default', label: 'Connected' };
@@ -28,5 +35,3 @@ function get(status: IntegrationStatus): { variant: BadgeVariant; label: string 
       return { variant: 'secondary', label: 'Disconnected' };
   }
 }
-
-

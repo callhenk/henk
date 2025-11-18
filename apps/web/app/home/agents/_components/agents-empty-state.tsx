@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, Sparkles, Mic } from 'lucide-react';
+import { Bot, Mic, Sparkles } from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import { Card, CardContent } from '@kit/ui/card';
@@ -12,69 +12,72 @@ interface AgentsEmptyStateProps {
 export function AgentsEmptyState({ onCreateAgent }: AgentsEmptyStateProps) {
   return (
     <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <CardContent className="flex flex-col items-center justify-center px-4 py-16 text-center">
         {/* Icon */}
         <div className="relative mb-6">
-          <div className="rounded-full bg-primary/10 p-6">
-            <Bot className="h-12 w-12 text-primary" />
+          <div className="bg-primary/10 rounded-full p-6">
+            <Bot className="text-primary h-12 w-12" />
           </div>
-          <div className="absolute -right-1 -top-1 animate-in fade-in duration-500">
-            <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+          <div className="animate-in fade-in absolute -top-1 -right-1 duration-500">
+            <Sparkles className="text-primary h-6 w-6 animate-pulse" />
           </div>
         </div>
 
         {/* Heading */}
-        <h3 className="text-2xl font-semibold mb-2">
+        <h3 className="mb-2 text-2xl font-semibold">
           Create Your First AI Agent
         </h3>
 
         {/* Description */}
-        <p className="text-muted-foreground max-w-md mb-8">
-          Build an AI-powered voice agent to handle conversations with your donors.
-          Customize voice, personality, and knowledge to create natural, engaging calls.
+        <p className="text-muted-foreground mb-8 max-w-md">
+          Build an AI-powered voice agent to handle conversations with your
+          donors. Customize voice, personality, and knowledge to create natural,
+          engaging calls.
         </p>
 
         {/* CTA Button */}
-        <Button
-          onClick={onCreateAgent}
-          size="lg"
-          className="mb-6"
-        >
+        <Button onClick={onCreateAgent} size="lg" className="mb-6">
           <Mic className="mr-2 h-4 w-4" />
           Create Your First Agent
         </Button>
 
         {/* Quick Tips */}
-        <div className="mt-8 pt-8 border-t w-full max-w-2xl">
-          <p className="text-sm font-medium text-muted-foreground mb-4">
+        <div className="mt-8 w-full max-w-2xl border-t pt-8">
+          <p className="text-muted-foreground mb-4 text-sm font-medium">
             Agents can help you:
           </p>
-          <div className="grid gap-3 md:grid-cols-3 text-left">
+          <div className="grid gap-3 text-left md:grid-cols-3">
             <div className="flex items-start gap-2">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
+              <div className="bg-primary/10 mt-0.5 rounded-full p-1">
+                <div className="bg-primary h-2 w-2 rounded-full" />
               </div>
               <div>
                 <p className="text-sm font-medium">Personalize Calls</p>
-                <p className="text-xs text-muted-foreground">Custom voice and personality</p>
+                <p className="text-muted-foreground text-xs">
+                  Custom voice and personality
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
+              <div className="bg-primary/10 mt-0.5 rounded-full p-1">
+                <div className="bg-primary h-2 w-2 rounded-full" />
               </div>
               <div>
                 <p className="text-sm font-medium">Scale Outreach</p>
-                <p className="text-xs text-muted-foreground">Handle multiple conversations</p>
+                <p className="text-muted-foreground text-xs">
+                  Handle multiple conversations
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
+              <div className="bg-primary/10 mt-0.5 rounded-full p-1">
+                <div className="bg-primary h-2 w-2 rounded-full" />
               </div>
               <div>
                 <p className="text-sm font-medium">Track Performance</p>
-                <p className="text-xs text-muted-foreground">Monitor calls and outcomes</p>
+                <p className="text-muted-foreground text-xs">
+                  Monitor calls and outcomes
+                </p>
               </div>
             </div>
           </div>

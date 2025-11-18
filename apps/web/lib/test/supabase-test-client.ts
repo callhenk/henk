@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+
 import type { Database } from '../database.types';
 
 /**
@@ -202,10 +203,7 @@ export async function cleanupTestBusiness(businessId: string) {
     }
 
     // 2. Delete conversations (references agents)
-    await supabase
-      .from('conversations')
-      .delete()
-      .eq('business_id', businessId);
+    await supabase.from('conversations').delete().eq('business_id', businessId);
 
     // 3. Get campaign IDs for this business
     const { data: campaigns } = await supabase
@@ -239,16 +237,10 @@ export async function cleanupTestBusiness(businessId: string) {
       const listIds = leadLists.map((l) => l.id);
 
       // Delete campaign leads (references lead_lists)
-      await supabase
-        .from('campaign_leads')
-        .delete()
-        .in('list_id', listIds);
+      await supabase.from('campaign_leads').delete().in('list_id', listIds);
 
       // Delete lead list members
-      await supabase
-        .from('lead_list_members')
-        .delete()
-        .in('list_id', listIds);
+      await supabase.from('lead_list_members').delete().in('list_id', listIds);
     }
 
     // 5. Delete lead lists

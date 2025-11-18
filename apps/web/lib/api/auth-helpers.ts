@@ -16,9 +16,7 @@ export interface BusinessContext {
  * Verify user is authenticated and return user object
  * @throws {AuthError} If user is not authenticated
  */
-export async function requireAuth(
-  supabase: SupabaseClient,
-): Promise<User> {
+export async function requireAuth(supabase: SupabaseClient): Promise<User> {
   const {
     data: { user },
     error,
@@ -96,8 +94,6 @@ export function requireRole(
  */
 export function requireWritePermission(context: BusinessContext): void {
   if (context.role === 'viewer') {
-    throw new ForbiddenError(
-      'Insufficient permissions to modify resources',
-    );
+    throw new ForbiddenError('Insufficient permissions to modify resources');
   }
 }

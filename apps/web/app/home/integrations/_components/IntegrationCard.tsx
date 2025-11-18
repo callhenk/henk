@@ -33,7 +33,8 @@ export function IntegrationCard({
   busy?: boolean;
 }) {
   const Icon = item.icon;
-  const showManage = item.status === 'connected' || item.status === 'needs_attention';
+  const showManage =
+    item.status === 'connected' || item.status === 'needs_attention';
   const isComingSoon = item.status === 'coming_soon';
 
   return (
@@ -74,7 +75,7 @@ export function IntegrationCard({
             href="/home/integrations/salesforce-guide"
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-3 flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+            className="mb-3 flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
             <BookOpen className="h-3.5 w-3.5" />
             <span className="underline">Setup Guide (5 min)</span>
@@ -82,22 +83,27 @@ export function IntegrationCard({
         )}
 
         <div className="flex items-center justify-between text-xs">
-          <div className="text-muted-foreground">Last sync: {formatRelativeTime(item.last_sync_at)}</div>
-          {canEdit && !isComingSoon && (
-            showManage ? (
-              <Button size="sm" variant="outline" onClick={onManage} disabled={busy}>
+          <div className="text-muted-foreground">
+            Last sync: {formatRelativeTime(item.last_sync_at)}
+          </div>
+          {canEdit &&
+            !isComingSoon &&
+            (showManage ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onManage}
+                disabled={busy}
+              >
                 Manage
               </Button>
             ) : (
               <Button size="sm" onClick={onConnect} disabled={busy}>
                 Connect
               </Button>
-            )
-          )}
+            ))}
         </div>
       </CardContent>
     </Card>
   );
 }
-
-

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle, Download } from 'lucide-react';
 
+import { AlertCircle, Download, FileSpreadsheet, Upload } from 'lucide-react';
+
+import { Alert, AlertDescription } from '@kit/ui/alert';
 import { Button } from '@kit/ui/button';
 import {
   Dialog,
@@ -11,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@kit/ui/dialog';
-import { Alert, AlertDescription } from '@kit/ui/alert';
 import { Label } from '@kit/ui/label';
 
 interface ImportLeadsDialogProps {
@@ -19,7 +20,10 @@ interface ImportLeadsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function ImportLeadsDialog({ open, onOpenChange }: ImportLeadsDialogProps) {
+export function ImportLeadsDialog({
+  open,
+  onOpenChange,
+}: ImportLeadsDialogProps) {
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -56,14 +60,14 @@ export function ImportLeadsDialog({ open, onOpenChange }: ImportLeadsDialogProps
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              Leads from integrations like Salesforce and HubSpot are automatically synced.
-              Use CSV import for leads from other sources.
+              Leads from integrations like Salesforce and HubSpot are
+              automatically synced. Use CSV import for leads from other sources.
             </AlertDescription>
           </Alert>
 
           {/* CSV Upload Section */}
           <div className="space-y-4">
-            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12 transition-colors hover:border-muted-foreground/50">
+            <div className="border-muted-foreground/25 hover:border-muted-foreground/50 flex items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors">
               <div className="text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900">
                   <FileSpreadsheet className="h-8 w-8 text-green-600 dark:text-green-300" />
@@ -73,7 +77,7 @@ export function ImportLeadsDialog({ open, onOpenChange }: ImportLeadsDialogProps
                     <p className="text-sm font-medium">
                       {selectedFile ? selectedFile.name : 'Choose a CSV file'}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Required columns: first_name, last_name, email, phone
                     </p>
                   </div>
@@ -98,7 +102,7 @@ export function ImportLeadsDialog({ open, onOpenChange }: ImportLeadsDialogProps
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium">Need a template?</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Download our CSV template with the correct format
                 </p>
               </div>

@@ -10,17 +10,21 @@
  *
  * Can be configured via NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID environment variable
  */
-export const DEFAULT_PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID || 'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
+export const DEFAULT_PHONE_NUMBER_ID =
+  process.env.NEXT_PUBLIC_DEFAULT_PHONE_NUMBER_ID ||
+  'phnum_5301k1ge5gxvejpvsdvw7ey565pc';
 
 /**
  * Test phone numbers for development/testing
  *
  * Can be configured via NEXT_PUBLIC_TEST_PHONE_NUMBERS environment variable (comma-separated)
  */
-export const TEST_PHONE_NUMBERS = (process.env.NEXT_PUBLIC_TEST_PHONE_NUMBERS?.split(',') || [
-  '+12025550125',
-  '+14155550142'
-]).filter(Boolean);
+export const TEST_PHONE_NUMBERS = (
+  process.env.NEXT_PUBLIC_TEST_PHONE_NUMBERS?.split(',') || [
+    '+12025550125',
+    '+14155550142',
+  ]
+).filter(Boolean);
 
 /**
  * E.164 phone number validation regex

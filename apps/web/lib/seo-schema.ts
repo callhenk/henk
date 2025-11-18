@@ -43,7 +43,9 @@ export function generateWebsiteSchema() {
 /**
  * Generate BreadcrumbList schema for JSON-LD
  */
-export function generateBreadcrumbSchema(breadcrumbs: { name: string; url: string }[]) {
+export function generateBreadcrumbSchema(
+  breadcrumbs: { name: string; url: string }[],
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

@@ -1,8 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { toast } from 'sonner';
 
+import {
+  useCreateLeadList,
+  useUpdateLeadList,
+} from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { Button } from '@kit/ui/button';
 import {
   Dialog,
@@ -14,7 +20,6 @@ import {
 } from '@kit/ui/dialog';
 import { Input } from '@kit/ui/input';
 import { Label } from '@kit/ui/label';
-import { Textarea } from '@kit/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -22,12 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
-
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
-import {
-  useCreateLeadList,
-  useUpdateLeadList,
-} from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { Textarea } from '@kit/ui/textarea';
 
 import type { Database } from '~/lib/database.types';
 
@@ -57,7 +57,9 @@ export function CreateEditLeadListDialog({
 }: CreateEditLeadListDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [listType, setListType] = useState<'static' | 'dynamic' | 'smart'>('static');
+  const [listType, setListType] = useState<'static' | 'dynamic' | 'smart'>(
+    'static',
+  );
   const [color, setColor] = useState(PRESET_COLORS[0]);
 
   const { data: businessContext } = useBusinessContext();
@@ -70,7 +72,9 @@ export function CreateEditLeadListDialog({
     if (list) {
       setName(list.name || '');
       setDescription(list.description || '');
-      setListType((list.list_type as 'static' | 'dynamic' | 'smart') || 'static');
+      setListType(
+        (list.list_type as 'static' | 'dynamic' | 'smart') || 'static',
+      );
       setColor(list.color || PRESET_COLORS[0]);
     } else {
       setName('');
@@ -165,7 +169,12 @@ export function CreateEditLeadListDialog({
           {/* List Type */}
           <div className="space-y-2">
             <Label htmlFor="list-type">List Type</Label>
-            <Select value={listType} onValueChange={(value) => setListType(value as 'static' | 'dynamic' | 'smart')}>
+            <Select
+              value={listType}
+              onValueChange={(value) =>
+                setListType(value as 'static' | 'dynamic' | 'smart')
+              }
+            >
               <SelectTrigger id="list-type">
                 <SelectValue />
               </SelectTrigger>
@@ -181,7 +190,7 @@ export function CreateEditLeadListDialog({
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {listType === 'static' && 'Leads are manually added and removed'}
               {listType === 'dynamic' &&
                 'List automatically updates based on defined rules'}
@@ -199,7 +208,9 @@ export function CreateEditLeadListDialog({
                   key={presetColor}
                   type="button"
                   className={`h-8 w-8 rounded-full transition-transform hover:scale-110 ${
-                    color === presetColor ? 'ring-2 ring-offset-2 ring-primary' : ''
+                    color === presetColor
+                      ? 'ring-primary ring-2 ring-offset-2'
+                      : ''
                   }`}
                   style={{ backgroundColor: presetColor }}
                   onClick={() => setColor(presetColor)}

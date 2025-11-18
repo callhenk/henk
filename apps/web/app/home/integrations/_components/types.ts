@@ -108,5 +108,3 @@ export async function mockAsync<T>(fn: () => T, ms: number = 800): Promise<T> {
   await new Promise((r) => setTimeout(r, ms));
   return fn();
 }
-
-

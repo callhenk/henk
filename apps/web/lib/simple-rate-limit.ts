@@ -16,9 +16,12 @@ class SimpleRateLimiter {
     // Clean up expired entries every 5 minutes
     if (typeof window === 'undefined') {
       // Only run cleanup on server
-      this.cleanupInterval = setInterval(() => {
-        this.cleanup();
-      }, 5 * 60 * 1000);
+      this.cleanupInterval = setInterval(
+        () => {
+          this.cleanup();
+        },
+        5 * 60 * 1000,
+      );
     }
   }
 

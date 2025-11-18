@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+
 import { useSearchParams } from 'next/navigation';
 
 import { AlertCircle } from 'lucide-react';
 
+import { useUpdateIntegration } from '@kit/supabase/hooks/integrations/use-integration-mutations';
 import { Alert, AlertDescription, AlertTitle } from '@kit/ui/alert';
 import {
   AlertDialog,
@@ -23,8 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-
-import { useUpdateIntegration } from '@kit/supabase/hooks/integrations/use-integration-mutations';
 
 import { IntegrationDrawer } from './IntegrationDrawer';
 import { IntegrationsFilters, useQueryFilters } from './IntegrationsFilters';
@@ -104,7 +104,10 @@ export function IntegrationsController({
   ).length;
   // Only count popular integrations that are actually available
   const popularCount = filtered.filter(
-    (i) => i.schema.popular && i.status !== 'coming_soon' && i.status !== 'deprecated',
+    (i) =>
+      i.schema.popular &&
+      i.status !== 'coming_soon' &&
+      i.status !== 'deprecated',
   ).length;
 
   const select = (id: string) => data.find((i) => i.id === id)!;
@@ -236,18 +239,20 @@ export function IntegrationsController({
               <AlertTitle>OAuth Connection Failed</AlertTitle>
               <AlertDescription>
                 <div className="space-y-2">
-                  <p>{getErrorMessage(oauthError.error, oauthError.description)}</p>
+                  <p>
+                    {getErrorMessage(oauthError.error, oauthError.description)}
+                  </p>
                   <p className="text-sm">
                     See the{' '}
                     <a
                       href="/home/integrations/salesforce-guide"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="underline font-medium hover:text-red-800 dark:hover:text-red-200"
+                      className="font-medium underline hover:text-red-800 dark:hover:text-red-200"
                     >
                       setup guide
-                    </a>
-                    {' '}for troubleshooting steps.
+                    </a>{' '}
+                    for troubleshooting steps.
                     <button
                       onClick={() => setOauthError(null)}
                       className="ml-2 underline"
@@ -386,10 +391,16 @@ function getErrorMessage(error: string, description?: string): string {
     if (description.includes('External client app is not installed')) {
       return 'The Salesforce Connected App is not properly configured in your Salesforce organization. Please follow the setup guide to create and configure the Connected App in Salesforce Setup → App Manager.';
     }
-    if (description.includes('redirect_uri_mismatch') || description.includes('redirect_uri')) {
+    if (
+      description.includes('redirect_uri_mismatch') ||
+      description.includes('redirect_uri')
+    ) {
       return `OAuth configuration error: The redirect URI does not match. Expected callback URL must be configured in your Salesforce Connected App. ${description}`;
     }
-    if (description.includes('invalid_client_id') || description.includes('client_id')) {
+    if (
+      description.includes('invalid_client_id') ||
+      description.includes('client_id')
+    ) {
       return `Invalid Client ID. Please verify your SALESFORCE_CLIENT_ID environment variable matches the Consumer Key from your Connected App. ${description}`;
     }
   }
@@ -417,6 +428,9 @@ function getErrorMessage(error: string, description?: string): string {
       return 'An internal error occurred. Please try again or contact support.';
     case 'oauth_error':
     default:
-      return description || 'An OAuth error occurred. Please try again or contact support if the issue persists.';
+      return (
+        description ||
+        'An OAuth error occurred. Please try again or contact support if the issue persists.'
+      );
   }
 }

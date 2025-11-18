@@ -69,8 +69,8 @@ import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 import { useDemoMode } from '~/lib/demo-mode-context';
 import { formatDate, getConversionRate } from '~/lib/utils';
 
-import { CampaignsEmptyState } from './empty-state';
 import { WizardContainer } from '../wizard/wizard-container';
+import { CampaignsEmptyState } from './empty-state';
 
 type Campaign = Tables<'campaigns'>;
 
@@ -343,7 +343,9 @@ export function CampaignsList() {
           </div>
           <div className="mt-6">
             {enhancedCampaigns.length === 0 ? (
-              <CampaignsEmptyState onCreateCampaign={() => setShowWizard(true)} />
+              <CampaignsEmptyState
+                onCreateCampaign={() => setShowWizard(true)}
+              />
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredCampaigns.map((c) => (

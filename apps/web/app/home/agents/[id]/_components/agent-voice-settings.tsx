@@ -6,7 +6,13 @@ import { HelpCircle, RotateCcw, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@kit/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
 import { Label } from '@kit/ui/label';
 import { Slider } from '@kit/ui/slider';
 import {
@@ -63,7 +69,8 @@ export function AgentVoiceSettings({
   const [isSaving, setIsSaving] = useState(false);
 
   // Check if settings have changed
-  const hasChanges = JSON.stringify(voiceSettings) !== JSON.stringify(originalSettings);
+  const hasChanges =
+    JSON.stringify(voiceSettings) !== JSON.stringify(originalSettings);
 
   // Update local state when agent changes
   useEffect(() => {
@@ -75,7 +82,10 @@ export function AgentVoiceSettings({
     setOriginalSettings(newSettings);
   }, [agent.voice_settings]);
 
-  const handleSettingChange = (key: keyof VoiceSettings, value: number | boolean) => {
+  const handleSettingChange = (
+    key: keyof VoiceSettings,
+    value: number | boolean,
+  ) => {
     setVoiceSettings({
       ...voiceSettings,
       [key]: value,
@@ -125,7 +135,12 @@ export function AgentVoiceSettings({
           </div>
           {hasChanges && (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset} disabled={isSaving}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                disabled={isSaving}
+              >
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reset
               </Button>
@@ -159,18 +174,30 @@ export function AgentVoiceSettings({
                   </TooltipTrigger>
                   <TooltipContent className="max-w-sm">
                     <div className="space-y-2">
-                      <p className="font-semibold">Optimize Streaming Latency</p>
+                      <p className="font-semibold">
+                        Optimize Streaming Latency
+                      </p>
                       <p>
-                        Controls the trade-off between response speed and audio quality. Higher
-                        values prioritize faster audio generation at the expense of quality.
+                        Controls the trade-off between response speed and audio
+                        quality. Higher values prioritize faster audio
+                        generation at the expense of quality.
                       </p>
                       <ul className="space-y-1 text-xs">
-                        <li>• <strong>0 (Best Quality):</strong> Highest quality, slower response</li>
-                        <li>• <strong>1-2:</strong> Balanced quality and speed</li>
-                        <li>• <strong>3-4 (Lowest Latency):</strong> Fastest response, lower quality</li>
+                        <li>
+                          • <strong>0 (Best Quality):</strong> Highest quality,
+                          slower response
+                        </li>
+                        <li>
+                          • <strong>1-2:</strong> Balanced quality and speed
+                        </li>
+                        <li>
+                          • <strong>3-4 (Lowest Latency):</strong> Fastest
+                          response, lower quality
+                        </li>
                       </ul>
                       <p className="text-xs italic">
-                        Recommended: Start at 0 for best quality, increase if calls feel laggy
+                        Recommended: Start at 0 for best quality, increase if
+                        calls feel laggy
                       </p>
                     </div>
                   </TooltipContent>
@@ -187,11 +214,14 @@ export function AgentVoiceSettings({
             max={4}
             step={1}
             value={[voiceSettings.optimize_streaming_latency || 0]}
-            onValueChange={([value]) => value !== undefined && handleSettingChange('optimize_streaming_latency', value)}
+            onValueChange={([value]) =>
+              value !== undefined &&
+              handleSettingChange('optimize_streaming_latency', value)
+            }
             className="w-full"
             disabled={isSaving}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex justify-between text-xs">
             <span>Best Quality</span>
             <span>Lowest Latency</span>
           </div>
@@ -211,16 +241,27 @@ export function AgentVoiceSettings({
                     <div className="space-y-2">
                       <p className="font-semibold">Stability</p>
                       <p>
-                        Controls the consistency and predictability of the voice. This determines
-                        how much the AI will vary its tone, pitch, and delivery.
+                        Controls the consistency and predictability of the
+                        voice. This determines how much the AI will vary its
+                        tone, pitch, and delivery.
                       </p>
                       <ul className="space-y-1 text-xs">
-                        <li>• <strong>Low (0-0.3):</strong> Very expressive, emotional, variable</li>
-                        <li>• <strong>Medium (0.4-0.6):</strong> Balanced, natural conversation</li>
-                        <li>• <strong>High (0.7-1.0):</strong> Consistent, professional, monotone</li>
+                        <li>
+                          • <strong>Low (0-0.3):</strong> Very expressive,
+                          emotional, variable
+                        </li>
+                        <li>
+                          • <strong>Medium (0.4-0.6):</strong> Balanced, natural
+                          conversation
+                        </li>
+                        <li>
+                          • <strong>High (0.7-1.0):</strong> Consistent,
+                          professional, monotone
+                        </li>
                       </ul>
                       <p className="text-xs italic">
-                        Recommended: 0.4-0.6 for natural conversations, 0.7+ for formal calls
+                        Recommended: 0.4-0.6 for natural conversations, 0.7+ for
+                        formal calls
                       </p>
                     </div>
                   </TooltipContent>
@@ -237,11 +278,13 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.stability || 0.5]}
-            onValueChange={([value]) => value !== undefined && handleSettingChange('stability', value)}
+            onValueChange={([value]) =>
+              value !== undefined && handleSettingChange('stability', value)
+            }
             className="w-full"
             disabled={isSaving}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex justify-between text-xs">
             <span>More Variable</span>
             <span>More Stable</span>
           </div>
@@ -261,16 +304,27 @@ export function AgentVoiceSettings({
                     <div className="space-y-2">
                       <p className="font-semibold">Similarity</p>
                       <p>
-                        Controls how closely the AI voice matches the original voice sample. Higher
-                        values make the voice sound more like the reference voice.
+                        Controls how closely the AI voice matches the original
+                        voice sample. Higher values make the voice sound more
+                        like the reference voice.
                       </p>
                       <ul className="space-y-1 text-xs">
-                        <li>• <strong>Low (0-0.5):</strong> More generic, less like original voice</li>
-                        <li>• <strong>Medium (0.6-0.8):</strong> Good balance of clarity and similarity</li>
-                        <li>• <strong>High (0.9-1.0):</strong> Maximum similarity, may cause artifacts</li>
+                        <li>
+                          • <strong>Low (0-0.5):</strong> More generic, less
+                          like original voice
+                        </li>
+                        <li>
+                          • <strong>Medium (0.6-0.8):</strong> Good balance of
+                          clarity and similarity
+                        </li>
+                        <li>
+                          • <strong>High (0.9-1.0):</strong> Maximum similarity,
+                          may cause artifacts
+                        </li>
                       </ul>
                       <p className="text-xs italic">
-                        Recommended: 0.7-0.8 for optimal clarity without audio artifacts
+                        Recommended: 0.7-0.8 for optimal clarity without audio
+                        artifacts
                       </p>
                     </div>
                   </TooltipContent>
@@ -287,11 +341,14 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.similarity_boost || 0.75]}
-            onValueChange={([value]) => value !== undefined && handleSettingChange('similarity_boost', value)}
+            onValueChange={([value]) =>
+              value !== undefined &&
+              handleSettingChange('similarity_boost', value)
+            }
             className="w-full"
             disabled={isSaving}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex justify-between text-xs">
             <span>Low</span>
             <span>High</span>
           </div>
@@ -311,16 +368,26 @@ export function AgentVoiceSettings({
                     <div className="space-y-2">
                       <p className="font-semibold">Style Exaggeration</p>
                       <p>
-                        Enhances and amplifies the unique speaking style and characteristics of the
-                        original voice. Use sparingly as it may increase latency.
+                        Enhances and amplifies the unique speaking style and
+                        characteristics of the original voice. Use sparingly as
+                        it may increase latency.
                       </p>
                       <ul className="space-y-1 text-xs">
-                        <li>• <strong>0 (None):</strong> Natural voice without style enhancement</li>
-                        <li>• <strong>0.1-0.3:</strong> Subtle style enhancement</li>
-                        <li>• <strong>0.4-1.0:</strong> Strong style exaggeration, higher latency</li>
+                        <li>
+                          • <strong>0 (None):</strong> Natural voice without
+                          style enhancement
+                        </li>
+                        <li>
+                          • <strong>0.1-0.3:</strong> Subtle style enhancement
+                        </li>
+                        <li>
+                          • <strong>0.4-1.0:</strong> Strong style exaggeration,
+                          higher latency
+                        </li>
                       </ul>
                       <p className="text-xs italic">
-                        Recommended: Keep at 0 for most use cases, use only for dramatic effect
+                        Recommended: Keep at 0 for most use cases, use only for
+                        dramatic effect
                       </p>
                     </div>
                   </TooltipContent>
@@ -337,11 +404,13 @@ export function AgentVoiceSettings({
             max={1}
             step={0.01}
             value={[voiceSettings.style || 0]}
-            onValueChange={([value]) => value !== undefined && handleSettingChange('style', value)}
+            onValueChange={([value]) =>
+              value !== undefined && handleSettingChange('style', value)
+            }
             className="w-full"
             disabled={isSaving}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex justify-between text-xs">
             <span>None</span>
             <span>Maximum</span>
           </div>
@@ -364,15 +433,23 @@ export function AgentVoiceSettings({
                       <div className="space-y-2">
                         <p className="font-semibold">Speaker Boost</p>
                         <p>
-                          Applies additional processing to make the voice sound more like the original
-                          speaker. Requires more computational power, which adds slight latency.
+                          Applies additional processing to make the voice sound
+                          more like the original speaker. Requires more
+                          computational power, which adds slight latency.
                         </p>
                         <ul className="space-y-1 text-xs">
-                          <li>• <strong>Enabled:</strong> Better voice similarity, +50-100ms latency</li>
-                          <li>• <strong>Disabled:</strong> Faster response, less accurate to original voice</li>
+                          <li>
+                            • <strong>Enabled:</strong> Better voice similarity,
+                            +50-100ms latency
+                          </li>
+                          <li>
+                            • <strong>Disabled:</strong> Faster response, less
+                            accurate to original voice
+                          </li>
                         </ul>
                         <p className="text-xs italic">
-                          Recommended: Keep enabled unless call speed is more important than voice accuracy
+                          Recommended: Keep enabled unless call speed is more
+                          important than voice accuracy
                         </p>
                       </div>
                     </TooltipContent>
@@ -390,18 +467,25 @@ export function AgentVoiceSettings({
               aria-checked={voiceSettings.use_speaker_boost ?? true}
               disabled={isSaving}
               onClick={() =>
-                handleSettingChange('use_speaker_boost', !(voiceSettings.use_speaker_boost ?? true))
+                handleSettingChange(
+                  'use_speaker_boost',
+                  !(voiceSettings.use_speaker_boost ?? true),
+                )
               }
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+              className={`focus:ring-primary relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none ${
                 isSaving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
               } ${
-                voiceSettings.use_speaker_boost ?? true ? 'bg-primary' : 'bg-muted'
+                (voiceSettings.use_speaker_boost ?? true)
+                  ? 'bg-primary'
+                  : 'bg-muted'
               }`}
             >
               <span
                 aria-hidden="true"
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  voiceSettings.use_speaker_boost ?? true ? 'translate-x-5' : 'translate-x-0'
+                  (voiceSettings.use_speaker_boost ?? true)
+                    ? 'translate-x-5'
+                    : 'translate-x-0'
                 }`}
               />
             </button>
@@ -409,19 +493,19 @@ export function AgentVoiceSettings({
         </div>
 
         {hasChanges && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800 p-3">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/20">
             <p className="text-xs text-amber-900 dark:text-amber-100">
-              <strong>Unsaved Changes:</strong> You have unsaved changes. Click &ldquo;Save Changes&rdquo; to
-              apply them.
+              <strong>Unsaved Changes:</strong> You have unsaved changes. Click
+              &ldquo;Save Changes&rdquo; to apply them.
             </p>
           </div>
         )}
 
-        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 p-3">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20">
           <p className="text-xs text-blue-900 dark:text-blue-100">
-            <strong>Tip:</strong> Start with default values (Stability: 0.5, Similarity: 0.75) and
-            adjust based on your needs. Higher stability for consistent tone, lower for more
-            emotion.
+            <strong>Tip:</strong> Start with default values (Stability: 0.5,
+            Similarity: 0.75) and adjust based on your needs. Higher stability
+            for consistent tone, lower for more emotion.
           </p>
         </div>
       </CardContent>

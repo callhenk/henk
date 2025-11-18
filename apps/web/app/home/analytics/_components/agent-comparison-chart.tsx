@@ -6,8 +6,6 @@ import { Clock, DollarSign, TrendingUp, Users } from 'lucide-react';
 
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-
-import { useDemoMode } from '~/lib/demo-mode-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import {
   Select,
@@ -16,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 interface AgentComparisonChartProps {
   filters: {
@@ -50,7 +50,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   // Calculate agent performance data based on real conversations
   const agentPerformanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filteredConversations = conversations.filter((conv: any) => {
       if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
@@ -93,7 +93,8 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
             : 0;
 
         const revenue = agentConversations.reduce(
-          (sum, conv) => sum + ((conv as { donated_amount?: number }).donated_amount || 0),
+          (sum, conv) =>
+            sum + ((conv as { donated_amount?: number }).donated_amount || 0),
           0,
         );
 

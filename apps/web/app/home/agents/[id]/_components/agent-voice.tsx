@@ -105,8 +105,8 @@ export function AgentVoice({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Mic className="h-5 w-5 text-primary" />
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+              <Mic className="text-primary h-5 w-5" />
             </div>
             <div className="flex-1">
               <CardTitle>AI Voice Selection</CardTitle>
@@ -252,7 +252,7 @@ export function AgentVoice({
 
           {/* Error or Help Text */}
           {voices.length === 0 ? (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+            <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-3">
               <p className="text-destructive text-xs font-medium">
                 ⚠️ No voices found. Please check your ElevenLabs API
                 configuration.

@@ -38,9 +38,13 @@ export function Avatar({ name, size = 'md', status, className }: AvatarProps) {
 
   return (
     <div className={`relative ${className || ''}`}>
-      <div className={`bg-muted flex ${sizeClasses[size]} items-center justify-center rounded-full`}>
+      <div
+        className={`bg-muted flex ${sizeClasses[size]} items-center justify-center rounded-full`}
+      >
         {name ? (
-          <span className={`text-muted-foreground font-medium ${iconSizes[size]}`}>
+          <span
+            className={`text-muted-foreground font-medium ${iconSizes[size]}`}
+          >
             {getInitials(name)}
           </span>
         ) : (
@@ -56,4 +60,4 @@ export function Avatar({ name, size = 'md', status, className }: AvatarProps) {
       )}
     </div>
   );
-} 
+}

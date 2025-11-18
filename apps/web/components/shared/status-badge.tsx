@@ -159,7 +159,10 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         return status
           .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
           .split(' ')
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .map(
+            (word) =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+          )
           .join(' ');
     }
   };

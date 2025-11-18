@@ -36,7 +36,9 @@ interface TransferToNumberRulesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transferToNumberRules: { transfers: TransferToNumberRule[] };
-  onSave: (transferRules: { transfers: TransferToNumberRule[] }) => Promise<void>;
+  onSave: (transferRules: {
+    transfers: TransferToNumberRule[];
+  }) => Promise<void>;
 }
 
 export function TransferToNumberDialog({
@@ -85,7 +87,9 @@ export function TransferToNumberDialog({
     );
 
     if (invalidRules.length > 0) {
-      toast.error('Please fill in all required fields (phone number and condition)');
+      toast.error(
+        'Please fill in all required fields (phone number and condition)',
+      );
       return;
     }
 
@@ -100,7 +104,9 @@ export function TransferToNumberDialog({
     });
 
     if (invalidPhoneNumbers.length > 0) {
-      toast.error('Please enter valid phone numbers in E.164 format (e.g., +15551234567)');
+      toast.error(
+        'Please enter valid phone numbers in E.164 format (e.g., +15551234567)',
+      );
       return;
     }
 
@@ -125,18 +131,19 @@ export function TransferToNumberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure Transfer to Number</DialogTitle>
           <DialogDescription>
-            Set up rules for transferring calls to phone numbers or SIP URIs when specific conditions are met.
+            Set up rules for transferring calls to phone numbers or SIP URIs
+            when specific conditions are met.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {rules.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm mb-4">
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground mb-4 text-sm">
                 No transfer rules configured yet.
               </p>
               <Button onClick={handleAddRule} variant="outline" size="sm">
@@ -149,16 +156,16 @@ export function TransferToNumberDialog({
               {rules.map((rule, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 space-y-4 bg-muted/50"
+                  className="bg-muted/50 space-y-4 rounded-lg border p-4"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-sm">Rule {index + 1}</h4>
+                    <h4 className="text-sm font-medium">Rule {index + 1}</h4>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemoveRule(index)}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="text-destructive h-4 w-4" />
                     </Button>
                   </div>
 
@@ -177,13 +184,12 @@ export function TransferToNumberDialog({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="conference">Conference</SelectItem>
-                          <SelectItem value="sip_refer">
-                            SIP REFER
-                          </SelectItem>
+                          <SelectItem value="sip_refer">SIP REFER</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Conference: Default method. SIP REFER: Direct transfer (SIP only).
+                      <p className="text-muted-foreground text-xs">
+                        Conference: Default method. SIP REFER: Direct transfer
+                        (SIP only).
                       </p>
                     </div>
 
@@ -200,7 +206,9 @@ export function TransferToNumberDialog({
                           <SelectValue placeholder="Select destination type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="phone_number">Phone Number</SelectItem>
+                          <SelectItem value="phone_number">
+                            Phone Number
+                          </SelectItem>
                           <SelectItem value="sip_uri">SIP URI</SelectItem>
                         </SelectContent>
                       </Select>
@@ -209,7 +217,9 @@ export function TransferToNumberDialog({
                     {/* Phone Number / SIP URI */}
                     <div className="space-y-2">
                       <Label>
-                        {rule.destination_type === 'sip_uri' ? 'SIP URI' : 'Phone Number'}
+                        {rule.destination_type === 'sip_uri'
+                          ? 'SIP URI'
+                          : 'Phone Number'}
                         <span className="text-destructive">*</span>
                       </Label>
                       <Input
@@ -220,12 +230,17 @@ export function TransferToNumberDialog({
                         }
                         value={rule.phone_number}
                         onChange={(e) =>
-                          handleUpdateRule(index, 'phone_number', e.target.value)
+                          handleUpdateRule(
+                            index,
+                            'phone_number',
+                            e.target.value,
+                          )
                         }
                       />
                       {rule.destination_type === 'phone_number' && (
-                        <p className="text-xs text-muted-foreground">
-                          Use E.164 format: + followed by country code and number (e.g., +15551234567)
+                        <p className="text-muted-foreground text-xs">
+                          Use E.164 format: + followed by country code and
+                          number (e.g., +15551234567)
                         </p>
                       )}
                     </div>
@@ -244,8 +259,9 @@ export function TransferToNumberDialog({
                         }
                         rows={3}
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Describe in natural language when this transfer should occur.
+                      <p className="text-muted-foreground text-xs">
+                        Describe in natural language when this transfer should
+                        occur.
                       </p>
                     </div>
                   </div>

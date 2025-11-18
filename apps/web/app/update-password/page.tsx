@@ -35,14 +35,16 @@ async function UpdatePasswordPage(props: UpdatePasswordPageProps) {
   // Only require authentication if this is NOT a password recovery flow
   if (!isPasswordRecovery) {
     const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     // Redirect to sign in if user is not authenticated and not using recovery link
     if (!user) {
       return (
         <AuthLayoutShell Logo={Logo}>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Please sign in to update your password
             </p>
           </div>

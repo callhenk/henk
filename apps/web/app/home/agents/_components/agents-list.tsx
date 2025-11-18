@@ -29,8 +29,6 @@ import { useDeleteAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
-// Import demo mode
-import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,6 +68,8 @@ import {
 } from '@kit/ui/table';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
+// Import demo mode
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 import { AgentsEmptyState } from './agents-empty-state';
 import { CreateAgentPanel } from './create-agent-panel';
@@ -392,7 +392,8 @@ export function AgentsList() {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   // Get demo mode state and mock data
-  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } = useDemoMode();
+  const { isDemoMode, mockAgents, mockCampaigns, mockConversations } =
+    useDemoMode();
 
   // Fetch real data using our hooks
   const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
@@ -693,80 +694,81 @@ export function AgentsList() {
               )}
 
               {viewMode === 'list' && (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Voice</TableHead>
-                    <SortableTableHeader
-                      field="status"
-                      currentSort={sortBy}
-                      currentOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      Status
-                    </SortableTableHeader>
-                    <SortableTableHeader
-                      field="campaigns"
-                      currentSort={sortBy}
-                      currentOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      Campaigns
-                    </SortableTableHeader>
-                    <SortableTableHeader
-                      field="calls"
-                      currentSort={sortBy}
-                      currentOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      Calls
-                    </SortableTableHeader>
-                    <SortableTableHeader
-                      field="success"
-                      currentSort={sortBy}
-                      currentOrder={sortOrder}
-                      onSort={handleSort}
-                    >
-                      Success Rate
-                    </SortableTableHeader>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAndSortedAgents.map((agent) => (
-                    <AgentTableRow
-                      key={agent.id}
-                      agent={agent}
-                      onView={handleView}
-                      onDelete={setAgentToDelete}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Agent</TableHead>
+                        <TableHead>Voice</TableHead>
+                        <SortableTableHeader
+                          field="status"
+                          currentSort={sortBy}
+                          currentOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          Status
+                        </SortableTableHeader>
+                        <SortableTableHeader
+                          field="campaigns"
+                          currentSort={sortBy}
+                          currentOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          Campaigns
+                        </SortableTableHeader>
+                        <SortableTableHeader
+                          field="calls"
+                          currentSort={sortBy}
+                          currentOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          Calls
+                        </SortableTableHeader>
+                        <SortableTableHeader
+                          field="success"
+                          currentSort={sortBy}
+                          currentOrder={sortOrder}
+                          onSort={handleSort}
+                        >
+                          Success Rate
+                        </SortableTableHeader>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAndSortedAgents.map((agent) => (
+                        <AgentTableRow
+                          key={agent.id}
+                          agent={agent}
+                          onView={handleView}
+                          onDelete={setAgentToDelete}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </>
           )}
 
-          {enhancedAgents.length > 0 && filteredAndSortedAgents.length === 0 && (
-            <div className="py-12 text-center">
-              <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <User className="text-muted-foreground h-6 w-6" />
+          {enhancedAgents.length > 0 &&
+            filteredAndSortedAgents.length === 0 && (
+              <div className="py-12 text-center">
+                <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                  <User className="text-muted-foreground h-6 w-6" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">No agents found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm || statusFilter !== 'all'
+                    ? 'Try adjusting your search or filters'
+                    : 'Get started by creating your first AI voice agent'}
+                </p>
+                <Button onClick={() => router.push('/home/agents/create')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Your First Agent
+                </Button>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">No agents found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== 'all'
-                  ? 'Try adjusting your search or filters'
-                  : 'Get started by creating your first AI voice agent'}
-              </p>
-              <Button onClick={() => router.push('/home/agents/create')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Agent
-              </Button>
-            </div>
-          )}
+            )}
         </CardContent>
       </Card>
 

@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { use } from 'react';
+
+import Link from 'next/link';
 
 import { Eye, Key, Lock, Shield } from 'lucide-react';
 
@@ -94,10 +95,14 @@ function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Two-factor authentication (2FA) adds an additional layer of security by requiring a second form of verification when signing in. Enable 2FA to protect your account from unauthorized access.
+              <p className="text-muted-foreground mb-4 text-sm">
+                Two-factor authentication (2FA) adds an additional layer of
+                security by requiring a second form of verification when signing
+                in. Enable 2FA to protect your account from unauthorized access.
               </p>
-              <Button variant="outline" disabled>Enable 2FA (Coming Soon)</Button>
+              <Button variant="outline" disabled>
+                Enable 2FA (Coming Soon)
+              </Button>
             </CardContent>
           </Card>
 
@@ -129,10 +134,14 @@ function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Configure how your data is used and shared within the platform. Control visibility settings, data export options, and third-party integrations.
+              <p className="text-muted-foreground mb-4 text-sm">
+                Configure how your data is used and shared within the platform.
+                Control visibility settings, data export options, and
+                third-party integrations.
               </p>
-              <Button variant="outline" disabled>Manage Privacy (Coming Soon)</Button>
+              <Button variant="outline" disabled>
+                Manage Privacy (Coming Soon)
+              </Button>
             </CardContent>
           </Card>
         </div>

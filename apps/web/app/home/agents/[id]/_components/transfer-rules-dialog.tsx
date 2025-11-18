@@ -146,12 +146,9 @@ export function TransferRulesDialog({
             </div>
           ) : (
             rules.map((rule, index) => (
-              <div
-                key={index}
-                className="space-y-4 rounded-lg border p-4"
-              >
+              <div key={index} className="space-y-4 rounded-lg border p-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm">Rule {index + 1}</h4>
+                  <h4 className="text-sm font-medium">Rule {index + 1}</h4>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -305,11 +302,7 @@ export function TransferRulesDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isSaving}
-          >
+          <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
             <X className="mr-2 h-4 w-4" />
             Cancel
           </Button>

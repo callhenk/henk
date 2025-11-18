@@ -1,27 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+
 import {
-  List,
-  Plus,
-  Filter,
-  Users,
-  Star,
-  Clock,
   Archive,
   ChevronRight,
+  Clock,
+  Filter,
   Folder,
   Hash,
+  List,
+  Plus,
+  Star,
+  Users,
 } from 'lucide-react';
 
+import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
-import { Badge } from '@kit/ui/badge';
 import { ScrollArea } from '@kit/ui/scroll-area';
-import { cn } from '@kit/ui/utils';
 import { Skeleton } from '@kit/ui/skeleton';
-
-import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
+import { cn } from '@kit/ui/utils';
 
 interface LeadsPageSidebarProps {
   selectedListId: string | null;
@@ -38,12 +38,21 @@ export function LeadsPageSidebar({
   const { data: leadLists = [], isLoading } = useLeadLists();
 
   // Categorize lists
-  const staticLists = leadLists.filter(list => list.list_type === 'static' && !list.is_archived);
-  const dynamicLists = leadLists.filter(list => list.list_type === 'dynamic' && !list.is_archived);
-  const smartLists = leadLists.filter(list => list.list_type === 'smart' && !list.is_archived);
-  const archivedLists = leadLists.filter(list => list.is_archived);
+  const staticLists = leadLists.filter(
+    (list) => list.list_type === 'static' && !list.is_archived,
+  );
+  const dynamicLists = leadLists.filter(
+    (list) => list.list_type === 'dynamic' && !list.is_archived,
+  );
+  const smartLists = leadLists.filter(
+    (list) => list.list_type === 'smart' && !list.is_archived,
+  );
+  const archivedLists = leadLists.filter((list) => list.is_archived);
 
-  const totalLeads = leadLists.reduce((acc, list) => acc + (list.lead_count || 0), 0);
+  const totalLeads = leadLists.reduce(
+    (acc, list) => acc + (list.lead_count || 0),
+    0,
+  );
 
   return (
     <Card className="h-full">
@@ -62,7 +71,7 @@ export function LeadsPageSidebar({
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[calc(100vh-200px)]">
-          <div className="px-4 pb-4 space-y-4">
+          <div className="space-y-4 px-4 pb-4">
             {/* Quick Filters */}
             <div className="space-y-1">
               <Button
@@ -99,7 +108,7 @@ export function LeadsPageSidebar({
               </Button>
             </div>
 
-            <div className="h-px bg-border" />
+            <div className="bg-border h-px" />
 
             {/* Lead Lists */}
             {isLoading ? (
@@ -114,18 +123,25 @@ export function LeadsPageSidebar({
                 {staticLists.length > 0 && (
                   <div className="space-y-1">
                     <button
-                      onClick={() => setExpandedSection(expandedSection === 'static' ? '' : 'static')}
-                      className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                      onClick={() =>
+                        setExpandedSection(
+                          expandedSection === 'static' ? '' : 'static',
+                        )
+                      }
+                      className="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 text-xs font-medium transition-colors"
                     >
                       <ChevronRight
                         className={cn(
                           'h-3 w-3 transition-transform',
-                          expandedSection === 'static' && 'rotate-90'
+                          expandedSection === 'static' && 'rotate-90',
                         )}
                       />
                       <Folder className="h-3 w-3" />
                       <span>Static Lists</span>
-                      <Badge variant="outline" className="ml-auto text-xs px-1 py-0">
+                      <Badge
+                        variant="outline"
+                        className="ml-auto px-1 py-0 text-xs"
+                      >
                         {staticLists.length}
                       </Badge>
                     </button>
@@ -134,7 +150,9 @@ export function LeadsPageSidebar({
                         {staticLists.map((list) => (
                           <Button
                             key={list.id}
-                            variant={selectedListId === list.id ? 'secondary' : 'ghost'}
+                            variant={
+                              selectedListId === list.id ? 'secondary' : 'ghost'
+                            }
                             className="w-full justify-start pl-3"
                             size="sm"
                             onClick={() => onSelectList(list.id)}
@@ -162,18 +180,25 @@ export function LeadsPageSidebar({
                 {dynamicLists.length > 0 && (
                   <div className="space-y-1">
                     <button
-                      onClick={() => setExpandedSection(expandedSection === 'dynamic' ? '' : 'dynamic')}
-                      className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                      onClick={() =>
+                        setExpandedSection(
+                          expandedSection === 'dynamic' ? '' : 'dynamic',
+                        )
+                      }
+                      className="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 text-xs font-medium transition-colors"
                     >
                       <ChevronRight
                         className={cn(
                           'h-3 w-3 transition-transform',
-                          expandedSection === 'dynamic' && 'rotate-90'
+                          expandedSection === 'dynamic' && 'rotate-90',
                         )}
                       />
                       <Filter className="h-3 w-3" />
                       <span>Dynamic Lists</span>
-                      <Badge variant="outline" className="ml-auto text-xs px-1 py-0">
+                      <Badge
+                        variant="outline"
+                        className="ml-auto px-1 py-0 text-xs"
+                      >
                         {dynamicLists.length}
                       </Badge>
                     </button>
@@ -182,7 +207,9 @@ export function LeadsPageSidebar({
                         {dynamicLists.map((list) => (
                           <Button
                             key={list.id}
-                            variant={selectedListId === list.id ? 'secondary' : 'ghost'}
+                            variant={
+                              selectedListId === list.id ? 'secondary' : 'ghost'
+                            }
                             className="w-full justify-start pl-3"
                             size="sm"
                             onClick={() => onSelectList(list.id)}
@@ -210,18 +237,25 @@ export function LeadsPageSidebar({
                 {smartLists.length > 0 && (
                   <div className="space-y-1">
                     <button
-                      onClick={() => setExpandedSection(expandedSection === 'smart' ? '' : 'smart')}
-                      className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                      onClick={() =>
+                        setExpandedSection(
+                          expandedSection === 'smart' ? '' : 'smart',
+                        )
+                      }
+                      className="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 text-xs font-medium transition-colors"
                     >
                       <ChevronRight
                         className={cn(
                           'h-3 w-3 transition-transform',
-                          expandedSection === 'smart' && 'rotate-90'
+                          expandedSection === 'smart' && 'rotate-90',
                         )}
                       />
                       <Hash className="h-3 w-3" />
                       <span>Smart Lists</span>
-                      <Badge variant="outline" className="ml-auto text-xs px-1 py-0">
+                      <Badge
+                        variant="outline"
+                        className="ml-auto px-1 py-0 text-xs"
+                      >
                         {smartLists.length}
                       </Badge>
                     </button>
@@ -230,7 +264,9 @@ export function LeadsPageSidebar({
                         {smartLists.map((list) => (
                           <Button
                             key={list.id}
-                            variant={selectedListId === list.id ? 'secondary' : 'ghost'}
+                            variant={
+                              selectedListId === list.id ? 'secondary' : 'ghost'
+                            }
                             className="w-full justify-start pl-3"
                             size="sm"
                             onClick={() => onSelectList(list.id)}
@@ -258,18 +294,25 @@ export function LeadsPageSidebar({
                 {archivedLists.length > 0 && (
                   <div className="space-y-1">
                     <button
-                      onClick={() => setExpandedSection(expandedSection === 'archived' ? '' : 'archived')}
-                      className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                      onClick={() =>
+                        setExpandedSection(
+                          expandedSection === 'archived' ? '' : 'archived',
+                        )
+                      }
+                      className="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 text-xs font-medium transition-colors"
                     >
                       <ChevronRight
                         className={cn(
                           'h-3 w-3 transition-transform',
-                          expandedSection === 'archived' && 'rotate-90'
+                          expandedSection === 'archived' && 'rotate-90',
                         )}
                       />
                       <Archive className="h-3 w-3" />
                       <span>Archived</span>
-                      <Badge variant="outline" className="ml-auto text-xs px-1 py-0">
+                      <Badge
+                        variant="outline"
+                        className="ml-auto px-1 py-0 text-xs"
+                      >
                         {archivedLists.length}
                       </Badge>
                     </button>
@@ -278,7 +321,9 @@ export function LeadsPageSidebar({
                         {archivedLists.map((list) => (
                           <Button
                             key={list.id}
-                            variant={selectedListId === list.id ? 'secondary' : 'ghost'}
+                            variant={
+                              selectedListId === list.id ? 'secondary' : 'ghost'
+                            }
                             className="w-full justify-start pl-3"
                             size="sm"
                             onClick={() => onSelectList(list.id)}
@@ -304,9 +349,11 @@ export function LeadsPageSidebar({
 
                 {/* Empty State */}
                 {leadLists.length === 0 && (
-                  <div className="text-center py-4">
-                    <List className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No lists yet</p>
+                  <div className="py-4 text-center">
+                    <List className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                    <p className="text-muted-foreground text-sm">
+                      No lists yet
+                    </p>
                     <Button
                       variant="link"
                       size="sm"

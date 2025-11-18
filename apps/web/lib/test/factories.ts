@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import type { Database } from '../database.types';
 import { createTestClient } from './supabase-test-client';
 
@@ -62,10 +63,7 @@ export async function createLeads(
     createLeadData({ business_id: businessId, ...overrides }),
   );
 
-  const { data, error } = await supabase
-    .from('leads')
-    .insert(leads)
-    .select();
+  const { data, error } = await supabase.from('leads').insert(leads).select();
 
   if (error) {
     throw new Error(`Failed to create leads: ${error.message}`);
@@ -156,7 +154,13 @@ export async function createAgent(
 export function createIntegrationData(
   overrides?: Partial<Integration>,
 ): Integration {
-  const types = ['crm', 'payment', 'communication', 'analytics', 'voice'] as const;
+  const types = [
+    'crm',
+    'payment',
+    'communication',
+    'analytics',
+    'voice',
+  ] as const;
   const statuses = ['active', 'inactive', 'error'] as const;
 
   return {
@@ -199,9 +203,7 @@ export async function createIntegration(
 /**
  * Factory for creating lead list test data
  */
-export function createLeadListData(
-  overrides?: Partial<LeadList>,
-): LeadList {
+export function createLeadListData(overrides?: Partial<LeadList>): LeadList {
   return {
     business_id: overrides?.business_id || faker.string.uuid(),
     name: faker.lorem.words(3),
@@ -239,10 +241,7 @@ export async function createLeadList(
 /**
  * Adds leads to a lead list
  */
-export async function addLeadsToList(
-  leadListId: string,
-  leadIds: string[],
-) {
+export async function addLeadsToList(leadListId: string, leadIds: string[]) {
   const supabase = createTestClient();
 
   const members = leadIds.map((leadId) => ({

@@ -13,16 +13,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { Json } from '~/lib/database.types';
-
-interface VoiceSettings {
-  stability?: number;
-  similarity_boost?: number;
-  style?: number;
-  use_speaker_boost?: boolean;
-  optimize_streaming_latency?: number;
-}
-
 // Import our Supabase hooks
 import { useUpdateAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgent } from '@kit/supabase/hooks/agents/use-agents';
@@ -41,6 +31,7 @@ import {
 } from '@kit/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
+import type { Json } from '~/lib/database.types';
 import { useDemoMode } from '~/lib/demo-mode-context';
 
 import { updateElevenLabsAgent } from '../../../../../lib/edge-functions';
@@ -53,6 +44,15 @@ import { AgentTools } from './agent-tools';
 import { AgentVoice } from './agent-voice';
 import { DebugTools } from './debug-tools';
 import { RealtimeVoiceChat } from './realtime-voice-chat';
+import { WorkflowBuilder } from './workflow-builder/index';
+
+interface VoiceSettings {
+  stability?: number;
+  similarity_boost?: number;
+  style?: number;
+  use_speaker_boost?: boolean;
+  optimize_streaming_latency?: number;
+}
 
 // Agent field name constants
 const AGENT_FIELDS = {
@@ -81,7 +81,6 @@ const getFieldDisplayName = (fieldName: string): string => {
   if (fieldName === AGENT_FIELDS.FAQS) return 'FAQs';
   return fieldName.replace('_', ' ');
 };
-import { WorkflowBuilder } from './workflow-builder/index';
 
 export function AgentDetail({ agentId }: { agentId: string }) {
   const router = useRouter();
@@ -223,7 +222,9 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           // Map field names for ElevenLabs API
           if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_ID) {
             elevenLabsUpdateData.voice_id = pendingVoiceUpdate.value;
-          } else if (pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS) {
+          } else if (
+            pendingVoiceUpdate.fieldName === AGENT_FIELDS.VOICE_SETTINGS
+          ) {
             elevenLabsUpdateData.voice_settings = pendingVoiceUpdate.value;
           }
 
@@ -577,7 +578,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, donor_context: value as string };
             break;
           case AGENT_FIELDS.VOICE_TYPE:
-            updateData = { ...baseUpdate, voice_type: value as 'ai_generated' | 'custom' };
+            updateData = {
+              ...baseUpdate,
+              voice_type: value as 'ai_generated' | 'custom',
+            };
             break;
           case AGENT_FIELDS.VOICE_SETTINGS:
             updateData = { ...baseUpdate, voice_settings: value as Json };
@@ -592,7 +596,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, transfer_rules: value as Json };
             break;
           case AGENT_FIELDS.TRANSFER_TO_NUMBER_RULES:
-            updateData = { ...baseUpdate, transfer_to_number_rules: value as Json };
+            updateData = {
+              ...baseUpdate,
+              transfer_to_number_rules: value as Json,
+            };
             break;
           case AGENT_FIELDS.LANGUAGE:
             updateData = { ...baseUpdate, language: value as string };
@@ -601,7 +608,10 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, additional_languages: value as Json };
             break;
           case AGENT_FIELDS.RETENTION_PERIOD_DAYS:
-            updateData = { ...baseUpdate, retention_period_days: value as number };
+            updateData = {
+              ...baseUpdate,
+              retention_period_days: value as number,
+            };
             break;
           case AGENT_FIELDS.TURN_TIMEOUT:
             updateData = { ...baseUpdate, turn_timeout: value as number };
@@ -610,10 +620,16 @@ export function AgentDetail({ agentId }: { agentId: string }) {
             updateData = { ...baseUpdate, eagerness: value as string };
             break;
           case AGENT_FIELDS.SILENCE_END_CALL_TIMEOUT:
-            updateData = { ...baseUpdate, silence_end_call_timeout: value as number };
+            updateData = {
+              ...baseUpdate,
+              silence_end_call_timeout: value as number,
+            };
             break;
           case AGENT_FIELDS.MAX_CONVERSATION_DURATION:
-            updateData = { ...baseUpdate, max_conversation_duration: value as number };
+            updateData = {
+              ...baseUpdate,
+              max_conversation_duration: value as number,
+            };
             break;
           default:
             updateData = baseUpdate;
@@ -690,9 +706,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
         }
 
         // Show success message
-        setSaveSuccess(
-          `${getFieldDisplayName(fieldName)} saved successfully!`,
-        );
+        setSaveSuccess(`${getFieldDisplayName(fieldName)} saved successfully!`);
         setTimeout(() => setSaveSuccess(null), 3000);
       } catch (error) {
         console.error(`Failed to save ${fieldName} changes:`, error);
@@ -1009,7 +1023,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                 variant="outline"
                 onClick={handleCancelVoiceUpdate}
                 disabled={
-                  savingField === AGENT_FIELDS.VOICE_ID || savingField === AGENT_FIELDS.VOICE_SETTINGS
+                  savingField === AGENT_FIELDS.VOICE_ID ||
+                  savingField === AGENT_FIELDS.VOICE_SETTINGS
                 }
               >
                 Cancel
@@ -1029,7 +1044,8 @@ export function AgentDetail({ agentId }: { agentId: string }) {
                   </>
                 ) : (
                   <>
-                    {pendingVoiceUpdate?.fieldName === AGENT_FIELDS.VOICE_SETTINGS
+                    {pendingVoiceUpdate?.fieldName ===
+                    AGENT_FIELDS.VOICE_SETTINGS
                       ? 'Update Settings'
                       : 'Update Voice'}
                   </>

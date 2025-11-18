@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Users, Trash2, Tag, Download } from 'lucide-react';
+
+import { Download, Tag, Trash2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@kit/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
+import { Button } from '@kit/ui/button';
 
 import { AddToListDialog } from './add-to-list-dialog';
 
@@ -55,7 +56,7 @@ export function BulkActionsBar({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 fixed right-0 bottom-0 left-0 z-50 border-t backdrop-blur">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
@@ -68,7 +69,8 @@ export function BulkActionsBar({
                 <X className="h-4 w-4" />
               </Button>
               <div className="text-sm font-medium">
-                {selectedCount} {selectedCount === 1 ? 'lead' : 'leads'} selected
+                {selectedCount} {selectedCount === 1 ? 'lead' : 'leads'}{' '}
+                selected
               </div>
             </div>
 
@@ -82,20 +84,12 @@ export function BulkActionsBar({
                 Add to List
               </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBulkTag}
-              >
+              <Button variant="outline" size="sm" onClick={handleBulkTag}>
                 <Tag className="mr-2 h-4 w-4" />
                 Add Tags
               </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBulkExport}
-              >
+              <Button variant="outline" size="sm" onClick={handleBulkExport}>
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
@@ -104,7 +98,7 @@ export function BulkActionsBar({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
@@ -120,8 +114,9 @@ export function BulkActionsBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {selectedCount} Leads</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedCount} {selectedCount === 1 ? 'lead' : 'leads'}?
-              This action cannot be undone.
+              Are you sure you want to delete {selectedCount}{' '}
+              {selectedCount === 1 ? 'lead' : 'leads'}? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

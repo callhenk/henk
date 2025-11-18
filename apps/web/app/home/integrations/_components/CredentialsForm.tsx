@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Eye, EyeOff, Clipboard } from 'lucide-react';
+import { Clipboard, Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import { Input } from '@kit/ui/input';
@@ -41,13 +41,17 @@ export function CredentialsForm({
           <div className="flex items-center justify-between">
             <Label htmlFor={f.key}>{f.label}</Label>
             {f.helpText ? (
-              <span className="text-muted-foreground text-xs">{f.helpText}</span>
+              <span className="text-muted-foreground text-xs">
+                {f.helpText}
+              </span>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
             <Input
               id={f.key}
-              type={f.type === 'password' && !revealed[f.key] ? 'password' : 'text'}
+              type={
+                f.type === 'password' && !revealed[f.key] ? 'password' : 'text'
+              }
               placeholder={f.placeholder}
               aria-required={f.required}
               required={f.required}
@@ -61,10 +65,16 @@ export function CredentialsForm({
                 variant="outline"
                 size="icon"
                 aria-label={revealed[f.key] ? 'Hide secret' : 'Show secret'}
-                onClick={() => setRevealed({ ...revealed, [f.key]: !revealed[f.key] })}
+                onClick={() =>
+                  setRevealed({ ...revealed, [f.key]: !revealed[f.key] })
+                }
                 disabled={readOnly}
               >
-                {revealed[f.key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {revealed[f.key] ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </Button>
             ) : null}
             <Button
@@ -83,5 +93,3 @@ export function CredentialsForm({
     </div>
   );
 }
-
-

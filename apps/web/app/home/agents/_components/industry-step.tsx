@@ -26,12 +26,17 @@ interface IndustryStepProps {
   onSelectIndustry: (industry: string) => void;
 }
 
-export function IndustryStep({ selectedIndustry, onSelectIndustry }: IndustryStepProps) {
+export function IndustryStep({
+  selectedIndustry,
+  onSelectIndustry,
+}: IndustryStepProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-1 sm:space-y-2">
-        <h3 className="text-xl sm:text-2xl font-bold">What industry are you in?</h3>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <h3 className="text-xl font-bold sm:text-2xl">
+          What industry are you in?
+        </h3>
+        <p className="text-muted-foreground text-sm sm:text-base">
           This helps us tailor recommendations for your agent
         </p>
       </div>
@@ -40,17 +45,17 @@ export function IndustryStep({ selectedIndustry, onSelectIndustry }: IndustrySte
           <button
             key={ind}
             onClick={() => onSelectIndustry(ind)}
-            className={`rounded-xl border-2 p-3 sm:p-4 text-left transition-colors duration-200 font-medium ${
+            className={`rounded-xl border-2 p-3 text-left font-medium transition-colors duration-200 sm:p-4 ${
               selectedIndustry === ind
-                ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-md shadow-primary/15'
+                ? 'border-primary from-primary/15 to-primary/5 shadow-primary/15 bg-gradient-to-br shadow-md'
                 : 'border-border hover:border-primary/30 hover:bg-muted/50'
             }`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs sm:text-sm">{ind}</span>
               {selectedIndustry === ind && (
-                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-in fade-in duration-200">
-                  <Check className="h-3 w-3 text-primary-foreground" />
+                <div className="bg-primary animate-in fade-in flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full duration-200">
+                  <Check className="text-primary-foreground h-3 w-3" />
                 </div>
               )}
             </div>

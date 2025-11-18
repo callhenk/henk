@@ -35,6 +35,7 @@ https://your-domain.com/self-onboard-demo
 ## Rate Limiting
 
 To prevent abuse, the following rate limits are in place:
+
 - **5 agents per hour** per IP address
 - **20 agents per day** per IP address
 - **100 agents per hour** globally (prevents DDoS)
@@ -51,6 +52,7 @@ Rate limits are stored in-memory and reset on server restart.
 ## Backend API
 
 The demo uses a public API endpoint at `/api/public/create-demo-agent` that:
+
 - Does not require authentication
 - Creates ElevenLabs agents only (no database persistence)
 - Applies IP-based rate limiting
@@ -61,6 +63,7 @@ The demo uses a public API endpoint at `/api/public/create-demo-agent` that:
 ### Environment Variables
 
 Required:
+
 - `ELEVENLABS_API_KEY`: ElevenLabs API key for voice agent creation
 - `ELEVENLABS_WORKSPACE_ID` (optional): ElevenLabs workspace ID
 

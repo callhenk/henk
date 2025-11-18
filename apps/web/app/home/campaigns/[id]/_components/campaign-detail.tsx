@@ -30,10 +30,10 @@ import { TooltipProvider } from '@kit/ui/tooltip';
 
 import { DatePicker, StatsCard, TimePicker } from '~/components/shared';
 
+import { CampaignQueueMonitor } from './CampaignQueueMonitor';
+import { LeadListSelector } from './LeadListSelector';
 import { CampaignHeader } from './campaign-header';
 import useCampaignEditor from './hooks/useCampaignEditor';
-import { LeadListSelector } from './LeadListSelector';
-import { CampaignQueueMonitor } from './CampaignQueueMonitor';
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -545,7 +545,9 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               <div className="rounded-md border p-3 md:col-span-2">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="text-sm font-medium">Script preview</div>
-                  {(assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context) && (
+                  {(assignedAgent?.script_template ||
+                    assignedAgent?.faqs ||
+                    assignedAgent?.donor_context) && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -556,17 +558,24 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   )}
                 </div>
                 {loadingAgents ? (
-                  <div className="bg-muted rounded p-3 text-xs text-center">
-                    <div className="text-muted-foreground">Loading script...</div>
+                  <div className="bg-muted rounded p-3 text-center text-xs">
+                    <div className="text-muted-foreground">
+                      Loading script...
+                    </div>
                   </div>
                 ) : !assignedAgent ? (
-                  <div className="bg-muted rounded p-3 text-xs text-center">
-                    <div className="text-muted-foreground">No agent assigned</div>
+                  <div className="bg-muted rounded p-3 text-center text-xs">
+                    <div className="text-muted-foreground">
+                      No agent assigned
+                    </div>
                   </div>
                 ) : (
                   <pre className="bg-muted max-h-48 overflow-auto rounded p-3 text-xs whitespace-pre-wrap">
                     {(() => {
-                      const scriptContent = assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context;
+                      const scriptContent =
+                        assignedAgent?.script_template ||
+                        assignedAgent?.faqs ||
+                        assignedAgent?.donor_context;
                       if (!scriptContent) {
                         return 'No script content available. Please add script details to the agent.';
                       }
@@ -657,7 +666,10 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 </DialogHeader>
                 <pre className="bg-muted max-h-[60vh] overflow-auto rounded p-3 text-sm whitespace-pre-wrap">
                   {(() => {
-                    const scriptContent = assignedAgent?.script_template || assignedAgent?.faqs || assignedAgent?.donor_context;
+                    const scriptContent =
+                      assignedAgent?.script_template ||
+                      assignedAgent?.faqs ||
+                      assignedAgent?.donor_context;
                     if (!scriptContent) {
                       return 'No script content available. Please add script details to the agent.';
                     }

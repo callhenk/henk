@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
 
     return redirect(nextPath);
   } catch (error) {
-    console.error('[Auth Callback] Unexpected error during code exchange:', error);
+    console.error(
+      '[Auth Callback] Unexpected error during code exchange:',
+      error,
+    );
 
     // On error, redirect to sign-in with an error message
     const errorParams = new URLSearchParams({
