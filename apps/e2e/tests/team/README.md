@@ -25,6 +25,7 @@ The Henk platform **does support user invitations** at `/home/settings/team`:
 ### Database Schema
 
 The `team_members` table supports:
+
 - `status`: `invited`, `active`, `suspended`, `left`
 - `role`: `owner`, `admin`, `member`, `viewer`
 - Invitation tracking: `invited_by`, `invited_at`, `accepted_at`
@@ -61,6 +62,7 @@ pnpm exec playwright test tests/team/team-invitations.spec.ts:83
 ### Skipped Tests (Expected Behavior) ⚠️
 
 The following tests are gracefully skipped when users don't have businesses yet:
+
 - Select business and view team members
 - Show role permissions documentation
 - Open and close invite dialog
@@ -93,6 +95,7 @@ user_id: inviteForm.email, // ❌ Bug: passing email as user_id
 **Impact:** The current invitation flow won't work correctly because it's trying to insert an email address into the `user_id` field (which expects a UUID).
 
 **Proper Implementation:** Should use Supabase Auth's `admin.inviteUserByEmail()` method to:
+
 1. Create user account
 2. Send invitation email
 3. Create `team_members` record with proper `user_id`
@@ -100,6 +103,7 @@ user_id: inviteForm.email, // ❌ Bug: passing email as user_id
 ### Test Issues
 
 Some tests are failing due to:
+
 1. **Selector issues** - Business card selection needs more specific selectors
 2. **Timing issues** - Some elements load async and need better waiting strategies
 3. **Test isolation** - Tests run in parallel can interfere with each other

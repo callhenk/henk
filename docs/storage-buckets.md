@@ -13,36 +13,42 @@ Storage buckets and their policies are **NOT managed via migrations**. They must
 The following storage buckets must exist in your Supabase project:
 
 ### 1. `account_image`
+
 - **Purpose**: User profile images
 - **Public**: No
 - **File Size Limit**: 5 MB
 - **Allowed MIME Types**: `image/png`, `image/jpeg`, `image/webp`
 
 ### 2. `agent_assets`
+
 - **Purpose**: Agent-specific files and resources
 - **Public**: No
 - **File Size Limit**: 10 MB
 - **Allowed MIME Types**: `image/*`, `audio/*`
 
 ### 3. `campaign_assets`
+
 - **Purpose**: Campaign-related files
 - **Public**: No
 - **File Size Limit**: 10 MB
 - **Allowed MIME Types**: `image/*`, `audio/*`, `video/*`
 
 ### 4. `knowledge_base`
+
 - **Purpose**: Knowledge base documents for agents
 - **Public**: No
 - **File Size Limit**: 50 MB
 - **Allowed MIME Types**: `application/pdf`, `text/*`, `application/msword`, `application/vnd.*`
 
 ### 5. `workflow_assets`
+
 - **Purpose**: Workflow-related files
 - **Public**: No
 - **File Size Limit**: 10 MB
 - **Allowed MIME Types**: `image/*`, `application/json`
 
 ### 6. `audio`
+
 - **Purpose**: Audio files for voice agents
 - **Public**: No
 - **File Size Limit**: 50 MB
@@ -71,19 +77,19 @@ The following storage buckets must exist in your Supabase project:
 ### Option 2: Supabase API
 
 ```typescript
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role key
-)
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key
+);
 
 // Create bucket
 const { data, error } = await supabase.storage.createBucket('account_image', {
   public: false,
   fileSizeLimit: 5242880, // 5 MB in bytes
-  allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
-})
+  allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+});
 ```
 
 ### Option 3: Supabase CLI
@@ -101,14 +107,14 @@ Storage policies are automatically managed through RLS policies in your database
 
 ### Policy Summary
 
-| Bucket | Access Level | Requirements |
-|--------|--------------|--------------|
-| `account_image` | User-specific | Can only access own images (via `auth.uid()`) |
-| `agent_assets` | Business-scoped | Team members can access their business's agent assets |
-| `campaign_assets` | Business-scoped | Team members can access their business's campaign assets |
-| `knowledge_base` | Business-scoped | Team members can access their business's knowledge bases |
-| `workflow_assets` | Authenticated | All authenticated users (business-scoped via app logic) |
-| `audio` | Folder-based | Access based on folder (`generated/`, `samples/`, `private/`) |
+| Bucket            | Access Level    | Requirements                                                  |
+| ----------------- | --------------- | ------------------------------------------------------------- |
+| `account_image`   | User-specific   | Can only access own images (via `auth.uid()`)                 |
+| `agent_assets`    | Business-scoped | Team members can access their business's agent assets         |
+| `campaign_assets` | Business-scoped | Team members can access their business's campaign assets      |
+| `knowledge_base`  | Business-scoped | Team members can access their business's knowledge bases      |
+| `workflow_assets` | Authenticated   | All authenticated users (business-scoped via app logic)       |
+| `audio`           | Folder-based    | Access based on folder (`generated/`, `samples/`, `private/`) |
 
 ### Example Policies (Already in Production)
 
@@ -155,10 +161,12 @@ using (
 ### Check if Buckets Exist
 
 **Via Dashboard:**
+
 1. Go to Storage section
 2. Verify all 6 buckets are listed
 
 **Via SQL:**
+
 ```sql
 SELECT id, name, public, file_size_limit, allowed_mime_types
 FROM storage.buckets
@@ -166,6 +174,7 @@ ORDER BY name;
 ```
 
 **Expected Result:**
+
 ```
 id                | name            | public | file_size_limit | allowed_mime_types
 ------------------|-----------------|--------|-----------------|-------------------
@@ -196,6 +205,7 @@ ORDER BY tablename, policyname;
 **Error:** `Bucket not found`
 
 **Solution:**
+
 1. Check bucket exists in Dashboard
 2. Verify bucket name matches exactly (case-sensitive)
 3. Create bucket if missing
@@ -205,6 +215,7 @@ ORDER BY tablename, policyname;
 **Error:** `new row violates row-level security policy`
 
 **Solution:**
+
 1. Verify user is authenticated
 2. Check if user is a team member of the business
 3. Verify RLS policies are applied correctly
@@ -214,6 +225,7 @@ ORDER BY tablename, policyname;
 **Error:** `File size exceeds limit`
 
 **Solution:**
+
 1. Check bucket's `file_size_limit`
 2. Increase limit in Dashboard if needed
 3. Or compress/resize file before upload
@@ -223,6 +235,7 @@ ORDER BY tablename, policyname;
 **Error:** `File type not allowed`
 
 **Solution:**
+
 1. Check bucket's `allowed_mime_types`
 2. Add missing MIME type to bucket configuration
 3. Or convert file to allowed format

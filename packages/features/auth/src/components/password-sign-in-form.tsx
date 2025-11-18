@@ -110,7 +110,7 @@ export function PasswordSignInForm({
 
         <Button
           data-test="auth-submit-button"
-          className={'group w-full relative overflow-hidden'}
+          className={'group relative w-full overflow-hidden'}
           type="submit"
           disabled={loading}
         >
@@ -122,14 +122,14 @@ export function PasswordSignInForm({
 
                 <ArrowRight
                   className={
-                    'zoom-in animate-in slide-in-from-left-2 fill-mode-both h-4 delay-500 duration-500 group-hover:translate-x-1 transition-transform'
+                    'zoom-in animate-in slide-in-from-left-2 fill-mode-both h-4 transition-transform delay-500 duration-500 group-hover:translate-x-1'
                   }
                 />
               </>
             }
           >
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               <Trans i18nKey={'auth:signingIn'} />
             </>
           </If>

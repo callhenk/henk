@@ -103,7 +103,7 @@ function SortableListItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group bg-card relative rounded-lg border transition-colors duration-200 ${
+      className={`bg-card group relative rounded-lg border transition-colors duration-200 ${
         isDragging ? 'opacity-90 shadow-lg' : 'hover:bg-accent/5'
       }`}
     >
@@ -340,7 +340,7 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                   availableLists.map((list) => (
                     <div
                       key={list.id}
-                      className="group hover:bg-accent/5 cursor-pointer rounded-lg border p-3 transition-colors duration-200"
+                      className="hover:bg-accent/5 group cursor-pointer rounded-lg border p-3 transition-colors duration-200"
                       onClick={() => handleAssignList(list.id)}
                     >
                       <div className="flex items-center justify-between">

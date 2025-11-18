@@ -27,7 +27,9 @@ export function useLinkKnowledgeBaseToAgent() {
         .single();
 
       if (error) {
-        throw new Error(`Failed to link knowledge base to agent: ${error.message}`);
+        throw new Error(
+          `Failed to link knowledge base to agent: ${error.message}`,
+        );
       }
 
       return linked;

@@ -27,6 +27,7 @@ pnpm supabase:reset
 ```
 
 This will:
+
 - Reset the local database
 - Apply all migrations
 - **Automatically seed test data** from `apps/web/supabase/seed.sql`
@@ -51,12 +52,14 @@ After seeding, you can log in with:
 The seed script (`apps/web/supabase/seed.sql`) creates:
 
 ### User & Organization
+
 - ✅ **Test User**: cyrus@callhenk.com (password: Test123?)
 - ✅ **Account**: Cyrus David
 - ✅ **Business**: Henk Demo Organization
 - ✅ **Role**: Owner
 
 ### Agents (3)
+
 1. **Sarah - General Fundraising**
    - Friendly and engaging fundraising agent
    - Voice: Rachel (ElevenLabs)
@@ -74,6 +77,7 @@ The seed script (`apps/web/supabase/seed.sql`) creates:
    - Tools: end_call, skip_turn, voicemail_detection
 
 ### Campaigns (3)
+
 1. **Annual Fund Drive 2025**
    - Agent: Sarah
    - Budget: $50,000
@@ -91,6 +95,7 @@ The seed script (`apps/web/supabase/seed.sql`) creates:
    - Status: Draft
 
 ### Leads (5)
+
 - **Demo Donor Prospects** list with sample contacts:
   1. John Smith - New
   2. Jane Doe - New
@@ -113,6 +118,7 @@ pnpm supabase:reset
 To modify the test data, edit `/Users/cyrus/henk/henk/apps/web/supabase/seed.sql`
 
 The seed file is well-commented and organized into sections:
+
 1. Create Test User (with auth credentials)
 2. Create Account
 3. Create Business
@@ -146,6 +152,7 @@ pnpm supabase:typegen
 ```
 
 This updates both:
+
 - `packages/supabase/src/database.types.ts`
 - `apps/web/lib/database.types.ts`
 
@@ -263,18 +270,18 @@ pnpm supabase:deploy:safe
 
 ## Quick Reference
 
-| Command | Description |
-|---------|-------------|
-| `pnpm install` | Install all dependencies |
-| `pnpm dev` | Start development server |
-| `pnpm supabase:start` | Start local Supabase |
-| `pnpm supabase:stop` | Stop local Supabase |
-| `pnpm supabase:reset` | **Reset DB & seed data** |
-| `pnpm supabase:status` | View Supabase connection info |
-| `pnpm supabase:typegen` | Generate TypeScript types |
-| `pnpm typecheck` | Run TypeScript checks |
-| `pnpm lint` | Run ESLint |
-| `pnpm build` | Build for production |
+| Command                 | Description                   |
+| ----------------------- | ----------------------------- |
+| `pnpm install`          | Install all dependencies      |
+| `pnpm dev`              | Start development server      |
+| `pnpm supabase:start`   | Start local Supabase          |
+| `pnpm supabase:stop`    | Stop local Supabase           |
+| `pnpm supabase:reset`   | **Reset DB & seed data**      |
+| `pnpm supabase:status`  | View Supabase connection info |
+| `pnpm supabase:typegen` | Generate TypeScript types     |
+| `pnpm typecheck`        | Run TypeScript checks         |
+| `pnpm lint`             | Run ESLint                    |
+| `pnpm build`            | Build for production          |
 
 ## Need Help?
 

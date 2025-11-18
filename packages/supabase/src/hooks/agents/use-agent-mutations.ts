@@ -82,7 +82,9 @@ export function useUpdateAgent() {
         .single();
 
       if (fetchError) {
-        throw new Error(`Update succeeded but failed to fetch updated agent: ${fetchError.message}`);
+        throw new Error(
+          `Update succeeded but failed to fetch updated agent: ${fetchError.message}`,
+        );
       }
 
       if (!agent) {

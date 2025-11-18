@@ -1,6 +1,7 @@
 # Supabase Local Development Guide
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Running Migrations Safely](#running-migrations-safely)
@@ -13,12 +14,14 @@
 ## Prerequisites
 
 ### Required Software
+
 - **Docker Desktop** - Must be running
 - **Node.js** - v18 or higher
 - **pnpm** - Package manager
 - **Supabase CLI** - Already installed (v2.33.9)
 
 ### Verify Installation
+
 ```bash
 # Check Docker is running
 docker ps
@@ -48,6 +51,7 @@ supabase start
 ```
 
 **What happens:**
+
 - Supabase starts in Docker containers
 - Automatically applies all migrations from `supabase/migrations/`
 - Creates a **completely separate local database**
@@ -64,6 +68,7 @@ Studio URL: http://127.0.0.1:54323
 ```
 
 **Supabase Studio (Local Dashboard):**
+
 - Open: http://127.0.0.1:54323
 - Browse tables, run queries, view policies
 - Username: `postgres`
@@ -88,11 +93,13 @@ supabase stop
 ### Understanding Migration Safety
 
 ✅ **Local migrations are 100% SAFE**
+
 - Run on local database only (port 54322)
 - Production database uses different port/host
 - Completely isolated environments
 
 ✅ **Production migrations are TRACKED**
+
 - Supabase tracks which migrations ran
 - Won't re-run existing migrations
 - Only applies new migrations
@@ -126,6 +133,7 @@ code supabase/migrations/YYYYMMDDHHMMSS_add_new_feature.sql
 ```
 
 Example migration:
+
 ```sql
 -- Add a new column to agents table
 ALTER TABLE public.agents
@@ -153,6 +161,7 @@ supabase db push --local
 ```
 
 **What happens:**
+
 - ✅ Applies migration to LOCAL database only
 - ✅ You can test queries, policies, etc.
 - ✅ No impact on production
@@ -178,6 +187,7 @@ supabase db push
 ```
 
 **Safety Features:**
+
 - Only migrations NOT in production will run
 - Each migration runs in a transaction (all-or-nothing)
 - Auto-rollback on errors
@@ -308,13 +318,13 @@ pnpm supabase:deploy
 
 ### Local vs Production
 
-| Feature | Local | Production |
-|---------|-------|------------|
-| **Host** | localhost | plvxicajcpnnsxosmntd.supabase.co |
-| **Port** | 54322 | 5432 |
-| **Data** | Docker volume | Supabase cloud |
-| **URL** | http://127.0.0.1:54321 | https://plvxicajcpnnsxosmntd.supabase.co |
-| **Auto-apply migrations** | ✅ Yes (on start) | ❌ No (manual push) |
+| Feature                   | Local                  | Production                               |
+| ------------------------- | ---------------------- | ---------------------------------------- |
+| **Host**                  | localhost              | plvxicajcpnnsxosmntd.supabase.co         |
+| **Port**                  | 54322                  | 5432                                     |
+| **Data**                  | Docker volume          | Supabase cloud                           |
+| **URL**                   | http://127.0.0.1:54321 | https://plvxicajcpnnsxosmntd.supabase.co |
+| **Auto-apply migrations** | ✅ Yes (on start)      | ❌ No (manual push)                      |
 
 ### How to Ensure Production Safety
 
@@ -359,6 +369,7 @@ supabase db push
 **Error:** `Bind for 0.0.0.0:54322 failed: port is already allocated`
 
 **Solution:**
+
 ```bash
 # Stop existing instance
 cd apps/web
@@ -376,6 +387,7 @@ supabase start
 **Error:** `Cannot connect to the Docker daemon`
 
 **Solution:**
+
 1. Start Docker Desktop
 2. Wait for it to fully start
 3. Run `supabase start` again
@@ -385,6 +397,7 @@ supabase start
 **Error:** Migration file not found or skipped
 
 **Solution:**
+
 ```bash
 # Check migration history
 supabase migration list
@@ -401,6 +414,7 @@ supabase migration repair
 **Error:** `failed to connect to postgres`
 
 **Solution:**
+
 ```bash
 # Check Supabase is running
 supabase status
@@ -418,6 +432,7 @@ docker ps | grep supabase
 **Error:** Types don't match database schema
 
 **Solution:**
+
 ```bash
 # Regenerate types from local database
 cd apps/web

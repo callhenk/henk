@@ -22,7 +22,9 @@ export function useCampaignLeadLists(campaignId: string) {
         .order('priority', { ascending: true });
 
       if (error) {
-        throw new Error(`Failed to fetch campaign lead lists: ${error.message}`);
+        throw new Error(
+          `Failed to fetch campaign lead lists: ${error.message}`,
+        );
       }
 
       return data || [];
@@ -41,11 +43,14 @@ export function useAssignLeadListToCampaign() {
   return useMutation({
     mutationFn: async (data: CreateCampaignLeadListData): Promise<string> => {
       // Use the database function to properly assign the list
-      const { data: result, error } = await supabase.rpc('add_lead_list_to_campaign', {
-        p_campaign_id: data.campaign_id,
-        p_lead_list_id: data.lead_list_id,
-        p_priority: data.priority || 1,
-      });
+      const { data: result, error } = await supabase.rpc(
+        'add_lead_list_to_campaign',
+        {
+          p_campaign_id: data.campaign_id,
+          p_lead_list_id: data.lead_list_id,
+          p_priority: data.priority || 1,
+        },
+      );
 
       if (error) {
         throw new Error(`Failed to assign lead list: ${error.message}`);
@@ -75,7 +80,10 @@ export function useRemoveLeadListFromCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { campaign_id: string; lead_list_id: string }): Promise<void> => {
+    mutationFn: async (data: {
+      campaign_id: string;
+      lead_list_id: string;
+    }): Promise<void> => {
       // Hard delete to avoid unique constraint issues when re-adding the same list
       const { error } = await supabase
         .from('campaign_lead_lists')

@@ -5,6 +5,7 @@ This guide will help you set up your local environment for E2E testing with emai
 ## Overview
 
 The E2E tests require:
+
 1. **Local Supabase** running with Inbucket (email capture)
 2. **Test account** created in local database
 3. **Environment variables** pointing to local Supabase
@@ -23,6 +24,7 @@ supabase status
 ```
 
 You should see:
+
 ```
 API URL: http://127.0.0.1:54321
 Inbucket URL: http://127.0.0.1:54324
@@ -43,6 +45,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **Option A: Through the UI (Recommended)**
 
 1. Start the dev server:
+
    ```bash
    pnpm dev
    ```
@@ -87,6 +90,7 @@ pnpm test:pages --grep "can view agents list"
 ```
 
 This should:
+
 - ✅ Start the dev server on localhost:3000
 - ✅ Connect to local Supabase
 - ✅ Login with cyrus@callhenk.com
@@ -129,6 +133,7 @@ pnpm test:smoke
 **Cause:** App is connecting to production Supabase instead of local
 
 **Fix:**
+
 ```bash
 # Verify .env.local exists and has correct URL
 cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
@@ -142,6 +147,7 @@ cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
 **Cause:** Test account doesn't exist in local database
 
 **Fix:**
+
 1. Follow **Step 3** above to create the test account
 2. Or reset database: `cd apps/web && supabase db reset`
 
@@ -150,6 +156,7 @@ cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
 **Cause:** Emails are being sent to production Supabase
 
 **Fix:**
+
 1. Stop the dev server
 2. Verify `.env.local` points to `http://127.0.0.1:54321`
 3. Restart dev server: `pnpm dev`
@@ -158,18 +165,21 @@ cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
 ### Page tests pass but auth tests fail
 
 **This is normal if:**
+
 - `.env.local` points to production (auth tests need local Inbucket)
 - Solution: Use local Supabase for all tests
 
 ## Switching Between Local and Production
 
 ### Use Local Supabase (for E2E tests)
+
 ```bash
 # .env.local exists and points to http://127.0.0.1:54321
 pnpm dev
 ```
 
 ### Use Production Supabase (for manual testing)
+
 ```bash
 # Temporarily rename .env.local
 mv apps/web/.env.local apps/web/.env.local.backup
@@ -186,6 +196,7 @@ mv apps/web/.env.local.backup apps/web/.env.local
 For CI/CD pipelines:
 
 1. **Start Supabase in CI:**
+
    ```yaml
    - name: Start Supabase
      run: |
@@ -194,6 +205,7 @@ For CI/CD pipelines:
    ```
 
 2. **Use test environment:**
+
    ```yaml
    - name: Run E2E Tests
      run: pnpm test:e2e
@@ -212,6 +224,7 @@ For CI/CD pipelines:
 ## Summary
 
 ✅ **Setup Complete When:**
+
 - Local Supabase running on port 54321
 - Inbucket accessible on port 54324
 - Test account exists: `cyrus@callhenk.com`

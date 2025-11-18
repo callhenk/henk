@@ -11,6 +11,7 @@ Different test types serve different purposes:
 - **E2E Tests** - Test complete user workflows in a real browser
 
 This approach follows the **Testing Pyramid** principle:
+
 ```
         /\
        /E2E\       ← Few, slow, high-value
@@ -34,6 +35,7 @@ This approach follows the **Testing Pyramid** principle:
 **Configuration:** `vitest.config.ts`
 
 **Example Test File:** `apps/web/lib/utils/formatting.test.ts`
+
 ```typescript
 describe('formatPhoneNumber', () => {
   it('formats 10-digit US phone numbers', () => {
@@ -43,12 +45,14 @@ describe('formatPhoneNumber', () => {
 ```
 
 **When to Use:**
+
 - Testing utility functions (formatting, validation, etc.)
 - Testing React components without external dependencies
 - Testing business logic in isolation
 - Quick feedback during development
 
 **How to Run:**
+
 ```bash
 # Run all unit tests once
 pnpm test:unit
@@ -64,6 +68,7 @@ pnpm test:coverage
 ```
 
 **Coverage Requirements:**
+
 - Lines: 70%
 - Functions: 70%
 - Branches: 70%
@@ -82,10 +87,12 @@ pnpm test:coverage
 **Configuration:** `vitest.integration.config.ts`
 
 **Example Test Files:**
+
 - `apps/web/lib/test/database.integration.test.ts`
 - `apps/web/lib/test/smoke.integration.test.ts`
 
 **When to Use:**
+
 - Testing database queries and RLS policies
 - Testing API routes
 - Testing Supabase hooks that interact with the database
@@ -93,6 +100,7 @@ pnpm test:coverage
 - Verifying multi-table operations work correctly
 
 **How to Run:**
+
 ```bash
 # Run all integration tests once
 pnpm test:integration
@@ -102,6 +110,7 @@ pnpm test:integration:watch
 ```
 
 **Important Notes:**
+
 - Requires local Supabase instance running (`pnpm supabase:start`)
 - Uses longer timeouts (30 seconds) for database operations
 - May create/modify test data in local database
@@ -118,11 +127,13 @@ pnpm test:integration:watch
 **Framework:** Playwright (browser automation)
 
 **Test Categories:**
+
 - `tests/core-functionality/` - Critical user paths (e.g., smoke-test.spec.ts)
 - `tests/authentication/` - Login, signup, password reset flows
 - `tests/pages/` - Individual page functionality (agents, campaigns, donors, etc.)
 
 **When to Use:**
+
 - Testing complete user workflows (sign up → create campaign → view results)
 - Testing browser-specific behavior
 - Testing UI interactions across pages
@@ -130,6 +141,7 @@ pnpm test:integration:watch
 - Before production deployments
 
 **How to Run:**
+
 ```bash
 # Run all E2E tests
 pnpm test:e2e
@@ -156,6 +168,7 @@ cd apps/e2e && pnpm exec playwright test --debug
 **Configuration:** `apps/e2e/playwright.config.ts`
 
 **Important Notes:**
+
 - Tests run in headless mode by default (no visible browser)
 - Can run in multiple browsers simultaneously
 - Slower than unit/integration tests
@@ -295,7 +308,8 @@ pnpm test:e2e
 
 ```typescript
 // apps/web/lib/utils/formatting.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { formatPhoneNumber } from './formatting';
 
 describe('formatPhoneNumber', () => {
@@ -317,8 +331,8 @@ describe('formatPhoneNumber', () => {
 
 ```typescript
 // apps/web/lib/test/contacts.integration.test.ts
-import { describe, it, expect, beforeAll } from 'vitest';
 import { createClient } from '@/lib/supabase/server';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Contact Management', () => {
   let supabase: any;
@@ -359,7 +373,7 @@ describe('Contact Management', () => {
 
 ```typescript
 // apps/e2e/tests/pages/agents.spec.ts
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Agent Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -487,12 +501,12 @@ pnpm typecheck
 
 **Quick Reference:**
 
-| Test Type | Command | When to Use | Speed |
-|-----------|---------|-------------|-------|
-| Unit | `pnpm test:unit` | Testing functions/components in isolation | ⚡ Fast |
-| Integration | `pnpm test:integration` | Testing database/API interactions | 🐢 Medium |
-| E2E | `pnpm test:e2e` | Testing complete user workflows | 🐌 Slow |
-| All | `pnpm test:all` | Before merging/deploying | 🐌 Slowest |
-| Smoke | `pnpm test:smoke` | Quick critical path check | 🐢 Medium |
+| Test Type   | Command                 | When to Use                               | Speed      |
+| ----------- | ----------------------- | ----------------------------------------- | ---------- |
+| Unit        | `pnpm test:unit`        | Testing functions/components in isolation | ⚡ Fast    |
+| Integration | `pnpm test:integration` | Testing database/API interactions         | 🐢 Medium  |
+| E2E         | `pnpm test:e2e`         | Testing complete user workflows           | 🐌 Slow    |
+| All         | `pnpm test:all`         | Before merging/deploying                  | 🐌 Slowest |
+| Smoke       | `pnpm test:smoke`       | Quick critical path check                 | 🐢 Medium  |
 
 **Golden Rule:** If you're unsure which test type to use, start with a unit test. Only move to integration/E2E tests if you need to test interactions between multiple systems.

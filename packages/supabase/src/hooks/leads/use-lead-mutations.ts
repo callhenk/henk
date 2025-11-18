@@ -191,9 +191,7 @@ export function useAddLeadToList() {
 
   return useMutation({
     mutationFn: async (data: CreateLeadListMemberData): Promise<void> => {
-      const { error } = await supabase
-        .from('lead_list_members')
-        .insert(data);
+      const { error } = await supabase.from('lead_list_members').insert(data);
 
       if (error) {
         throw new Error(`Failed to add lead to list: ${error.message}`);
@@ -201,7 +199,9 @@ export function useAddLeadToList() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['lead-list-members', variables.lead_list_id] });
+      queryClient.invalidateQueries({
+        queryKey: ['lead-list-members', variables.lead_list_id],
+      });
     },
   });
 }
@@ -211,7 +211,10 @@ export function useRemoveLeadFromList() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { lead_list_id: string; lead_id: string }): Promise<void> => {
+    mutationFn: async (data: {
+      lead_list_id: string;
+      lead_id: string;
+    }): Promise<void> => {
       const { error } = await supabase
         .from('lead_list_members')
         .delete()
@@ -224,7 +227,9 @@ export function useRemoveLeadFromList() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['lead-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['lead-list-members', variables.lead_list_id] });
+      queryClient.invalidateQueries({
+        queryKey: ['lead-list-members', variables.lead_list_id],
+      });
     },
   });
 }

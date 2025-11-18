@@ -1,11 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
 import { Button } from './button';
 
 describe('Button', () => {
   it('renders with children text', () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Click me' }),
+    ).toBeInTheDocument();
   });
 
   it('calls onClick handler when clicked', () => {
@@ -21,7 +24,7 @@ describe('Button', () => {
     render(
       <Button onClick={handleClick} disabled>
         Click me
-      </Button>
+      </Button>,
     );
 
     // The button should be disabled
@@ -84,7 +87,11 @@ describe('Button', () => {
   });
 
   it('applies icon size styles', () => {
-    render(<Button size="icon" aria-label="Icon button">Icon</Button>);
+    render(
+      <Button size="icon" aria-label="Icon button">
+        Icon
+      </Button>,
+    );
     const button = screen.getByRole('button');
     expect(button).toHaveClass('h-9');
     expect(button).toHaveClass('w-9');
@@ -117,7 +124,7 @@ describe('Button', () => {
     render(
       <Button asChild>
         <a href="/test">Link Button</a>
-      </Button>
+      </Button>,
     );
 
     const link = screen.getByRole('link');

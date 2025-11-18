@@ -34,6 +34,7 @@ Your migrations are in conflict and will fail. Here's the problem:
 ## Current Database State (from latest.sql)
 
 Your database currently has:
+
 - `leads` table with the COMPLEX structure (from contacts migration)
 - `campaign_leads` table (from our new migration)
 - `campaign_lead_lists` table (from our new migration)
@@ -44,17 +45,21 @@ This suggests some migrations ran successfully, but the order is wrong.
 ## The Problems
 
 ### Problem 1: Duplicate Table Creation
+
 - Campaign migration creates `leads` table
 - Contact migration tries to rename `contacts` to `leads`
 - **Result**: Table already exists error
 
 ### Problem 2: Conflicting Schemas
+
 - Simple leads (campaign migration): Has required campaign_id
 - Complex leads (contacts migration): No campaign_id, many more fields
 - **Result**: Incompatible table structures
 
 ### Problem 3: Wrong Migration Order
+
 The dates suggest migrations should run:
+
 1. Campaigns (Dec 20, 2024)
 2. Contacts (Jan 18, 2025)
 3. Rename (Jan 18, 2025)
@@ -74,6 +79,7 @@ Modify `20241220000000_campaigns.sql` to NOT create the leads table. Let the con
 ```
 
 Then the flow becomes:
+
 1. Campaigns migration (no leads table)
 2. Contacts migration (creates contacts)
 3. Rename migration (renames contacts → leads)
@@ -115,6 +121,7 @@ DROP TABLE IF EXISTS public.contact_lists CASCADE;
 ## Immediate Action Required
 
 ### To Check Current State:
+
 ```bash
 # See what tables actually exist
 psql $DATABASE_URL -c "\dt public.*lead*"
@@ -122,6 +129,7 @@ psql $DATABASE_URL -c "\dt public.*contact*"
 ```
 
 ### To Fix (if database is local/development):
+
 ```bash
 # Option 1: Reset everything
 pnpm supabase:reset

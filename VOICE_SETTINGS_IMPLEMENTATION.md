@@ -69,17 +69,17 @@ New component that provides sliders and controls for:
 
 ### Components Modified
 
-1. **apps/web/app/home/agents/[id]/_components/agent-voice-settings.tsx** (NEW)
+1. **apps/web/app/home/agents/[id]/\_components/agent-voice-settings.tsx** (NEW)
    - Self-contained voice settings component
    - Tooltips explain each setting
    - Real-time updates with confirmation for ElevenLabs agents
 
-2. **apps/web/app/home/agents/[id]/_components/agent-voice.tsx**
+2. **apps/web/app/home/agents/[id]/\_components/agent-voice.tsx**
    - Added AgentVoiceSettings import and integration
    - Updated interface to include voice_settings
    - Updated type signatures for onSaveField and onVoiceUpdate
 
-3. **apps/web/app/home/agents/[id]/_components/agent-detail-refactored.tsx**
+3. **apps/web/app/home/agents/[id]/\_components/agent-detail-refactored.tsx**
    - Enhanced handleConfirmVoiceUpdate to support voice_settings
    - Updated handleVoiceUpdate to accept any value type
    - Enhanced confirmation dialog with dynamic messaging
@@ -88,6 +88,7 @@ New component that provides sliders and controls for:
 ### API Alignment
 
 All parameters align with ElevenLabs Text-to-Speech API:
+
 - https://elevenlabs.io/docs/api-reference/text-to-speech
 - https://elevenlabs.io/docs/api-reference/voices/settings
 
@@ -102,9 +103,11 @@ All parameters align with ElevenLabs Text-to-Speech API:
 ## Usage
 
 ### For Regular Agents
+
 Settings save immediately to the database when adjusted.
 
 ### For ElevenLabs Conversational AI Agents
+
 1. Adjust settings using the sliders
 2. Confirmation dialog appears
 3. Click "Update Settings" to confirm
@@ -133,6 +136,7 @@ Settings save immediately to the database when adjusted.
 ## Testing
 
 Test the voice settings by:
+
 1. Navigate to an agent detail page
 2. Go to the "Voice" tab
 3. Adjust the voice settings sliders

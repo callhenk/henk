@@ -17,16 +17,19 @@ Phase 1 (Foundation) of the QA plan has been completed:
 ## Running Tests
 
 ### Run All Unit Tests
+
 ```bash
 pnpm test:unit
 ```
 
 ### Run Tests in Watch Mode (for development)
+
 ```bash
 pnpm test:unit:watch
 ```
 
 ### Run Integration Tests
+
 ```bash
 # First, start Supabase local
 pnpm supabase:web:start
@@ -36,16 +39,19 @@ pnpm test:integration
 ```
 
 ### Run E2E Tests
+
 ```bash
 pnpm test:e2e
 ```
 
 ### Run All Tests
+
 ```bash
 pnpm test:all
 ```
 
 ### Get Coverage Report
+
 ```bash
 pnpm test:coverage
 ```
@@ -53,9 +59,11 @@ pnpm test:coverage
 ## Example Tests Created
 
 ### 1. Unit Tests - Formatting Utilities
+
 **File:** `apps/web/lib/utils/formatting.test.ts`
 
 All 40 tests passing! Covers:
+
 - Date formatting
 - Relative time
 - Phone number formatting
@@ -66,11 +74,13 @@ All 40 tests passing! Covers:
 **Run:** `pnpm vitest run apps/web/lib/utils/formatting.test.ts`
 
 ### 2. Component Tests - Button
+
 **File:** `packages/ui/src/shadcn/button.test.tsx`
 
 Comprehensive button component tests covering all variants, sizes, and interactions.
 
 ### 3. Integration Tests - Campaigns API
+
 **File:** `apps/web/app/api/campaigns/route.integration.test.ts`
 
 Full API route testing with authentication, database operations, and business logic validation.
@@ -82,14 +92,15 @@ Full API route testing with authentication, database operations, and business lo
 Create a test file next to your source file:
 
 ```typescript
+// lib/utils/my-util.test.ts
+import { describe, expect, it } from 'vitest';
+
+import { add } from './my-util';
+
 // lib/utils/my-util.ts
 export function add(a: number, b: number) {
   return a + b;
 }
-
-// lib/utils/my-util.test.ts
-import { describe, it, expect } from 'vitest';
-import { add } from './my-util';
 
 describe('add', () => {
   it('adds two numbers correctly', () => {
@@ -118,8 +129,8 @@ describe('MyComponent', () => {
 
 ```typescript
 // route.integration.test.ts
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createTestContext, createTestClient } from '@/lib/test';
+import { createTestClient, createTestContext } from '@/lib/test';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('My API Route', () => {
   let testContext;
@@ -144,6 +155,7 @@ describe('My API Route', () => {
 ## Test Helpers Available
 
 ### Supabase Test Client
+
 ```typescript
 import { createTestClient } from '@/lib/test/supabase-test-client';
 
@@ -151,6 +163,7 @@ const supabase = createTestClient();
 ```
 
 ### Create Test Users and Businesses
+
 ```typescript
 import { createTestContext } from '@/lib/test';
 
@@ -162,12 +175,13 @@ const { user, business, teamMember } = await createTestContext({
 ```
 
 ### Test Data Factories
+
 ```typescript
 import {
+  createAgent,
+  createCampaign,
   createContact,
   createContacts,
-  createCampaign,
-  createAgent,
   createIntegration,
 } from '@/lib/test/factories';
 
@@ -190,21 +204,25 @@ const campaign = await createCampaign(businessId, {
 ## Test Database Setup
 
 ### Start Supabase Local
+
 ```bash
 pnpm supabase:web:start
 ```
 
 ### Reset Database
+
 ```bash
 pnpm supabase:web:reset
 ```
 
 ### Seed Test Data
+
 ```bash
 pnpm --filter web supabase:db:seed
 ```
 
 The seed file (`apps/web/supabase/seed.sql`) creates:
+
 - 1 test business
 - 10 test contacts (donors)
 - 4 contact lists
@@ -217,10 +235,12 @@ The seed file (`apps/web/supabase/seed.sql`) creates:
 ## CI/CD Pipeline
 
 Tests automatically run on:
+
 - Pull requests to `main` or `develop`
 - Pushes to `main`
 
 The pipeline runs:
+
 1. Code quality checks (typecheck, lint, format)
 2. Database tests
 3. Unit tests (with coverage)
@@ -234,6 +254,7 @@ The pipeline runs:
 ## Coverage Thresholds
 
 Current thresholds (set in `vitest.config.ts`):
+
 - Lines: 70%
 - Functions: 70%
 - Branches: 70%
@@ -259,21 +280,25 @@ expect('123e4567-e89b-12d3-a456-426614174000').toBeValidUUID();
 ## Debugging Tests
 
 ### Run Specific Test File
+
 ```bash
 pnpm vitest run path/to/test.test.ts
 ```
 
 ### Run Tests Matching Pattern
+
 ```bash
 pnpm vitest run --grep="formatPhoneNumber"
 ```
 
 ### Run With UI
+
 ```bash
 pnpm test:unit:ui
 ```
 
 ### View Coverage HTML Report
+
 ```bash
 pnpm test:coverage
 open coverage/index.html
@@ -299,6 +324,7 @@ The vitest config excludes `node_modules`. If you still see dependency tests, ma
 ### Import Resolution Errors
 
 Check that your aliases are configured in `vitest.config.ts`:
+
 - `@` → `apps/web`
 - `@kit/ui` → `packages/ui/src`
 - `@kit/supabase` → `packages/supabase/src`
@@ -307,6 +333,7 @@ Check that your aliases are configured in `vitest.config.ts`:
 ### Supabase Connection Issues
 
 Make sure Supabase is running:
+
 ```bash
 pnpm supabase:web:start
 pnpm supabase:web:status
@@ -315,6 +342,7 @@ pnpm supabase:web:status
 ### React/JSX Errors
 
 Component tests require `jsdom` environment. This is configured in `vitest.config.ts`:
+
 ```typescript
 environment: 'jsdom',
 ```
