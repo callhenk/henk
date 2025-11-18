@@ -39,9 +39,12 @@ const sortOptions = [
 
 export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   const { isDemoMode, mockConversations, mockAgents } = useDemoMode();
-  const { data: realConversations } = useConversations();
+  const { data: realConversationsResult } = useConversations();
   const { data: realAgents = [] } = useAgents();
   const [sortBy, setSortBy] = useState('conversionRate');
+
+  // Extract conversation data from pagination result
+  const realConversations = realConversationsResult?.data ?? [];
 
   // Use demo data if demo mode is active
   const conversations = isDemoMode ? mockConversations : realConversations;

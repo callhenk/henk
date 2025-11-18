@@ -47,11 +47,14 @@ export function AddMembersToListDialog({
   );
   const [isAdding, setIsAdding] = useState(false);
 
-  const { data: allLeads = [], isLoading: isLoadingLeads } = useLeads();
+  const { data: allLeadsResult, isLoading: isLoadingLeads } = useLeads();
   const { data: existingMembers = [], isLoading: isLoadingMembers } =
     useLeadListMembers(list?.id || '');
   const addLeadToList = useAddLeadToList();
   const supabase = useSupabase();
+
+  // Extract leads data from pagination result
+  const allLeads = allLeadsResult?.data ?? [];
 
   // Get IDs of existing members
   const existingMemberIds = useMemo(
