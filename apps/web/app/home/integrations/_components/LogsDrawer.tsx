@@ -4,7 +4,13 @@ import { useMemo, useState } from 'react';
 
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@kit/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@kit/ui/sheet';
 
 interface LogItem {
   id: string;
@@ -60,7 +66,9 @@ export function LogsDrawer({
             />
             Errors only
           </label>
-          <div className="text-muted-foreground text-xs">{filtered.length} events</div>
+          <div className="text-muted-foreground text-xs">
+            {filtered.length} events
+          </div>
         </div>
 
         <div className="mt-4 space-y-6">
@@ -69,14 +77,20 @@ export function LogsDrawer({
               <div className="text-muted-foreground mb-2 text-xs">{day}</div>
               <div className="divide-border rounded-md border">
                 {items.map((l) => (
-                  <div key={l.id} className="flex items-start gap-3 border-b p-3 last:border-b-0">
+                  <div
+                    key={l.id}
+                    className="flex items-start gap-3 border-b p-3 last:border-b-0"
+                  >
                     <LevelIcon level={l.level} />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium">{l.event}</div>
-                      <div className="text-muted-foreground truncate text-sm">{l.message}</div>
+                      <div className="text-muted-foreground truncate text-sm">
+                        {l.message}
+                      </div>
                     </div>
                     <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                      <Clock className="h-3 w-3" /> {new Date(l.ts).toLocaleTimeString()}
+                      <Clock className="h-3 w-3" />{' '}
+                      {new Date(l.ts).toLocaleTimeString()}
                     </div>
                   </div>
                 ))}
@@ -96,8 +110,8 @@ function LevelIcon({ level }: { level: LogItem['level'] }) {
     case 'error':
       return <AlertCircle className="h-4 w-4 text-red-600" aria-hidden />;
     default:
-      return <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden />;
+      return (
+        <CheckCircle2 className="text-muted-foreground h-4 w-4" aria-hidden />
+      );
   }
 }
-
-

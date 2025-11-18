@@ -1,27 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+
 import {
-  Users,
-  Trash2,
-  Download,
-  Tags,
-  X,
-  CheckCircle,
   AlertCircle,
+  CheckCircle,
+  Download,
   Mail,
   PhoneOff,
+  Tags,
+  Trash2,
+  Users,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@kit/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@kit/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +26,14 @@ import {
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
 import { Badge } from '@kit/ui/badge';
+import { Button } from '@kit/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@kit/ui/dropdown-menu';
 
 interface BulkActionsBarProps {
   selectedLeads: Set<string>;
@@ -41,7 +42,10 @@ interface BulkActionsBarProps {
   onBulkDelete: () => void;
   onExport: () => void;
   onUpdateTags: (tags: string[], action: 'add' | 'remove') => void;
-  onUpdatePreferences: (field: 'do_not_call' | 'do_not_email', value: boolean) => void;
+  onUpdatePreferences: (
+    field: 'do_not_call' | 'do_not_email',
+    value: boolean,
+  ) => void;
   onUpdateQualityRating: (rating: string) => void;
 }
 
@@ -71,7 +75,10 @@ export function BulkActionsBar({
       toast.error('Please enter tags to add');
       return;
     }
-    const tags = tagInput.split(',').map(t => t.trim()).filter(Boolean);
+    const tags = tagInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
     onUpdateTags(tags, 'add');
     setTagInput('');
     toast.success(`Adding ${tags.length} tag(s) to ${selectedCount} lead(s)`);
@@ -79,7 +86,7 @@ export function BulkActionsBar({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 fixed right-0 bottom-0 left-0 z-50 border-t backdrop-blur">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -87,11 +94,7 @@ export function BulkActionsBar({
                 <CheckCircle className="mr-1 h-3 w-3" />
                 {selectedCount} selected
               </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearSelection}
-              >
+              <Button variant="ghost" size="sm" onClick={onClearSelection}>
                 <X className="h-4 w-4" />
                 Clear
               </Button>
@@ -99,11 +102,7 @@ export function BulkActionsBar({
 
             <div className="flex items-center gap-2">
               {/* Add to List */}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onAddToList}
-              >
+              <Button size="sm" variant="outline" onClick={onAddToList}>
                 <Users className="mr-2 h-4 w-4" />
                 Add to List
               </Button>
@@ -116,16 +115,24 @@ export function BulkActionsBar({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => onUpdateQualityRating('hot')}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateQualityRating('hot')}
+                  >
                     🔥 Mark as Hot
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onUpdateQualityRating('warm')}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateQualityRating('warm')}
+                  >
                     🌡️ Mark as Warm
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onUpdateQualityRating('cold')}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateQualityRating('cold')}
+                  >
                     ❄️ Mark as Cold
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onUpdateQualityRating('unrated')}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateQualityRating('unrated')}
+                  >
                     Clear Rating
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -153,12 +160,9 @@ export function BulkActionsBar({
                             handleAddTags();
                           }
                         }}
-                        className="flex-1 px-2 py-1 text-sm border rounded"
+                        className="flex-1 rounded border px-2 py-1 text-sm"
                       />
-                      <Button
-                        size="sm"
-                        onClick={handleAddTags}
-                      >
+                      <Button size="sm" onClick={handleAddTags}>
                         Add
                       </Button>
                     </div>
@@ -184,30 +188,34 @@ export function BulkActionsBar({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => onUpdatePreferences('do_not_call', true)}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdatePreferences('do_not_call', true)}
+                  >
                     <PhoneOff className="mr-2 h-4 w-4" />
                     Mark as Do Not Call
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onUpdatePreferences('do_not_call', false)}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdatePreferences('do_not_call', false)}
+                  >
                     Remove Do Not Call
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onUpdatePreferences('do_not_email', true)}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdatePreferences('do_not_email', true)}
+                  >
                     <Mail className="mr-2 h-4 w-4 line-through" />
                     Mark as Do Not Email
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onUpdatePreferences('do_not_email', false)}>
+                  <DropdownMenuItem
+                    onClick={() => onUpdatePreferences('do_not_email', false)}
+                  >
                     Remove Do Not Email
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               {/* Export */}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onExport}
-              >
+              <Button size="sm" variant="outline" onClick={onExport}>
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
@@ -232,8 +240,10 @@ export function BulkActionsBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {selectedCount} Leads</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedCount} lead{selectedCount > 1 ? 's' : ''}?
-              This action cannot be undone and will remove the lead{selectedCount > 1 ? 's' : ''} from all lists and campaigns.
+              Are you sure you want to delete {selectedCount} lead
+              {selectedCount > 1 ? 's' : ''}? This action cannot be undone and
+              will remove the lead{selectedCount > 1 ? 's' : ''} from all lists
+              and campaigns.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

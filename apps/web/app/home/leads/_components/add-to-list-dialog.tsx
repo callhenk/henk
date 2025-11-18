@@ -1,9 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { Check } from 'lucide-react';
 
+import { Check } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { useAddLeadToList } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Dialog,
@@ -21,10 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
-import { Badge } from '@kit/ui/badge';
-
-import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
-import { useAddLeadToList } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
 interface AddToListDialogProps {
   open: boolean;
@@ -63,7 +63,7 @@ export function AddToListDialog({
           addToList.mutateAsync({
             lead_list_id: selectedListId,
             lead_id: id,
-          })
+          }),
         );
         await Promise.all(promises);
         toast.success(`${totalLeads} leads added to list successfully`);
@@ -91,9 +91,15 @@ export function AddToListDialog({
           <DialogTitle>Add to List</DialogTitle>
           <DialogDescription>
             {isBulkOperation ? (
-              <>Add <span className="font-medium">{totalLeads} leads</span> to a lead list</>
+              <>
+                Add <span className="font-medium">{totalLeads} leads</span> to a
+                lead list
+              </>
             ) : (
-              <>Add <span className="font-medium">{leadName}</span> to a lead list</>
+              <>
+                Add <span className="font-medium">{leadName}</span> to a lead
+                list
+              </>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -107,7 +113,7 @@ export function AddToListDialog({
               </SelectTrigger>
               <SelectContent>
                 {leadLists.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
+                  <div className="text-muted-foreground p-4 text-center text-sm">
                     No lists available. Create a list first.
                   </div>
                 ) : (
@@ -133,22 +139,22 @@ export function AddToListDialog({
           </div>
 
           {selectedList && (
-            <div className="rounded-lg border p-3 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-3">
               <div className="flex items-start gap-3">
                 {selectedList.color && (
                   <div
-                    className="h-4 w-4 rounded-full flex-shrink-0 mt-0.5"
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-full"
                     style={{ backgroundColor: selectedList.color }}
                   />
                 )}
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium">{selectedList.name}</p>
                   {selectedList.description && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {selectedList.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-2 text-xs">
                     <Badge variant="outline" className="text-xs">
                       {selectedList.list_type}
                     </Badge>
@@ -171,7 +177,10 @@ export function AddToListDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!selectedListId || addToList.isPending}>
+            <Button
+              type="submit"
+              disabled={!selectedListId || addToList.isPending}
+            >
               {addToList.isPending ? (
                 'Adding...'
               ) : (

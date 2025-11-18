@@ -9,8 +9,7 @@
  */
 export function getSourceBadgeColor(source: string): string {
   const colors: Record<string, string> = {
-    salesforce:
-      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    salesforce: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     hubspot:
       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
     manual: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
@@ -35,8 +34,7 @@ export function getStatusBadgeColor(status: string): string {
     inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
     pending:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    completed:
-      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
     paused:
       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
@@ -80,14 +78,12 @@ export function getOutcomeBadgeColor(outcome: string): string {
     donated:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     pledged: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    not_interested:
-      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    not_interested: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
     callback:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
     voicemail:
       'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-    no_answer:
-      'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+    no_answer: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
   };
 
   return (

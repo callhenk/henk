@@ -54,11 +54,15 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    const credentials = integration.credentials as Record<string, string> | null;
+    const credentials = integration.credentials as Record<
+      string,
+      string
+    > | null;
     const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
 
     // Redirect URI is fixed for the application
-    const redirectUri = process.env.SALESFORCE_REDIRECT_URI ||
+    const redirectUri =
+      process.env.SALESFORCE_REDIRECT_URI ||
       `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.callhenk.com'}/api/integrations/salesforce/callback`;
 
     if (!clientId) {
@@ -92,7 +96,9 @@ export async function GET(_request: NextRequest) {
 
     // In production, you'd store this in Redis or session store
     // For now, we'll encode it in the state parameter
-    const encodedState = Buffer.from(JSON.stringify(stateData)).toString('base64url');
+    const encodedState = Buffer.from(JSON.stringify(stateData)).toString(
+      'base64url',
+    );
 
     // 5. Build Salesforce authorization URL
     const authUrl = new URL(`${loginUrl}/services/oauth2/authorize`);

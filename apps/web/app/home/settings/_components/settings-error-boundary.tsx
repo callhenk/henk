@@ -27,7 +27,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('Settings Error Boundary caught an error:', error, errorInfo);
   }

@@ -4,36 +4,42 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Plus, Users, X, GripVertical, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
 import {
   DndContext,
-  closestCenter,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ExternalLink, GripVertical, Plus, Users, X } from 'lucide-react';
+import { toast } from 'sonner';
 
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
-import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
 import {
   useAssignLeadListToCampaign,
-  useRemoveLeadListFromCampaign,
   useCampaignLeadLists,
+  useRemoveLeadListFromCampaign,
   useUpdateCampaignLeadListPriority,
 } from '@kit/supabase/hooks/campaigns/use-campaign-lead-lists';
+import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import { Button } from '@kit/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@kit/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -46,7 +52,8 @@ import { Skeleton } from '@kit/ui/skeleton';
 
 import type { Database } from '~/lib/database.types';
 
-type CampaignLeadList = Database['public']['Tables']['campaign_lead_lists']['Row'];
+type CampaignLeadList =
+  Database['public']['Tables']['campaign_lead_lists']['Row'];
 type LeadList = Database['public']['Tables']['lead_lists']['Row'];
 
 interface LeadListSelectorProps {
@@ -62,7 +69,12 @@ interface SortableListItemProps {
   onRemove: (listId: string) => void;
 }
 
-function SortableListItem({ id, assignedList, list, onRemove }: SortableListItemProps) {
+function SortableListItem({
+  id,
+  assignedList,
+  list,
+  onRemove,
+}: SortableListItemProps) {
   const {
     attributes,
     listeners,
@@ -91,42 +103,42 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative rounded-lg border bg-card transition-colors duration-200 ${
-        isDragging ? 'shadow-lg opacity-90' : 'hover:bg-accent/5'
+      className={`group bg-card relative rounded-lg border transition-colors duration-200 ${
+        isDragging ? 'opacity-90 shadow-lg' : 'hover:bg-accent/5'
       }`}
     >
       <div className="flex items-center gap-3 p-3">
         {/* Drag Handle */}
         <button
-          className="cursor-grab rounded p-1 transition-colors hover:bg-accent active:cursor-grabbing"
+          className="hover:bg-accent cursor-grab rounded p-1 transition-colors active:cursor-grabbing"
           {...attributes}
           {...listeners}
         >
-          <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+          <GripVertical className="text-muted-foreground/60 h-4 w-4" />
         </button>
 
         {/* Priority */}
-        <span className="text-xs text-muted-foreground font-mono">
+        <span className="text-muted-foreground font-mono text-xs">
           {assignedList.priority}
         </span>
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h4 className="text-sm font-medium truncate">{list.name}</h4>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-xs text-muted-foreground">
+              <h4 className="truncate text-sm font-medium">{list.name}</h4>
+              <div className="mt-1 flex items-center gap-3">
+                <span className="text-muted-foreground text-xs">
                   {assignedList.total_leads || 0} leads
                 </span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">•</span>
+                <span className="text-muted-foreground text-xs">
                   {assignedList.contacted_leads || 0} contacted
                 </span>
                 {(assignedList.successful_leads ?? 0) > 0 && (
                   <>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">•</span>
+                    <span className="text-muted-foreground text-xs">
                       {assignedList.successful_leads} converted
                     </span>
                   </>
@@ -137,12 +149,14 @@ function SortableListItem({ id, assignedList, list, onRemove }: SortableListItem
             {/* Progress */}
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-xs font-medium">{progressPercentage.toFixed(0)}%</p>
-                <p className="text-xs text-muted-foreground">complete</p>
+                <p className="text-xs font-medium">
+                  {progressPercentage.toFixed(0)}%
+                </p>
+                <p className="text-muted-foreground text-xs">complete</p>
               </div>
-              <div className="w-16 h-1 rounded-full bg-muted overflow-hidden">
+              <div className="bg-muted h-1 w-16 overflow-hidden rounded-full">
                 <div
-                  className="h-full bg-foreground/70 transition-[width] duration-300"
+                  className="bg-foreground/70 h-full transition-[width] duration-300"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -169,7 +183,8 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
   const router = useRouter();
   const { data: businessContext } = useBusinessContext();
   const { data: allLists = [], isLoading: listsLoading } = useLeadLists();
-  const { data: assignedLists = [], isLoading: assignedLoading } = useCampaignLeadLists(campaignId);
+  const { data: assignedLists = [], isLoading: assignedLoading } =
+    useCampaignLeadLists(campaignId);
   const assignList = useAssignLeadListToCampaign();
   const removeList = useRemoveLeadListFromCampaign();
   const updatePriority = useUpdateCampaignLeadListPriority();
@@ -178,15 +193,20 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const assignedListIds = new Set(assignedLists.map((al) => al.lead_list_id));
-  const availableLists = allLists.filter((list) => !assignedListIds.has(list.id));
+  const availableLists = allLists.filter(
+    (list) => !assignedListIds.has(list.id),
+  );
 
   const handleAssignList = async (listId: string) => {
     try {
-      const maxPriority = Math.max(0, ...assignedLists.map((al) => al.priority || 0));
+      const maxPriority = Math.max(
+        0,
+        ...assignedLists.map((al) => al.priority || 0),
+      );
       await assignList.mutateAsync({
         campaign_id: campaignId,
         lead_list_id: listId,
@@ -220,7 +240,9 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
       return;
     }
 
-    const sortedLists = [...assignedLists].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    const sortedLists = [...assignedLists].sort(
+      (a, b) => (a.priority || 0) - (b.priority || 0),
+    );
     const oldIndex = sortedLists.findIndex((item) => item.id === active.id);
     const newIndex = sortedLists.findIndex((item) => item.id === over.id);
 
@@ -279,7 +301,8 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
               <DialogHeader>
                 <DialogTitle>Add Lead List to Campaign</DialogTitle>
                 <DialogDescription>
-                  Select a lead list to add to this campaign. Lists will be processed in priority order.
+                  Select a lead list to add to this campaign. Lists will be
+                  processed in priority order.
                 </DialogDescription>
               </DialogHeader>
 
@@ -291,10 +314,12 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                     <Skeleton className="h-20 w-full" />
                   </>
                 ) : availableLists.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm font-medium mb-1">No available lead lists</p>
-                    <p className="text-xs mb-4">
+                  <div className="text-muted-foreground py-8 text-center">
+                    <Users className="mx-auto mb-3 h-12 w-12 opacity-50" />
+                    <p className="mb-1 text-sm font-medium">
+                      No available lead lists
+                    </p>
+                    <p className="mb-4 text-xs">
                       {allLists.length === 0
                         ? 'Create your first lead list to get started.'
                         : 'All your lead lists are already assigned to this campaign. Create new lists on the Leads page.'}
@@ -315,23 +340,25 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                   availableLists.map((list) => (
                     <div
                       key={list.id}
-                      className="group cursor-pointer rounded-lg border p-3 transition-colors duration-200 hover:bg-accent/5"
+                      className="group hover:bg-accent/5 cursor-pointer rounded-lg border p-3 transition-colors duration-200"
                       onClick={() => handleAssignList(list.id)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-medium truncate">{list.name}</h4>
-                            <span className="text-xs text-muted-foreground">
+                            <h4 className="truncate text-sm font-medium">
+                              {list.name}
+                            </h4>
+                            <span className="text-muted-foreground text-xs">
                               {list.lead_count || 0} leads
                             </span>
                           </div>
                           {list.description && (
-                            <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                            <p className="text-muted-foreground mt-1 line-clamp-1 text-xs">
                               {list.description}
                             </p>
                           )}
-                          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                          <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
                             <span>{list.list_type || 'static'}</span>
                             {list.source && (
                               <>
@@ -339,15 +366,19 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                                 <span>{list.source}</span>
                               </>
                             )}
-                            {list.tags && Array.isArray(list.tags) && list.tags.length > 0 && (
-                              <>
-                                <span>•</span>
-                                <span>{(list.tags as string[]).length} tags</span>
-                              </>
-                            )}
+                            {list.tags &&
+                              Array.isArray(list.tags) &&
+                              list.tags.length > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span>
+                                    {(list.tags as string[]).length} tags
+                                  </span>
+                                </>
+                              )}
                           </div>
                         </div>
-                        <Plus className="h-4 w-4 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Plus className="text-muted-foreground/40 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
                     </div>
                   ))
@@ -364,20 +395,17 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
             <Skeleton className="h-16 w-full" />
           </div>
         ) : assignedLists.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm font-medium mb-1">No lead lists assigned</p>
-            <p className="text-xs mb-4">
+          <div className="text-muted-foreground py-8 text-center">
+            <Users className="mx-auto mb-3 h-12 w-12 opacity-50" />
+            <p className="mb-1 text-sm font-medium">No lead lists assigned</p>
+            <p className="mb-4 text-xs">
               {allLists.length === 0
                 ? 'Create lead lists on the Leads page, then assign them to this campaign'
                 : 'Add lead lists to this campaign to start reaching out to leads'}
             </p>
             <div className="flex items-center justify-center gap-2">
               {allLists.length === 0 ? (
-                <Button
-                  size="sm"
-                  onClick={() => router.push('/home/leads')}
-                >
+                <Button size="sm" onClick={() => router.push('/home/leads')}>
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Create Lead Lists
                 </Button>
@@ -407,7 +435,9 @@ export function LeadListSelector({ campaignId }: LeadListSelectorProps) {
                 {assignedLists
                   .sort((a, b) => (a.priority || 0) - (b.priority || 0))
                   .map((assignedList, index) => {
-                    const list = allLists.find((l) => l.id === assignedList.lead_list_id);
+                    const list = allLists.find(
+                      (l) => l.id === assignedList.lead_list_id,
+                    );
                     if (!list) return null;
 
                     return (

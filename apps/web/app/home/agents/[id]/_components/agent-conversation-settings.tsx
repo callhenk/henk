@@ -53,14 +53,20 @@ export function AgentConversationSettings({
 }: AgentConversationSettingsProps) {
   // Initialize state with original values
   const [retentionPeriod, setRetentionPeriod] = useState<FieldState<string>>({
-    value: (agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days).toString(),
-    originalValue: (agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days).toString(),
+    value: (
+      agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days
+    ).toString(),
+    originalValue: (
+      agent.retention_period_days ?? DEFAULT_VALUES.retention_period_days
+    ).toString(),
     hasChanges: false,
   });
 
   const [turnTimeout, setTurnTimeout] = useState<FieldState<string>>({
     value: (agent.turn_timeout ?? DEFAULT_VALUES.turn_timeout).toString(),
-    originalValue: (agent.turn_timeout ?? DEFAULT_VALUES.turn_timeout).toString(),
+    originalValue: (
+      agent.turn_timeout ?? DEFAULT_VALUES.turn_timeout
+    ).toString(),
     hasChanges: false,
   });
 
@@ -71,14 +77,24 @@ export function AgentConversationSettings({
   });
 
   const [silenceTimeout, setSilenceTimeout] = useState<FieldState<string>>({
-    value: (agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout).toString(),
-    originalValue: (agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout).toString(),
+    value: (
+      agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout
+    ).toString(),
+    originalValue: (
+      agent.silence_end_call_timeout ?? DEFAULT_VALUES.silence_end_call_timeout
+    ).toString(),
     hasChanges: false,
   });
 
   const [maxDuration, setMaxDuration] = useState<FieldState<string>>({
-    value: (agent.max_conversation_duration ?? DEFAULT_VALUES.max_conversation_duration).toString(),
-    originalValue: (agent.max_conversation_duration ?? DEFAULT_VALUES.max_conversation_duration).toString(),
+    value: (
+      agent.max_conversation_duration ??
+      DEFAULT_VALUES.max_conversation_duration
+    ).toString(),
+    originalValue: (
+      agent.max_conversation_duration ??
+      DEFAULT_VALUES.max_conversation_duration
+    ).toString(),
     hasChanges: false,
   });
 
@@ -119,7 +135,11 @@ export function AgentConversationSettings({
   }, [maxDuration.value]);
 
   // Save handlers
-  const handleSave = (fieldName: FieldName, value: string, setState: React.Dispatch<React.SetStateAction<FieldState<string>>>) => {
+  const handleSave = (
+    fieldName: FieldName,
+    value: string,
+    setState: React.Dispatch<React.SetStateAction<FieldState<string>>>,
+  ) => {
     const numValue = parseInt(value, 10);
     if (isNaN(numValue)) return;
 
@@ -183,7 +203,11 @@ export function AgentConversationSettings({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    handleSave('retention_period_days', retentionPeriod.value, setRetentionPeriod)
+                    handleSave(
+                      'retention_period_days',
+                      retentionPeriod.value,
+                      setRetentionPeriod,
+                    )
                   }
                   size="sm"
                 >
@@ -229,7 +253,11 @@ export function AgentConversationSettings({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    handleSave('turn_timeout', turnTimeout.value, setTurnTimeout)
+                    handleSave(
+                      'turn_timeout',
+                      turnTimeout.value,
+                      setTurnTimeout,
+                    )
                   }
                   size="sm"
                 >
@@ -247,7 +275,10 @@ export function AgentConversationSettings({
               Patient (waits longer)
             </p>
             <div className="flex items-center gap-2">
-              <Select value={eagerness.value} onValueChange={handleEagernessChange}>
+              <Select
+                value={eagerness.value}
+                onValueChange={handleEagernessChange}
+              >
                 <SelectTrigger id="eagerness" className="max-w-[200px]">
                   <SelectValue placeholder="Select eagerness" />
                 </SelectTrigger>
@@ -295,7 +326,11 @@ export function AgentConversationSettings({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    handleSave('silence_end_call_timeout', silenceTimeout.value, setSilenceTimeout)
+                    handleSave(
+                      'silence_end_call_timeout',
+                      silenceTimeout.value,
+                      setSilenceTimeout,
+                    )
                   }
                   size="sm"
                 >
@@ -328,7 +363,11 @@ export function AgentConversationSettings({
                 <Button
                   variant="outline"
                   onClick={() =>
-                    handleSave('max_conversation_duration', maxDuration.value, setMaxDuration)
+                    handleSave(
+                      'max_conversation_duration',
+                      maxDuration.value,
+                      setMaxDuration,
+                    )
                   }
                   size="sm"
                 >

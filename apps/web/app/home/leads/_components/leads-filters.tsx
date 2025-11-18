@@ -21,13 +21,9 @@ export function LeadsFilters({ onClose }: LeadsFiltersProps) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-medium">Filters</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -83,9 +79,7 @@ export function LeadsFilters({ onClose }: LeadsFiltersProps) {
             <Button variant="outline" className="flex-1">
               Clear
             </Button>
-            <Button className="flex-1">
-              Apply
-            </Button>
+            <Button className="flex-1">Apply</Button>
           </div>
         </div>
       </CardContent>

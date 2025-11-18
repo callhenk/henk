@@ -2,7 +2,18 @@
 
 import { useState } from 'react';
 
-import { ArrowRightLeft, Check, Loader2, Phone, PhoneForwarded, PlayCircle, Settings, SkipForward, Voicemail, X } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  Check,
+  Loader2,
+  Phone,
+  PhoneForwarded,
+  PlayCircle,
+  Settings,
+  SkipForward,
+  Voicemail,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
@@ -49,7 +60,8 @@ interface ToolConfig {
 
 export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
-  const [isTransferToNumberDialogOpen, setIsTransferToNumberDialogOpen] = useState(false);
+  const [isTransferToNumberDialogOpen, setIsTransferToNumberDialogOpen] =
+    useState(false);
 
   // Fetch all agents for the transfer rules dialog
   const { data: allAgents = [] } = useAgents();
@@ -112,7 +124,8 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
   };
 
   const [tools, setTools] = useState<ToolConfig[]>(getInitialTools);
-  const [originalTools, setOriginalTools] = useState<ToolConfig[]>(getInitialTools);
+  const [originalTools, setOriginalTools] =
+    useState<ToolConfig[]>(getInitialTools);
   const [isSaving, setIsSaving] = useState(false);
 
   // Check if there are unsaved changes
@@ -131,9 +144,7 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
     setIsSaving(true);
     try {
       // Save enabled tools to database
-      const enabledTools = tools
-        .filter((t) => t.enabled)
-        .map((t) => t.id);
+      const enabledTools = tools.filter((t) => t.enabled).map((t) => t.id);
 
       await onSaveField(ENABLED_TOOLS_FIELD, enabledTools);
 
@@ -164,7 +175,10 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
       enable_transferred_agent_first_message?: boolean;
     }>;
   }) => {
-    console.log('Saving transfer rules:', JSON.stringify(transferRules, null, 2));
+    console.log(
+      'Saving transfer rules:',
+      JSON.stringify(transferRules, null, 2),
+    );
     console.log('Agent ID:', agent.id);
     try {
       await onSaveField('transfer_rules', transferRules);
@@ -183,7 +197,10 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
       destination_type?: 'phone_number' | 'sip_uri';
     }>;
   }) => {
-    console.log('Saving transfer to number rules:', JSON.stringify(transferToNumberRules, null, 2));
+    console.log(
+      'Saving transfer to number rules:',
+      JSON.stringify(transferToNumberRules, null, 2),
+    );
     console.log('Agent ID:', agent.id);
     try {
       await onSaveField('transfer_to_number_rules', transferToNumberRules);
@@ -210,7 +227,8 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
 
   // Get transfer to number rules from agent
   const transferToNumberRules =
-    typeof agent.transfer_to_number_rules === 'object' && agent.transfer_to_number_rules !== null
+    typeof agent.transfer_to_number_rules === 'object' &&
+    agent.transfer_to_number_rules !== null
       ? (agent.transfer_to_number_rules as {
           transfers: Array<{
             phone_number: string;
@@ -235,19 +253,21 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
           <div className="space-y-4">
             {tools.map((tool) => {
               const Icon = tool.icon;
-              const isTransferToAgentTool = tool.id === TOOL_IDS.TRANSFER_TO_AGENT;
-              const isTransferToNumberTool = tool.id === TOOL_IDS.TRANSFER_TO_NUMBER;
+              const isTransferToAgentTool =
+                tool.id === TOOL_IDS.TRANSFER_TO_AGENT;
+              const isTransferToNumberTool =
+                tool.id === TOOL_IDS.TRANSFER_TO_NUMBER;
 
               return (
                 <div
                   key={tool.id}
                   className="flex items-center justify-between border-b pb-4 last:border-b-0"
                 >
-                  <div className="flex items-start gap-3 flex-1">
+                  <div className="flex flex-1 items-start gap-3">
                     <div className="mt-1">
                       <Icon className="text-muted-foreground h-5 w-5" />
                     </div>
-                    <div className="space-y-0.5 flex-1">
+                    <div className="flex-1 space-y-0.5">
                       <Label
                         htmlFor={tool.id}
                         className="cursor-pointer text-base font-medium"
@@ -295,7 +315,7 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
 
         {/* Save/Cancel Actions */}
         {hasChanges && (
-          <CardContent className="border-t bg-muted/50 pt-4">
+          <CardContent className="bg-muted/50 border-t pt-4">
             <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 You have unsaved changes
@@ -310,11 +330,7 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
                   <X className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
+                <Button size="sm" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -357,7 +373,10 @@ export function AgentTools({ agent, onSaveField }: AgentToolsProps) {
         onOpenChange={setIsTransferDialogOpen}
         currentAgentId={agent.id}
         availableAgents={
-          allAgents?.map((a: { id: string; name: string }) => ({ id: a.id, name: a.name })) || []
+          allAgents?.map((a: { id: string; name: string }) => ({
+            id: a.id,
+            name: a.name,
+          })) || []
         }
         transferRules={transferRules}
         onSave={handleSaveTransferRules}

@@ -3,7 +3,11 @@ import { Metadata } from 'next';
 import { headers } from 'next/headers';
 
 import appConfig from '~/config/app.config';
-import { generateOrganizationSchema, generateWebsiteSchema, schemaToJsonLd } from '~/lib/seo-schema';
+import {
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+  schemaToJsonLd,
+} from '~/lib/seo-schema';
 
 /**
  * @name generateRootMetadata

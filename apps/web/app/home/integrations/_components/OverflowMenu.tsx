@@ -1,4 +1,10 @@
-import { EllipsisVertical, Play, PlugZap, Power, ScrollText } from 'lucide-react';
+import {
+  EllipsisVertical,
+  Play,
+  PlugZap,
+  Power,
+  ScrollText,
+} from 'lucide-react';
 
 import { Button } from '@kit/ui/button';
 import {
@@ -25,7 +31,12 @@ export function OverflowMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="More actions" disabled={disabled}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="More actions"
+          disabled={disabled}
+        >
           <EllipsisVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -40,12 +51,14 @@ export function OverflowMenu({
           <ScrollText className="mr-2 h-4 w-4" /> View logs
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onDisconnect} className="text-red-600" disabled={disabled}>
+        <DropdownMenuItem
+          onClick={onDisconnect}
+          className="text-red-600"
+          disabled={disabled}
+        >
           <Power className="mr-2 h-4 w-4" /> Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-
-

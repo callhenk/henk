@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         },
         {
           onConflict: 'business_id,elevenlabs_kb_id',
-        }
+        },
       )
       .select('id, name, elevenlabs_kb_id, status, created_at');
 
@@ -212,7 +212,9 @@ export async function POST(request: NextRequest) {
           name: name || file.name,
         },
       });
-      throw new Error(`Failed to save knowledge base to database: ${dbError.message}`);
+      throw new Error(
+        `Failed to save knowledge base to database: ${dbError.message}`,
+      );
     }
 
     if (!insertedData || insertedData.length === 0) {

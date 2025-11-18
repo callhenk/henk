@@ -7,13 +7,13 @@ import { Download, Users } from 'lucide-react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import {
   useCreateLead,
   useDeleteLead,
   useUpdateLead,
 } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import { useLeadsByCampaign } from '@kit/supabase/hooks/leads/use-leads';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +49,10 @@ function toCSV(rows: Array<Record<string, unknown>>): string {
 }
 
 // Helper to get full name from lead
-function getLeadName(lead: { first_name?: string | null; last_name?: string | null }): string {
+function getLeadName(lead: {
+  first_name?: string | null;
+  last_name?: string | null;
+}): string {
   const first = lead.first_name || '';
   const last = lead.last_name || '';
   return `${first} ${last}`.trim() || '-';
@@ -420,7 +423,9 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 <Input
                   value={editForm.first_name ?? ''}
                   onChange={(e) =>
-                    setEditForm((f) => (f ? { ...f, first_name: e.target.value } : f))
+                    setEditForm((f) =>
+                      f ? { ...f, first_name: e.target.value } : f,
+                    )
                   }
                 />
               </div>
@@ -429,7 +434,9 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                 <Input
                   value={editForm.last_name ?? ''}
                   onChange={(e) =>
-                    setEditForm((f) => (f ? { ...f, last_name: e.target.value } : f))
+                    setEditForm((f) =>
+                      f ? { ...f, last_name: e.target.value } : f,
+                    )
                   }
                 />
               </div>
@@ -666,7 +673,9 @@ export function ExistingAudienceCard({ campaignId }: { campaignId: string }) {
                   }
 
                   if (!businessContext?.business_id) {
-                    toast.error('Business context not loaded. Please try again.');
+                    toast.error(
+                      'Business context not loaded. Please try again.',
+                    );
                     return;
                   }
 

@@ -9,7 +9,12 @@ function deepEqual(a: unknown, b: unknown): boolean {
     const ak = Object.keys(a as object);
     const bk = Object.keys(b as object);
     if (ak.length !== bk.length) return false;
-    return ak.every((k) => deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+    return ak.every((k) =>
+      deepEqual(
+        (a as Record<string, unknown>)[k],
+        (b as Record<string, unknown>)[k],
+      ),
+    );
   }
   return false;
 }

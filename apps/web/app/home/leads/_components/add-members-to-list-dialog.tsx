@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
 import { Plus, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useAddLeadToList } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import {
+  useLeadListMembers,
+  useLeads,
+} from '@kit/supabase/hooks/leads/use-leads';
+import { useSupabase } from '@kit/supabase/hooks/use-supabase';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
+import { Checkbox } from '@kit/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -14,14 +23,8 @@ import {
   DialogTitle,
 } from '@kit/ui/dialog';
 import { Input } from '@kit/ui/input';
-import { Badge } from '@kit/ui/badge';
 import { ScrollArea } from '@kit/ui/scroll-area';
-import { Checkbox } from '@kit/ui/checkbox';
 import { Skeleton } from '@kit/ui/skeleton';
-
-import { useLeads, useLeadListMembers } from '@kit/supabase/hooks/leads/use-leads';
-import { useAddLeadToList } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import { useSupabase } from '@kit/supabase/hooks/use-supabase';
 
 import type { Database } from '~/lib/database.types';
 
@@ -39,24 +42,27 @@ export function AddMembersToListDialog({
   list,
 }: AddMembersToListDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [isAdding, setIsAdding] = useState(false);
 
   const { data: allLeads = [], isLoading: isLoadingLeads } = useLeads();
-  const { data: existingMembers = [], isLoading: isLoadingMembers } = useLeadListMembers(list?.id || '');
+  const { data: existingMembers = [], isLoading: isLoadingMembers } =
+    useLeadListMembers(list?.id || '');
   const addLeadToList = useAddLeadToList();
   const supabase = useSupabase();
 
   // Get IDs of existing members
   const existingMemberIds = useMemo(
-    () => new Set(existingMembers.map(lead => lead.id)),
-    [existingMembers]
+    () => new Set(existingMembers.map((lead) => lead.id)),
+    [existingMembers],
   );
 
   // Filter out leads that are already in the list
   const availableLeads = useMemo(
-    () => allLeads.filter(lead => !existingMemberIds.has(lead.id)),
-    [allLeads, existingMemberIds]
+    () => allLeads.filter((lead) => !existingMemberIds.has(lead.id)),
+    [allLeads, existingMemberIds],
   );
 
   // Filter available leads based on search query
@@ -76,7 +82,7 @@ export function AddMembersToListDialog({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedLeadIds(new Set(filteredLeads.map(lead => lead.id)));
+      setSelectedLeadIds(new Set(filteredLeads.map((lead) => lead.id)));
     } else {
       setSelectedLeadIds(new Set());
     }
@@ -98,7 +104,9 @@ export function AddMembersToListDialog({
     setIsAdding(true);
     try {
       // Get current user for added_by field
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       // Add all selected leads to the list
       const promises = Array.from(selectedLeadIds).map((leadId) =>
@@ -106,7 +114,7 @@ export function AddMembersToListDialog({
           lead_list_id: list.id,
           lead_id: leadId,
           added_by: user?.id || null,
-        })
+        }),
       );
 
       await Promise.all(promises);
@@ -128,21 +136,22 @@ export function AddMembersToListDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-h-[90vh] max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
             Add Members to {list.name}
           </DialogTitle>
           <DialogDescription>
-            Select leads to add to this list. {existingMembers.length} leads are already in this list.
+            Select leads to add to this list. {existingMembers.length} leads are
+            already in this list.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
             <Input
               placeholder="Search leads to add..."
               value={searchQuery}
@@ -153,9 +162,10 @@ export function AddMembersToListDialog({
 
           {/* Selection Summary */}
           {selectedLeadIds.size > 0 && (
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+            <div className="bg-muted flex items-center justify-between rounded-lg p-3">
               <span className="text-sm font-medium">
-                {selectedLeadIds.size} lead{selectedLeadIds.size !== 1 ? 's' : ''} selected
+                {selectedLeadIds.size} lead
+                {selectedLeadIds.size !== 1 ? 's' : ''} selected
               </span>
               <Button
                 variant="ghost"
@@ -170,7 +180,7 @@ export function AddMembersToListDialog({
           {/* Leads List */}
           <ScrollArea className="h-[400px] rounded-md border">
             {isLoading ? (
-              <div className="p-4 space-y-3">
+              <div className="space-y-3 p-4">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="flex items-center space-x-4">
                     <Skeleton className="h-4 w-4 rounded" />
@@ -179,20 +189,20 @@ export function AddMembersToListDialog({
                 ))}
               </div>
             ) : availableLeads.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <div className="text-muted-foreground p-8 text-center">
+                <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
                 <p>All leads are already in this list</p>
               </div>
             ) : filteredLeads.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <div className="text-muted-foreground p-8 text-center">
+                <Search className="mx-auto mb-4 h-12 w-12 opacity-50" />
                 <p>No leads found matching &ldquo;{searchQuery}&rdquo;</p>
               </div>
             ) : (
-              <div className="p-4 space-y-2">
+              <div className="space-y-2 p-4">
                 {/* Select All */}
                 {filteredLeads.length > 1 && (
-                  <label className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer border-b pb-3 mb-3">
+                  <label className="hover:bg-muted mb-3 flex cursor-pointer items-center gap-3 rounded border-b p-2 pb-3">
                     <Checkbox
                       checked={selectedLeadIds.size === filteredLeads.length}
                       onCheckedChange={handleSelectAll}
@@ -207,37 +217,47 @@ export function AddMembersToListDialog({
                 {filteredLeads.map((lead) => (
                   <label
                     key={lead.id}
-                    className="flex items-start gap-3 p-3 rounded hover:bg-muted cursor-pointer"
+                    className="hover:bg-muted flex cursor-pointer items-start gap-3 rounded p-3"
                   >
                     <Checkbox
                       checked={selectedLeadIds.has(lead.id)}
-                      onCheckedChange={(checked) => handleSelectLead(lead.id, !!checked)}
+                      onCheckedChange={(checked) =>
+                        handleSelectLead(lead.id, !!checked)
+                      }
                       className="mt-1"
                     />
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
                           {lead.first_name} {lead.last_name}
                         </span>
                         {lead.quality_rating === 'hot' && (
-                          <Badge variant="destructive" className="text-xs">🔥 Hot</Badge>
+                          <Badge variant="destructive" className="text-xs">
+                            🔥 Hot
+                          </Badge>
                         )}
                         {lead.quality_rating === 'warm' && (
-                          <Badge variant="secondary" className="text-xs">🌡️ Warm</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            🌡️ Warm
+                          </Badge>
                         )}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-muted-foreground text-sm">
                         {lead.email}
                       </div>
                       {lead.company && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-muted-foreground text-sm">
                           {lead.company} {lead.title && `• ${lead.title}`}
                         </div>
                       )}
                       {lead.tags && (lead.tags as string[]).length > 0 && (
-                        <div className="flex gap-1 mt-1">
+                        <div className="mt-1 flex gap-1">
                           {(lead.tags as string[]).slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
+                            <Badge
+                              key={tag}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {tag}
                             </Badge>
                           ))}
@@ -273,7 +293,8 @@ export function AddMembersToListDialog({
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Add {selectedLeadIds.size} Lead{selectedLeadIds.size !== 1 ? 's' : ''}
+                Add {selectedLeadIds.size} Lead
+                {selectedLeadIds.size !== 1 ? 's' : ''}
               </>
             )}
           </Button>

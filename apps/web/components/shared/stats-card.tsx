@@ -16,14 +16,14 @@ interface StatsCardProps {
   className?: string;
 }
 
-export function StatsCard({ 
-  title, 
-  value, 
-  subtitle, 
-  icon: Icon, 
-  trend, 
+export function StatsCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
   liveIndicator,
-  className 
+  className,
 }: StatsCardProps) {
   return (
     <Card className={`glass-panel ${className || ''}`}>
@@ -40,12 +40,16 @@ export function StatsCard({
           )}
           {trend && (
             <>
-              <trend.icon className={`h-3 w-3 ${trend.color || 'text-green-500'}`} />
-              <span className="text-muted-foreground text-xs">{trend.value}</span>
+              <trend.icon
+                className={`h-3 w-3 ${trend.color || 'text-green-500'}`}
+              />
+              <span className="text-muted-foreground text-xs">
+                {trend.value}
+              </span>
             </>
           )}
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

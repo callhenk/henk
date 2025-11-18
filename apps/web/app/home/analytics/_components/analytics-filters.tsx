@@ -2,11 +2,9 @@
 
 import { Calendar, Filter } from 'lucide-react';
 
-import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
-
-import { useDemoMode } from '~/lib/demo-mode-context';
 import {
   Select,
   SelectContent,
@@ -14,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 interface AnalyticsFiltersProps {
   filters: {
@@ -28,7 +28,6 @@ interface AnalyticsFiltersProps {
   };
   onFiltersChange: (filters: AnalyticsFiltersProps['filters']) => void;
 }
-
 
 const datePresets = [
   { value: '7d', label: 'Last 7 Days' },

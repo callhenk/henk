@@ -11,13 +11,13 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ 
-  icon: Icon, 
-  title, 
-  description, 
-  actionLabel, 
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
   onAction,
-  className 
+  className,
 }: EmptyStateProps) {
   return (
     <div className={`py-12 text-center ${className || ''}`}>
@@ -27,10 +27,8 @@ export function EmptyState({
       <h3 className="mb-2 text-lg font-semibold">{title}</h3>
       <p className="text-muted-foreground mb-4">{description}</p>
       {actionLabel && onAction && (
-        <Button onClick={onAction}>
-          {actionLabel}
-        </Button>
+        <Button onClick={onAction}>{actionLabel}</Button>
       )}
     </div>
   );
-} 
+}

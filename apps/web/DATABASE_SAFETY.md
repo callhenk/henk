@@ -42,6 +42,7 @@ This uses the safe deployment script with multiple safeguards:
 4. **Final Confirmation**: Must type `YES` to proceed
 
 Example:
+
 ```bash
 export SUPABASE_PROJECT_REF=your-project-ref
 pnpm supabase:deploy:safe
@@ -51,16 +52,19 @@ pnpm supabase:deploy:safe
 ## Environment Variables
 
 **Local Development** (.env.local):
+
 - Never set `SUPABASE_PROJECT_REF` in local environment files
 - Uses local Supabase instance by default
 
 **Production**:
+
 - `SUPABASE_PROJECT_REF` should only be set in CI/CD or when explicitly deploying
 - Never commit this value to git
 
 ## How to Verify You're Working Locally
 
 Run `pnpm supabase:status` and check for localhost URLs:
+
 ```
 API URL: http://127.0.0.1:54321     ← Local
 DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres  ← Local
@@ -76,6 +80,7 @@ supabase projects list
 ```
 
 If you see a linked project, unlink it:
+
 ```bash
 supabase unlink
 ```
@@ -92,6 +97,7 @@ supabase unlink
 ## Migration Workflow
 
 ### Local Development
+
 ```bash
 # 1. Create migration
 supabase migration new your_migration_name
@@ -109,6 +115,7 @@ pnpm dev
 ```
 
 ### Production Deployment
+
 ```bash
 # 1. Test thoroughly in local environment
 # 2. Commit migrations to git
@@ -122,6 +129,7 @@ pnpm supabase:deploy:safe
 ## Additional Safeguards
 
 The safe deployment script (`scripts/safe-deploy.sh`) includes:
+
 - Explicit project ref requirement
 - Multiple confirmation steps
 - Migration count display
@@ -131,18 +139,21 @@ The safe deployment script (`scripts/safe-deploy.sh`) includes:
 ## Troubleshooting
 
 ### "I accidentally linked to production"
+
 ```bash
 supabase unlink
 pnpm supabase:start
 ```
 
 ### "How do I know if I'm linked?"
+
 ```bash
 cat .supabase/config.toml | grep project_id
 # If you see a project_id, you're linked. Run: supabase unlink
 ```
 
 ### "Reset isn't working"
+
 ```bash
 pnpm supabase:stop
 docker volume ls | grep henk

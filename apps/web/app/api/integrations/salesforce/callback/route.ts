@@ -125,13 +125,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const credentials = integration.credentials as Record<string, string> | null;
+    const credentials = integration.credentials as Record<
+      string,
+      string
+    > | null;
     const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
     const clientSecret =
       credentials?.clientSecret || process.env.SALESFORCE_CLIENT_SECRET;
 
     // Redirect URI is fixed for the application
-    const redirectUri = process.env.SALESFORCE_REDIRECT_URI ||
+    const redirectUri =
+      process.env.SALESFORCE_REDIRECT_URI ||
       `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.callhenk.com'}/api/integrations/salesforce/callback`;
 
     if (!clientId || !clientSecret) {

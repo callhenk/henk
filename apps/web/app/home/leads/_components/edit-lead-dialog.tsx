@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useUpdateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Dialog,
@@ -22,10 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
-import { Badge } from '@kit/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
-
-import { useUpdateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 
 import type { Database } from '~/lib/database.types';
 
@@ -37,7 +37,11 @@ interface EditLeadDialogProps {
   lead: Lead;
 }
 
-export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps) {
+export function EditLeadDialog({
+  open,
+  onOpenChange,
+  lead,
+}: EditLeadDialogProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const updateLead = useUpdateLead();
@@ -70,23 +74,23 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
         first_name: formData.get('first_name') as string,
         last_name: formData.get('last_name') as string,
         email: formData.get('email') as string,
-        phone: formData.get('phone') as string || null,
-        mobile_phone: formData.get('mobile_phone') as string || null,
-        company: formData.get('company') as string || null,
-        title: formData.get('title') as string || null,
-        department: formData.get('department') as string || null,
-        street: formData.get('street') as string || null,
-        city: formData.get('city') as string || null,
-        state: formData.get('state') as string || null,
-        postal_code: formData.get('postal_code') as string || null,
-        country: formData.get('country') as string || null,
-        timezone: formData.get('timezone') as string || null,
+        phone: (formData.get('phone') as string) || null,
+        mobile_phone: (formData.get('mobile_phone') as string) || null,
+        company: (formData.get('company') as string) || null,
+        title: (formData.get('title') as string) || null,
+        department: (formData.get('department') as string) || null,
+        street: (formData.get('street') as string) || null,
+        city: (formData.get('city') as string) || null,
+        state: (formData.get('state') as string) || null,
+        postal_code: (formData.get('postal_code') as string) || null,
+        country: (formData.get('country') as string) || null,
+        timezone: (formData.get('timezone') as string) || null,
         do_not_call: formData.get('do_not_call') === 'on',
         do_not_email: formData.get('do_not_email') === 'on',
         lead_score: parseInt(formData.get('lead_score') as string) || 0,
-        quality_rating: formData.get('quality_rating') as string || null,
+        quality_rating: (formData.get('quality_rating') as string) || null,
         tags: tags,
-        notes: formData.get('notes') as string || null,
+        notes: (formData.get('notes') as string) || null,
       });
 
       toast.success('Lead updated successfully');
@@ -99,7 +103,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Lead</DialogTitle>
           <DialogDescription>
@@ -116,7 +120,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               <TabsTrigger value="scoring">Scoring & Tags</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="basic" className="space-y-4 mt-4">
+            <TabsContent value="basic" className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="first_name">First Name *</Label>
@@ -171,7 +175,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               </div>
             </TabsContent>
 
-            <TabsContent value="contact" className="space-y-4 mt-4">
+            <TabsContent value="contact" className="mt-4 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="street">Street</Label>
                 <Input
@@ -184,11 +188,7 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    defaultValue={lead.city || ''}
-                  />
+                  <Input id="city" name="city" defaultValue={lead.city || ''} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
@@ -221,21 +221,32 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
 
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select name="timezone" defaultValue={lead.timezone || undefined}>
+                <Select
+                  name="timezone"
+                  defaultValue={lead.timezone || undefined}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                    <SelectItem value="America/New_York">
+                      Eastern Time
+                    </SelectItem>
+                    <SelectItem value="America/Chicago">
+                      Central Time
+                    </SelectItem>
+                    <SelectItem value="America/Denver">
+                      Mountain Time
+                    </SelectItem>
+                    <SelectItem value="America/Los_Angeles">
+                      Pacific Time
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </TabsContent>
 
-            <TabsContent value="organization" className="space-y-4 mt-4">
+            <TabsContent value="organization" className="mt-4 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="company">Company</Label>
                 <Input
@@ -269,14 +280,14 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                 <textarea
                   id="notes"
                   name="notes"
-                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="border-input bg-background min-h-[100px] w-full rounded-md border px-3 py-2 text-sm"
                   defaultValue={lead.notes || ''}
                   placeholder="Add any additional notes about this lead..."
                 />
               </div>
             </TabsContent>
 
-            <TabsContent value="scoring" className="space-y-4 mt-4">
+            <TabsContent value="scoring" className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="lead_score">Lead Score (0-100)</Label>
@@ -288,13 +299,16 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                     max="100"
                     defaultValue={lead.lead_score || 0}
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Higher scores indicate higher quality leads
                   </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="quality_rating">Quality Rating</Label>
-                  <Select name="quality_rating" defaultValue={lead.quality_rating || 'unrated'}>
+                  <Select
+                    name="quality_rating"
+                    defaultValue={lead.quality_rating || 'unrated'}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select rating" />
                     </SelectTrigger>
@@ -332,14 +346,14 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                   </Button>
                 </div>
                 {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {tags.map((tag) => (
                       <Badge key={tag} variant="secondary">
                         {tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="ml-1 hover:text-destructive"
+                          className="hover:text-destructive ml-1"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -372,8 +386,8 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               </div>
 
               {/* Display metadata */}
-              <div className="rounded-lg border p-4 bg-muted/50">
-                <h4 className="text-sm font-medium mb-2">Lead Information</h4>
+              <div className="bg-muted/50 rounded-lg border p-4">
+                <h4 className="mb-2 text-sm font-medium">Lead Information</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Source:</span>{' '}
@@ -382,7 +396,9 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                   {lead.source_id && (
                     <div>
                       <span className="text-muted-foreground">Source ID:</span>{' '}
-                      <span className="font-mono text-xs">{lead.source_id}</span>
+                      <span className="font-mono text-xs">
+                        {lead.source_id}
+                      </span>
                     </div>
                   )}
                   {lead.created_at && (
@@ -393,7 +409,9 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
                   )}
                   {lead.last_activity_at && (
                     <div>
-                      <span className="text-muted-foreground">Last Activity:</span>{' '}
+                      <span className="text-muted-foreground">
+                        Last Activity:
+                      </span>{' '}
                       {new Date(lead.last_activity_at).toLocaleDateString()}
                     </div>
                   )}

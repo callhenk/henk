@@ -1,4 +1,5 @@
 import { PageBody, PageHeader } from '@kit/ui/page';
+
 import { ConversationDetail } from './_components/conversation-detail';
 
 interface ConversationPageProps {
@@ -7,7 +8,9 @@ interface ConversationPageProps {
   }>;
 }
 
-export default async function ConversationPage({ params }: ConversationPageProps) {
+export default async function ConversationPage({
+  params,
+}: ConversationPageProps) {
   const { id } = await params;
 
   return (
@@ -18,4 +21,4 @@ export default async function ConversationPage({ params }: ConversationPageProps
       </PageBody>
     </>
   );
-} 
+}

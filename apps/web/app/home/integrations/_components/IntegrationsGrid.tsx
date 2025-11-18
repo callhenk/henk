@@ -35,7 +35,9 @@ export function IntegrationsGrid({
           <CardTitle>Integrations</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-muted-foreground text-sm">No integrations match your filters.</div>
+          <div className="text-muted-foreground text-sm">
+            No integrations match your filters.
+          </div>
         </CardContent>
       </Card>
     );
@@ -100,5 +102,3 @@ export function GridSkeleton() {
     </div>
   );
 }
-
-

@@ -4,8 +4,6 @@ import { useState } from 'react';
 
 import { X } from 'lucide-react';
 
-import type { Json } from '~/lib/database.types';
-
 import { Badge } from '@kit/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 import { Label } from '@kit/ui/label';
@@ -16,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
+
+import type { Json } from '~/lib/database.types';
 
 interface AgentLanguageProps {
   agent: {

@@ -5,9 +5,9 @@ import { useMemo } from 'react';
 import { Clock } from 'lucide-react';
 
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
+import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
 import { useDemoMode } from '~/lib/demo-mode-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@kit/ui/card';
 
 interface TimeOfDayChartProps {
   filters: {

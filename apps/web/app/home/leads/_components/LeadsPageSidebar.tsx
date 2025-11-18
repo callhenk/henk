@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Plus, List, Filter, ChevronRight } from 'lucide-react';
 
-import { Button } from '@kit/ui/button';
+import { ChevronRight, Filter, List, Plus, Users } from 'lucide-react';
+
+import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
 import { Badge } from '@kit/ui/badge';
-import { ScrollArea } from '@kit/ui/scroll-area';
-import { Separator } from '@kit/ui/separator';
+import { Button } from '@kit/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@kit/ui/collapsible';
-
-import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
+import { ScrollArea } from '@kit/ui/scroll-area';
+import { Separator } from '@kit/ui/separator';
 
 interface LeadsPageSidebarProps {
   selectedListId: string | null;
@@ -47,7 +47,7 @@ export function LeadsPageSidebar({
   }) => (
     <button
       onClick={() => onSelectList(id === selectedListId ? null : id)}
-      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+      className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
         selectedListId === id
           ? 'bg-primary text-primary-foreground'
           : 'hover:bg-muted text-foreground'
@@ -55,11 +55,11 @@ export function LeadsPageSidebar({
     >
       {color && (
         <div
-          className="h-3 w-3 rounded-full flex-shrink-0"
+          className="h-3 w-3 flex-shrink-0 rounded-full"
           style={{ backgroundColor: color }}
         />
       )}
-      <span className="flex-1 text-left truncate">{name}</span>
+      <span className="flex-1 truncate text-left">{name}</span>
       {leadCount !== undefined && (
         <Badge
           variant={selectedListId === id ? 'secondary' : 'outline'}
@@ -72,21 +72,21 @@ export function LeadsPageSidebar({
   );
 
   return (
-    <div className="w-64 border-r bg-card h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-lg flex items-center gap-2">
+    <div className="bg-card flex h-full w-64 flex-col border-r">
+      <div className="border-b p-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Filter className="h-5 w-5" />
           Filter Leads
         </h2>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+        <div className="space-y-4 p-4">
           {/* All Leads */}
           <div>
             <button
               onClick={() => onSelectList(null)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
                 selectedListId === null
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-muted text-foreground'
@@ -103,7 +103,7 @@ export function LeadsPageSidebar({
           <Collapsible open={listsExpanded} onOpenChange={setListsExpanded}>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                <CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors">
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${
                       listsExpanded ? 'rotate-90' : ''
@@ -124,11 +124,11 @@ export function LeadsPageSidebar({
 
               <CollapsibleContent className="space-y-1">
                 {isLoading ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground px-3 py-2 text-sm">
                     Loading lists...
                   </div>
                 ) : leadLists.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground px-3 py-2 text-sm">
                     No lists yet. Create your first list!
                   </div>
                 ) : (
@@ -136,7 +136,7 @@ export function LeadsPageSidebar({
                     {/* Static Lists */}
                     {staticLists.length > 0 && (
                       <div className="space-y-1">
-                        <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                        <div className="text-muted-foreground px-3 py-1 text-xs font-medium">
                           Static Lists
                         </div>
                         {staticLists.map((list) => (
@@ -153,8 +153,8 @@ export function LeadsPageSidebar({
 
                     {/* Dynamic Lists */}
                     {dynamicLists.length > 0 && (
-                      <div className="space-y-1 mt-2">
-                        <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <div className="mt-2 space-y-1">
+                        <div className="text-muted-foreground px-3 py-1 text-xs font-medium">
                           Dynamic Lists
                         </div>
                         {dynamicLists.map((list) => (
@@ -171,8 +171,8 @@ export function LeadsPageSidebar({
 
                     {/* Smart Lists */}
                     {smartLists.length > 0 && (
-                      <div className="space-y-1 mt-2">
-                        <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <div className="mt-2 space-y-1">
+                        <div className="text-muted-foreground px-3 py-1 text-xs font-medium">
                           Smart Lists
                         </div>
                         {smartLists.map((list) => (

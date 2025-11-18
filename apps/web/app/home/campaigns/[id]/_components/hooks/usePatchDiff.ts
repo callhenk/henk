@@ -20,7 +20,10 @@ export function diffPatch<T extends Record<string, unknown>>(
     const av = a[k as keyof T] as unknown;
     const bv = b[k as keyof T] as unknown;
     if (isObject(av) && isObject(bv)) {
-      const nested = diffPatch(av as Record<string, unknown>, bv as Record<string, unknown>);
+      const nested = diffPatch(
+        av as Record<string, unknown>,
+        bv as Record<string, unknown>,
+      );
       if (Object.keys(nested).length > 0) {
         patch[k] = nested;
       }

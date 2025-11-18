@@ -1,4 +1,5 @@
 import { PageBody, PageHeader } from '@kit/ui/page';
+
 import { LeadDetail } from './_components/lead-detail';
 
 interface LeadPageProps {

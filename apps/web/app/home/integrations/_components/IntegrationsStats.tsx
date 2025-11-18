@@ -15,9 +15,24 @@ export function IntegrationsStats({
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <Stat title="Connected integrations" value={connected} icon={CheckCircle2} subtitle="Currently active" />
-      <Stat title="Available integrations" value={available} icon={Puzzle} subtitle="Total providers" />
-      <Stat title="Popular integrations" value={popular} icon={BarChart3} subtitle="Frequently used" />
+      <Stat
+        title="Connected integrations"
+        value={connected}
+        icon={CheckCircle2}
+        subtitle="Currently active"
+      />
+      <Stat
+        title="Available integrations"
+        value={available}
+        icon={Puzzle}
+        subtitle="Total providers"
+      />
+      <Stat
+        title="Popular integrations"
+        value={popular}
+        icon={BarChart3}
+        subtitle="Frequently used"
+      />
     </div>
   );
 }
@@ -50,5 +65,3 @@ function Stat({
     </Card>
   );
 }
-
-

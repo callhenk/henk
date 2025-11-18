@@ -1,9 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useCreateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Dialog,
@@ -22,10 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@kit/ui/select';
-import { Badge } from '@kit/ui/badge';
-
-import { useCreateLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
 
 interface AddLeadDialogProps {
   open: boolean;
@@ -64,17 +64,17 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
         first_name: formData.get('first_name') as string,
         last_name: formData.get('last_name') as string,
         email: formData.get('email') as string,
-        phone: formData.get('phone') as string || null,
-        mobile_phone: formData.get('mobile_phone') as string || null,
-        company: formData.get('company') as string || null,
-        title: formData.get('title') as string || null,
-        department: formData.get('department') as string || null,
-        street: formData.get('street') as string || null,
-        city: formData.get('city') as string || null,
-        state: formData.get('state') as string || null,
-        postal_code: formData.get('postal_code') as string || null,
-        country: formData.get('country') as string || null,
-        timezone: formData.get('timezone') as string || null,
+        phone: (formData.get('phone') as string) || null,
+        mobile_phone: (formData.get('mobile_phone') as string) || null,
+        company: (formData.get('company') as string) || null,
+        title: (formData.get('title') as string) || null,
+        department: (formData.get('department') as string) || null,
+        street: (formData.get('street') as string) || null,
+        city: (formData.get('city') as string) || null,
+        state: (formData.get('state') as string) || null,
+        postal_code: (formData.get('postal_code') as string) || null,
+        country: (formData.get('country') as string) || null,
+        timezone: (formData.get('timezone') as string) || null,
         do_not_call: formData.get('do_not_call') === 'on',
         do_not_email: formData.get('do_not_email') === 'on',
         tags: tags,
@@ -93,7 +93,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>
@@ -168,10 +168,18 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                    <SelectItem value="America/New_York">
+                      Eastern Time
+                    </SelectItem>
+                    <SelectItem value="America/Chicago">
+                      Central Time
+                    </SelectItem>
+                    <SelectItem value="America/Denver">
+                      Mountain Time
+                    </SelectItem>
+                    <SelectItem value="America/Los_Angeles">
+                      Pacific Time
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -184,28 +192,16 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  name="company"
-                  placeholder="Acme Corp"
-                />
+                <Input id="company" name="company" placeholder="Acme Corp" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="title">Job Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  placeholder="CEO"
-                />
+                <Input id="title" name="title" placeholder="CEO" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
-              <Input
-                id="department"
-                name="department"
-                placeholder="Sales"
-              />
+              <Input id="department" name="department" placeholder="Sales" />
             </div>
           </div>
 
@@ -214,28 +210,16 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
             <h3 className="text-sm font-medium">Address</h3>
             <div className="space-y-2">
               <Label htmlFor="street">Street</Label>
-              <Input
-                id="street"
-                name="street"
-                placeholder="123 Main St"
-              />
+              <Input id="street" name="street" placeholder="123 Main St" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  name="city"
-                  placeholder="New York"
-                />
+                <Input id="city" name="city" placeholder="New York" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  placeholder="NY"
-                />
+                <Input id="state" name="state" placeholder="NY" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -277,23 +261,19 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                   }}
                   placeholder="e.g., major_lead, prospect"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddTag}
-                >
+                <Button type="button" variant="outline" onClick={handleAddTag}>
                   Add
                 </Button>
               </div>
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {tags.map((tag) => (
                     <Badge key={tag} variant="secondary">
                       {tag}
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:text-destructive"
+                        className="hover:text-destructive ml-1"
                       >
                         <X className="h-3 w-3" />
                       </button>

@@ -3,12 +3,12 @@
 import Link from 'next/link';
 
 import {
+  Calendar,
   Clock,
+  MessageSquare,
+  Mic,
   Phone,
   TrendingUp,
-  MessageSquare,
-  Calendar,
-  Mic
 } from 'lucide-react';
 
 import { Badge } from '@kit/ui/badge';
@@ -19,9 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-import {
-  TooltipProvider,
-} from '@kit/ui/tooltip';
+import { TooltipProvider } from '@kit/ui/tooltip';
 
 interface AgentOverviewProps {
   agent: {
@@ -96,11 +94,15 @@ export function AgentOverview({
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Calls Handled</p>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Calls Handled
+                  </p>
                   <p className="mt-2 text-3xl font-bold">{callsHandled}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Total conversations</p>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    Total conversations
+                  </p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
                   <Phone className="h-6 w-6" />
                 </div>
               </div>
@@ -111,13 +113,15 @@ export function AgentOverview({
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Conversion Rate
+                  </p>
                   <p className="mt-2 text-3xl font-bold">{conversionRate}%</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     {successfulCalls} of {callsHandled} successful
                   </p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
                   <TrendingUp className="h-6 w-6" />
                 </div>
               </div>
@@ -128,11 +132,15 @@ export function AgentOverview({
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Hours</p>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Active Hours
+                  </p>
                   <p className="mt-2 text-3xl font-bold">{activeHours}h</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Total talk time</p>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    Total talk time
+                  </p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
                   <Clock className="h-6 w-6" />
                 </div>
               </div>
@@ -155,7 +163,9 @@ export function AgentOverview({
                       <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground">Language</p>
+                      <p className="text-muted-foreground text-xs font-medium">
+                        Language
+                      </p>
                       <p className="mt-0.5 truncate font-semibold">English</p>
                     </div>
                   </div>
@@ -165,7 +175,9 @@ export function AgentOverview({
                       <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground">Voice Type</p>
+                      <p className="text-muted-foreground text-xs font-medium">
+                        Voice Type
+                      </p>
                       <p className="mt-0.5 truncate font-semibold">
                         {getVoiceTypeLabel(agent.voice_type)}
                       </p>
@@ -177,9 +189,13 @@ export function AgentOverview({
                       <Calendar className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground">Last Edited</p>
+                      <p className="text-muted-foreground text-xs font-medium">
+                        Last Edited
+                      </p>
                       <p className="mt-0.5 truncate text-sm font-semibold">
-                        {agent.updated_at ? formatDate(agent.updated_at) : 'Never'}
+                        {agent.updated_at
+                          ? formatDate(agent.updated_at)
+                          : 'Never'}
                       </p>
                     </div>
                   </div>
@@ -193,7 +209,9 @@ export function AgentOverview({
                   <div>
                     <CardTitle className="text-lg">Linked Campaigns</CardTitle>
                     <CardDescription>
-                      {agentCampaigns.length} {agentCampaigns.length === 1 ? 'campaign' : 'campaigns'} using this agent
+                      {agentCampaigns.length}{' '}
+                      {agentCampaigns.length === 1 ? 'campaign' : 'campaigns'}{' '}
+                      using this agent
                     </CardDescription>
                   </div>
                   {agentCampaigns.length > 0 && (
@@ -208,20 +226,22 @@ export function AgentOverview({
                       <Link
                         key={campaign.id}
                         href={`/home/campaigns/${campaign.id}`}
-                        className="group flex items-center justify-between rounded-lg border p-3 transition-all hover:border-primary hover:bg-primary/5"
+                        className="group hover:border-primary hover:bg-primary/5 flex items-center justify-between rounded-lg border p-3 transition-all"
                       >
-                        <span className="font-medium group-hover:text-primary">
+                        <span className="group-hover:text-primary font-medium">
                           {campaign.name}
                         </span>
-                        <Badge variant="success" className="text-xs">Active</Badge>
+                        <Badge variant="success" className="text-xs">
+                          Active
+                        </Badge>
                       </Link>
                     ))
                   ) : (
                     <div className="rounded-lg border border-dashed p-8 text-center">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         No campaigns assigned yet
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         Create a campaign to start using this agent
                       </p>
                     </div>
@@ -241,8 +261,8 @@ export function AgentOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="max-h-64 overflow-y-auto rounded-lg border bg-muted/30 p-4">
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                <div className="bg-muted/30 max-h-64 overflow-y-auto rounded-lg border p-4">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {agent.donor_context || 'No context prompt available'}
                   </p>
                 </div>
@@ -257,7 +277,7 @@ export function AgentOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-lg border bg-muted/30 p-4">
+                <div className="bg-muted/30 rounded-lg border p-4">
                   <p className="text-sm leading-relaxed">
                     {agent.starting_message || 'No starting message available'}
                   </p>

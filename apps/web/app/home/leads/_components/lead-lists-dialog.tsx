@@ -1,32 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, List, Trash2, Edit, Users as UsersIcon } from 'lucide-react';
+
+import { Edit, List, Plus, Trash2, Users as UsersIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@kit/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@kit/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@kit/ui/table';
-import { Badge } from '@kit/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@kit/ui/dropdown-menu';
+import { useDeleteLeadList } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,9 +17,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
-
-import { useLeadLists } from '@kit/supabase/hooks/leads/use-leads';
-import { useDeleteLeadList } from '@kit/supabase/hooks/leads/use-lead-mutations';
+import { Badge } from '@kit/ui/badge';
+import { Button } from '@kit/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@kit/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@kit/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@kit/ui/table';
 
 import type { Database } from '~/lib/database.types';
 
@@ -96,14 +96,16 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
             </div>
 
             {isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">
+              <div className="text-muted-foreground py-8 text-center">
                 Loading lead lists...
               </div>
             ) : leadLists.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <List className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <div className="text-muted-foreground py-8 text-center">
+                <List className="mx-auto mb-4 h-12 w-12 opacity-50" />
                 <p>No lead lists yet</p>
-                <p className="text-sm">Create your first list to organize your leads</p>
+                <p className="text-sm">
+                  Create your first list to organize your leads
+                </p>
               </div>
             ) : (
               <div className="rounded-md border">
@@ -211,8 +213,8 @@ export function LeadListsDialog({ open, onOpenChange }: LeadListsDialogProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Lead List</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this lead list? This will not delete
-              the leads themselves, only the list organization.
+              Are you sure you want to delete this lead list? This will not
+              delete the leads themselves, only the list organization.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

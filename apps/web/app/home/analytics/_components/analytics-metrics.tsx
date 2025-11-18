@@ -16,9 +16,8 @@ import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import { useLeads } from '@kit/supabase/hooks/leads/use-leads';
 
-import { useDemoMode } from '~/lib/demo-mode-context';
-
 import { StatsCard } from '~/components/shared';
+import { useDemoMode } from '~/lib/demo-mode-context';
 
 interface AnalyticsMetricsProps {
   filters: {

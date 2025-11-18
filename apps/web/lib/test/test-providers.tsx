@@ -1,4 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+/**
+ * Helper to render components with test providers
+ */
+import { type RenderOptions, render } from '@testing-library/react';
 
 /**
  * Creates a fresh QueryClient for each test
@@ -20,11 +24,7 @@ export function createTestQueryClient() {
 /**
  * Test wrapper that provides React Query context
  */
-export function QueryTestProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function QueryTestProvider({ children }: { children: React.ReactNode }) {
   const queryClient = createTestQueryClient();
 
   return (
@@ -39,16 +39,9 @@ export function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = createTestQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
-
-/**
- * Helper to render components with test providers
- */
-import { render, type RenderOptions } from '@testing-library/react';
 
 export function renderWithProviders(
   ui: React.ReactElement,

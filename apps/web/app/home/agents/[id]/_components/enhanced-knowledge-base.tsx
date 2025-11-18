@@ -12,6 +12,11 @@ import {
   Upload,
 } from 'lucide-react';
 
+import {
+  useFetchAgentKnowledgeBases,
+  useLinkKnowledgeBaseToAgent,
+  useUnlinkKnowledgeBaseFromAgent,
+} from '@kit/supabase/hooks/knowledge-bases/use-knowledge-base-mutations';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Input } from '@kit/ui/input';
@@ -24,11 +29,6 @@ import {
   SelectValue,
 } from '@kit/ui/select';
 import { Textarea } from '@kit/ui/textarea';
-import {
-  useLinkKnowledgeBaseToAgent,
-  useUnlinkKnowledgeBaseFromAgent,
-  useFetchAgentKnowledgeBases,
-} from '@kit/supabase/hooks/knowledge-bases/use-knowledge-base-mutations';
 
 import {
   type CreateDocumentRequest,
@@ -100,9 +100,9 @@ export function EnhancedKnowledgeBase({
             name: kb.name,
             type: 'knowledge_base',
           };
-        }
+        },
       ),
-    [agentKBs]
+    [agentKBs],
   );
 
   // Check if a document is linked to the agent
@@ -137,7 +137,7 @@ export function EnhancedKnowledgeBase({
   // Use JSON.stringify to create a stable dependency that only changes when IDs actually change
   const linkedDocIds = useMemo(
     () => linkedDocuments.map((doc) => doc.id),
-    [linkedDocuments]
+    [linkedDocuments],
   );
 
   useEffect(() => {
@@ -265,7 +265,7 @@ export function EnhancedKnowledgeBase({
 
     // Filter out already-linked documents
     const selected = documents.filter(
-      (doc) => selectedDocs.includes(doc.id) && !isDocumentLinked(doc.id)
+      (doc) => selectedDocs.includes(doc.id) && !isDocumentLinked(doc.id),
     );
 
     if (selected.length === 0) {
@@ -273,7 +273,7 @@ export function EnhancedKnowledgeBase({
 
       // Check if all selected docs are already linked
       const alreadyLinked = documents.filter(
-        (doc) => selectedDocs.includes(doc.id) && isDocumentLinked(doc.id)
+        (doc) => selectedDocs.includes(doc.id) && isDocumentLinked(doc.id),
       );
 
       if (alreadyLinked.length > 0) {
@@ -291,13 +291,15 @@ export function EnhancedKnowledgeBase({
         linkKBMutation.mutateAsync({
           agent_id: _agentId,
           knowledge_base_id: doc.id,
-        })
+        }),
       );
 
       await Promise.all(linkPromises);
       const { toast } = await import('sonner');
 
-      toast.success(`Linked ${selected.length} document${selected.length > 1 ? 's' : ''} to agent!`);
+      toast.success(
+        `Linked ${selected.length} document${selected.length > 1 ? 's' : ''} to agent!`,
+      );
       // Clear selection after successful linking
       setSelectedDocs([]);
     } catch (error) {
@@ -351,17 +353,23 @@ export function EnhancedKnowledgeBase({
 
   if (!elevenlabsAgentId) {
     return (
-      <div className="rounded-xl border bg-gradient-to-br from-card to-muted/20 p-8">
+      <div className="from-card to-muted/20 rounded-xl border bg-gradient-to-br p-8">
         <div className="mx-auto max-w-md text-center">
-          <div className="mb-4 inline-flex rounded-full bg-orange-100 dark:bg-orange-900/20 p-4">
+          <div className="mb-4 inline-flex rounded-full bg-orange-100 p-4 dark:bg-orange-900/20">
             <BookOpen className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           </div>
-          <h3 className="mb-2 text-xl font-semibold">Voice Settings Required</h3>
+          <h3 className="mb-2 text-xl font-semibold">
+            Voice Settings Required
+          </h3>
           <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-            The Knowledge Base is linked to your agent&apos;s voice configuration. To enable this feature, please visit the <strong>Voice</strong> tab and save your voice settings first.
+            The Knowledge Base is linked to your agent&apos;s voice
+            configuration. To enable this feature, please visit the{' '}
+            <strong>Voice</strong> tab and save your voice settings first.
           </p>
           <p className="text-muted-foreground text-xs">
-            Once voice settings are configured, you&apos;ll be able to add documents, web pages, and files to enhance your agent&apos;s knowledge.
+            Once voice settings are configured, you&apos;ll be able to add
+            documents, web pages, and files to enhance your agent&apos;s
+            knowledge.
           </p>
         </div>
       </div>
@@ -372,40 +380,52 @@ export function EnhancedKnowledgeBase({
     <>
       <div className="space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center rounded-xl border bg-card p-12">
+          <div className="bg-card flex items-center justify-center rounded-xl border p-12">
             <div className="text-center">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+              <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
               <p className="text-muted-foreground text-sm">
                 Loading documents...
               </p>
             </div>
           </div>
         ) : documents.length === 0 ? (
-          <div className="rounded-xl border bg-gradient-to-br from-card to-muted/20 p-12">
+          <div className="from-card to-muted/20 rounded-xl border bg-gradient-to-br p-12">
             <div className="mx-auto max-w-md text-center">
-              <div className="mb-4 inline-flex rounded-full bg-primary/10 p-4">
-                <BookOpen className="h-8 w-8 text-primary" />
+              <div className="bg-primary/10 mb-4 inline-flex rounded-full p-4">
+                <BookOpen className="text-primary h-8 w-8" />
               </div>
               <h3 className="mb-2 text-xl font-semibold">No documents yet</h3>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
-                Add knowledge documents, web pages, or files to help your agent provide more accurate and contextual responses during conversations.
+                Add knowledge documents, web pages, or files to help your agent
+                provide more accurate and contextual responses during
+                conversations.
               </p>
-              <Button onClick={() => setShowAddForm(true)} size="lg" className="gap-2">
+              <Button
+                onClick={() => setShowAddForm(true)}
+                size="lg"
+                className="gap-2"
+              >
                 <Plus className="h-4 w-4" />
                 Add Your First Document
               </Button>
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border bg-card p-6">
+          <div className="bg-card rounded-xl border p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Documents ({documents.length})</h3>
+                <h3 className="text-lg font-semibold">
+                  Documents ({documents.length})
+                </h3>
                 <p className="text-muted-foreground text-sm">
                   {linkedDocuments.length} linked to agent
                 </p>
               </div>
-              <Button onClick={() => setShowAddForm(true)} variant="outline" size="sm">
+              <Button
+                onClick={() => setShowAddForm(true)}
+                variant="outline"
+                size="sm"
+              >
                 <Plus className="mr-2 h-3.5 w-3.5" />
                 Add Document
               </Button>
@@ -421,10 +441,12 @@ export function EnhancedKnowledgeBase({
                   <div
                     key={doc.id}
                     className={`group flex items-center justify-between rounded-lg border p-3.5 transition-colors ${
-                      isDocSelected(doc.id) ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                      isDocSelected(doc.id)
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
                     }`}
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                       <input
                         type="checkbox"
                         checked={isDocSelected(doc.id)}
@@ -433,20 +455,27 @@ export function EnhancedKnowledgeBase({
                         aria-label={`Select ${doc.name}`}
                         disabled={isUnlinking}
                       />
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <div className="bg-muted flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg">
                         {getDocumentTypeIconComponent(doc.type)}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm truncate">{doc.name}</h4>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-center gap-2">
+                          <h4 className="truncate text-sm font-medium">
+                            {doc.name}
+                          </h4>
                           {isLinked && (
-                            <Badge variant="default" className="flex-shrink-0 text-xs">
+                            <Badge
+                              variant="default"
+                              className="flex-shrink-0 text-xs"
+                            >
                               Linked
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Badge variant="outline" className="text-xs">{doc.type}</Badge>
+                        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                          <Badge variant="outline" className="text-xs">
+                            {doc.type}
+                          </Badge>
                           {doc.metadata && (
                             <>
                               <span>•</span>
@@ -461,14 +490,14 @@ export function EnhancedKnowledgeBase({
                             href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-1 block truncate text-xs text-primary hover:underline"
+                            className="text-primary mt-1 block truncate text-xs hover:underline"
                           >
                             {doc.url}
                           </a>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                    <div className="ml-3 flex flex-shrink-0 items-center gap-1">
                       {isLinked && (
                         <Button
                           variant="ghost"
@@ -489,7 +518,7 @@ export function EnhancedKnowledgeBase({
                         size="sm"
                         onClick={() => showDeleteConfirmation(doc)}
                         disabled={isUnlinking}
-                        className="h-8 px-2 text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-8 px-2"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -510,7 +539,7 @@ export function EnhancedKnowledgeBase({
                 ) : (
                   <span>
                     {selectedDocs.length > 0 && (
-                      <span className="font-medium text-foreground">
+                      <span className="text-foreground font-medium">
                         {selectedDocs.length} selected •{' '}
                       </span>
                     )}
@@ -543,7 +572,8 @@ export function EnhancedKnowledgeBase({
                   ) : (
                     <>
                       <Link className="mr-2 h-3.5 w-3.5" />
-                      Link {selectedDocs.length} {selectedDocs.length === 1 ? 'Document' : 'Documents'}
+                      Link {selectedDocs.length}{' '}
+                      {selectedDocs.length === 1 ? 'Document' : 'Documents'}
                     </>
                   )}
                 </Button>

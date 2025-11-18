@@ -1,7 +1,6 @@
 /**
  * Tests for phone utility functions
  */
-
 import { describe, expect, it } from 'vitest';
 
 import {
