@@ -223,9 +223,9 @@ export function sanitizeLead(lead: Partial<LeadInsert>): Partial<LeadInsert> {
     }
 
     if (typeof value === 'string') {
-      (sanitized as any)[key] = value.trim();
+      (sanitized as Record<string, unknown>)[key] = value.trim();
     } else {
-      (sanitized as any)[key] = value;
+      (sanitized as Record<string, unknown>)[key] = value;
     }
   }
 

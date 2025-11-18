@@ -70,7 +70,7 @@ export class StorageClient {
         );
       }
 
-      const result = await response.json();
+      await response.json();
 
       return {
         url: `${this.supabaseUrl}/storage/v1/object/public/audio/${fileName}`,

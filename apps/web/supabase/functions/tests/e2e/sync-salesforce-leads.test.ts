@@ -1,7 +1,7 @@
 /**
  * E2E tests for sync-salesforce-leads edge function
  */
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertExists } from 'jsr:@std/assert';
 
 import {
   TestCleanup,

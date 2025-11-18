@@ -4,28 +4,28 @@
 export interface Voice {
   voice_id: string;
   name: string;
-  samples: any[];
+  samples: unknown[];
   category: string;
   fine_tuning: {
     language: string;
     is_allowed_to_fine_tune: boolean;
     finetuning_request_status: string;
-    verification_attempts: any[];
+    verification_attempts: unknown[];
     manual_verification_requested: boolean;
     language_description: string;
     verification_attempts_count: number;
     verification_failures: string[];
-    verification: any[];
+    verification: unknown[];
   };
   labels: Record<string, string>;
   description: string;
   preview_url: string;
   available_for_tiers: string[];
-  settings: any;
-  sharing: any;
+  settings: Record<string, unknown> | null;
+  sharing: Record<string, unknown> | null;
   high_quality_base_model_ids: string[];
   safety_control: string;
-  voice_verification: any;
+  voice_verification: Record<string, unknown> | null;
 }
 
 export interface GenerateSpeechRequest {
@@ -267,7 +267,9 @@ export class ElevenLabsClient {
 
   // Enhanced Knowledge Base methods based on current ElevenLabs API documentation
 
-  async createKnowledgeBaseFromText(knowledgeBaseConfig: any) {
+  async createKnowledgeBaseFromText(
+    knowledgeBaseConfig: Record<string, unknown>,
+  ) {
     if (this.isDemoMode) {
       return {
         id: `demo_kb_${Date.now()}`,
@@ -333,7 +335,10 @@ export class ElevenLabsClient {
     return await response.json();
   }
 
-  async addToKnowledgeBase(agentId: string, knowledgeBaseData: any) {
+  async addToKnowledgeBase(
+    agentId: string,
+    knowledgeBaseData: Record<string, unknown>,
+  ) {
     if (this.isDemoMode) {
       return {
         id: `demo_kb_${Date.now()}`,
@@ -378,7 +383,7 @@ export class ElevenLabsClient {
     return await response.json();
   }
 
-  async createKnowledgeBase(knowledgeBaseConfig: any) {
+  async createKnowledgeBase(knowledgeBaseConfig: Record<string, unknown>) {
     if (this.isDemoMode) {
       return {
         knowledge_base_id: `demo_kb_${Date.now()}`,
@@ -506,7 +511,10 @@ export class ElevenLabsClient {
     return await response.json();
   }
 
-  async updateKnowledgeBase(knowledgeBaseId: string, updates: any) {
+  async updateKnowledgeBase(
+    knowledgeBaseId: string,
+    updates: Record<string, unknown>,
+  ) {
     if (this.isDemoMode) {
       return {
         id: knowledgeBaseId,
@@ -567,7 +575,7 @@ export class ElevenLabsClient {
 
   // New Conversational AI methods
 
-  async createAgent(agentConfig: any) {
+  async createAgent(agentConfig: Record<string, unknown>) {
     if (this.isDemoMode) {
       return {
         agent_id: `demo_agent_${Date.now()}`,
@@ -674,7 +682,7 @@ export class ElevenLabsClient {
     }
   }
 
-  async updateAgent(agentId: string, updates: any) {
+  async updateAgent(agentId: string, updates: Record<string, unknown>) {
     if (this.isDemoMode) {
       return {
         agent_id: agentId,
@@ -701,7 +709,10 @@ export class ElevenLabsClient {
     return await response.json();
   }
 
-  async initiateConversation(agentId: string, context: any) {
+  async initiateConversation(
+    agentId: string,
+    context: Record<string, unknown>,
+  ) {
     if (this.isDemoMode) {
       return {
         conversation_id: `demo_conv_${Date.now()}`,
@@ -777,7 +788,11 @@ export class ElevenLabsClient {
     }
   }
 
-  async sendMessage(conversationId: string, message: string, context?: any) {
+  async sendMessage(
+    conversationId: string,
+    message: string,
+    context?: Record<string, unknown>,
+  ) {
     if (this.isDemoMode) {
       return {
         conversation_id: conversationId,

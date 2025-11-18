@@ -1,4 +1,6 @@
 // Salesforce API client with retry logic and error handling
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 import { needsTokenRefresh, refreshToken } from './token-manager.ts';
 import type { Integration, SalesforceQueryResponse } from './types.ts';
 
@@ -8,9 +10,9 @@ import type { Integration, SalesforceQueryResponse } from './types.ts';
 export class SalesforceClient {
   private integration: Integration;
   private credentials: Integration['credentials'];
-  private supabase: any;
+  private supabase: SupabaseClient;
 
-  constructor(integration: Integration, supabase: any) {
+  constructor(integration: Integration, supabase: SupabaseClient) {
     this.integration = integration;
     this.credentials = integration.credentials;
     this.supabase = supabase;
