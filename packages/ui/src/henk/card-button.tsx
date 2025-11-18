@@ -69,7 +69,7 @@ export const CardButtonHeader: React.FC<
 
         <ChevronRight
           className={cn(
-            'text-muted-foreground group-hover:text-secondary-foreground absolute right-2 top-4 h-4 transition-colors',
+            'text-muted-foreground group-hover:text-secondary-foreground absolute top-4 right-2 h-4 transition-colors',
             {
               hidden: !displayArrow,
             },

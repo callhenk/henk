@@ -26,7 +26,7 @@ export function ProfileAvatar(props: ProfileAvatarProps) {
 
   const avatarClassName = cn(
     props.className,
-    'mx-auto h-9 w-9 transition-transform duration-200 hover:scale-105 group-focus:ring-2',
+    'mx-auto h-9 w-9 transition-transform duration-200 group-focus:ring-2 hover:scale-105',
   );
 
   const handleImageError = useCallback(() => {

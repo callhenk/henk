@@ -27,7 +27,7 @@ const SelectTrigger: React.FC<
 > = ({ className, children, ...props }) => (
   <SelectPrimitive.Trigger
     className={cn(
-      'glass-panel border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring focus:outline-hidden flex h-9 w-full items-center justify-between rounded-md px-3 py-2 text-sm focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50',
+      'glass-panel border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-9 w-full items-center justify-between rounded-md px-3 py-2 text-sm focus:ring-1 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
       className,
     )}
     {...props}
@@ -118,7 +118,7 @@ const SelectItem: React.FC<
 > = ({ className, children, ...props }) => (
   <SelectPrimitive.Item
     className={cn(
-      'focus:bg-accent/50 focus:text-accent-foreground hover:bg-accent/30 outline-hidden data-disabled:pointer-events-none data-disabled:opacity-50 relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-2 pr-8 text-sm',
+      'focus:bg-accent/50 focus:text-accent-foreground hover:bg-accent/30 relative flex w-full cursor-default items-center rounded-md py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50',
       className,
     )}
     {...props}
