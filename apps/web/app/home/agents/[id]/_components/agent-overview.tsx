@@ -262,7 +262,7 @@ export function AgentOverview({
               </CardHeader>
               <CardContent>
                 <div className="bg-muted/30 max-h-64 overflow-y-auto rounded-lg border p-4">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {agent.donor_context || 'No context prompt available'}
                   </p>
                 </div>
