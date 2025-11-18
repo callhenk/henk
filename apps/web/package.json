@@ -76,6 +76,7 @@
     "resend": "^6.4.2",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.3.0",
+    "twilio": "^5.10.5",
     "zod": "^3.25.32"
   },
   "devDependencies": {

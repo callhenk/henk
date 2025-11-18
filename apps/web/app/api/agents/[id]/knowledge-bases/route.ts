@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import type { Database } from '~/lib/database.types';
 import { getSupabaseServerClient } from '~/lib/supabase/server';
 
 const corsHeaders = {
@@ -9,8 +12,7 @@ const corsHeaders = {
 };
 
 // Helper function to get user's business context
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getUserBusinessContext(supabase: any) {
+async function getUserBusinessContext(supabase: SupabaseClient<Database>) {
   const {
     data: { user },
     error: authError,
@@ -40,8 +42,11 @@ async function getUserBusinessContext(supabase: any) {
 }
 
 // Helper function to validate agent belongs to user's business
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function validateAgentBusinessAccess(supabase: any, agentId: string, businessId: string) {
+async function validateAgentBusinessAccess(
+  supabase: SupabaseClient<Database>,
+  agentId: string,
+  businessId: string,
+) {
   const { data: agent, error } = await supabase
     .from('agents')
     .select('id, business_id')
@@ -60,8 +65,11 @@ async function validateAgentBusinessAccess(supabase: any, agentId: string, busin
 }
 
 // Helper function to validate knowledge base belongs to user's business
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function validateKnowledgeBaseBusinessAccess(supabase: any, kbId: string, businessId: string) {
+async function validateKnowledgeBaseBusinessAccess(
+  supabase: SupabaseClient<Database>,
+  kbId: string,
+  businessId: string,
+) {
   const { data: kb, error } = await supabase
     .from('knowledge_bases')
     .select('id, business_id')
@@ -73,7 +81,9 @@ async function validateKnowledgeBaseBusinessAccess(supabase: any, kbId: string, 
   }
 
   if (kb.business_id !== businessId) {
-    throw new Error('Access denied: Knowledge base does not belong to your business');
+    throw new Error(
+      'Access denied: Knowledge base does not belong to your business',
+    );
   }
 
   return kb;
@@ -81,7 +91,7 @@ async function validateKnowledgeBaseBusinessAccess(supabase: any, kbId: string, 
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     // Handle CORS preflight
@@ -94,7 +104,11 @@ export async function GET(
     const agentId = params.id;
 
     // Validate agent belongs to user's business
-    await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
+    await validateAgentBusinessAccess(
+      supabase,
+      agentId,
+      businessContext.business_id,
+    );
 
     // Fetch linked knowledge bases for this agent
     const { data: linkedKBs, error: dbError } = await supabase
@@ -114,7 +128,7 @@ export async function GET(
           status,
           created_at
         )
-      `
+      `,
       )
       .eq('agent_id', agentId)
       .order('created_at', { ascending: false });
@@ -129,7 +143,7 @@ export async function GET(
         success: true,
         data: linkedKBs || [],
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (error) {
     console.error('GET /api/agents/[id]/knowledge-bases error:', error);
@@ -138,14 +152,14 @@ export async function GET(
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     // Handle CORS preflight
@@ -158,7 +172,11 @@ export async function POST(
     const agentId = params.id;
 
     // Validate agent belongs to user's business
-    await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
+    await validateAgentBusinessAccess(
+      supabase,
+      agentId,
+      businessContext.business_id,
+    );
 
     const body = await request.json();
     const { knowledge_base_id } = body;
@@ -166,12 +184,16 @@ export async function POST(
     if (!knowledge_base_id) {
       return NextResponse.json(
         { success: false, error: 'knowledge_base_id is required' },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     // Validate knowledge base belongs to user's business
-    await validateKnowledgeBaseBusinessAccess(supabase, knowledge_base_id, businessContext.business_id);
+    await validateKnowledgeBaseBusinessAccess(
+      supabase,
+      knowledge_base_id,
+      businessContext.business_id,
+    );
 
     // Check if already linked
     const { data: existing } = await supabase
@@ -183,8 +205,11 @@ export async function POST(
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Knowledge base is already linked to this agent' },
-        { status: 409, headers: corsHeaders }
+        {
+          success: false,
+          error: 'Knowledge base is already linked to this agent',
+        },
+        { status: 409, headers: corsHeaders },
       );
     }
 
@@ -214,7 +239,7 @@ export async function POST(
         success: true,
         data: linked,
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (error) {
     console.error('POST /api/agents/[id]/knowledge-bases error:', error);
@@ -223,14 +248,14 @@ export async function POST(
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; kb_id: string } }
+  { params }: { params: { id: string; kb_id: string } },
 ) {
   try {
     const supabase = getSupabaseServerClient();
@@ -239,10 +264,18 @@ export async function DELETE(
     const kbId = params.kb_id;
 
     // Validate agent belongs to user's business
-    await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
+    await validateAgentBusinessAccess(
+      supabase,
+      agentId,
+      businessContext.business_id,
+    );
 
     // Validate knowledge base belongs to user's business
-    await validateKnowledgeBaseBusinessAccess(supabase, kbId, businessContext.business_id);
+    await validateKnowledgeBaseBusinessAccess(
+      supabase,
+      kbId,
+      businessContext.business_id,
+    );
 
     // Delete the link
     const { error: deleteError } = await supabase
@@ -267,7 +300,7 @@ export async function DELETE(
         success: true,
         message: 'Knowledge base unlinked successfully',
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (error) {
     console.error('DELETE /api/agents/[id]/knowledge-bases error:', error);
@@ -276,7 +309,7 @@ export async function DELETE(
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }

@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import type { Database } from '~/lib/database.types';
 import { getSupabaseServerClient } from '~/lib/supabase/server';
+
+type Integration = Database['public']['Tables']['integrations']['Row'];
+
+interface SalesforceContact {
+  Id: string;
+  FirstName?: string;
+  LastName?: string;
+  Email?: string;
+  Phone?: string;
+  Title?: string;
+  Department?: string;
+  Account?: {
+    Name?: string;
+  };
+}
+
+interface MappedContact {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+  department?: string;
+  company?: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,17 +69,23 @@ export async function GET(request: NextRequest) {
       .eq('business_id', teamMember.business_id)
       .eq('type', 'crm')
       .eq('name', 'Salesforce')
-      .eq('status', 'active')  // Fixed: callback sets 'active', not 'connected'
+      .eq('status', 'active') // Fixed: callback sets 'active', not 'connected'
       .single();
 
     if (integrationError || !integration) {
       return NextResponse.json(
-        { success: false, error: 'Salesforce integration not found or not connected' },
+        {
+          success: false,
+          error: 'Salesforce integration not found or not connected',
+        },
         { status: 404 },
       );
     }
 
-    const config = integration.config as { instanceUrl: string; apiVersion: string };
+    const config = integration.config as {
+      instanceUrl: string;
+      apiVersion: string;
+    };
     const credentials = integration.credentials as {
       accessToken: string;
       refreshToken: string;
@@ -68,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     const salesforceResponse = await fetch(queryUrl, {
       headers: {
-        'Authorization': `${credentials.tokenType} ${credentials.accessToken}`,
+        Authorization: `${credentials.tokenType} ${credentials.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -87,14 +121,17 @@ export async function GET(request: NextRequest) {
         // Retry with new token
         const retryResponse = await fetch(queryUrl, {
           headers: {
-            'Authorization': `${refreshed.tokenType} ${refreshed.accessToken}`,
+            Authorization: `${refreshed.tokenType} ${refreshed.accessToken}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (!retryResponse.ok) {
           return NextResponse.json(
-            { success: false, error: 'Failed to fetch contacts from Salesforce' },
+            {
+              success: false,
+              error: 'Failed to fetch contacts from Salesforce',
+            },
             { status: 500 },
           );
         }
@@ -201,7 +238,7 @@ export async function POST(request: NextRequest) {
       .eq('business_id', teamMember.business_id)
       .eq('type', 'crm')
       .eq('name', 'Salesforce')
-      .eq('status', 'active')  // Fixed: callback sets 'active', not 'connected'
+      .eq('status', 'active') // Fixed: callback sets 'active', not 'connected'
       .single();
 
     if (!integration) {
@@ -211,7 +248,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const config = integration.config as { instanceUrl: string; apiVersion: string };
+    const config = integration.config as {
+      instanceUrl: string;
+      apiVersion: string;
+    };
     const credentials = integration.credentials as {
       accessToken: string;
       refreshToken: string;
@@ -219,13 +259,13 @@ export async function POST(request: NextRequest) {
     };
 
     // Fetch full contact details for selected contacts
-    const contactIdsString = contactIds.map(id => `'${id}'`).join(',');
+    const contactIdsString = contactIds.map((id) => `'${id}'`).join(',');
     const soqlQuery = `SELECT Id,FirstName,LastName,Email,Phone,Title,Department,Account.Name FROM Contact WHERE Id IN (${contactIdsString})`;
     const queryUrl = `${config.instanceUrl}/services/data/${config.apiVersion}/query?q=${encodeURIComponent(soqlQuery)}`;
 
     const salesforceResponse = await fetch(queryUrl, {
       headers: {
-        'Authorization': `${credentials.tokenType} ${credentials.accessToken}`,
+        Authorization: `${credentials.tokenType} ${credentials.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -241,7 +281,7 @@ export async function POST(request: NextRequest) {
     const contacts = mapSalesforceContacts(salesforceData.records);
 
     // Insert contacts as leads for the specified campaign
-    const leads = contacts.map(contact => {
+    const leads = contacts.map((contact) => {
       const nameParts = contact.name.split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
@@ -268,9 +308,7 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    const { error: insertError } = await supabase
-      .from('leads')
-      .insert(leads);
+    const { error: insertError } = await supabase.from('leads').insert(leads);
 
     if (insertError) {
       console.error('Failed to import contacts:', insertError);
@@ -293,9 +331,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapSalesforceContacts(records: any[]): any[] {
-  return records.map(record => ({
+function mapSalesforceContacts(records: SalesforceContact[]): MappedContact[] {
+  return records.map((record) => ({
     id: record.Id,
     name: `${record.FirstName || ''} ${record.LastName || ''}`.trim(),
     email: record.Email,
@@ -306,8 +343,10 @@ function mapSalesforceContacts(records: any[]): any[] {
   }));
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function refreshSalesforceToken(integration: any, supabase: any) {
+async function refreshSalesforceToken(
+  integration: Integration,
+  supabase: SupabaseClient<Database>,
+) {
   try {
     const credentials = integration.credentials as {
       clientId: string;
@@ -317,7 +356,8 @@ async function refreshSalesforceToken(integration: any, supabase: any) {
 
     // Use database-stored credentials first, fall back to env vars
     const clientId = credentials?.clientId || process.env.SALESFORCE_CLIENT_ID;
-    const clientSecret = credentials?.clientSecret || process.env.SALESFORCE_CLIENT_SECRET;
+    const clientSecret =
+      credentials?.clientSecret || process.env.SALESFORCE_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
       console.error('Missing client credentials for token refresh');
@@ -327,9 +367,10 @@ async function refreshSalesforceToken(integration: any, supabase: any) {
     // Determine the correct token URL based on environment
     const config = integration.config as { env?: string } | null;
     const environment = config?.env || 'production';
-    const loginUrl = environment === 'sandbox'
-      ? 'https://test.salesforce.com'
-      : 'https://login.salesforce.com';
+    const loginUrl =
+      environment === 'sandbox'
+        ? 'https://test.salesforce.com'
+        : 'https://login.salesforce.com';
     const tokenUrl = `${loginUrl}/services/oauth2/token`;
     const tokenParams = new URLSearchParams({
       grant_type: 'refresh_token',

@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { createClient } from '@supabase/supabase-js';
 
+import type { Database } from '~/lib/database.types';
+
+type Agent = Database['public']['Tables']['agents']['Row'];
+type Business = Database['public']['Tables']['businesses']['Row'];
+
+interface TrainingContext {
+  agent_id: string;
+  agent_name: string | null;
+  voice_id: string | null;
+  speaking_tone: string | null;
+  organization_info: string | null;
+  donor_context: string | null;
+  business_info: {
+    name: string | null;
+    description: string | null;
+    industry: string | null;
+    website: string | null;
+  };
+  prompts: Record<string, unknown>;
+  training_data: Record<string, unknown>;
+  conversation_flow: ReturnType<typeof buildConversationFlow>;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -92,8 +115,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildTrainingContext(agent: any, business: any) {
+function buildTrainingContext(
+  agent: Agent,
+  business: Business,
+): TrainingContext {
   return {
     agent_id: agent.id,
     agent_name: agent.name,
@@ -107,25 +132,31 @@ function buildTrainingContext(agent: any, business: any) {
       industry: business.industry,
       website: business.website,
     },
-    prompts: agent.workflow_config?.prompts || {},
-    training_data: agent.knowledge_base || {},
+    prompts: ((agent.workflow_config as { prompts?: unknown })?.prompts ||
+      {}) as Record<string, unknown>,
+    training_data: (agent.knowledge_base || {}) as Record<string, unknown>,
     conversation_flow: buildConversationFlow(agent),
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildElevenLabsAgentConfig(agent: any, trainingContext: any) {
+function buildElevenLabsAgentConfig(
+  agent: Agent,
+  trainingContext: TrainingContext,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agentData = agent as any;
   return {
     agent_id: agent.id,
     name: agent.name,
     voice_id: agent.voice_id,
-    llm_model: agent.llm_model || 'gpt-4o',
-    knowledge_base_id: agent.knowledge_base_id,
+    llm_model: agentData.llm_model || 'gpt-4o',
+    knowledge_base_id: agentData.knowledge_base_id,
     context_data: {
-      organization_info: agent.organization_info,
+      organization_info: agentData.organization_info,
       donor_context: agent.donor_context,
-      speaking_tone: agent.speaking_tone,
-      conversation_style: agent.conversation_style || 'professional_friendly',
+      speaking_tone: agentData.speaking_tone,
+      conversation_style:
+        agentData.conversation_style || 'professional_friendly',
     },
     conversation_flow: trainingContext.conversation_flow,
     prompts: trainingContext.prompts,
@@ -133,17 +164,15 @@ function buildElevenLabsAgentConfig(agent: any, trainingContext: any) {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildConversationFlow(agent: any) {
+function buildConversationFlow(agent: Agent) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config = agent.workflow_config as any;
   return {
-    greeting: agent.workflow_config?.conversation_flow?.greeting || '',
-    introduction: agent.workflow_config?.conversation_flow?.introduction || '',
-    value_proposition:
-      agent.workflow_config?.conversation_flow?.value_proposition || '',
-    objection_handling:
-      agent.workflow_config?.conversation_flow?.objection_handling || {},
-    closing_techniques:
-      agent.workflow_config?.conversation_flow?.closing_techniques || [],
-    follow_up: agent.workflow_config?.conversation_flow?.follow_up || '',
+    greeting: config?.conversation_flow?.greeting || '',
+    introduction: config?.conversation_flow?.introduction || '',
+    value_proposition: config?.conversation_flow?.value_proposition || '',
+    objection_handling: config?.conversation_flow?.objection_handling || {},
+    closing_techniques: config?.conversation_flow?.closing_techniques || [],
+    follow_up: config?.conversation_flow?.follow_up || '',
   };
 }

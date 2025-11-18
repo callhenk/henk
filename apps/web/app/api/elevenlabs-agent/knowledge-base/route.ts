@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import type { Database } from '~/lib/database.types';
 import { getSupabaseServerClient } from '~/lib/supabase/server';
 
 const corsHeaders = {
@@ -9,8 +12,7 @@ const corsHeaders = {
 };
 
 // Helper function to get user's business context
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getUserBusinessContext(supabase: any) {
+async function getUserBusinessContext(supabase: SupabaseClient<Database>) {
   const {
     data: { user },
     error: authError,
@@ -41,8 +43,11 @@ async function getUserBusinessContext(supabase: any) {
 }
 
 // Helper function to validate agent belongs to user's business
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function validateAgentBusinessAccess(supabase: any, agentId: string, businessId: string) {
+async function validateAgentBusinessAccess(
+  supabase: SupabaseClient<Database>,
+  agentId: string,
+  businessId: string,
+) {
   const { data: agent, error } = await supabase
     .from('agents')
     .select('id, business_id')
@@ -107,13 +112,19 @@ export async function GET(request: NextRequest) {
 
     // If agent_id is provided, validate it belongs to the user's business
     if (agentId) {
-      await validateAgentBusinessAccess(supabase, agentId, businessContext.business_id);
+      await validateAgentBusinessAccess(
+        supabase,
+        agentId,
+        businessContext.business_id,
+      );
     }
 
     // Fetch knowledge bases from our database for business isolation
     let query = supabase
       .from('knowledge_bases')
-      .select('id, name, description, elevenlabs_kb_id, file_count, char_count, status, metadata, created_at')
+      .select(
+        'id, name, description, elevenlabs_kb_id, file_count, char_count, status, metadata, created_at',
+      )
       .eq('business_id', businessContext.business_id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -136,7 +147,11 @@ export async function GET(request: NextRequest) {
     const documents = (kbRecords || []).map((kb) => {
       // Safely extract usage_mode from metadata
       let usageMode = 'default';
-      if (typeof kb.metadata === 'object' && kb.metadata !== null && !Array.isArray(kb.metadata)) {
+      if (
+        typeof kb.metadata === 'object' &&
+        kb.metadata !== null &&
+        !Array.isArray(kb.metadata)
+      ) {
         const metadata = kb.metadata as Record<string, unknown>;
         if (typeof metadata.usage_mode === 'string') {
           usageMode = metadata.usage_mode;
@@ -153,7 +168,9 @@ export async function GET(request: NextRequest) {
         metadata: {
           file_count: typeof kb.file_count === 'number' ? kb.file_count : 0,
           char_count: typeof kb.char_count === 'number' ? kb.char_count : 0,
-          created_at_unix_secs: kb.created_at ? Math.floor(new Date(kb.created_at).getTime() / 1000) : 0,
+          created_at_unix_secs: kb.created_at
+            ? Math.floor(new Date(kb.created_at).getTime() / 1000)
+            : 0,
         },
         usage_mode: usageMode,
       };
@@ -212,7 +229,11 @@ export async function POST(request: NextRequest) {
 
     // If agent_id is provided, validate it belongs to the user's business
     if (agent_id) {
-      await validateAgentBusinessAccess(supabase, agent_id, businessContext.business_id);
+      await validateAgentBusinessAccess(
+        supabase,
+        agent_id,
+        businessContext.business_id,
+      );
     }
 
     let response;
@@ -237,7 +258,11 @@ export async function POST(request: NextRequest) {
           new URL(validUrl);
         } catch {
           return NextResponse.json(
-            { success: false, error: 'Invalid URL format. Please enter a valid URL (e.g., https://example.com)' },
+            {
+              success: false,
+              error:
+                'Invalid URL format. Please enter a valid URL (e.g., https://example.com)',
+            },
             { status: 400, headers: corsHeaders },
           );
         }
@@ -352,7 +377,7 @@ export async function POST(request: NextRequest) {
         },
         {
           onConflict: 'business_id,elevenlabs_kb_id',
-        }
+        },
       )
       .select('id, name, elevenlabs_kb_id, status, created_at');
 
@@ -365,7 +390,9 @@ export async function POST(request: NextRequest) {
           name: name || 'Unnamed Knowledge Base',
         },
       });
-      throw new Error(`Failed to save knowledge base to database: ${dbError.message}`);
+      throw new Error(
+        `Failed to save knowledge base to database: ${dbError.message}`,
+      );
     }
 
     if (!insertedData || insertedData.length === 0) {
