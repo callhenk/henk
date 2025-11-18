@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import crypto from 'crypto';
+import twilio from 'twilio';
 
 import { withAuth } from '~/lib/api/with-auth';
+
+const AccessToken = twilio.jwt.AccessToken;
+const VoiceGrant = AccessToken.VoiceGrant;
 
 // Twilio AccessToken generation for Voice SDK
 // This endpoint is protected and only accessible to authenticated users from callhenk.com
@@ -69,54 +72,36 @@ export const POST = withAuth(
       // Create identity for the user
       const identity = `user_${context.user.id}_${context.business_id}`;
 
-      // Create Voice grant
-      const VoiceGrant: Record<string, unknown> = {
-        outgoing_application_sid: twilioConfig.appSid,
-        incoming: {
-          allow: true,
+      // Create an Access Token using the official Twilio SDK
+      const accessToken = new AccessToken(
+        twilioConfig.accountSid,
+        twilioConfig.apiKeySid,
+        twilioConfig.apiKeySecret,
+        {
+          identity: identity,
+          ttl: 3600, // Token valid for 1 hour
         },
-      };
+      );
+
+      // Create a Voice grant and add it to the token
+      const voiceGrant = new VoiceGrant({
+        outgoingApplicationSid: twilioConfig.appSid,
+        incomingAllow: true,
+      });
 
       // Add push credentials if configured (for mobile apps)
       if (twilioConfig.pushCredentialSid) {
-        VoiceGrant.push_credential_sid = twilioConfig.pushCredentialSid;
+        voiceGrant.pushCredentialSid = twilioConfig.pushCredentialSid;
       }
 
-      // Token will be valid for 1 hour (3600 seconds)
+      accessToken.addGrant(voiceGrant);
+
+      // Generate the JWT token
+      const token = accessToken.toJwt();
+
+      // Calculate expiration time for response
       const now = Math.floor(Date.now() / 1000);
       const exp = now + 3600;
-
-      // Create the access token payload
-      const payload = {
-        jti: `${twilioConfig.apiKeySid}-${now}`,
-        iss: twilioConfig.apiKeySid,
-        sub: twilioConfig.accountSid,
-        nbf: now,
-        exp: exp,
-        grants: {
-          identity: identity,
-          voice: VoiceGrant,
-        },
-      };
-
-      // Sign the token with custom header
-      const header = Buffer.from(
-        JSON.stringify({
-          alg: 'HS256',
-          typ: 'JWT',
-          cty: 'twilio-fpa;v=1',
-        }),
-      ).toString('base64url');
-
-      const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-      const message = `${header}.${body}`;
-
-      const signature = crypto
-        .createHmac('sha256', twilioConfig.apiKeySecret)
-        .update(message)
-        .digest('base64url');
-
-      const token = `${message}.${signature}`;
 
       // Return the token and configuration
       return NextResponse.json({
