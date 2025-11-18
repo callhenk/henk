@@ -71,9 +71,20 @@ export default function DashboardDemo() {
     useConversations();
 
   // Use mock data if demo mode is enabled, otherwise use real data
-  const agents = isDemoMode ? mockAgents : realAgents;
-  const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  // Wrap in useMemo to prevent infinite re-renders
+  const agents = useMemo(
+    () => (isDemoMode ? mockAgents : realAgents),
+    [isDemoMode, mockAgents, realAgents],
+  );
+  const campaigns = useMemo(
+    () => (isDemoMode ? mockCampaigns : realCampaigns),
+    [isDemoMode, mockCampaigns, realCampaigns],
+  );
+  const conversations = useMemo(
+    () =>
+      isDemoMode ? mockConversations : (realConversationsResult?.data ?? []),
+    [isDemoMode, mockConversations, realConversationsResult?.data],
+  );
 
   // Calculate metrics from real data
   const callMetrics = useMemo(() => {

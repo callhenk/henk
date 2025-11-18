@@ -44,8 +44,9 @@ export function useCampaignEditor(campaignId: string) {
   // Fetch data
   const { data: realCampaign, isLoading: loadingCampaign } =
     useCampaign(campaignId);
-  const { data: realLeads = [] } = useLeads();
-  const { data: realConversations = [] } = useConversations();
+  const { data: realLeadsResult } = useLeads();
+  const { data: realConversationsResult } = useConversations();
+  const realConversations = realConversationsResult?.data ?? [];
   const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
 
   // Use demo data if demo mode is active
@@ -54,11 +55,17 @@ export function useCampaignEditor(campaignId: string) {
         mockCampaigns[0]) as Tables<'campaigns'>)
     : realCampaign;
   const leads = useMemo(
-    () => (isDemoMode ? [] : realLeads),
-    [isDemoMode, realLeads],
+    () => (isDemoMode ? [] : (realLeadsResult?.data ?? [])),
+    [isDemoMode, realLeadsResult],
   ); // Demo leads can be empty for now
-  const conversations = isDemoMode ? mockConversations : realConversations;
-  const agents = isDemoMode ? mockAgents : realAgents;
+  const conversations = useMemo(
+    () => (isDemoMode ? mockConversations : realConversations),
+    [isDemoMode, mockConversations, realConversations],
+  );
+  const agents = useMemo(
+    () => (isDemoMode ? mockAgents : realAgents),
+    [isDemoMode, mockAgents, realAgents],
+  );
 
   // Loading state should be false in demo mode
   const isLoadingAgents = isDemoMode ? false : loadingAgents;

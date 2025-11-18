@@ -24,10 +24,14 @@ interface TimeOfDayChartProps {
 
 export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
   const { isDemoMode, mockConversations } = useDemoMode();
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversationsResult } = useConversations();
+  const realConversations = realConversationsResult?.data ?? [];
 
   // Use demo data if demo mode is active
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  const conversations = useMemo(
+    () => (isDemoMode ? mockConversations : realConversations),
+    [isDemoMode, mockConversations, realConversations],
+  );
 
   // Calculate time-of-day data based on real conversations
   const timeOfDayData = useMemo(() => {
