@@ -99,6 +99,21 @@ jobs:
     name: Production Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Next.js build configuration
+      NEXT_PUBLIC_PRODUCT_NAME: Henk
+      NEXT_PUBLIC_SITE_TITLE: Henk - AI Voice Fundraising Platform
+      NEXT_PUBLIC_SITE_DESCRIPTION: AI-powered voice agents for fundraising and campaign management
+      NEXT_PUBLIC_SITE_URL: https://henk.example.com
+      NEXT_PUBLIC_DEFAULT_LOCALE: en
+      NEXT_PUBLIC_DEFAULT_THEME_MODE: system
+      NEXT_PUBLIC_THEME_COLOR: '#000000'
+      NEXT_PUBLIC_THEME_COLOR_DARK: '#ffffff'
+      # Supabase (placeholder for build)
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      # CI flag to skip certain validations
+      NEXT_PUBLIC_CI: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
