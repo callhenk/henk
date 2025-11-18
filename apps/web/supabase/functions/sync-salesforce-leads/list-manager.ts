@@ -1,4 +1,5 @@
 // Lead list management utilities
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 /**
  * Ensure a Salesforce sync lead list exists
@@ -10,7 +11,7 @@
  * @returns Lead list ID
  */
 export async function ensureSalesforceList(
-  supabase: any,
+  supabase: SupabaseClient,
   businessId: string,
   name: string,
   description: string,
@@ -81,7 +82,7 @@ export async function ensureSalesforceList(
  * @param leadId Lead ID
  */
 export async function addLeadToList(
-  supabase: any,
+  supabase: SupabaseClient,
   leadListId: string,
   leadId: string,
 ): Promise<void> {
@@ -117,7 +118,7 @@ export async function addLeadToList(
  * @param listIds Array of lead list IDs
  */
 export async function updateLeadListCounts(
-  supabase: any,
+  supabase: SupabaseClient,
   listIds: string[],
 ): Promise<void> {
   for (const listId of listIds) {

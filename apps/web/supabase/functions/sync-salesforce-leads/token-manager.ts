@@ -1,4 +1,6 @@
 // Token manager: Handle OAuth token refresh for Salesforce
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 import type {
   Integration,
   RefreshedCredentials,
@@ -13,7 +15,7 @@ import type {
  */
 export async function refreshToken(
   integration: Integration,
-  supabase: any,
+  supabase: SupabaseClient,
 ): Promise<RefreshedCredentials> {
   const { credentials, config } = integration;
 
