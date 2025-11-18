@@ -1,6 +1,8 @@
 'use client';
 
-import { useOnboarding } from '~/lib/hooks/use-onboarding';
+import { Sparkles } from 'lucide-react';
+
+import { Button } from '@kit/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@kit/ui/dialog';
-import { Button } from '@kit/ui/button';
-import { Sparkles } from 'lucide-react';
+
 import featuresFlagConfig from '~/config/feature-flags.config';
+import { useOnboarding } from '~/lib/hooks/use-onboarding';
 
 export function OnboardingWelcomeModal() {
   const { showWelcome, startTour, skipTour } = useOnboarding();
@@ -24,8 +26,8 @@ export function OnboardingWelcomeModal() {
     <Dialog open={shouldShow} onOpenChange={(open) => !open && skipTour()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <Sparkles className="text-primary h-6 w-6" />
           </div>
           <DialogTitle className="text-center text-2xl">
             Welcome to Henk!
@@ -38,36 +40,36 @@ export function OnboardingWelcomeModal() {
 
         <div className="space-y-4 py-4">
           <div className="flex items-start gap-3 rounded-lg border p-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="bg-primary/10 text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
               1
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">Create AI Agents</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Set up voice agents to make fundraising calls
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 rounded-lg border p-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="bg-primary/10 text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
               2
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">Import Donors</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Upload contacts or sync from your CRM
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 rounded-lg border p-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="bg-primary/10 text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
               3
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">Launch Campaigns</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Put it all together and start fundraising
               </p>
             </div>

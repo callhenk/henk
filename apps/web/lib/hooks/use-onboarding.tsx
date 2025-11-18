@@ -2,11 +2,12 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import { getSupabaseBrowserClient } from '@kit/supabase/browser-client';

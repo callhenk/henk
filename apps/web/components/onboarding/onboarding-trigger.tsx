@@ -1,8 +1,10 @@
 'use client';
 
-import { useOnboarding } from '~/lib/hooks/use-onboarding';
-import { Button } from '@kit/ui/button';
 import { GraduationCap } from 'lucide-react';
+
+import { Button } from '@kit/ui/button';
+
+import { useOnboarding } from '~/lib/hooks/use-onboarding';
 
 export function RestartOnboardingButton() {
   const { restartTour, isLoading } = useOnboarding();
