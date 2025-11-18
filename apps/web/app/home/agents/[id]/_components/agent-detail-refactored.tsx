@@ -101,7 +101,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     isLoading: loadingAgent,
     refetch,
   } = useAgent(agentId);
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversations } = useConversations();
   const { data: realCampaigns = [] } = useCampaigns();
 
   // Use demo data if demo mode is active

@@ -39,7 +39,7 @@ const sortOptions = [
 
 export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   const { isDemoMode, mockConversations, mockAgents } = useDemoMode();
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversations } = useConversations();
   const { data: realAgents = [] } = useAgents();
   const [sortBy, setSortBy] = useState('conversionRate');
 
@@ -50,8 +50,7 @@ export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   // Calculate agent performance data based on real conversations
   const agentPerformanceData = useMemo(() => {
     // Filter conversations based on date range and other filters
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filteredConversations = conversations.filter((conv: any) => {
+    const filteredConversations = conversations.filter((conv) => {
       if (!conv.created_at) return false;
       const convDate = new Date(conv.created_at);
       const inDateRange =

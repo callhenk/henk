@@ -27,7 +27,9 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
   const { data: realConversations = [] } = useConversations();
 
   // Use demo data if demo mode is active
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  const conversations = isDemoMode
+    ? mockConversations
+    : (realConversations ?? []);
 
   // Calculate time-of-day data based on real conversations
   const timeOfDayData = useMemo(() => {
@@ -53,7 +55,7 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
     // Group conversations by hour
     const hourlyData = Array.from({ length: 24 }, (_, hour) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const hourConversations = filteredConversations.filter((conv: any) => {
+      const hourConversations = filteredConversations.filter((conv) => {
         const convHour = new Date(conv.created_at).getHours();
         return convHour === hour;
       });

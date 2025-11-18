@@ -98,9 +98,12 @@ export default function DashboardDemo() {
       return sum + (conv.outcome === 'donated' ? 100 : 0);
     }, 0);
 
-    const yesterdayRevenue = yesterdayConversations.reduce((sum, conv) => {
-      return sum + (conv.outcome === 'donated' ? 100 : 0);
-    }, 0);
+    const yesterdayRevenue = yesterdayConversations.reduce(
+      (sum, conv) => {
+        return sum + (conv.outcome === 'donated' ? 100 : 0);
+      },
+      0,
+    );
 
     // Calculate trend percentage
     const callTrend =
@@ -793,7 +796,7 @@ function ConversationsTable({
 
   const getCampaignName = (campaignId: string | null) => {
     if (!campaignId) return 'Unknown Campaign';
-    const campaign = campaigns.find((c) => c.id === campaignId);
+    const campaign = campaigns.find((c: any) => c.id === campaignId);
     return campaign?.name || 'Unknown Campaign';
   };
 
