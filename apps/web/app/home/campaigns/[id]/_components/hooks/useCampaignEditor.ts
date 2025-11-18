@@ -50,14 +50,16 @@ export function useCampaignEditor(campaignId: string) {
 
   // Use demo data if demo mode is active
   const campaign = isDemoMode
-    ? ((mockCampaigns.find((c) => c.id === campaignId) ||
+    ? ((mockCampaigns.find((c: any) => c.id === campaignId) ||
         mockCampaigns[0]) as Tables<'campaigns'>)
     : realCampaign;
   const leads = useMemo(
     () => (isDemoMode ? [] : realLeads),
     [isDemoMode, realLeads],
   ); // Demo leads can be empty for now
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  const conversations = isDemoMode
+    ? mockConversations
+    : (realConversations ?? []);
   const agents = isDemoMode ? mockAgents : realAgents;
 
   // Loading state should be false in demo mode

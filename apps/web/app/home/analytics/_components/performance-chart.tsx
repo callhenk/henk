@@ -60,7 +60,9 @@ export function PerformanceChart({
   const { data: realConversations = [] } = useConversations();
 
   // Use demo data if demo mode is active
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  const conversations = isDemoMode
+    ? mockConversations
+    : (realConversations ?? []);
 
   // Generate performance data based on real conversations
   const performanceData = useMemo(() => {
