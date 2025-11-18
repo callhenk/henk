@@ -300,7 +300,10 @@ export class ElevenLabsClient {
     return await response.json();
   }
 
-  async createKnowledgeBaseFromUrl(knowledgeBaseConfig: any) {
+  async createKnowledgeBaseFromUrl(knowledgeBaseConfig: {
+    name?: string;
+    url?: string;
+  }) {
     if (this.isDemoMode) {
       return {
         id: `demo_kb_${Date.now()}`,

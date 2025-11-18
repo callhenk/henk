@@ -5,7 +5,7 @@
 // Skip type declarations - Deno handles this
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-type Json = Record<string, unknown> | string | number | boolean | null | Json[];
+type _Json = Record<string, unknown> | string | number | boolean | null | _Json[];
 
 interface ConversationRow {
   id: string;

@@ -343,7 +343,7 @@ async function pickEligibleLeads(
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   // Build the query joining campaign_leads with leads
-  let q = supabase
+  const q = supabase
     .from('campaign_leads')
     .select(
       `
