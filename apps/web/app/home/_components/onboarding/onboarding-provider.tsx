@@ -1,16 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { Onborda, OnbordaProvider, useOnborda } from 'onborda';
 
-import { onboardingTours } from './tour-steps.config';
-import {
-  useOnboarding,
-  OnboardingProvider as OnboardingStateProvider,
-} from '~/lib/hooks/use-onboarding';
-import { OnboardingWelcomeModal } from './onboarding-welcome-modal';
-import { OnboardingCard } from './onboarding-card';
 import featuresFlagConfig from '~/config/feature-flags.config';
+import {
+  OnboardingProvider as OnboardingStateProvider,
+  useOnboarding,
+} from '~/lib/hooks/use-onboarding';
+
+import { OnboardingCard } from './onboarding-card';
+import { OnboardingWelcomeModal } from './onboarding-welcome-modal';
+import { onboardingTours } from './tour-steps.config';
 
 function OnboardingManager() {
   const { isActive, completeTour, updateStep } = useOnboarding();
@@ -93,11 +95,7 @@ function OnboardingManager() {
   return null;
 }
 
-export function OnboardingWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function OnboardingWrapper({ children }: { children: React.ReactNode }) {
   return (
     <OnboardingStateProvider>
       <OnboardingWelcomeModal />

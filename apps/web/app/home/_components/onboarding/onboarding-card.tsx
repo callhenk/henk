@@ -1,6 +1,7 @@
 'use client';
 
 import type { CardComponentProps } from 'onborda';
+
 import { Button } from '@kit/ui/button';
 
 export function OnboardingCard({
@@ -15,24 +16,24 @@ export function OnboardingCard({
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
-    <div className="relative w-[400px] max-w-[90vw] rounded-lg border border-border bg-background p-6 shadow-xl">
+    <div className="border-border bg-background relative w-[400px] max-w-[90vw] rounded-lg border p-6 shadow-xl">
       {/* Arrow pointing to element */}
       {arrow}
 
       {/* Icon */}
       {step.icon && (
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="bg-primary/10 text-primary mb-4 flex h-10 w-10 items-center justify-center rounded-full">
           {step.icon}
         </div>
       )}
 
       {/* Title */}
-      <h3 className="mb-2 text-lg font-semibold text-foreground">
+      <h3 className="text-foreground mb-2 text-lg font-semibold">
         {step.title}
       </h3>
 
       {/* Content */}
-      <div className="mb-4 text-sm text-muted-foreground">{step.content}</div>
+      <div className="text-muted-foreground mb-4 text-sm">{step.content}</div>
 
       {/* Progress indicator */}
       <div
@@ -65,7 +66,7 @@ export function OnboardingCard({
       </div>
 
       {/* Step counter */}
-      <div className="mb-4 text-xs text-muted-foreground">
+      <div className="text-muted-foreground mb-4 text-xs">
         Step {currentStep + 1} of {totalSteps}
       </div>
 
