@@ -33,31 +33,33 @@ This audit reviewed all documentation files for accuracy against the current cod
 
 The following files are referenced in documentation but **do not exist**:
 
-| Referenced File | Referenced In | Fix Needed |
-|----------------|---------------|------------|
-| `development-setup.md` | quick-start.md, project-overview.md | Remove references or create file |
-| `architecture.md` | quick-start.md, project-structure.md, troubleshooting.md | Remove references or create file |
-| `coding-standards.md` | development-workflow.md, project-structure.md | Remove references or create file |
-| `testing.md` | development-workflow.md, project-structure.md | Remove references or create file |
-| `database.md` | development-workflow.md, project-structure.md | Remove references or create file |
-| `deployment.md` | environment.md | Remove references or create file |
-| `monitoring.md` | README.md | Remove reference |
-| `ui-components.md` | README.md | Remove reference |
-| `authentication.md` | README.md | Remove reference |
-| `i18n.md` | README.md | Remove reference |
-| `supabase-integration.md` | README.md | Remove reference |
+| Referenced File           | Referenced In                                            | Fix Needed                       |
+| ------------------------- | -------------------------------------------------------- | -------------------------------- |
+| `development-setup.md`    | quick-start.md, project-overview.md                      | Remove references or create file |
+| `architecture.md`         | quick-start.md, project-structure.md, troubleshooting.md | Remove references or create file |
+| `coding-standards.md`     | development-workflow.md, project-structure.md            | Remove references or create file |
+| `testing.md`              | development-workflow.md, project-structure.md            | Remove references or create file |
+| `database.md`             | development-workflow.md, project-structure.md            | Remove references or create file |
+| `deployment.md`           | environment.md                                           | Remove references or create file |
+| `monitoring.md`           | README.md                                                | Remove reference                 |
+| `ui-components.md`        | README.md                                                | Remove reference                 |
+| `authentication.md`       | README.md                                                | Remove reference                 |
+| `i18n.md`                 | README.md                                                | Remove reference                 |
+| `supabase-integration.md` | README.md                                                | Remove reference                 |
 
-###  2. Incorrect Environment File Name (HIGH PRIORITY)
+### 2. Incorrect Environment File Name (HIGH PRIORITY)
 
 **Issue:** Documentation references `.env.sample` but actual file is `.env.sample`
 
 **Affected Files:**
+
 - quick-start.md
 - development-workflow.md
 - environment.md
 - troubleshooting.md
 
 **Fix:**
+
 ```bash
 # Change all references from:
 cp .env.sample .env.local
@@ -71,10 +73,12 @@ cp .env.sample .env.local
 **Issue:** Documentation references packages that don't exist
 
 **Referenced but Missing:**
+
 - `packages/auth/` - Does not exist (likely in `packages/features/`)
 - `packages/accounts/` - Does not exist (likely in `packages/features/`)
 
 **Actual Structure:**
+
 ```
 packages/
 ├── features/
@@ -86,6 +90,7 @@ packages/
 ```
 
 **Affected Files:**
+
 - project-overview.md
 - project-structure.md
 - development-workflow.md
@@ -96,21 +101,25 @@ packages/
 ## 📝 Documentation-Specific Issues
 
 ### quick-start.md
+
 - ❌ Line 195: References `development-setup.md` (doesn't exist)
 - ❌ Line 127: References `architecture.md` (doesn't exist)
 - ❌ Line 189: References `architecture.md` (doesn't exist)
 - ❌ Line 46-47: References `.env.sample` (should be `.env.sample`)
 
 ### project-overview.md
+
 - ❌ Line 127: References `development-setup.md` (doesn't exist)
 - ❌ Lines 30-38: Lists `auth` and `accounts` packages (don't exist separately)
 
 ### project-structure.md
+
 - ❌ Line 313: References `architecture.md` (doesn't exist)
 - ❌ Line 314: References `coding-standards.md` (doesn't exist)
 - ❌ Lines 88-113: Documents `auth` and `accounts` packages (don't exist separately)
 
 ### development-workflow.md
+
 - ❌ Line 411: References `coding-standards.md` (doesn't exist)
 - ❌ Line 412: References `testing.md` (doesn't exist)
 - ❌ Line 413: References `database.md` (doesn't exist)
@@ -118,14 +127,17 @@ packages/
 - ❌ Lines 106-110: References non-existent package structure
 
 ### environment.md
+
 - ❌ Line 418: References `deployment.md` (doesn't exist)
 - ❌ Line 22: References `.env.sample` (should be `.env.sample`)
 - ❌ Line 196: References `.env.sample` (should be `.env.sample`)
 
 ### troubleshooting.md
+
 - ❌ Line 310: References `.env.sample` (should be `.env.sample`)
 
 ### docs/README.md
+
 - ❌ References multiple non-existent files in the index
 
 ---
@@ -133,9 +145,11 @@ packages/
 ## ✅ Verified Accurate Documentation
 
 ### Scripts Verified
+
 All scripts in `scripts.md` match actual package.json ✅
 
 ### Actual Working Scripts:
+
 ```bash
 pnpm run dev                   # ✅ Works
 pnpm run build                 # ✅ Works
@@ -148,6 +162,7 @@ pnpm run supabase:web:typegen # ✅ Works
 ```
 
 ### Tech Stack Accurate
+
 - Next.js 15 ✅
 - React 19 ✅
 - TypeScript 5.7 ✅
@@ -161,13 +176,16 @@ pnpm run supabase:web:typegen # ✅ Works
 ## 🔧 Recommended Fixes
 
 ### Priority 1: Fix Environment File References (Immediate)
+
 ```bash
 # Find and replace in all docs
 find docs -name "*.md" -type f -exec sed -i '' 's/.env.sample/.env.sample/g' {} \;
 ```
 
 ### Priority 2: Remove Dead Links (Immediate)
+
 Update docs/README.md to remove references to non-existent files:
+
 - Remove development-setup.md
 - Remove architecture.md
 - Remove coding-standards.md
@@ -181,12 +199,15 @@ Update docs/README.md to remove references to non-existent files:
 - Remove supabase-integration.md
 
 ### Priority 3: Fix Package References (This Week)
+
 Update documentation to reflect actual package structure:
+
 - Remove references to `packages/auth/`
 - Remove references to `packages/accounts/`
 - Document actual `packages/features/` structure
 
 ### Priority 4: Update Cross-References (This Week)
+
 Replace references to non-existent docs with actual files or remove them.
 
 ---
@@ -194,18 +215,21 @@ Replace references to non-existent docs with actual files or remove them.
 ## 📋 Action Items
 
 ### Immediate (Today)
+
 - [ ] Fix all `.env.sample` → `.env.sample` references
 - [ ] Update docs/README.md to remove dead links
 - [ ] Update quick-start.md to remove dead references
 - [ ] Test all documented commands to ensure they work
 
 ### Short Term (This Week)
+
 - [ ] Fix package structure documentation
 - [ ] Remove all references to non-existent doc files
 - [ ] Create missing essential docs OR remove references
 - [ ] Add note about which docs are planned vs. available
 
 ### Optional (Nice to Have)
+
 - [ ] Create the missing documentation files if needed:
   - architecture.md (if architecture overview is useful)
   - coding-standards.md (if code standards are formalized)
@@ -216,7 +240,9 @@ Replace references to non-existent docs with actual files or remove them.
 ## 🎯 Final Recommendations
 
 ### Keep Documentation Minimal
+
 For an open-source project, focus on:
+
 1. ✅ Quick start (exists)
 2. ✅ Project structure (exists)
 3. ✅ Development workflow (exists)
@@ -224,10 +250,13 @@ For an open-source project, focus on:
 5. ✅ Troubleshooting (exists)
 
 ### Remove "Nice to Have" Docs
+
 Don't create docs just to fill references. Better to have 5 accurate docs than 15 partially accurate ones.
 
 ### Add README Disclaimer
+
 Add to docs/README.md:
+
 ```markdown
 > **Note:** Some documentation is planned but not yet written.
 > Focus on available docs: Quick Start, Project Structure, Development Workflow,

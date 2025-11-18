@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 
 import { FileSpreadsheet, RefreshCcw, Trash2, Upload } from 'lucide-react';
-import { useDropzone, type FileRejection } from 'react-dropzone';
+import { type FileRejection, useDropzone } from 'react-dropzone';
 
 import { cn } from '../../../lib/utils';
 import { Button } from '../../../shadcn/button';

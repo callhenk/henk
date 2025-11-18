@@ -33,9 +33,11 @@ The existing schema has several limitations:
 ```
 
 ### 1. **leads** Table (Modified)
+
 Stores individual lead records independent of campaigns.
 
 **Key Changes:**
+
 - ✅ Removed direct `campaign_id` field
 - ✅ Added `lead_score`, `quality_rating`, `last_activity_at`
 - ✅ Leads can exist without being assigned to campaigns
@@ -58,9 +60,11 @@ leads (
 ```
 
 ### 2. **lead_lists** Table (Enhanced)
+
 Groups of leads that can be reused across campaigns.
 
 **Key Enhancements:**
+
 - ✅ Added `is_archived` for lifecycle management
 - ✅ Added `tags` for categorization
 - ✅ Added `metadata` for flexible data storage
@@ -80,6 +84,7 @@ lead_lists (
 ```
 
 ### 3. **lead_list_members** Table
+
 Many-to-many relationship between leads and lists.
 
 ```sql
@@ -95,6 +100,7 @@ lead_list_members (
 ```
 
 ### 4. **campaign_lead_lists** Table (NEW)
+
 Links lead lists to campaigns with configuration options.
 
 ```sql
@@ -119,12 +125,14 @@ campaign_lead_lists (
 ```
 
 **Features:**
+
 - **Priority**: Process lists in order (1 = highest priority)
 - **Override Settings**: Custom settings per list
 - **Filter Criteria**: Apply additional filters to the list for this campaign
 - **Stats Tracking**: Monitor progress per list
 
 ### 5. **campaign_leads** Table (NEW)
+
 Tracks individual leads within campaigns and their outcomes.
 
 ```sql
@@ -246,26 +254,31 @@ SELECT add_lead_list_to_campaign('year-end-campaign-id', 'list-major-donors', 1)
 ## Key Benefits
 
 ### 1. **Flexibility**
+
 - Leads exist independently of campaigns
 - Lead lists can be created and managed separately
 - Lists can be assigned to multiple campaigns
 
 ### 2. **Reusability**
+
 - Same lead list can be used across campaigns
 - No need to duplicate leads for each campaign
 - Centralized lead management
 
 ### 3. **Better Tracking**
+
 - Know which list a lead came from in a campaign
 - Track performance per list within campaigns
 - Maintain lead history across campaigns
 
 ### 4. **Scalability**
+
 - Efficient handling of large lead volumes
 - Indexed for performance
 - Supports batch operations
 
 ### 5. **Advanced Features**
+
 - Priority-based list processing
 - Custom settings per list per campaign
 - Dynamic filtering capabilities
@@ -280,12 +293,13 @@ SELECT add_lead_list_to_campaign('year-end-campaign-id', 'list-major-donors', 1)
 export function useLeadLists(businessId: string) {
   return useQuery({
     queryKey: ['lead-lists', businessId],
-    queryFn: () => supabase
-      .from('lead_lists')
-      .select('*, lead_count')
-      .eq('business_id', businessId)
-      .eq('is_archived', false)
-      .order('created_at', { ascending: false })
+    queryFn: () =>
+      supabase
+        .from('lead_lists')
+        .select('*, lead_count')
+        .eq('business_id', businessId)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false }),
   });
 }
 
@@ -296,8 +310,8 @@ export function useAssignListToCampaign() {
       supabase.rpc('add_lead_list_to_campaign', {
         p_campaign_id: campaignId,
         p_lead_list_id: listId,
-        p_priority: priority
-      })
+        p_priority: priority,
+      }),
   });
 }
 
@@ -308,8 +322,8 @@ export function useCreateListFromCSV() {
       supabase.rpc('create_lead_list_from_csv', {
         p_business_id: businessId,
         p_list_name: name,
-        p_leads: leads
-      })
+        p_leads: leads,
+      }),
   });
 }
 ```
@@ -416,32 +430,42 @@ No manual intervention required!
 ## Performance Considerations
 
 ### Indexes
+
 All foreign keys and frequently queried columns are indexed:
+
 - Business ID lookups
 - Campaign and list associations
 - Status filtering
 - Priority ordering
 
 ### Query Optimization
+
 Views are created for common queries:
+
 - `campaign_lead_lists_with_stats`: Campaign lists with real-time stats
 - `lead_lists_with_campaigns`: Lead lists with their campaign associations
 
 ### Batch Operations
+
 Functions support batch operations:
+
 - `add_lead_list_to_campaign`: Batch inserts all leads
 - `create_lead_list_from_csv`: Batch processes CSV data
 
 ## Security
 
 ### Row Level Security (RLS)
+
 All tables have RLS policies ensuring:
+
 - Users can only access data in their business
 - Team member status is verified
 - Operations are scoped to active memberships
 
 ### Function Security
+
 Database functions use `SECURITY DEFINER` to:
+
 - Execute with elevated privileges
 - Maintain data consistency
 - Enforce business rules
@@ -449,6 +473,7 @@ Database functions use `SECURITY DEFINER` to:
 ## Monitoring and Analytics
 
 ### Key Metrics to Track
+
 ```sql
 -- Campaign performance by lead list
 SELECT
@@ -487,16 +512,19 @@ ORDER BY campaigns_used_in DESC;
 ## Future Enhancements
 
 ### Phase 1: Smart Lists
+
 - Dynamic lists based on criteria
 - Auto-updating based on lead scoring
 - Segment by engagement metrics
 
 ### Phase 2: Advanced Analytics
+
 - Lead source ROI tracking
 - List performance scoring
 - Predictive lead scoring
 
 ### Phase 3: Automation
+
 - Auto-assignment rules
 - Lead recycling workflows
 - Nurture campaign triggers
@@ -504,6 +532,7 @@ ORDER BY campaigns_used_in DESC;
 ## Conclusion
 
 This schema design provides a robust, flexible foundation for lead management that:
+
 - ✅ Separates leads from campaigns for reusability
 - ✅ Supports multiple grouping strategies
 - ✅ Enables detailed tracking and analytics

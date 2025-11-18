@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 // Test credentials
 const TEST_EMAIL = 'cyrus@callhenk.com';
@@ -28,20 +28,28 @@ test('debug: check what happens after login', async ({ page }) => {
   // Check for Donors/Contacts link
   const donorsLink = page.locator('text=Donors');
   const contactsLink = page.locator('text=Contacts');
-  const donorsVisible = await donorsLink.isVisible({ timeout: 2000 }).catch(() => false);
-  const contactsVisible = await contactsLink.isVisible({ timeout: 2000 }).catch(() => false);
+  const donorsVisible = await donorsLink
+    .isVisible({ timeout: 2000 })
+    .catch(() => false);
+  const contactsVisible = await contactsLink
+    .isVisible({ timeout: 2000 })
+    .catch(() => false);
 
   console.log('✓ Donors link visible:', donorsVisible);
   console.log('✓ Contacts link visible:', contactsVisible);
 
   // Check for Campaigns link
   const campaignsLink = page.locator('text=Campaigns');
-  const campaignsVisible = await campaignsLink.isVisible({ timeout: 2000 }).catch(() => false);
+  const campaignsVisible = await campaignsLink
+    .isVisible({ timeout: 2000 })
+    .catch(() => false);
   console.log('✓ Campaigns link visible:', campaignsVisible);
 
   // Check for Agents link
   const agentsLink = page.locator('text=Agents');
-  const agentsVisible = await agentsLink.isVisible({ timeout: 2000 }).catch(() => false);
+  const agentsVisible = await agentsLink
+    .isVisible({ timeout: 2000 })
+    .catch(() => false);
   console.log('✓ Agents link visible:', agentsVisible);
 
   // List all links on the page

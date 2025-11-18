@@ -5,6 +5,7 @@
 ### ❌ Tests Timeout Waiting for Elements
 
 **Symptoms:**
+
 - Tests fail with "Test timeout of 60000ms exceeded"
 - Error: `waiting for locator('[data-test="..."]')`
 - Tests can't find form inputs, buttons, etc.
@@ -21,6 +22,7 @@ cd apps/e2e
 ```
 
 Or manually start the dev server before running tests:
+
 ```bash
 # Terminal 1: Start dev server
 pnpm dev
@@ -35,6 +37,7 @@ pnpm test
 ### ❌ Authentication Tests Fail - Email Not Found
 
 **Symptoms:**
+
 - Tests timeout waiting for confirmation emails
 - Console shows: "Email not found for cyrus+e2e-...@callhenk.com"
 - Inbucket shows no messages for the test email
@@ -45,18 +48,21 @@ The app is connecting to **production Supabase** instead of **local Supabase**, 
 **Solution:**
 
 1. **Ensure local Supabase is running:**
+
    ```bash
    cd apps/web
    supabase start
    ```
 
 2. **Verify .env.local exists and points to local Supabase:**
+
    ```bash
    cat apps/web/.env.local
    # Should show: NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
    ```
 
 3. **Make sure dev server uses .env.local:**
+
    ```bash
    # Use this command (not just "next dev")
    pnpm dev
@@ -78,6 +84,7 @@ The app is connecting to **production Supabase** instead of **local Supabase**, 
 The `run-tests.sh` script handles all the setup automatically. Make sure your CI workflow:
 
 1. Starts Supabase:
+
    ```yaml
    - name: Start Supabase
      run: |
@@ -99,11 +106,13 @@ The `run-tests.sh` script handles all the setup automatically. Make sure your CI
 
 **Solution:**
 Kill the existing process:
+
 ```bash
 lsof -ti:3000 | xargs kill -9
 ```
 
 Then start fresh:
+
 ```bash
 cd apps/e2e
 ./run-tests.sh
@@ -114,21 +123,25 @@ cd apps/e2e
 ## Quick Diagnostic Commands
 
 ### Check if Supabase is running
+
 ```bash
 supabase status
 ```
 
 ### Check if dev server is running
+
 ```bash
 curl http://localhost:3000
 ```
 
 ### Check environment configuration
+
 ```bash
 cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
 ```
 
 ### View dev server logs (when using run-tests.sh)
+
 ```bash
 tail -f /tmp/e2e-dev-server.log
 ```
@@ -147,6 +160,7 @@ cd apps/e2e
 ```
 
 **What it does:**
+
 1. ✅ Checks if Supabase is running (starts it if needed)
 2. ✅ Verifies .env.local configuration
 3. ✅ Starts dev server with correct env
@@ -157,17 +171,20 @@ cd apps/e2e
 ### ⚠️ Manual Way (requires multiple terminals)
 
 **Terminal 1 - Supabase:**
+
 ```bash
 cd apps/web
 supabase start
 ```
 
 **Terminal 2 - Dev Server:**
+
 ```bash
 pnpm dev
 ```
 
 **Terminal 3 - Tests:**
+
 ```bash
 cd apps/e2e
 pnpm test
@@ -187,6 +204,7 @@ Before running tests, ensure:
 - [ ] Test user `cyrus@callhenk.com` exists in local database
 
 Run the setup checker:
+
 ```bash
 cd apps/e2e
 ./setup-e2e.sh

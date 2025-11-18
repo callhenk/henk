@@ -5,13 +5,16 @@ Based on the database schema changes in migration `20250119000000_lead_campaign_
 ## Schema Changes Summary
 
 ### New Data Model
+
 The schema has fundamentally changed the relationship between leads, lists, and campaigns:
 
 **Old Model:**
+
 - Leads belonged directly to campaigns (via `campaign_id`)
 - Lead tracking data (attempts, status, pledged_amount) lived on `leads` table
 
 **New Model:**
+
 - **Leads** are campaign-independent (no `campaign_id`)
 - **Lead Lists** (`lead_lists`) group leads and can be reused across campaigns
 - **Campaign Lead Lists** (`campaign_lead_lists`) - Many-to-many join table linking lists to campaigns
@@ -20,13 +23,15 @@ The schema has fundamentally changed the relationship between leads, lists, and 
 ### New Tables
 
 #### 1. `campaign_lead_lists`
+
 Links lead lists to campaigns with campaign-specific configuration:
+
 ```typescript
 {
   id: string;
   campaign_id: string;
   lead_list_id: string;
-  priority: number;                    // Processing order
+  priority: number; // Processing order
   max_attempts_override: number | null; // Override campaign max_attempts
   filter_criteria: Json | null;
   total_leads: number;
@@ -40,22 +45,30 @@ Links lead lists to campaigns with campaign-specific configuration:
 ```
 
 #### 2. `campaign_leads`
+
 Tracks individual leads within campaigns:
+
 ```typescript
 {
   id: string;
   campaign_id: string;
   lead_id: string;
-  lead_list_id: string | null;  // Source list
-  status: 'new' | 'queued' | 'calling' | 'contacted' | 'converted' | 'failed' | 'dnc';
+  lead_list_id: string | null; // Source list
+  status: 'new' |
+    'queued' |
+    'calling' |
+    'contacted' |
+    'converted' |
+    'failed' |
+    'dnc';
   attempts: number;
   last_attempt_at: string | null;
   next_attempt_at: string | null;
-  outcome: string | null;       // 'pledged', 'donated', 'declined', 'callback', etc.
+  outcome: string | null; // 'pledged', 'donated', 'declined', 'callback', etc.
   pledged_amount: number | null;
   donated_amount: number | null;
   notes: string | null;
-  total_talk_time: number;      // seconds
+  total_talk_time: number; // seconds
   last_call_duration: number | null;
   added_at: string;
   contacted_at: string | null;
@@ -66,7 +79,9 @@ Tracks individual leads within campaigns:
 ### Modified Tables
 
 #### `leads` table
+
 **Removed columns:**
+
 - `campaign_id` (now campaign-independent)
 - `attempts` (moved to `campaign_leads`)
 - `last_contact_date` (moved to `campaign_leads`)
@@ -74,18 +89,23 @@ Tracks individual leads within campaigns:
 - `donated_amount` (moved to `campaign_leads`)
 
 **Added columns:**
+
 - `lead_score: number` (0-100)
 - `quality_rating: 'hot' | 'warm' | 'cold' | 'unrated'`
 - `last_activity_at: string | null`
 
 #### `lead_lists` table
+
 **Added columns:**
+
 - `is_archived: boolean`
 - `tags: Json` (array of strings)
 - `metadata: Json`
 
 #### `campaigns` table
+
 **Added columns:**
+
 - `business_id: string` (for multi-tenancy)
 - `goal_metric: string | null` ('pledge_rate' | 'average_gift' | 'total_donations')
 - `disclosure_line: string | null`
@@ -108,43 +128,47 @@ pnpm supabase:web:typegen    # Generate types
 ```
 
 This will update:
+
 - `packages/supabase/src/database.types.ts`
 - `apps/web/lib/database.types.ts`
 
 ### 2. Create New Hooks
 
 #### A. Campaign Lead Lists Hooks
+
 **File:** `packages/supabase/src/hooks/campaigns/use-campaign-lead-lists.ts`
 
 ```typescript
 // Query hooks
-export function useCampaignLeadLists(campaignId: string)
-export function useCampaignLeadList(id: string)
-export function useLeadListsForCampaign(campaignId: string) // with stats view
+export function useCampaignLeadLists(campaignId: string);
+export function useCampaignLeadList(id: string);
+export function useLeadListsForCampaign(campaignId: string); // with stats view
 
 // File: use-campaign-lead-list-mutations.ts
-export function useAssignLeadListToCampaign()
-export function useRemoveLeadListFromCampaign()
-export function useUpdateCampaignLeadListPriority()
-export function useToggleCampaignLeadListStatus()
+export function useAssignLeadListToCampaign();
+export function useRemoveLeadListFromCampaign();
+export function useUpdateCampaignLeadListPriority();
+export function useToggleCampaignLeadListStatus();
 ```
 
 #### B. Campaign Leads Hooks
+
 **File:** `packages/supabase/src/hooks/campaigns/use-campaign-leads.ts`
 
 ```typescript
 // Query hooks
-export function useCampaignLeads(campaignId: string, filters?)
-export function useCampaignLead(id: string)
-export function useCampaignLeadStats(campaignId: string)
+export function useCampaignLeads(campaignId: string, filters?);
+export function useCampaignLead(id: string);
+export function useCampaignLeadStats(campaignId: string);
 
 // File: use-campaign-lead-mutations.ts
-export function useUpdateCampaignLeadStatus()
-export function useUpdateCampaignLeadOutcome()
-export function useBulkUpdateCampaignLeads()
+export function useUpdateCampaignLeadStatus();
+export function useUpdateCampaignLeadOutcome();
+export function useBulkUpdateCampaignLeads();
 ```
 
 #### C. Updated Leads Hooks
+
 **File:** `packages/supabase/src/hooks/leads/use-leads.ts` (update existing)
 
 ```typescript
@@ -159,11 +183,12 @@ export interface LeadsFilters {
 }
 
 // File: use-lead-mutations.ts (update existing)
-export function useUpdateLeadScore()
-export function useUpdateLeadQuality()
+export function useUpdateLeadScore();
+export function useUpdateLeadQuality();
 ```
 
 #### D. Updated Lead Lists Hooks
+
 **File:** `packages/supabase/src/hooks/leads/use-lead-lists.ts` (update existing)
 
 ```typescript
@@ -176,17 +201,19 @@ export interface LeadListsFilters {
 }
 
 // File: use-lead-list-mutations.ts (update existing)
-export function useArchiveLeadList()
-export function useUnarchiveLeadList()
-export function useUpdateLeadListTags()
+export function useArchiveLeadList();
+export function useUnarchiveLeadList();
+export function useUpdateLeadListTags();
 ```
 
 ### 3. Update Campaign Management UI
 
 #### A. Campaign Creation/Edit Form
+
 **File:** `app/home/campaigns/[id]/_components/campaign-form.tsx` (or wizard)
 
 **Changes needed:**
+
 1. **Audience Selection Tab:**
    - Add "Lead Lists" section to select multiple lists
    - Show list of available lead lists with checkboxes
@@ -201,14 +228,17 @@ export function useUpdateLeadListTags()
    - Add "Call Window" time range picker (start/end times)
 
 3. **Form Schema Updates:**
+
 ```typescript
 const campaignSchema = z.object({
   // ... existing fields
 
   // New: Calling & Voice
-  goal_metric: z.enum(['pledge_rate', 'average_gift', 'total_donations']).optional(),
+  goal_metric: z
+    .enum(['pledge_rate', 'average_gift', 'total_donations'])
+    .optional(),
   disclosure_line: z.string().optional(),
-  call_window_start: z.string().optional(),  // HH:MM format
+  call_window_start: z.string().optional(), // HH:MM format
   call_window_end: z.string().optional(),
 
   // New: Audience (deprecated single list, use campaign_lead_lists instead)
@@ -216,17 +246,23 @@ const campaignSchema = z.object({
   exclude_dnc: z.boolean().default(true),
 
   // New: Selected lead lists (for UI state, not DB)
-  selected_lead_lists: z.array(z.object({
-    lead_list_id: z.string(),
-    priority: z.number(),
-  })).optional(),
+  selected_lead_lists: z
+    .array(
+      z.object({
+        lead_list_id: z.string(),
+        priority: z.number(),
+      }),
+    )
+    .optional(),
 });
 ```
 
 #### B. Campaign Detail Page - Lead Lists Section
+
 **File:** `app/home/campaigns/[id]/_components/campaign-lead-lists.tsx` (NEW)
 
 **Features:**
+
 - Display all assigned lead lists in a table
 - Columns: List Name, Priority, Total Leads, Contacted, Converted, Status
 - Actions: Change Priority, Remove List, View Details
@@ -234,9 +270,11 @@ const campaignSchema = z.object({
 - Drag-and-drop to reorder priority
 
 #### C. Campaign Detail Page - Campaign Leads View
+
 **File:** `app/home/campaigns/[id]/_components/campaign-leads-list.tsx` (UPDATE)
 
 **Changes:**
+
 - Update to fetch from `campaign_leads` table (not `leads`)
 - Add "Source List" column showing which list the lead came from
 - Update status dropdown to new values: 'new', 'queued', 'calling', 'contacted', 'converted', 'failed', 'dnc'
@@ -246,9 +284,11 @@ const campaignSchema = z.object({
 - Update filters to work with new schema
 
 #### D. Campaign Stats Dashboard
+
 **File:** `app/home/campaigns/[id]/_components/campaign-stats.tsx` (UPDATE)
 
 **Add new stat cards:**
+
 - Lead Lists Assigned (count)
 - Total Leads (sum across all lists)
 - Average Talk Time
@@ -257,9 +297,11 @@ const campaignSchema = z.object({
 ### 4. Update Lead Management UI
 
 #### A. Leads List Page
+
 **File:** `app/home/leads/page.tsx` and `_components/leads-list.tsx`
 
 **Changes:**
+
 - Remove campaign filter (leads are no longer tied to campaigns)
 - Add "Quality Rating" filter (hot/warm/cold/unrated)
 - Add "Lead Score" range filter
@@ -270,14 +312,17 @@ const campaignSchema = z.object({
 - Add "Used in Campaigns" column (count of campaigns this lead is in)
 
 #### B. Lead Detail/Edit Dialog
+
 **File:** `app/home/leads/_components/lead-dialog.tsx` (UPDATE)
 
 **Add new fields:**
+
 - Lead Score (number input 0-100 with slider)
 - Quality Rating (select: hot/warm/cold/unrated)
 - Last Activity timestamp (read-only)
 
 **Add new "Campaign History" tab:**
+
 - Show all campaigns this lead has been used in
 - Display: Campaign Name, Status, Attempts, Outcome, Pledged/Donated amounts
 - Data source: `campaign_leads` joined with `campaigns`
@@ -285,9 +330,11 @@ const campaignSchema = z.object({
 ### 5. Lead Lists Management
 
 #### A. Lead Lists Page
+
 **File:** `app/home/leads/lists/page.tsx` and `_components/lead-lists.tsx`
 
 **Changes:**
+
 - Add "Archive" toggle in filters (show/hide archived)
 - Add "Tags" filter
 - Add "Tags" column with badge chips
@@ -296,9 +343,11 @@ const campaignSchema = z.object({
 - Add "Tags" management in edit dialog
 
 #### B. Lead List Detail Page
+
 **File:** `app/home/leads/lists/[id]/page.tsx` (NEW or UPDATE)
 
 **Sections:**
+
 1. **List Info:** Name, description, tags, metadata
 2. **Members Table:** All leads in this list
 3. **Campaign Usage:** All campaigns using this list with stats
@@ -307,9 +356,11 @@ const campaignSchema = z.object({
 ### 6. Dialogs & Modals
 
 #### A. Assign Lead List to Campaign Dialog
+
 **File:** `app/home/campaigns/[id]/_components/assign-lead-list-dialog.tsx` (NEW)
 
 **Features:**
+
 - Select lead list from dropdown
 - Set priority (number input)
 - Optional: Set max attempts override
@@ -317,9 +368,11 @@ const campaignSchema = z.object({
 - Confirm and assign
 
 #### B. Campaign Lead Outcome Dialog
+
 **File:** `app/home/campaigns/[id]/_components/campaign-lead-outcome-dialog.tsx` (NEW)
 
 **Features:**
+
 - Quick update for campaign lead status
 - Outcome selection (pledged, donated, declined, callback, no answer, voicemail)
 - Pledged/donated amount inputs
@@ -329,43 +382,64 @@ const campaignSchema = z.object({
 ### 7. Helper Functions & Utilities
 
 #### A. Database Functions to Use
+
 **File:** `packages/supabase/src/helpers/campaign-leads.ts` (NEW)
 
 Wrap the SQL functions for frontend use:
+
 ```typescript
 export async function addLeadListToCampaign(
   supabase: SupabaseClient,
   campaignId: string,
   leadListId: string,
-  priority: number = 1
-): Promise<string>
+  priority: number = 1,
+): Promise<string>;
 
 export async function createLeadListFromCSV(
   supabase: SupabaseClient,
   businessId: string,
   listName: string,
-  leads: Array<LeadCSVRow>
-): Promise<string>
+  leads: Array<LeadCSVRow>,
+): Promise<string>;
 ```
 
 #### B. Type Guards & Validators
+
 **File:** `app/home/campaigns/_lib/types.ts` (UPDATE)
 
 ```typescript
-export type CampaignLeadStatus = 'new' | 'queued' | 'calling' | 'contacted' | 'converted' | 'failed' | 'dnc';
-export type CampaignLeadOutcome = 'pledged' | 'donated' | 'declined' | 'callback' | 'no_answer' | 'voicemail';
+export type CampaignLeadStatus =
+  | 'new'
+  | 'queued'
+  | 'calling'
+  | 'contacted'
+  | 'converted'
+  | 'failed'
+  | 'dnc';
+export type CampaignLeadOutcome =
+  | 'pledged'
+  | 'donated'
+  | 'declined'
+  | 'callback'
+  | 'no_answer'
+  | 'voicemail';
 export type LeadQualityRating = 'hot' | 'warm' | 'cold' | 'unrated';
-export type CampaignGoalMetric = 'pledge_rate' | 'average_gift' | 'total_donations';
+export type CampaignGoalMetric =
+  | 'pledge_rate'
+  | 'average_gift'
+  | 'total_donations';
 ```
 
 ### 8. Migration Considerations
 
 #### A. Handle Existing UI State
+
 - Any existing campaign detail pages showing leads need to switch from `leads` table to `campaign_leads` table
 - Update all lead status references to use new status values
 - Remove any code that tries to set `campaign_id` on leads
 
 #### B. Backward Compatibility
+
 - The migration automatically creates "Migrated Leads" lists for existing campaigns
 - These should be handled gracefully in the UI
 - Consider adding a badge or indicator for migrated lists
@@ -383,6 +457,7 @@ Use the new SQL views for better performance:
 ## Implementation Checklist
 
 ### Phase 1: Database & Hooks (Foundation)
+
 - [ ] Run `pnpm supabase:web:reset` to apply migrations
 - [ ] Run `pnpm supabase:web:typegen` to generate types
 - [ ] Create `use-campaign-lead-lists.ts` hooks
@@ -395,6 +470,7 @@ Use the new SQL views for better performance:
 - [ ] Update `use-lead-list-mutations.ts` hooks
 
 ### Phase 2: Campaign Management UI
+
 - [ ] Update campaign form/wizard with new fields
 - [ ] Create "Lead Lists" selection in campaign form
 - [ ] Create `campaign-lead-lists.tsx` component
@@ -403,18 +479,21 @@ Use the new SQL views for better performance:
 - [ ] Create assign lead list dialog
 
 ### Phase 3: Lead Management UI
+
 - [ ] Update leads list page (remove campaign filter, add score/quality)
 - [ ] Update lead detail dialog (add new fields)
 - [ ] Add "Campaign History" tab to lead dialog
 - [ ] Update lead filters component
 
 ### Phase 4: Lead Lists UI
+
 - [ ] Update lead lists page (add archive, tags)
 - [ ] Create/update lead list detail page
 - [ ] Add tags management to lead list dialog
 - [ ] Show campaign usage in list detail
 
 ### Phase 5: Testing & Polish
+
 - [ ] Test campaign creation with multiple lead lists
 - [ ] Test lead list reuse across campaigns
 - [ ] Test priority ordering of lists
@@ -459,7 +538,7 @@ for (const selection of selectedLeadLists) {
     supabase,
     campaign.id,
     selection.lead_list_id,
-    selection.priority
+    selection.priority,
   );
 }
 ```

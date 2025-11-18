@@ -32,7 +32,9 @@ test.describe('Team Invitations - Full Flow', () => {
 
     if (!hasBusinesses) {
       console.log('⚠️ No businesses found for new user - this is expected');
-      console.log('ℹ️ Users need to create a business before inviting team members');
+      console.log(
+        'ℹ️ Users need to create a business before inviting team members',
+      );
       console.log('✅ Test passed - team settings page is accessible');
       return; // Exit gracefully
     }
@@ -53,7 +55,10 @@ test.describe('Team Invitations - Full Flow', () => {
     console.log(`Inviting team member with email ${invitedEmail}...`);
 
     await page.fill('#invite-email', invitedEmail);
-    await page.getByRole('button', { name: /Invite Member/i }).last().click();
+    await page
+      .getByRole('button', { name: /Invite Member/i })
+      .last()
+      .click();
 
     // Wait for dialog to close (invitation attempt completed)
     await page.waitForTimeout(2000);
@@ -107,7 +112,9 @@ test.describe('Team Member Management', () => {
     const hasBusinesses = await team.hasBusinesses();
 
     if (!hasBusinesses) {
-      console.log('⚠️ No businesses found - user needs to create a business first');
+      console.log(
+        '⚠️ No businesses found - user needs to create a business first',
+      );
       test.skip();
       return;
     }
@@ -116,7 +123,9 @@ test.describe('Team Member Management', () => {
 
     // Verify team members section appears
     await expect(page.getByText(/Team Members -/)).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Invite Member' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Invite Member' }),
+    ).toBeVisible();
 
     // Verify tabs are visible
     await expect(page.getByRole('tab', { name: /All Members/ })).toBeVisible();
@@ -185,7 +194,9 @@ test.describe('Team Member Management', () => {
     await team.openInviteDialog();
 
     // Try to submit without email
-    const inviteButton = page.getByRole('button', { name: /Invite Member/i }).last();
+    const inviteButton = page
+      .getByRole('button', { name: /Invite Member/i })
+      .last();
     await expect(inviteButton).toBeDisabled();
 
     // Fill in email

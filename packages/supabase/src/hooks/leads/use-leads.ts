@@ -133,7 +133,7 @@ export function useLeadsByCampaign(campaignId: string) {
         .select('*')
         .eq('campaign_id', campaignId)
         .eq('business_id', businessContext.business_id)
-        .order('created_at', { ascending: false});
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(`Failed to fetch leads for campaign: ${error.message}`);

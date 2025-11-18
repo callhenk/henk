@@ -57,7 +57,9 @@ export class Mailbox {
         throw new Error(`Inbucket server error (${status}), will retry...`);
       }
 
-      throw new Error(`Failed to fetch emails: ${status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch emails: ${status} ${response.statusText}`,
+      );
     }
 
     const json = (await response.json()) as { messages: Array<{ ID: string }> };
@@ -65,7 +67,9 @@ export class Mailbox {
     console.log(`Inbucket search result:`, json);
 
     if (!json?.messages || !json.messages.length) {
-      console.log(`No messages found for ${email} yet. Waiting for email to arrive...`);
+      console.log(
+        `No messages found for ${email} yet. Waiting for email to arrive...`,
+      );
       throw new Error(`No email found for ${email} yet. Will retry...`);
     }
 

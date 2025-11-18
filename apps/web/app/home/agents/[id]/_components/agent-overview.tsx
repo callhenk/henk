@@ -226,7 +226,7 @@ export function AgentOverview({
                       <Link
                         key={campaign.id}
                         href={`/home/campaigns/${campaign.id}`}
-                        className="group hover:border-primary hover:bg-primary/5 flex items-center justify-between rounded-lg border p-3 transition-all"
+                        className="hover:border-primary hover:bg-primary/5 group flex items-center justify-between rounded-lg border p-3 transition-all"
                       >
                         <span className="group-hover:text-primary font-medium">
                           {campaign.name}
@@ -262,7 +262,7 @@ export function AgentOverview({
               </CardHeader>
               <CardContent>
                 <div className="bg-muted/30 max-h-64 overflow-y-auto rounded-lg border p-4">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
                     {agent.donor_context || 'No context prompt available'}
                   </p>
                 </div>

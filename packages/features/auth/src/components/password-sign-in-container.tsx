@@ -19,7 +19,7 @@ export function PasswordSignInContainer({
   const { captchaToken, resetCaptchaToken } = useCaptchaToken();
   const signInMutation = useSignInWithEmailPassword();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  
+
   // Keep loading state active during redirect to prevent flash
   const isLoading = signInMutation.isPending || isRedirecting;
 
@@ -33,7 +33,7 @@ export function PasswordSignInContainer({
 
         if (onSignIn) {
           const userId = data?.user?.id;
-          
+
           // Set redirecting state to maintain loading during redirect
           setIsRedirecting(true);
           onSignIn(userId);
@@ -49,23 +49,27 @@ export function PasswordSignInContainer({
   );
 
   return (
-    <div className="space-y-4 relative">
+    <div className="relative space-y-4">
       <AuthErrorAlert error={signInMutation.error} />
 
       <PasswordSignInForm onSubmit={onSubmit} loading={isLoading} />
-      
+
       {/* Enhanced loading overlay */}
       {isLoading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-md pointer-events-none animate-in fade-in duration-300 z-10">
+        <div className="bg-background/80 animate-in fade-in pointer-events-none absolute inset-0 z-10 backdrop-blur-md duration-300">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center space-y-3 text-center px-4">
+            <div className="flex flex-col items-center space-y-3 px-4 text-center">
               <div className="relative">
-                <div className="w-8 h-8 border-2 border-primary/30 rounded-full"></div>
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+                <div className="border-primary/30 h-8 w-8 rounded-full border-2"></div>
+                <div className="border-primary absolute inset-0 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Signing you in...</p>
-                <p className="text-xs text-muted-foreground">Please wait a moment</p>
+                <p className="text-foreground text-sm font-medium">
+                  Signing you in...
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  Please wait a moment
+                </p>
               </div>
             </div>
           </div>

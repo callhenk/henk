@@ -12,6 +12,7 @@
 This document outlines the implementation plan for a Supabase Edge Function that will automatically synchronize leads from Salesforce (Contacts and Leads objects) to the Henk platform's `leads` table. The function will run on a scheduled basis (cron job) and perform incremental syncs to keep lead data up-to-date.
 
 ### Key Objectives
+
 - ✅ Automated lead synchronization from Salesforce (both Contacts and Leads)
 - ✅ Incremental sync using `last_sync_at` timestamp
 - ✅ Support for multiple businesses with separate Salesforce instances
@@ -118,6 +119,7 @@ integrations (
 ```
 
 **Query Pattern**:
+
 ```sql
 SELECT * FROM integrations
 WHERE type = 'crm'
@@ -197,6 +199,7 @@ leads (
 ```
 
 **Upsert Pattern**:
+
 ```sql
 INSERT INTO leads (business_id, source, source_id, ...)
 VALUES (...)
@@ -335,10 +338,10 @@ serve(async (req) => {
     // 1. Verify request is from Supabase cron or authorized user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // 2. Initialize Supabase client
@@ -355,16 +358,18 @@ serve(async (req) => {
       .eq('status', 'active');
 
     if (integrationsError) {
-      throw new Error(`Failed to fetch integrations: ${integrationsError.message}`);
+      throw new Error(
+        `Failed to fetch integrations: ${integrationsError.message}`,
+      );
     }
 
     if (!integrations || integrations.length === 0) {
       return new Response(
         JSON.stringify({
           message: 'No active Salesforce integrations found',
-          synced: 0
+          synced: 0,
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -398,9 +403,8 @@ serve(async (req) => {
         synced: integrations.length,
         results,
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
-
   } catch (error) {
     console.error('Sync function error:', error);
     return new Response(
@@ -408,7 +412,7 @@ serve(async (req) => {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
 });
@@ -419,7 +423,7 @@ serve(async (req) => {
 ```typescript
 async function syncIntegration(
   integration: any,
-  supabase: any
+  supabase: any,
 ): Promise<SyncResult> {
   const startTime = Date.now();
   const logId = crypto.randomUUID();
@@ -473,7 +477,9 @@ async function syncIntegration(
       WHERE SystemModstamp > ${lastSyncAt}
       ORDER BY SystemModstamp ASC
       LIMIT 2000
-    `.trim().replace(/\s+/g, ' ');
+    `
+      .trim()
+      .replace(/\s+/g, ' ');
 
     // Query for Leads
     const leadSoql = `
@@ -491,7 +497,9 @@ async function syncIntegration(
         AND IsConverted = false
       ORDER BY SystemModstamp ASC
       LIMIT 2000
-    `.trim().replace(/\s+/g, ' ');
+    `
+      .trim()
+      .replace(/\s+/g, ' ');
 
     // 2. Fetch both contacts and leads from Salesforce
     const allLeads = [];
@@ -499,10 +507,19 @@ async function syncIntegration(
     // Fetch Contacts
     const contactQueryUrl = `${config.instanceUrl}/services/data/${config.apiVersion}/query?q=${encodeURIComponent(contactSoql)}`;
 
-    let contactResponse = await fetchWithAuth(contactQueryUrl, credentials, async () => {
-      credentials = await refreshToken(integration, config, credentials, supabase);
-      return credentials;
-    });
+    let contactResponse = await fetchWithAuth(
+      contactQueryUrl,
+      credentials,
+      async () => {
+        credentials = await refreshToken(
+          integration,
+          config,
+          credentials,
+          supabase,
+        );
+        return credentials;
+      },
+    );
 
     const contactData = await contactResponse.json();
     const contacts = contactData.records || [];
@@ -510,10 +527,19 @@ async function syncIntegration(
     // Fetch Leads
     const leadQueryUrl = `${config.instanceUrl}/services/data/${config.apiVersion}/query?q=${encodeURIComponent(leadSoql)}`;
 
-    let leadResponse = await fetchWithAuth(leadQueryUrl, credentials, async () => {
-      credentials = await refreshToken(integration, config, credentials, supabase);
-      return credentials;
-    });
+    let leadResponse = await fetchWithAuth(
+      leadQueryUrl,
+      credentials,
+      async () => {
+        credentials = await refreshToken(
+          integration,
+          config,
+          credentials,
+          supabase,
+        );
+        return credentials;
+      },
+    );
 
     const leadData = await leadResponse.json();
     const leads = leadData.records || [];
@@ -523,14 +549,14 @@ async function syncIntegration(
       supabase,
       integration.business_id,
       'Salesforce Contacts',
-      'Synced from Salesforce Contacts'
+      'Synced from Salesforce Contacts',
     );
 
     const leadListId = await ensureSalesforceList(
       supabase,
       integration.business_id,
       'Salesforce Leads',
-      'Synced from Salesforce Leads'
+      'Synced from Salesforce Leads',
     );
 
     // 4. Transform and upsert all records as leads
@@ -541,28 +567,30 @@ async function syncIntegration(
     // Process Contacts
     for (const sfContact of contacts) {
       try {
-        const mappedLead = mapSalesforceContactToLead(sfContact, integration.business_id);
+        const mappedLead = mapSalesforceContactToLead(
+          sfContact,
+          integration.business_id,
+        );
 
-        const { error } = await supabase
-          .from('leads')
-          .upsert(mappedLead, {
-            onConflict: 'business_id,source,source_id',
-          });
+        const { error } = await supabase.from('leads').upsert(mappedLead, {
+          onConflict: 'business_id,source,source_id',
+        });
 
         if (error) {
           console.error(`Failed to upsert contact ${sfContact.Id}:`, error);
           failed++;
         } else {
           // Add to contact list
-          await supabase
-            .from('lead_list_members')
-            .upsert({
+          await supabase.from('lead_list_members').upsert(
+            {
               lead_list_id: contactListId,
               lead_id: mappedLead.id,
               added_at: new Date().toISOString(),
-            }, {
+            },
+            {
               onConflict: 'lead_list_id,lead_id',
-            });
+            },
+          );
 
           // Check if it was an insert or update
           const { data: existing } = await supabase
@@ -588,28 +616,30 @@ async function syncIntegration(
     // Process Leads
     for (const sfLead of leads) {
       try {
-        const mappedLead = mapSalesforceLeadToLead(sfLead, integration.business_id);
+        const mappedLead = mapSalesforceLeadToLead(
+          sfLead,
+          integration.business_id,
+        );
 
-        const { error } = await supabase
-          .from('leads')
-          .upsert(mappedLead, {
-            onConflict: 'business_id,source,source_id',
-          });
+        const { error } = await supabase.from('leads').upsert(mappedLead, {
+          onConflict: 'business_id,source,source_id',
+        });
 
         if (error) {
           console.error(`Failed to upsert lead ${sfLead.Id}:`, error);
           failed++;
         } else {
           // Add to lead list
-          await supabase
-            .from('lead_list_members')
-            .upsert({
+          await supabase.from('lead_list_members').upsert(
+            {
               lead_list_id: leadListId,
               lead_id: mappedLead.id,
               added_at: new Date().toISOString(),
-            }, {
+            },
+            {
               onConflict: 'lead_list_id,lead_id',
-            });
+            },
+          );
 
           // Check if it was an insert or update
           const { data: existing } = await supabase
@@ -647,11 +677,12 @@ async function syncIntegration(
     // 7. Update sync log
     const duration = Date.now() - startTime;
     const totalProcessed = contacts.length + leads.length;
-    const status = failed > 0 && created === 0 && updated === 0
-      ? 'failed'
-      : failed > 0
-        ? 'partial'
-        : 'success';
+    const status =
+      failed > 0 && created === 0 && updated === 0
+        ? 'failed'
+        : failed > 0
+          ? 'partial'
+          : 'success';
 
     await supabase
       .from('sync_logs')
@@ -684,10 +715,10 @@ async function syncIntegration(
         leads_synced: leads.length,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
 
     // Update sync log with error
     await supabase
@@ -719,7 +750,7 @@ async function refreshToken(
     clientId?: string;
     clientSecret?: string;
   },
-  supabase: any
+  supabase: any,
 ): Promise<{
   accessToken: string;
   tokenType: string;
@@ -727,7 +758,8 @@ async function refreshToken(
 }> {
   // Get client credentials (prefer database, fallback to env vars)
   const clientId = credentials.clientId || Deno.env.get('SALESFORCE_CLIENT_ID');
-  const clientSecret = credentials.clientSecret || Deno.env.get('SALESFORCE_CLIENT_SECRET');
+  const clientSecret =
+    credentials.clientSecret || Deno.env.get('SALESFORCE_CLIENT_SECRET');
 
   if (!clientId || !clientSecret) {
     throw new Error('Missing client credentials for token refresh');
@@ -735,9 +767,10 @@ async function refreshToken(
 
   // Determine token URL based on environment
   const environment = config.env || 'production';
-  const loginUrl = environment === 'sandbox'
-    ? 'https://test.salesforce.com'
-    : 'https://login.salesforce.com';
+  const loginUrl =
+    environment === 'sandbox'
+      ? 'https://test.salesforce.com'
+      : 'https://login.salesforce.com';
   const tokenUrl = `${loginUrl}/services/oauth2/token`;
 
   const tokenParams = new URLSearchParams({
@@ -843,7 +876,7 @@ interface SalesforceLead {
 
 function mapSalesforceContactToLead(
   sfContact: SalesforceContact,
-  businessId: string
+  businessId: string,
 ): any {
   return {
     id: crypto.randomUUID(),
@@ -886,8 +919,8 @@ function mapSalesforceContactToLead(
     owner_id: sfContact.OwnerId || null,
 
     // Lead quality (default for contacts)
-    lead_score: 50,  // Default mid-range score for contacts
-    quality_rating: 'warm',  // Contacts are typically warmer than cold leads
+    lead_score: 50, // Default mid-range score for contacts
+    quality_rating: 'warm', // Contacts are typically warmer than cold leads
 
     // Communication preferences
     do_not_call: sfContact.DoNotCall || false,
@@ -906,7 +939,7 @@ function mapSalesforceContactToLead(
 
 function mapSalesforceLeadToLead(
   sfLead: SalesforceLead,
-  businessId: string
+  businessId: string,
 ): any {
   return {
     id: crypto.randomUUID(),
@@ -942,7 +975,7 @@ function mapSalesforceLeadToLead(
     // Organization
     company: sfLead.Company || null,
     title: sfLead.Title || null,
-    department: null,  // Leads don't typically have department
+    department: null, // Leads don't typically have department
 
     // Additional
     lead_source: sfLead.LeadSource || null,
@@ -971,19 +1004,27 @@ function mapSalesforceLeadToLead(
 // Helper functions for lead quality mapping
 function mapRatingToScore(rating?: string): number {
   switch (rating?.toLowerCase()) {
-    case 'hot': return 90;
-    case 'warm': return 70;
-    case 'cold': return 30;
-    default: return 50;
+    case 'hot':
+      return 90;
+    case 'warm':
+      return 70;
+    case 'cold':
+      return 30;
+    default:
+      return 50;
   }
 }
 
 function mapRatingToQuality(rating?: string): string {
   switch (rating?.toLowerCase()) {
-    case 'hot': return 'hot';
-    case 'warm': return 'warm';
-    case 'cold': return 'cold';
-    default: return 'unrated';
+    case 'hot':
+      return 'hot';
+    case 'warm':
+      return 'warm';
+    case 'cold':
+      return 'cold';
+    default:
+      return 'unrated';
   }
 }
 ```
@@ -999,7 +1040,7 @@ async function ensureSalesforceList(
   supabase: any,
   businessId: string,
   name: string,
-  description: string
+  description: string,
 ): Promise<string> {
   // Check if list already exists
   const { data: existing } = await supabase
@@ -1022,7 +1063,7 @@ async function ensureSalesforceList(
       business_id: businessId,
       name,
       description,
-      color: '#0070f3',  // Salesforce blue
+      color: '#0070f3', // Salesforce blue
       list_type: 'static',
       source: 'salesforce_sync',
       lead_count: 0,
@@ -1044,7 +1085,7 @@ async function ensureSalesforceList(
  */
 async function updateLeadListCounts(
   supabase: any,
-  listIds: string[]
+  listIds: string[],
 ): Promise<void> {
   for (const listId of listIds) {
     // Count members in the list
@@ -1070,11 +1111,11 @@ async function updateLeadListCounts(
 async function fetchWithAuth(
   url: string,
   credentials: any,
-  refreshCallback: () => Promise<any>
+  refreshCallback: () => Promise<any>,
 ): Promise<Response> {
   let response = await fetch(url, {
     headers: {
-      'Authorization': `${credentials.tokenType} ${credentials.accessToken}`,
+      Authorization: `${credentials.tokenType} ${credentials.accessToken}`,
       'Content-Type': 'application/json',
     },
   });
@@ -1087,14 +1128,16 @@ async function fetchWithAuth(
     // Retry with new token
     response = await fetch(url, {
       headers: {
-        'Authorization': `${newCredentials.tokenType} ${newCredentials.accessToken}`,
+        Authorization: `${newCredentials.tokenType} ${newCredentials.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
   }
 
   if (!response.ok) {
-    throw new Error(`Salesforce API error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Salesforce API error: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response;
@@ -1122,19 +1165,19 @@ Add to `supabase/functions/cron.ts` or configure via Supabase Dashboard:
 
 ```typescript
 // Every 5 minutes (high frequency)
-"*/5 * * * *"
+'*/5 * * * *';
 
 // Every 30 minutes (default recommended)
-"*/30 * * * *"
+'*/30 * * * *';
 
 // Every hour
-"0 * * * *"
+'0 * * * *';
 
 // Every 6 hours
-"0 */6 * * *"
+'0 */6 * * *';
 
 // Daily at 2 AM
-"0 2 * * *"
+'0 2 * * *';
 ```
 
 ---
@@ -1177,14 +1220,14 @@ supabase secrets set SALESFORCE_CLIENT_SECRET=your_client_secret
 
 ### 7.1 Error Types and Recovery
 
-| Error Type | Recovery Strategy |
-|------------|------------------|
-| **401 Unauthorized** | Refresh token automatically, retry once |
-| **429 Rate Limit** | Back off exponentially, retry with delay |
+| Error Type           | Recovery Strategy                            |
+| -------------------- | -------------------------------------------- |
+| **401 Unauthorized** | Refresh token automatically, retry once      |
+| **429 Rate Limit**   | Back off exponentially, retry with delay     |
 | **500 Server Error** | Retry up to 3 times with exponential backoff |
-| **Network Timeout** | Retry with increased timeout |
-| **Invalid Token** | Mark integration as 'error', notify user |
-| **Invalid Data** | Skip record, log error, continue sync |
+| **Network Timeout**  | Retry with increased timeout                 |
+| **Invalid Token**    | Mark integration as 'error', notify user     |
+| **Invalid Data**     | Skip record, log error, continue sync        |
 
 ### 7.2 Error Handling Code
 
@@ -1192,7 +1235,7 @@ supabase secrets set SALESFORCE_CLIENT_SECRET=your_client_secret
 async function fetchWithRetry(
   url: string,
   options: RequestInit,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<Response> {
   let lastError: Error | null = null;
 
@@ -1202,7 +1245,9 @@ async function fetchWithRetry(
 
       // Handle rate limiting
       if (response.status === 429) {
-        const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
+        const retryAfter = parseInt(
+          response.headers.get('Retry-After') || '60',
+        );
         await sleep(retryAfter * 1000);
         continue;
       }
@@ -1222,7 +1267,7 @@ async function fetchWithRetry(
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 ```
 
@@ -1259,10 +1304,11 @@ Deno.test('refreshToken - handles successful refresh', async () => {
   const mockFetch = (url: string) => {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({
-        access_token: 'new_token',
-        token_type: 'Bearer',
-      }),
+      json: () =>
+        Promise.resolve({
+          access_token: 'new_token',
+          token_type: 'Bearer',
+        }),
     });
   };
 
@@ -1312,10 +1358,12 @@ interface LogEntry {
 }
 
 function log(entry: LogEntry) {
-  console.log(JSON.stringify({
-    timestamp: new Date().toISOString(),
-    ...entry,
-  }));
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      ...entry,
+    }),
+  );
 }
 
 // Usage
@@ -1621,20 +1669,20 @@ WHERE IsDeleted = false AND SystemModstamp > {lastSyncAt}
 
 ### Salesforce REST API
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/services/data/v61.0/query` | GET | Execute SOQL query |
-| `/services/oauth2/token` | POST | Refresh access token |
-| `/services/data/v61.0/sobjects/Contact/{id}` | GET | Get single contact |
-| `/services/data/v61.0/sobjects/Lead/{id}` | GET | Get single lead |
-| `/services/data/v61.0/composite/sobjects` | POST | Bulk upsert |
+| Endpoint                                     | Method | Purpose              |
+| -------------------------------------------- | ------ | -------------------- |
+| `/services/data/v61.0/query`                 | GET    | Execute SOQL query   |
+| `/services/oauth2/token`                     | POST   | Refresh access token |
+| `/services/data/v61.0/sobjects/Contact/{id}` | GET    | Get single contact   |
+| `/services/data/v61.0/sobjects/Lead/{id}`    | GET    | Get single lead      |
+| `/services/data/v61.0/composite/sobjects`    | POST   | Bulk upsert          |
 
 ### Edge Function Endpoints
 
-| Endpoint | Method | Auth | Purpose |
-|----------|--------|------|---------|
-| `/sync-salesforce-leads` | POST | Service Role | Trigger sync (cron) |
-| `/sync-salesforce-leads?business_id={id}` | POST | User Token | Manual sync (future) |
+| Endpoint                                  | Method | Auth         | Purpose              |
+| ----------------------------------------- | ------ | ------------ | -------------------- |
+| `/sync-salesforce-leads`                  | POST   | Service Role | Trigger sync (cron)  |
+| `/sync-salesforce-leads?business_id={id}` | POST   | User Token   | Manual sync (future) |
 
 ---
 
@@ -1642,13 +1690,13 @@ WHERE IsDeleted = false AND SystemModstamp > {lastSyncAt}
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| **401 Unauthorized** | Expired token | Check token refresh logic |
-| **SOQL Error** | Invalid query syntax | Validate SOQL in Salesforce Workbench |
-| **Duplicate records** | Upsert conflict handling | Check unique constraint |
-| **Slow sync** | Too many records | Reduce LIMIT or increase frequency |
-| **Missing leads** | Last_sync_at too recent | Reset last_sync_at to sync all |
+| Issue                 | Cause                    | Solution                              |
+| --------------------- | ------------------------ | ------------------------------------- |
+| **401 Unauthorized**  | Expired token            | Check token refresh logic             |
+| **SOQL Error**        | Invalid query syntax     | Validate SOQL in Salesforce Workbench |
+| **Duplicate records** | Upsert conflict handling | Check unique constraint               |
+| **Slow sync**         | Too many records         | Reduce LIMIT or increase frequency    |
+| **Missing leads**     | Last_sync_at too recent  | Reset last_sync_at to sync all        |
 
 ### Debug Checklist
 
@@ -1663,4 +1711,4 @@ WHERE IsDeleted = false AND SystemModstamp > {lastSyncAt}
 
 **End of Document**
 
-*This plan provides a comprehensive blueprint for implementing the Salesforce-to-leads sync edge function. The function syncs both Salesforce Contacts and Leads to the Henk platform's unified `leads` table, automatically organizing them into lead lists for campaign management.*
+_This plan provides a comprehensive blueprint for implementing the Salesforce-to-leads sync edge function. The function syncs both Salesforce Contacts and Leads to the Henk platform's unified `leads` table, automatically organizing them into lead lists for campaign management._

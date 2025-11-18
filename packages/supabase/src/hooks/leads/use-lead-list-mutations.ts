@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Json, Tables, TablesInsert, TablesUpdate } from '../../database.types';
+import type {
+  Json,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
 type LeadList = Tables<'lead_lists'>;
@@ -75,10 +80,7 @@ export function useDeleteLeadList() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase
-        .from('lead_lists')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('lead_lists').delete().eq('id', id);
 
       if (error) {
         throw new Error(`Failed to delete lead list: ${error.message}`);
@@ -99,9 +101,7 @@ export function useAddLeadToList() {
 
   return useMutation({
     mutationFn: async (data: CreateLeadListMemberData): Promise<void> => {
-      const { error } = await supabase
-        .from('lead_list_members')
-        .insert(data);
+      const { error } = await supabase.from('lead_list_members').insert(data);
 
       if (error) {
         throw new Error(`Failed to add lead to list: ${error.message}`);
@@ -168,14 +168,19 @@ export function useCreateLeadListFromCSV() {
         [key: string]: unknown;
       }>;
     }) => {
-      const { data: result, error } = await supabase.rpc('create_lead_list_from_csv', {
-        p_business_id: data.business_id,
-        p_list_name: data.name,
-        p_leads: data.leads as unknown as Json,
-      });
+      const { data: result, error } = await supabase.rpc(
+        'create_lead_list_from_csv',
+        {
+          p_business_id: data.business_id,
+          p_list_name: data.name,
+          p_leads: data.leads as unknown as Json,
+        },
+      );
 
       if (error) {
-        throw new Error(`Failed to create lead list from CSV: ${error.message}`);
+        throw new Error(
+          `Failed to create lead list from CSV: ${error.message}`,
+        );
       }
 
       return result;

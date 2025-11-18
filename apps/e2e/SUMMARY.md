@@ -25,11 +25,13 @@
 ### 1. Create Test User (2 minutes)
 
 **Open Supabase Studio:**
+
 ```bash
 open http://localhost:54323
 ```
 
 **Create User:**
+
 - Click: Authentication → Users → Add User
 - Email: `cyrus@callhenk.com`
 - Password: `Test123?`
@@ -55,11 +57,13 @@ pnpm test:pages
 **Current:** 18/26 passing (69%)
 
 **Fully Working:**
+
 - ✅ Leads (4/4)
-- ✅ Analytics (3/3)  
+- ✅ Analytics (3/3)
 - ✅ **Agents (3/3) - Enhanced with 5-step wizard** ⭐
 
 **Partially Working:**
+
 - ⚠️ Conversations (2/4)
 - ⚠️ Campaigns (2/4)
 - ⚠️ Profile (2/4)
@@ -68,6 +72,7 @@ pnpm test:pages
 ## 🔍 Verification
 
 **Run setup checker:**
+
 ```bash
 cd apps/e2e
 ./setup-e2e.sh
@@ -78,6 +83,7 @@ This will tell you exactly what's missing!
 ## ⚠️ Important Notes
 
 1. **Local Supabase Must Be Running**
+
    ```bash
    cd apps/web && supabase start
    ```
@@ -103,7 +109,7 @@ cd apps/e2e && ./setup-e2e.sh
 # Run page tests
 pnpm test:pages
 
-# Run smoke test  
+# Run smoke test
 pnpm test:smoke
 
 # Run with UI

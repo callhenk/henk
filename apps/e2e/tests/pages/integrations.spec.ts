@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const TEST_EMAIL = 'cyrus@callhenk.com';
 const TEST_PASSWORD = 'Test123?';
@@ -13,9 +13,10 @@ test.describe('Integrations Page Tests', () => {
     await page.waitForURL(/\/home/, { timeout: 10000 });
 
     // Expand sidebar
-    const toggleButton = page.locator('button').filter({ hasText: /Toggle Sidebar/i }).or(
-      page.locator('button[aria-label*="Toggle"]')
-    );
+    const toggleButton = page
+      .locator('button')
+      .filter({ hasText: /Toggle Sidebar/i })
+      .or(page.locator('button[aria-label*="Toggle"]'));
     if (await toggleButton.isVisible({ timeout: 2000 })) {
       await toggleButton.click();
       await page.waitForTimeout(500);
@@ -36,7 +37,9 @@ test.describe('Integrations Page Tests', () => {
 
   test('can see integration cards', async ({ page }) => {
     // Check for integration cards (Salesforce, HubSpot, etc.)
-    const salesforceCard = page.locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")').first();
+    const salesforceCard = page
+      .locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")')
+      .first();
 
     if (await salesforceCard.isVisible({ timeout: 5000 })) {
       console.log('✓ Integration cards are visible');
@@ -46,7 +49,9 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can search integrations', async ({ page }) => {
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Search" i]');
+    const searchInput = page.locator(
+      'input[type="search"], input[placeholder*="Search" i]',
+    );
 
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('salesforce');
@@ -59,7 +64,9 @@ test.describe('Integrations Page Tests', () => {
 
   test('can view integration details', async ({ page }) => {
     // Try to click on an integration card
-    const integrationCard = page.locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")').first();
+    const integrationCard = page
+      .locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")')
+      .first();
 
     if (await integrationCard.isVisible({ timeout: 2000 })) {
       const parentCard = integrationCard.locator('..');

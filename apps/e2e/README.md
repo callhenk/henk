@@ -108,6 +108,7 @@ pnpm report
 Before running tests, ensure you have:
 
 1. **Local Supabase running**
+
    ```bash
    cd apps/web
    supabase start
@@ -123,6 +124,7 @@ Before running tests, ensure you have:
    - Create via Supabase Studio: `http://localhost:54323`
 
 **Run the setup checker to verify:**
+
 ```bash
 cd apps/e2e
 ./setup-e2e.sh
@@ -131,11 +133,13 @@ cd apps/e2e
 ## Test Credentials
 
 ### For Page Tests (Existing User)
+
 - **Email**: `cyrus@callhenk.com`
 - **Password**: `Test123?`
 - Tests login with this account and interact with the UI
 
 ### For Authentication Tests (New Signups)
+
 - **Email Format**: `cyrus+e2e-<timestamp>-<random>@callhenk.com`
 - **Example**: `cyrus+e2e-1761990123456-789@callhenk.com`
 - **How it works**:
@@ -150,19 +154,20 @@ cd apps/e2e
 
 **Page-based tests:** 18/26 passing (69% pass rate)
 
-| Page | Status | Tests Passing |
-|------|--------|---------------|
-| Leads | ✅ | 4/4 (100%) |
-| Analytics | ✅ | 3/3 (100%) |
-| Agents | ✅ | 3/4 (75%) - **Enhanced with 5-step wizard test** |
-| Conversations | ✅ | 2/4 (50%) |
-| Campaigns | ✅ | 2/4 (50%) |
-| Profile | ✅ | 2/4 (50%) |
-| Integrations | ✅ | 1/4 (25%) |
+| Page          | Status | Tests Passing                                    |
+| ------------- | ------ | ------------------------------------------------ |
+| Leads         | ✅     | 4/4 (100%)                                       |
+| Analytics     | ✅     | 3/3 (100%)                                       |
+| Agents        | ✅     | 3/4 (75%) - **Enhanced with 5-step wizard test** |
+| Conversations | ✅     | 2/4 (50%)                                        |
+| Campaigns     | ✅     | 2/4 (50%)                                        |
+| Profile       | ✅     | 2/4 (50%)                                        |
+| Integrations  | ✅     | 1/4 (25%)                                        |
 
 ### Test Strategy
 
 Tests use a **graceful degradation** approach:
+
 - Tests skip when elements are not visible instead of failing
 - This prevents brittle tests that fail due to UI changes
 - Focus on critical user workflows
@@ -184,6 +189,7 @@ test('can create a new agent through 5-step wizard', async ({ page }) => {
 ```
 
 **What it tests:**
+
 - Opening the creation dialog
 - Navigating through all 5 wizard steps
 - Selecting options from card grids
@@ -191,6 +197,7 @@ test('can create a new agent through 5-step wizard', async ({ page }) => {
 - Completing the wizard and verifying agent creation
 
 **Test features:**
+
 - ✅ Fallback selectors for flexible field matching
 - ✅ Progress logging at each step
 - ✅ Handles button enable/disable states
@@ -201,7 +208,7 @@ test('can create a new agent through 5-step wizard', async ({ page }) => {
 ### Pattern Example
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const TEST_EMAIL = 'cyrus@callhenk.com';
 const TEST_PASSWORD = 'Test123?';
@@ -217,7 +224,7 @@ test.describe('Feature Tests', () => {
 
     // Expand sidebar if needed
     const toggleButton = page.locator('button').filter({
-      hasText: /Toggle Sidebar/i
+      hasText: /Toggle Sidebar/i,
     });
     if (await toggleButton.isVisible({ timeout: 2000 })) {
       await toggleButton.click();
@@ -259,18 +266,21 @@ test.describe('Feature Tests', () => {
 Authentication tests require email verification. You have two options:
 
 **Option 1: Local Inbucket (Default)**
+
 - Supabase local includes Inbucket email testing server
 - Emails sent during signup are captured at `http://localhost:54324`
 - Tests automatically check Inbucket for confirmation emails
 - Works with `@henk.dev` or any domain - emails are captured locally
 
 **Option 2: Real Email (Current Setup)**
+
 - Tests use `cyrus+e2e-<timestamp>@callhenk.com` format
 - Emails route to your actual `cyrus@callhenk.com` inbox
 - Requires Supabase to be configured for real email sending
 - May need manual verification during test runs
 
 **To use Inbucket with real-looking emails:**
+
 ```bash
 # Ensure local Supabase is running
 pnpm supabase:start
@@ -283,6 +293,7 @@ pnpm test:e2e
 ```
 
 **Note:** If authentication tests fail with "Email body was not found", it means:
+
 1. Emails aren't being sent by Supabase auth
 2. Or emails are going to real email instead of Inbucket
 3. Check: `supabase status` and verify Inbucket URL is set correctly
@@ -290,22 +301,29 @@ pnpm test:e2e
 ## Common Issues
 
 ### Sidebar Collapsed
+
 If navigation links aren't visible, the sidebar might be collapsed. The `beforeEach` hook handles this automatically.
 
 ### Modal Overlays
+
 If clicks are blocked by modal overlays, use `{ force: true }`:
+
 ```typescript
 await button.click({ force: true });
 ```
 
 ### Strict Mode Violations
+
 If multiple elements match a selector, add `.first()`:
+
 ```typescript
-page.locator('text=Dashboard').first()
+page.locator('text=Dashboard').first();
 ```
 
 ### Timeout Issues
+
 Increase timeout or wait for network idle:
+
 ```typescript
 await page.waitForLoadState('networkidle');
 await element.isVisible({ timeout: 5000 });
@@ -314,6 +332,7 @@ await element.isVisible({ timeout: 5000 });
 ## Configuration
 
 See `playwright.config.ts` for Playwright configuration including:
+
 - Base URL: `http://localhost:3000`
 - Browsers: Chromium (default)
 - Retries: 1
@@ -343,6 +362,7 @@ open http://localhost:54324
 ### Setup Issues
 
 **Problem**: Tests fail with "Email body was not found"
+
 ```bash
 # Solution: Verify app is using local Supabase
 cat apps/web/.env.local | grep NEXT_PUBLIC_SUPABASE_URL
@@ -353,6 +373,7 @@ cd apps/e2e && ./setup-e2e.sh
 ```
 
 **Problem**: Tests fail with "Invalid login credentials"
+
 ```bash
 # Solution: Create test account
 # 1. Open Supabase Studio: http://localhost:54323
@@ -363,6 +384,7 @@ cd apps/e2e && ./setup-e2e.sh
 ```
 
 **Problem**: Supabase not running
+
 ```bash
 # Solution: Start Supabase
 cd apps/web
@@ -375,6 +397,7 @@ supabase status
 ### Test Issues
 
 **Problem**: Tests time out
+
 ```bash
 # Solution: Increase timeout in playwright.config.ts
 # Or run specific test with longer timeout
@@ -382,12 +405,14 @@ pnpm exec playwright test --timeout=120000
 ```
 
 **Problem**: Sidebar navigation not working
+
 ```
 # This is handled automatically in beforeEach hook
 # Tests expand the sidebar if collapsed
 ```
 
 **Problem**: Modal overlays blocking clicks
+
 ```
 # Tests use { force: true } to bypass overlays
 # This is already implemented in the test code
@@ -396,6 +421,7 @@ pnpm exec playwright test --timeout=120000
 ### Environment Issues
 
 **Problem**: Want to use production Supabase
+
 ```bash
 # Temporarily disable .env.local
 mv apps/web/.env.local apps/web/.env.local.backup
@@ -408,6 +434,7 @@ mv apps/web/.env.local.backup apps/web/.env.local
 ```
 
 **Problem**: Need to reset local database
+
 ```bash
 cd apps/web
 supabase db reset
@@ -493,6 +520,7 @@ When adding new tests:
 ## Support
 
 For issues or questions:
+
 - Check **E2E_SETUP.md** for detailed setup instructions
 - Run `./setup-e2e.sh` to verify configuration
 - Check Supabase logs: `cd apps/web && supabase logs`

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const TEST_EMAIL = 'cyrus@callhenk.com';
 const TEST_PASSWORD = 'Test123?';
@@ -13,9 +13,10 @@ test.describe('Conversations Page Tests', () => {
     await page.waitForURL(/\/home/, { timeout: 10000 });
 
     // Expand sidebar
-    const toggleButton = page.locator('button').filter({ hasText: /Toggle Sidebar/i }).or(
-      page.locator('button[aria-label*="Toggle"]')
-    );
+    const toggleButton = page
+      .locator('button')
+      .filter({ hasText: /Toggle Sidebar/i })
+      .or(page.locator('button[aria-label*="Toggle"]'));
     if (await toggleButton.isVisible({ timeout: 2000 })) {
       await toggleButton.click();
       await page.waitForTimeout(500);
@@ -45,7 +46,9 @@ test.describe('Conversations Page Tests', () => {
     const conversationsLink = page.locator('a:has-text("Conversations")');
 
     if (await conversationsLink.isVisible({ timeout: 2000 })) {
-      const searchInput = page.locator('input[type="search"], input[placeholder*="Search" i]');
+      const searchInput = page.locator(
+        'input[type="search"], input[placeholder*="Search" i]',
+      );
 
       if (await searchInput.isVisible({ timeout: 2000 })) {
         await searchInput.fill('test');
@@ -63,7 +66,9 @@ test.describe('Conversations Page Tests', () => {
     const conversationsLink = page.locator('a:has-text("Conversations")');
 
     if (await conversationsLink.isVisible({ timeout: 2000 })) {
-      const filterButton = page.locator('button').filter({ hasText: /Filter|Filters/ });
+      const filterButton = page
+        .locator('button')
+        .filter({ hasText: /Filter|Filters/ });
 
       if (await filterButton.isVisible({ timeout: 2000 })) {
         console.log('✓ Filter functionality available');

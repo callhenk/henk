@@ -81,7 +81,9 @@ export const UpdatePasswordForm = ({
 
     // Verify current password by attempting to sign in
     try {
-      const { getSupabaseBrowserClient } = await import('@kit/supabase/browser-client');
+      const { getSupabaseBrowserClient } = await import(
+        '@kit/supabase/browser-client'
+      );
       const supabase = getSupabaseBrowserClient();
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -90,7 +92,8 @@ export const UpdatePasswordForm = ({
       });
 
       if (signInError) {
-        const errorMessage = 'The current password you entered is incorrect. Please try again.';
+        const errorMessage =
+          'The current password you entered is incorrect. Please try again.';
         toast.error(errorMessage);
         return Promise.reject(errorMessage);
       }
@@ -98,7 +101,8 @@ export const UpdatePasswordForm = ({
       // Current password verified, proceed with update
       updatePasswordFromCredential(newPassword);
     } catch {
-      const errorMessage = 'Unable to verify your current password. Please check and try again.';
+      const errorMessage =
+        'Unable to verify your current password. Please check and try again.';
       toast.error(errorMessage);
       return Promise.reject(errorMessage);
     }
@@ -137,7 +141,10 @@ export const UpdatePasswordForm = ({
                 <FormItem>
                   <FormLabel>
                     <Label>
-                      <Trans i18nKey={'account:currentPassword'} defaults="Current Password" />
+                      <Trans
+                        i18nKey={'account:currentPassword'}
+                        defaults="Current Password"
+                      />
                     </Label>
                   </FormLabel>
 
@@ -152,7 +159,10 @@ export const UpdatePasswordForm = ({
                   </FormControl>
 
                   <FormDescription>
-                    <Trans i18nKey={'account:currentPasswordDescription'} defaults="Please enter your current password to verify your identity" />
+                    <Trans
+                      i18nKey={'account:currentPasswordDescription'}
+                      defaults="Please enter your current password to verify your identity"
+                    />
                   </FormDescription>
 
                   <FormMessage />
