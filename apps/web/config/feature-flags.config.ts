@@ -20,6 +20,9 @@ const FeatureFlagsSchema = z.object({
   enableSelfOnboardDemo: z.boolean({
     description: 'Enable public self-onboard demo page',
   }),
+  enableUserOnboarding: z.boolean({
+    description: 'Enable interactive user onboarding tour for new users',
+  }),
 });
 
 const featuresFlagConfig = FeatureFlagsSchema.parse({
@@ -36,6 +39,10 @@ const featuresFlagConfig = FeatureFlagsSchema.parse({
   enableSelfOnboardDemo: getBoolean(
     process.env.NEXT_PUBLIC_ENABLE_SELF_ONBOARD_DEMO,
     false,
+  ),
+  enableUserOnboarding: getBoolean(
+    process.env.NEXT_PUBLIC_ENABLE_USER_ONBOARDING,
+    true,
   ),
 } satisfies z.infer<typeof FeatureFlagsSchema>);
 
