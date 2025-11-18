@@ -1,11 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import {
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Clock,
   Eye,
   Filter,
@@ -81,15 +85,26 @@ export function ConversationsList() {
   const { isDemoMode, mockAgents, mockCampaigns, mockConversations } =
     useDemoMode();
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const pageSize = 25;
+
   // Fetch real data using our hooks
-  const { data: realConversations = [], isLoading: conversationsLoading } =
-    useConversations();
+  const { data: realConversationsResult, isLoading: conversationsLoading } =
+    useConversations({ page, pageSize });
   const { data: realCampaigns = [] } = useCampaigns();
   const { data: realAgents = [] } = useAgents();
-  const { data: leads = [] } = useLeads();
+  const { data: leadsResult } = useLeads();
+  const leads = leadsResult?.data ?? [];
 
   // Use mock data if demo mode is enabled, otherwise use real data
-  const conversations = isDemoMode ? mockConversations : realConversations;
+  const conversations = isDemoMode
+    ? mockConversations
+    : (realConversationsResult?.data ?? []);
+  const total = isDemoMode
+    ? mockConversations.length
+    : (realConversationsResult?.total ?? 0);
+  const pageCount = isDemoMode ? 1 : (realConversationsResult?.pageCount ?? 0);
   const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
   const agents = isDemoMode ? mockAgents : realAgents;
 
@@ -100,6 +115,17 @@ export function ConversationsList() {
   const [selectedOutcome, setSelectedOutcome] = useState('All Outcomes');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setPage(0);
+  }, [
+    searchTerm,
+    selectedCampaign,
+    selectedAgent,
+    selectedStatus,
+    selectedOutcome,
+  ]);
 
   // Enhance conversations with calculated fields
   const enhancedConversations = useMemo(() => {
@@ -493,6 +519,56 @@ export function ConversationsList() {
               />
             </TabsContent>
           </Tabs>
+
+          {/* Pagination Controls */}
+          {!isDemoMode && pageCount > 1 && (
+            <div className="mt-4 flex items-center justify-between px-2">
+              <div className="text-muted-foreground text-sm">
+                Showing {page * pageSize + 1} to{' '}
+                {Math.min((page + 1) * pageSize, total)} of {total}{' '}
+                conversations
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-muted-foreground text-sm">
+                  Page {page + 1} of {pageCount}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(0)}
+                    disabled={page === 0}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= pageCount - 1}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(pageCount - 1)}
+                    disabled={page >= pageCount - 1}
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
