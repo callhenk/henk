@@ -101,13 +101,14 @@ export function AgentDetail({ agentId }: { agentId: string }) {
     isLoading: loadingAgent,
     refetch,
   } = useAgent(agentId);
-  const { data: realConversations } = useConversations();
+  const { data: realConversationsResult } = useConversations();
   const { data: realCampaigns = [] } = useCampaigns();
 
   // Use demo data if demo mode is active
   const agent = isDemoMode
     ? mockAgents.find((a) => a.id === agentId) || mockAgents[0]
     : realAgent;
+  const realConversations = realConversationsResult?.data ?? [];
   const conversations = isDemoMode ? mockConversations : realConversations;
   const campaignsData = isDemoMode ? mockCampaigns : realCampaigns;
   // Ensure campaigns match the expected type structure

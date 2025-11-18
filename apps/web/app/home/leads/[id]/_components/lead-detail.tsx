@@ -58,10 +58,11 @@ export function LeadDetail({ leadId }: { leadId: string }) {
   const [showAddToListDialog, setShowAddToListDialog] = useState(false);
 
   const { data: lead, isLoading } = useLead(leadId);
-  const { data: allConversations = [] } = useConversations();
+  const { data: allConversationsResult } = useConversations();
   const deleteLead = useDeleteLead();
 
   // Filter conversations for this lead
+  const allConversations = allConversationsResult?.data ?? [];
   const leadConversations = allConversations.filter(
     (conv) => conv.lead_id === leadId,
   );
