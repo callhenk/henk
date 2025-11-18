@@ -1768,6 +1768,10 @@ export type Database = {
           invited_at: string | null;
           invited_by: string | null;
           last_active_at: string | null;
+          onboarding_completed: boolean | null;
+          onboarding_completed_at: string | null;
+          onboarding_current_step: number | null;
+          onboarding_skipped: boolean | null;
           permissions: Json | null;
           role: Database['public']['Enums']['team_role'];
           status: Database['public']['Enums']['team_member_status'];
@@ -1782,6 +1786,10 @@ export type Database = {
           invited_at?: string | null;
           invited_by?: string | null;
           last_active_at?: string | null;
+          onboarding_completed?: boolean | null;
+          onboarding_completed_at?: string | null;
+          onboarding_current_step?: number | null;
+          onboarding_skipped?: boolean | null;
           permissions?: Json | null;
           role?: Database['public']['Enums']['team_role'];
           status?: Database['public']['Enums']['team_member_status'];
@@ -1796,6 +1804,10 @@ export type Database = {
           invited_at?: string | null;
           invited_by?: string | null;
           last_active_at?: string | null;
+          onboarding_completed?: boolean | null;
+          onboarding_completed_at?: string | null;
+          onboarding_current_step?: number | null;
+          onboarding_skipped?: boolean | null;
           permissions?: Json | null;
           role?: Database['public']['Enums']['team_role'];
           status?: Database['public']['Enums']['team_member_status'];
@@ -2233,33 +2245,42 @@ export type Database = {
         Returns: string;
       };
       can_campaign_make_calls: {
-        Args: { p_campaign_id: string };
+        Args:
+          | { campaign_row: Database['public']['Tables']['campaigns']['Row'] }
+          | { p_campaign_id: string };
         Returns: boolean;
       };
       create_lead_list_from_csv: {
-        Args: { p_business_id: string; p_leads: Json; p_list_name: string };
+        Args:
+          | {
+              p_business_id: string;
+              p_csv_data: Json;
+              p_description: string;
+              p_name: string;
+            }
+          | { p_business_id: string; p_leads: Json; p_list_name: string };
         Returns: string;
       };
       get_latest_sync_status: {
         Args: { p_integration_id: string };
         Returns: {
           last_sync_at: string;
+          records_failed: number;
           sync_status: string;
           records_processed: number;
-          records_created: number;
           records_updated: number;
-          records_failed: number;
+          records_created: number;
         }[];
       };
       get_next_queued_call: {
         Args: Record<PropertyKey, never> | { p_campaign_id: string };
         Returns: {
-          campaign_id: string;
-          agent_id: string;
-          call_id: string;
           lead_id: string;
-          phone_number: string;
           script: string;
+          agent_id: string;
+          phone_number: string;
+          call_id: string;
+          campaign_id: string;
         }[];
       };
       trigger_campaign_orchestrator: {
@@ -2486,6 +2507,27 @@ export type Database = {
         Update: {
           created_at?: string;
           format?: string;
+          id?: string;
+          type?: Database['storage']['Enums']['buckettype'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      buckets_vectors: {
+        Row: {
+          created_at: string;
+          id: string;
+          type: Database['storage']['Enums']['buckettype'];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id: string;
+          type?: Database['storage']['Enums']['buckettype'];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
           id?: string;
           type?: Database['storage']['Enums']['buckettype'];
           updated_at?: string;
@@ -2776,6 +2818,50 @@ export type Database = {
           },
         ];
       };
+      vector_indexes: {
+        Row: {
+          bucket_id: string;
+          created_at: string;
+          data_type: string;
+          dimension: number;
+          distance_metric: string;
+          id: string;
+          metadata_configuration: Json | null;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          bucket_id: string;
+          created_at?: string;
+          data_type: string;
+          dimension: number;
+          distance_metric: string;
+          id?: string;
+          metadata_configuration?: Json | null;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          bucket_id?: string;
+          created_at?: string;
+          data_type?: string;
+          dimension?: number;
+          distance_metric?: string;
+          id?: string;
+          metadata_configuration?: Json | null;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'vector_indexes_bucket_id_fkey';
+            columns: ['bucket_id'];
+            isOneToOne: false;
+            referencedRelation: 'buckets_vectors';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -2787,6 +2873,10 @@ export type Database = {
       };
       can_insert_object: {
         Args: { bucketid: string; metadata: Json; name: string; owner: string };
+        Returns: undefined;
+      };
+      delete_leaf_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] };
         Returns: undefined;
       };
       delete_prefix: {
@@ -2820,8 +2910,8 @@ export type Database = {
       get_size_by_bucket: {
         Args: Record<PropertyKey, never>;
         Returns: {
-          bucket_id: string;
           size: number;
+          bucket_id: string;
         }[];
       };
       list_multipart_uploads_with_delimiter: {
@@ -2834,9 +2924,9 @@ export type Database = {
           prefix_param: string;
         };
         Returns: {
+          created_at: string;
           id: string;
           key: string;
-          created_at: string;
         }[];
       };
       list_objects_with_delimiter: {
@@ -2849,11 +2939,15 @@ export type Database = {
           start_after?: string;
         };
         Returns: {
-          metadata: Json;
-          updated_at: string;
-          id: string;
           name: string;
+          updated_at: string;
+          metadata: Json;
+          id: string;
         }[];
+      };
+      lock_top_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] };
+        Returns: undefined;
       };
       operation: {
         Args: Record<PropertyKey, never>;
@@ -2871,11 +2965,11 @@ export type Database = {
           sortorder?: string;
         };
         Returns: {
-          id: string;
           metadata: Json;
           last_accessed_at: string;
           created_at: string;
           updated_at: string;
+          id: string;
           name: string;
         }[];
       };
@@ -2891,11 +2985,11 @@ export type Database = {
           sortorder?: string;
         };
         Returns: {
-          metadata: Json;
-          last_accessed_at: string;
-          created_at: string;
-          updated_at: string;
           id: string;
+          created_at: string;
+          last_accessed_at: string;
+          metadata: Json;
+          updated_at: string;
           name: string;
         }[];
       };
@@ -2911,12 +3005,12 @@ export type Database = {
           sortorder?: string;
         };
         Returns: {
-          name: string;
-          id: string;
-          updated_at: string;
-          created_at: string;
-          last_accessed_at: string;
           metadata: Json;
+          last_accessed_at: string;
+          created_at: string;
+          updated_at: string;
+          id: string;
+          name: string;
         }[];
       };
       search_v2: {
@@ -2925,20 +3019,24 @@ export type Database = {
           levels?: number;
           limits?: number;
           prefix: string;
+          sort_column?: string;
+          sort_column_after?: string;
+          sort_order?: string;
           start_after?: string;
         };
         Returns: {
-          key: string;
-          name: string;
-          updated_at: string;
-          created_at: string;
-          id: string;
           metadata: Json;
+          last_accessed_at: string;
+          created_at: string;
+          updated_at: string;
+          id: string;
+          name: string;
+          key: string;
         }[];
       };
     };
     Enums: {
-      buckettype: 'STANDARD' | 'ANALYTICS';
+      buckettype: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -3232,7 +3330,7 @@ export const Constants = {
   },
   storage: {
     Enums: {
-      buckettype: ['STANDARD', 'ANALYTICS'],
+      buckettype: ['STANDARD', 'ANALYTICS', 'VECTOR'],
     },
   },
 } as const;
