@@ -16,6 +16,16 @@ export interface LeadsFilters {
   source?: string;
   tags?: string[];
   do_not_call?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface LeadsResult {
+  data: Lead[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
 }
 
 export function useLeads(filters?: LeadsFilters) {
@@ -24,16 +34,27 @@ export function useLeads(filters?: LeadsFilters) {
 
   return useQuery({
     queryKey: ['leads', filters, businessContext?.business_id],
-    queryFn: async (): Promise<Lead[]> => {
-      // Return empty array if no business context
+    queryFn: async (): Promise<LeadsResult> => {
+      // Return empty result if no business context
       if (!businessContext?.business_id) {
-        return [];
+        return {
+          data: [],
+          total: 0,
+          page: filters?.page ?? 0,
+          pageSize: filters?.pageSize ?? 25,
+          pageCount: 0,
+        };
       }
 
-      // Leads are now directly scoped by business_id
+      const page = filters?.page ?? 0;
+      const pageSize = filters?.pageSize ?? 25;
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      // Build the query for fetching data
       let query = supabase
         .from('leads')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
 
@@ -72,13 +93,25 @@ export function useLeads(filters?: LeadsFilters) {
         query = query.not('phone', 'is', null);
       }
 
-      const { data, error } = await query;
+      // Apply pagination
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) {
         throw new Error(`Failed to fetch leads: ${error.message}`);
       }
 
-      return data || [];
+      const total = count ?? 0;
+      const pageCount = Math.ceil(total / pageSize);
+
+      return {
+        data: data || [],
+        total,
+        page,
+        pageSize,
+        pageCount,
+      };
     },
     enabled: !!businessContext?.business_id,
   });

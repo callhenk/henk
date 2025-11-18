@@ -15,6 +15,16 @@ export interface ConversationsFilters {
     start_date: string;
     end_date: string;
   };
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ConversationsResult {
+  data: Conversation[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
 }
 
 export function useConversations(filters?: ConversationsFilters) {
@@ -23,11 +33,22 @@ export function useConversations(filters?: ConversationsFilters) {
 
   return useQuery({
     queryKey: ['conversations', filters, businessContext?.business_id],
-    queryFn: async (): Promise<Conversation[]> => {
-      // Return empty array if no business context
+    queryFn: async (): Promise<ConversationsResult> => {
+      // Return empty result if no business context
       if (!businessContext?.business_id) {
-        return [];
+        return {
+          data: [],
+          total: 0,
+          page: filters?.page ?? 0,
+          pageSize: filters?.pageSize ?? 25,
+          pageCount: 0,
+        };
       }
+
+      const page = filters?.page ?? 0;
+      const pageSize = filters?.pageSize ?? 25;
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
 
       // Conversations are scoped by campaign, which is scoped by business
       // We need to filter through campaigns to ensure business isolation
@@ -38,6 +59,7 @@ export function useConversations(filters?: ConversationsFilters) {
           *,
           campaign:campaigns!inner(business_id)
         `,
+          { count: 'exact' },
         )
         .eq('campaign.business_id', businessContext.business_id)
         .order('created_at', { ascending: false });
@@ -65,19 +87,32 @@ export function useConversations(filters?: ConversationsFilters) {
           .lte('created_at', filters.date_range.end_date);
       }
 
-      const { data, error } = await query;
+      // Apply pagination
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) {
         throw new Error(`Failed to fetch conversations: ${error.message}`);
       }
 
+      const total = count ?? 0;
+      const pageCount = Math.ceil(total / pageSize);
+
       // Remove the campaign object from the response
-      return (
+      const conversations =
         data?.map(
           ({ campaign: _, ...conversation }) =>
             conversation as unknown as Conversation,
-        ) || []
-      );
+        ) || [];
+
+      return {
+        data: conversations,
+        total,
+        page,
+        pageSize,
+        pageCount,
+      };
     },
     enabled: !!businessContext?.business_id,
   });
