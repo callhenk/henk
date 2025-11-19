@@ -378,4 +378,30 @@ export class ElevenLabsClient {
       );
     }
   }
+
+  /**
+   * Get signed URL for conversational AI
+   * Docs: https://elevenlabs.io/docs/agents-platform/api-reference/conversations/get-signed-url
+   */
+  async getSignedUrl(agentId: string): Promise<{ signed_url: string }> {
+    const url = new URL(`${this.baseUrl}/convai/conversation/get_signed_url`);
+    url.searchParams.set('agent_id', agentId);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(
+        `Failed to get signed URL: ${error.detail || response.statusText}`,
+      );
+    }
+
+    return response.json();
+  }
 }
