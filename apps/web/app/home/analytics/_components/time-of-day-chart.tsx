@@ -24,8 +24,7 @@ interface TimeOfDayChartProps {
 
 export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
   const { isDemoMode, mockConversations } = useDemoMode();
-  const { data: realConversationsResult } = useConversations();
-  const realConversations = realConversationsResult?.data ?? [];
+  const { data: realConversations = [] } = useConversations();
 
   // Use demo data if demo mode is active
   const conversations = useMemo(

@@ -81,9 +81,8 @@ export default function DashboardDemo() {
     [isDemoMode, mockCampaigns, realCampaigns],
   );
   const conversations = useMemo(
-    () =>
-      isDemoMode ? mockConversations : (realConversationsResult?.data ?? []),
-    [isDemoMode, mockConversations, realConversationsResult?.data],
+    () => (isDemoMode ? mockConversations : realConversations),
+    [isDemoMode, mockConversations, realConversations],
   );
 
   // Calculate metrics from real data

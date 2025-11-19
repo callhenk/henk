@@ -39,8 +39,7 @@ const sortOptions = [
 
 export function AgentComparisonChart({ filters }: AgentComparisonChartProps) {
   const { isDemoMode, mockConversations, mockAgents } = useDemoMode();
-  const { data: realConversationsResult } = useConversations();
-  const realConversations = realConversationsResult?.data ?? [];
+  const { data: realConversations = [] } = useConversations();
   const { data: realAgents = [] } = useAgents();
   const [sortBy, setSortBy] = useState('conversionRate');
 
