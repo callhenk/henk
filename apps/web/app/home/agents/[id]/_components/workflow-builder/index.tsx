@@ -6,6 +6,7 @@ import { Maximize, Minimize } from 'lucide-react';
 import { type Connection, type Edge, type Node } from 'reactflow';
 import { toast } from 'sonner';
 
+import type { Tables } from '@kit/supabase/database';
 import { useSaveWorkflow } from '@kit/supabase/hooks/workflows/use-workflow-mutations';
 import { Button } from '@kit/ui/button';
 
@@ -51,7 +52,7 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
   );
   const [isConnectionDialogOpen, setIsConnectionDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
-  const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(
+  const [currentWorkflowId, _setCurrentWorkflowId] = useState<string | null>(
     null,
   );
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
@@ -89,8 +90,8 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
           description: 'AI agent call workflow',
           status: 'active',
         },
-        nodes: dbNodes as any,
-        edges: dbEdges as any,
+        nodes: dbNodes as Tables<'workflow_nodes'>[],
+        edges: dbEdges as Tables<'workflow_edges'>[],
       });
 
       setHasUnsavedChanges(false);
