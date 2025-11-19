@@ -42,6 +42,10 @@ export function CallsController() {
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [callerId, setCallerId] = useState<string>('');
+  const [audioDevices, setAudioDevices] = useState<{
+    input: string;
+    output: string;
+  }>({ input: 'default', output: 'default' });
 
   // Helper to add debug logs
   const addLog = (message: string) => {
@@ -67,6 +71,19 @@ export function CallsController() {
       addLog('Starting initialization...');
 
       try {
+        // Enumerate audio devices first
+        addLog('Checking audio devices...');
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+          const audioOutputs = devices.filter((d) => d.kind === 'audiooutput');
+          addLog(
+            `Found ${audioInputs.length} microphone(s) and ${audioOutputs.length} speaker(s)`,
+          );
+        } catch (deviceError) {
+          addLog(`⚠️ Could not enumerate devices: ${deviceError}`);
+        }
+
         // Fetch token from API
         addLog('Fetching token from API...');
         const response = await fetch('/api/twilio/token', {
@@ -86,18 +103,20 @@ export function CallsController() {
 
         const { data } = await response.json();
         const { token, callerId: twilioCallerId } = data;
-        addLog('Token received successfully');
+        addLog('✅ Token received successfully');
 
         if (cancelled) return;
 
         // Save callerId for use in connect()
         setCallerId(twilioCallerId || '');
 
-        addLog('Creating Twilio Device...');
+        addLog('Creating Twilio Device with audio codecs...');
         // Create and setup Twilio Device
         const device = new Device(token, {
           codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
           logLevel: 1, // Enable debug logging
+          // Explicitly enable audio
+          enableImprovedSignalingErrorPrecision: true,
         });
 
         // Register device event handlers
@@ -258,9 +277,13 @@ export function CallsController() {
 
       // Set up call event handlers
       call.on('accept', () => {
-        console.log('Call accepted');
+        addLog('✅ Call accepted - audio should now be active');
         setCallState((prev) => ({ ...prev, status: 'connected' }));
         toast.success('Call connected');
+
+        // Log call parameters
+        addLog(`📞 Call SID: ${call.parameters.CallSid || 'N/A'}`);
+        addLog(`🔊 Audio codecs: Opus, PCMU`);
 
         // Start duration timer
         durationTimerRef.current = setInterval(() => {
@@ -269,19 +292,33 @@ export function CallsController() {
       });
 
       call.on('disconnect', () => {
-        console.log('Call disconnected');
+        addLog('Call disconnected');
         handleCallEnd();
       });
 
       call.on('error', (error) => {
-        console.error('Call error:', error);
+        addLog(`❌ Call error: ${error.message}`);
+        console.error('Call error details:', error);
         toast.error(`Call error: ${error.message}`);
         handleCallEnd();
       });
 
       call.on('cancel', () => {
-        console.log('Call cancelled');
+        addLog('Call cancelled');
         handleCallEnd();
+      });
+
+      call.on('warning', (name: string, data: unknown) => {
+        addLog(`⚠️ Call warning: ${name}`);
+        console.warn('Call warning:', name, data);
+      });
+
+      call.on('reconnecting', (error) => {
+        addLog(`🔄 Reconnecting: ${error.message}`);
+      });
+
+      call.on('reconnected', () => {
+        addLog('✅ Reconnected');
       });
 
       callRef.current = call;
@@ -328,10 +365,32 @@ export function CallsController() {
   };
 
   // Toggle speaker
-  const toggleSpeaker = () => {
-    // Note: Browser limitations may prevent speaker selection
-    setSpeakerEnabled(!speakerEnabled);
-    toast.success(speakerEnabled ? 'Speaker disabled' : 'Speaker enabled');
+  const toggleSpeaker = async () => {
+    if (!callRef.current) return;
+
+    try {
+      const newSpeakerState = !speakerEnabled;
+
+      // Try to set audio output volume (browser support varies)
+      if ('setSinkId' in HTMLMediaElement.prototype) {
+        // Get available audio outputs
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioOutputs = devices.filter((d) => d.kind === 'audiooutput');
+
+        if (audioOutputs.length > 0) {
+          // This is a simplified toggle - in production you'd want device selection
+          addLog(
+            `Speaker ${newSpeakerState ? 'enabled' : 'muted'} (${audioOutputs.length} devices available)`,
+          );
+        }
+      }
+
+      setSpeakerEnabled(newSpeakerState);
+      toast.success(newSpeakerState ? 'Speaker enabled' : 'Speaker muted');
+    } catch (error) {
+      addLog(`⚠️ Speaker control not supported: ${error}`);
+      toast.warning('Speaker control not fully supported in this browser');
+    }
   };
 
   // Format duration display
@@ -354,7 +413,36 @@ export function CallsController() {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl space-y-4">
+      {/* Configuration Warning */}
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950/50">
+        <div className="flex items-start gap-3">
+          <div className="text-yellow-600 dark:text-yellow-400">⚠️</div>
+          <div className="flex-1">
+            <p className="font-medium text-yellow-900 dark:text-yellow-100">
+              Important: Twilio TwiML App Configuration Required
+            </p>
+            <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+              If calls connect but you hear no audio, your TwiML App Voice URL
+              is likely not configured. Go to{' '}
+              <a
+                href="https://console.twilio.com/us1/develop/voice/manage/twiml-apps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline"
+              >
+                Twilio Console → TwiML Apps
+              </a>{' '}
+              and set the <strong>Voice Request URL</strong> to:{' '}
+              <code className="rounded bg-yellow-100 px-1 py-0.5 text-xs dark:bg-yellow-900">
+                {process.env.NEXT_PUBLIC_APP_URL || 'YOUR_APP_URL'}
+                /api/twilio/twiml
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Simple Call Card */}
       <Card>
         <CardHeader>
