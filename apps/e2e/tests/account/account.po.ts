@@ -12,7 +12,14 @@ export class AccountPageObject {
   }
 
   async setup() {
-    return this.auth.signUpFlow('/home/settings');
+    await this.auth.signUpFlow('/home/settings');
+
+    // Wait for the settings page to fully load
+    // The page shows a loading overlay until user data is fetched
+    await this.page.waitForSelector('[data-test="update-account-name-form"]', {
+      state: 'visible',
+      timeout: 30000,
+    });
   }
 
   async updateName(name: string) {
@@ -47,14 +54,24 @@ export class AccountPageObject {
   }
 
   async updatePassword(password: string) {
+    // Fill current password (the password used during sign up)
+    await this.page.fill(
+      '[data-test="account-password-form-current-password-input"]',
+      'password',
+    );
+
+    // Fill new password
     await this.page.fill(
       '[data-test="account-password-form-password-input"]',
       password,
     );
+
+    // Fill repeat new password
     await this.page.fill(
       '[data-test="account-password-form-repeat-password-input"]',
       password,
     );
+
     await this.page.click('[data-test="account-password-form"] button');
   }
 

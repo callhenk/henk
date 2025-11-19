@@ -36,14 +36,28 @@ test.describe('Account Settings', () => {
   test('user can update their password', async () => {
     const password = (Math.random() * 100000).toString();
 
-    const request = account.updatePassword(password);
+    // Wait for the response to the password update
+    const responsePromise = page.waitForResponse(
+      (resp) => {
+        return (
+          resp.url().includes('auth/v1/user') &&
+          resp.request().method() === 'PUT'
+        );
+      },
+      { timeout: 30000 },
+    );
 
-    const response = page.waitForResponse((resp) => {
-      return resp.url().includes('auth/v1/user');
-    });
+    // Update the password
+    await account.updatePassword(password);
 
-    await Promise.all([request, response]);
+    // Wait for the API response
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
 
+    // Wait for success toast to appear and then close
+    await page.waitForTimeout(2000);
+
+    // Sign out to verify the password change worked
     await account.auth.signOut();
   });
 });
