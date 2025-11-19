@@ -197,7 +197,7 @@ function FactorsTable({
 
   return (
     <>
-      <Table>
+      <Table data-test="mfa-factors-list">
         <TableHeader>
           <TableRow>
             <TableHead>

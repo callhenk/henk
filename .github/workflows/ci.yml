@@ -92,7 +92,9 @@ jobs:
 
       - name: Stop Supabase
         if: always()
-        run: pnpm supabase:web:stop
+        run: |
+          cd apps/web
+          supabase stop || true
 
   # Job 3: Build Test
   build:

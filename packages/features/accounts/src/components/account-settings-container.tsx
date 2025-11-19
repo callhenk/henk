@@ -16,9 +16,6 @@ import { Trans } from '@kit/ui/trans';
 
 import { usePersonalAccountData } from '../hooks/use-personal-account-data';
 import { AccountDangerZone } from './account-danger-zone';
-import { UpdateEmailFormContainer } from './email/update-email-form-container';
-import { MultiFactorAuthFactorsList } from './mfa/multi-factor-auth-list';
-import { UpdatePasswordFormContainer } from './password/update-password-container';
 import { UpdateAccountDetailsFormContainer } from './update-account-details-form-container';
 import { UpdateAccountImageContainer } from './update-account-image-container';
 
@@ -28,7 +25,6 @@ export function PersonalAccountSettingsContainer(
 
     features: {
       enableAccountDeletion: boolean;
-      enablePasswordUpdate: boolean;
     };
 
     paths: {
@@ -99,56 +95,6 @@ export function PersonalAccountSettingsContainer(
           </CardContent>
         </Card>
       </If>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Trans i18nKey={'account:updateEmailCardTitle'} />
-          </CardTitle>
-
-          <CardDescription>
-            <Trans i18nKey={'account:updateEmailCardDescription'} />
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <UpdateEmailFormContainer callbackPath={props.paths.callback} />
-        </CardContent>
-      </Card>
-
-      <If condition={props.features.enablePasswordUpdate}>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Trans i18nKey={'account:updatePasswordCardTitle'} />
-            </CardTitle>
-
-            <CardDescription>
-              <Trans i18nKey={'account:updatePasswordCardDescription'} />
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <UpdatePasswordFormContainer callbackPath={props.paths.callback} />
-          </CardContent>
-        </Card>
-      </If>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Trans i18nKey={'account:multiFactorAuth'} />
-          </CardTitle>
-
-          <CardDescription>
-            <Trans i18nKey={'account:multiFactorAuthDescription'} />
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <MultiFactorAuthFactorsList userId={props.userId} />
-        </CardContent>
-      </Card>
 
       <If condition={props.features.enableAccountDeletion}>
         <Card className={'border-destructive'}>

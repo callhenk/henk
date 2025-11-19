@@ -12,7 +12,6 @@ import {
 import { PageBody, PageHeader } from '@kit/ui/page';
 import { Separator } from '@kit/ui/separator';
 
-import authConfig from '~/config/auth.config';
 import pathsConfig from '~/config/paths.config';
 import { createI18nServerInstance } from '~/lib/i18n/i18n.server';
 import { withI18n } from '~/lib/i18n/with-i18n';
@@ -22,7 +21,6 @@ const callbackPath = pathsConfig.auth.callback;
 
 const features = {
   enableAccountDeletion: true,
-  enablePasswordUpdate: authConfig.providers.password,
 };
 
 const paths = {
@@ -106,14 +104,6 @@ function AccountSettingsPageContent() {
                   </p>
                   <Badge variant="default" className="mt-1">
                     Verified
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Two-Factor Auth
-                  </p>
-                  <Badge variant="secondary" className="mt-1">
-                    Not Enabled
                   </Badge>
                 </div>
               </div>

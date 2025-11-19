@@ -1,9 +1,9 @@
 import { use } from 'react';
 
-import Link from 'next/link';
-
 import { Eye, Key, Lock, Shield } from 'lucide-react';
 
+import { MultiFactorAuthFactorsList } from '@kit/accounts/mfa';
+import { UpdatePasswordFormContainer } from '@kit/accounts/password';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -27,7 +27,7 @@ export const generateMetadata = async () => {
 };
 
 function SecuritySettingsPage() {
-  const _user = use(requireUserInServerComponent());
+  const user = use(requireUserInServerComponent());
 
   return (
     <>
@@ -88,7 +88,7 @@ function SecuritySettingsPage() {
             <CardHeader>
               <div className="flex items-center space-x-2">
                 <Lock className="h-5 w-5" />
-                <CardTitle>Two-Factor Authentication</CardTitle>
+                <CardTitle>Multi-Factor Authentication</CardTitle>
               </div>
               <CardDescription>
                 Add an extra layer of security to your account
@@ -96,13 +96,12 @@ function SecuritySettingsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4 text-sm">
-                Two-factor authentication (2FA) adds an additional layer of
+                Multi-factor authentication (MFA) adds an additional layer of
                 security by requiring a second form of verification when signing
-                in. Enable 2FA to protect your account from unauthorized access.
+                in. Set up MFA with your authenticator app to protect your
+                account from unauthorized access.
               </p>
-              <Button variant="outline" disabled>
-                Enable 2FA (Coming Soon)
-              </Button>
+              <MultiFactorAuthFactorsList userId={user.id} />
             </CardContent>
           </Card>
 
@@ -115,11 +114,12 @@ function SecuritySettingsPage() {
               <CardDescription>Update your account password</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" asChild>
-                <Link href={pathsConfig.app.profileSettings}>
-                  Change Password
-                </Link>
-              </Button>
+              <UpdatePasswordFormContainer
+                callbackPath={
+                  pathsConfig.auth.callback +
+                  `?next=${pathsConfig.app.profileSettings}/security`
+                }
+              />
             </CardContent>
           </Card>
 

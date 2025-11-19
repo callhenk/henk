@@ -57,7 +57,7 @@ export function MultiFactorAuthSetupDialog(props: { userId: string }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button data-test="setup-mfa-button">
           <Trans i18nKey={'account:setupMfaButtonLabel'} />
         </Button>
       </DialogTrigger>

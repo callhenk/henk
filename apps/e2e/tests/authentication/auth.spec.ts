@@ -45,6 +45,9 @@ test.describe('Auth flow', () => {
 
     await page.waitForURL('**/home');
 
+    // Wait for the page to be fully loaded and interactive
+    await page.waitForLoadState('networkidle');
+
     expect(page.url()).toContain('/home');
 
     await auth.signOut();
