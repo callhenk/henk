@@ -988,7 +988,7 @@ export function AgentDetail({ agentId }: { agentId: string }) {
 
             {/* Workflow Tab */}
             <TabsContent value="workflow">
-              <WorkflowBuilder />
+              <WorkflowBuilder agentId={agentId} />
             </TabsContent>
           </CardContent>
         </Tabs>
