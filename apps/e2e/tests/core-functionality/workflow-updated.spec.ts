@@ -19,8 +19,8 @@ import { expect, test } from '@playwright/test';
 const TEST_EMAIL = 'cyrus@callhenk.com';
 const TEST_PASSWORD = 'Test123?';
 
-// Test agent ID (Sarah - General Fundraising)
-const TEST_AGENT_ID = '64398860-2b73-4e1f-905c-9887aca877a8';
+// Agent ID will be set dynamically
+let testAgentId: string;
 
 test.describe('Agent Workflow Feature - Updated Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -54,8 +54,54 @@ test.describe('Agent Workflow Feature - Updated Tests', () => {
     // Wait for any overlays/modals to disappear
     await page.waitForTimeout(1000);
 
+    // Navigate to agents page to find or create an agent
+    await page.goto('/home/agents');
+    await page.waitForLoadState('networkidle');
+
+    // Try to find an existing agent
+    const agentCards = page.locator('[data-testid="agent-card"]');
+    const agentCount = await agentCards.count();
+
+    if (agentCount > 0) {
+      // Use the first agent
+      const firstAgentCard = agentCards.first();
+      await firstAgentCard.click();
+      await page.waitForURL(/\/home\/agents\/[^/]+/, { timeout: 5000 });
+
+      // Extract agent ID from URL
+      const url = page.url();
+      const match = url.match(/\/agents\/([^?/]+)/);
+      if (match) {
+        testAgentId = match[1];
+        console.log(`✓ Using existing agent: ${testAgentId}`);
+      }
+    } else {
+      // Create a new agent for testing
+      await page.click('button:has-text("Create Agent")');
+      await page.waitForSelector('input[name="name"]', { timeout: 5000 });
+      await page.fill('input[name="name"]', 'E2E Test Agent');
+
+      // Fill required fields
+      const voiceSelect = page.locator('select, [role="combobox"]').first();
+      await voiceSelect.click();
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+
+      // Save the agent
+      await page.click('button:has-text("Create"), button:has-text("Save")');
+      await page.waitForURL(/\/home\/agents\/[^/]+/, { timeout: 10000 });
+
+      // Extract agent ID from URL
+      const url = page.url();
+      const match = url.match(/\/agents\/([^?/]+)/);
+      if (match) {
+        testAgentId = match[1];
+        console.log(`✓ Created new agent: ${testAgentId}`);
+      }
+    }
+
     // Navigate directly to workflow tab
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
+    await page.goto(`/home/agents/${testAgentId}?tab=workflow`);
     await page.waitForURL(/tab=workflow/, { timeout: 5000 });
   });
 

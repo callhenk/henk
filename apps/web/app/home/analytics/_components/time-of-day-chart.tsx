@@ -53,7 +53,6 @@ export function TimeOfDayChart({ filters }: TimeOfDayChartProps) {
 
     // Group conversations by hour
     const hourlyData = Array.from({ length: 24 }, (_, hour) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const hourConversations = filteredConversations.filter((conv) => {
         if (!conv.created_at) return false;
         const convHour = new Date(conv.created_at).getHours();

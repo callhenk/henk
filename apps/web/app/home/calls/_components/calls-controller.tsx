@@ -42,7 +42,7 @@ export function CallsController() {
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [callerId, setCallerId] = useState<string>('');
-  const [audioDevices, setAudioDevices] = useState<{
+  const [_audioDevices, _setAudioDevices] = useState<{
     input: string;
     output: string;
   }>({ input: 'default', output: 'default' });
@@ -228,7 +228,6 @@ export function CallsController() {
         clearInterval(durationTimerRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
   // Handle making a call

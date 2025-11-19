@@ -136,7 +136,6 @@ export default function SelfOnboardDemoPage() {
     }
     // We intentionally don't include name, contextPrompt, firstMessage, nameManuallyEdited
     // to prevent circular dependencies. This effect should only run when use case changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     agentType,
     useCase,
@@ -831,7 +830,7 @@ export default function SelfOnboardDemoPage() {
 
       {/* Floating bar when email section is not visible */}
       {showFloatingBar && createdAgent && !emailSent && (
-        <div className="animate-in slide-in-from-bottom-4 fade-in bg-background fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg duration-300">
+        <div className="animate-in slide-in-from-bottom-4 fade-in bg-background fixed bottom-0 left-0 right-0 z-50 border-t shadow-lg duration-300">
           <div className="mx-auto max-w-4xl p-4">
             <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
               <div className="flex items-center gap-3 text-center sm:text-left">

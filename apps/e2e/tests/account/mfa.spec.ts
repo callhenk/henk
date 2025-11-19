@@ -94,16 +94,34 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
     await account.setup();
     await page.goto('/home/settings/security');
 
-    // Intercept the MFA enroll API call and make it fail
-    await page.route('**/auth/v1/factors', async (route) => {
-      if (route.request().method() === 'POST') {
+    // Log all network requests to debug
+    page.on('request', (request) => {
+      if (request.url().includes('factors')) {
+        console.log('REQUEST:', request.method(), request.url());
+      }
+    });
+
+    // Intercept the MFA enroll API call and make it fail - try broader pattern
+    await page.route('**/*factors*', async (route) => {
+      console.log(
+        'INTERCEPTED:',
+        route.request().method(),
+        route.request().url(),
+      );
+      if (
+        route.request().method() === 'POST' &&
+        route.request().url().includes('/auth/v1/factors')
+      ) {
+        console.log('FULFILLING WITH ERROR');
+        // Return error in GoTrue format
         await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
+          status: 422, // Unprocessable Entity - common for validation errors
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            error: 'invalid_request',
+            error: 'mfa_factor_name_conflict',
             error_description: 'Unable to enroll factor',
-            code: 'invalid_request',
           }),
         });
       } else {
@@ -119,13 +137,29 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
     await page.fill('[name="name"]', factorName);
 
     // Wait for the API call to be made and intercepted
-    const responsePromise = page.waitForResponse((response) =>
-      response.url().includes('/auth/v1/factors') &&
-      response.request().method() === 'POST'
-    );
+    const responsePromise = page.waitForResponse((response) => {
+      const isFactorsEndpoint = response.url().includes('factors');
+      const isPost = response.request().method() === 'POST';
+      console.log(
+        'RESPONSE:',
+        response.request().method(),
+        response.url(),
+        'Match:',
+        isFactorsEndpoint && isPost,
+      );
+      return isFactorsEndpoint && isPost;
+    });
 
     await page.click('button[type="submit"]');
-    await responsePromise;
+    const response = await responsePromise;
+    console.log('RESPONSE STATUS:', response.status());
+    console.log('RESPONSE BODY:', await response.text());
+
+    // Wait a bit for the component to process the error
+    await page.waitForTimeout(1000);
+
+    // Take a screenshot for debugging
+    await page.screenshot({ path: 'mfa-error-debug.png' });
 
     // Wait for error alert
     await expect(page.locator('text=QR Code Error')).toBeVisible({
@@ -164,7 +198,9 @@ test.describe('MFA Factor Management', () => {
     // If no factors enrolled, should show empty state with the MFA heading
     if ((await factorsList.count()) === 0) {
       await expect(
-        page.locator('text=/Secure your account.*Multi-Factor Authentication/i'),
+        page.locator(
+          'text=/Secure your account.*Multi-Factor Authentication/i',
+        ),
       ).toBeVisible();
     }
   });

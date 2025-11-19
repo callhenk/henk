@@ -118,7 +118,11 @@ interface ViewToggleProps {
 
 function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
   return (
-    <Card className="glass-panel group transition-all duration-200">
+    <Card
+      data-testid="agent-card"
+      className="glass-panel group cursor-pointer transition-all duration-200"
+      onClick={() => onView(agent.id)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
@@ -136,6 +140,7 @@ function AgentCard({ agent, onView, onDelete }: AgentCardProps) {
               <Button
                 variant="ghost"
                 className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>

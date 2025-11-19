@@ -134,7 +134,6 @@ export default function TestCallPage() {
       setHasValidToken(false);
       setLoginAttempted(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // Load phone numbers

@@ -6,6 +6,7 @@ import nextConfig from './nextjs.js';
 
 export default tsEsLint.config(
   eslint.configs.recommended,
+  ...tsEsLint.configs.recommended,
   nextConfig,
   turboConfig,
   {

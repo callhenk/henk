@@ -430,13 +430,23 @@ function useEnrollFactor(userId: string) {
       factorType: 'totp',
     });
 
+    // DEBUG: Log the response to see what we're getting
+    console.log('MFA Enroll Response:', {
+      hasError: !!response.error,
+      error: response.error,
+      hasData: !!response.data,
+      data: response.data,
+    });
+
     if (response.error) {
+      console.log('Returning error:', response.error.code);
       return {
         success: false as const,
         data: response.error.code,
       };
     }
 
+    console.log('Returning success with data');
     return {
       success: true as const,
       data: response.data,

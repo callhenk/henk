@@ -86,7 +86,6 @@ export function BusinessSettingsContainer({
       });
       setFormStates(newStates);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businesses?.map((b) => b.id).join(',')]);
 
   const validate = (name: string, description: string) => {
