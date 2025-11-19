@@ -50,7 +50,7 @@ export function useCampaignEditor(campaignId: string) {
 
   // Use demo data if demo mode is active
   const campaign = isDemoMode
-    ? ((mockCampaigns.find((c: any) => c.id === campaignId) ||
+    ? ((mockCampaigns.find((c: Tables<'campaigns'>) => c.id === campaignId) ||
         mockCampaigns[0]) as Tables<'campaigns'>)
     : realCampaign;
   const realLeads = realLeadsResult?.data ?? [];
