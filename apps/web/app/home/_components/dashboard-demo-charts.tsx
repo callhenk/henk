@@ -796,7 +796,9 @@ function ConversationsTable({
 
   const getCampaignName = (campaignId: string | null) => {
     if (!campaignId) return 'Unknown Campaign';
-    const campaign = campaigns.find((c: any) => c.id === campaignId);
+    const campaign = campaigns.find(
+      (c: Tables<'campaigns'>) => c.id === campaignId,
+    );
     return campaign?.name || 'Unknown Campaign';
   };
 
