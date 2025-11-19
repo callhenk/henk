@@ -1,8 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Database as DatabaseIcon,
   Download,
   Edit,
@@ -85,16 +89,31 @@ export function LeadsList() {
   } | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const pageSize = 25;
+
   // Selection state - using Set for O(1) lookups
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(
     new Set(),
   );
 
-  // Fetch leads from Supabase
-  const { data: leads = [], isLoading } = useLeads({
+  // Fetch leads from Supabase with pagination
+  const { data: leadsResult, isLoading } = useLeads({
     search: searchQuery,
+    page,
+    pageSize,
   });
   const deleteLead = useDeleteLead();
+
+  const leads = leadsResult?.data ?? [];
+  const total = leadsResult?.total ?? 0;
+  const pageCount = leadsResult?.pageCount ?? 0;
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
 
   // Calculate selection state
   const allLeadIds = useMemo(() => leads.map((lead) => lead.id), [leads]);
@@ -148,7 +167,7 @@ export function LeadsList() {
             <Users className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.length}</div>
+            <div className="text-2xl font-bold">{total}</div>
             <p className="text-muted-foreground text-xs">Across all sources</p>
           </CardContent>
         </Card>
@@ -401,6 +420,55 @@ export function LeadsList() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {pageCount > 1 && (
+            <div className="flex items-center justify-between px-2">
+              <div className="text-muted-foreground text-sm">
+                Showing {page * pageSize + 1} to{' '}
+                {Math.min((page + 1) * pageSize, total)} of {total} leads
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-muted-foreground text-sm">
+                  Page {page + 1} of {pageCount}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(0)}
+                    disabled={page === 0}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= pageCount - 1}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPage(pageCount - 1)}
+                    disabled={page >= pageCount - 1}
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

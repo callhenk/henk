@@ -57,9 +57,10 @@ export function PerformanceChart({
   onMetricsChange,
 }: PerformanceChartProps) {
   const { isDemoMode, mockConversations } = useDemoMode();
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversationsResult } = useConversations();
 
   // Use demo data if demo mode is active
+  const realConversations = realConversationsResult?.data ?? [];
   const conversations = isDemoMode ? mockConversations : realConversations;
 
   // Generate performance data based on real conversations

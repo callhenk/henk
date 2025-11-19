@@ -36,10 +36,14 @@ export function AnalyticsMetrics({ filters }: AnalyticsMetricsProps) {
   const { isDemoMode, mockConversations, mockAgents } = useDemoMode();
 
   // Fetch real data
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversationsResult } = useConversations();
   const { data: _campaigns = [] } = useCampaigns();
   const { data: realAgents = [] } = useAgents();
-  const { data: _leads = [] } = useLeads();
+  const { data: _realLeadsResult } = useLeads();
+
+  // Extract data from pagination results
+  const realConversations = realConversationsResult?.data ?? [];
+  const _realLeads = _realLeadsResult?.data ?? [];
 
   // Use demo data if demo mode is active
   const conversations = isDemoMode ? mockConversations : realConversations;

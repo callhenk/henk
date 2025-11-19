@@ -67,8 +67,11 @@ export default function DashboardDemo() {
   const { data: realAgents = [], isLoading: agentsLoading } = useAgents();
   const { data: realCampaigns = [], isLoading: campaignsLoading } =
     useCampaigns();
-  const { data: realConversations = [], isLoading: conversationsLoading } =
+  const { data: conversationsResult, isLoading: conversationsLoading } =
     useConversations();
+
+  // Extract conversation data from pagination result
+  const realConversations = conversationsResult?.data ?? [];
 
   // Use mock data if demo mode is enabled, otherwise use real data
   const agents = isDemoMode ? mockAgents : realAgents;
@@ -793,7 +796,9 @@ function ConversationsTable({
 
   const getCampaignName = (campaignId: string | null) => {
     if (!campaignId) return 'Unknown Campaign';
-    const campaign = campaigns.find((c) => c.id === campaignId);
+    const campaign = campaigns.find(
+      (c: Tables<'campaigns'>) => c.id === campaignId,
+    );
     return campaign?.name || 'Unknown Campaign';
   };
 

@@ -397,11 +397,12 @@ export function AgentsList() {
 
   // Fetch real data using our hooks
   const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
-  const { data: realConversations = [] } = useConversations();
+  const { data: realConversationsResult } = useConversations();
   const { data: realCampaigns = [] } = useCampaigns();
 
   // Use mock data if demo mode is enabled, otherwise use real data
   const agents = isDemoMode ? mockAgents : realAgents;
+  const realConversations = realConversationsResult?.data ?? [];
   const conversations = isDemoMode ? mockConversations : realConversations;
   const campaigns = isDemoMode ? mockCampaigns : realCampaigns;
 
