@@ -54,6 +54,11 @@ enable_signup = true
 # Maximum number of enrolled factors per user
 max_enrolled_factors = 10
 
+[auth.mfa.totp]
+# Enable or disable TOTP MFA
+enroll_enabled = true
+verify_enabled = true
+
 [auth.email]
 # Allow/disallow new user signups via email to your project.
 enable_signup = true
