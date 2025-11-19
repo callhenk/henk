@@ -21,6 +21,7 @@ import { requireUserInServerComponent } from '~/lib/server/require-user-in-serve
 import { HomeMenuNavigation } from './_components/home-menu-navigation';
 import { HomeMobileNavigation } from './_components/home-mobile-navigation';
 import { HomeSidebar } from './_components/home-sidebar';
+import { OnboardingWrapper } from './_components/onboarding/onboarding-provider';
 
 // Protected pages should not be indexed by search engines
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ function SidebarLayout({ children }: React.PropsWithChildren) {
           <MobileNavigation />
         </PageMobileNavigation>
 
-        {children}
+        <OnboardingWrapper>{children}</OnboardingWrapper>
       </Page>
     </SidebarProvider>
   );
@@ -82,7 +83,7 @@ function HeaderLayout({ children }: React.PropsWithChildren) {
         <MobileNavigation />
       </PageMobileNavigation>
 
-      {children}
+      <OnboardingWrapper>{children}</OnboardingWrapper>
     </Page>
   );
 }
