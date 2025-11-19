@@ -22,8 +22,6 @@ import {
   reactFlowEdgesToDbEdges,
   reactFlowNodesToDbNodes,
 } from './workflow-transforms';
-import { type ValidationResult, validateWorkflow } from './workflow-validation';
-import { WorkflowValidationPanel } from './workflow-validation-panel';
 
 interface WorkflowBuilderProps {
   agentId: string;
@@ -59,20 +57,10 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [validation, setValidation] = useState<ValidationResult>({
-    isValid: false,
-    issues: [],
-  });
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Save workflow mutation
   const saveWorkflowMutation = useSaveWorkflow();
-
-  // Run validation when nodes or edges change
-  useEffect(() => {
-    const validationResult = validateWorkflow(nodes, edges);
-    setValidation(validationResult);
-  }, [nodes, edges]);
 
   // Track changes for unsaved indicator
   useEffect(() => {
@@ -85,18 +73,6 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
   const handleSaveWorkflow = useCallback(async () => {
     if (nodes.length === 0) {
       toast.error('Cannot save an empty workflow');
-      return;
-    }
-
-    // Check validation before saving
-    const validationResult = validateWorkflow(nodes, edges);
-    if (!validationResult.isValid) {
-      const errorCount = validationResult.issues.filter(
-        (i) => i.type === 'error',
-      ).length;
-      toast.error(
-        `Cannot save workflow with ${errorCount} error${errorCount !== 1 ? 's' : ''}. Please fix the issues first.`,
-      );
       return;
     }
 
@@ -337,11 +313,6 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
           />
 
           <WorkflowInstructions />
-
-          {/* Validation Panel */}
-          {nodes.length > 0 && (
-            <WorkflowValidationPanel validation={validation} />
-          )}
 
           <WorkflowCanvas
             data-testid="workflow-canvas"
