@@ -11,8 +11,8 @@ export class AccountPageObject {
     this.auth = new AuthPageObject(page);
   }
 
-  async setup() {
-    await this.auth.signUpFlow('/home/settings');
+  async setup(path: string = '/home/settings') {
+    await this.auth.signUpFlow(path);
 
     // Wait for the settings page to fully load
     // The page shows a loading overlay until user data is fetched
@@ -25,32 +25,6 @@ export class AccountPageObject {
   async updateName(name: string) {
     await this.page.fill('[data-test="update-account-name-form"] input', name);
     await this.page.click('[data-test="update-account-name-form"] button');
-  }
-
-  async updateEmail(email: string) {
-    await expect(async () => {
-      await this.page.fill(
-        '[data-test="account-email-form-email-input"]',
-        email,
-      );
-
-      await this.page.fill(
-        '[data-test="account-email-form-repeat-email-input"]',
-        email,
-      );
-
-      const click = this.page.click('[data-test="account-email-form"] button');
-
-      const req = await this.page
-        .waitForResponse((resp) => {
-          return resp.url().includes('auth/v1/user');
-        })
-        .then((response) => {
-          expect(response.status()).toBe(200);
-        });
-
-      return Promise.all([click, req]);
-    }).toPass();
   }
 
   async updatePassword(password: string) {

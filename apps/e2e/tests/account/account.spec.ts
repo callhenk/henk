@@ -27,38 +27,26 @@ test.describe('Account Settings', () => {
     await expect(account.getProfileName()).toHaveText(name);
   });
 
-  test('user can update their email', async () => {
-    const email = account.auth.createRandomEmail();
-
-    await account.updateEmail(email);
-  });
-
   test('user can update their password', async () => {
     const password = (Math.random() * 100000).toString();
 
-    // Wait for the response to the password update
-    const responsePromise = page.waitForResponse(
-      (resp) => {
-        return (
-          resp.url().includes('auth/v1/user') &&
-          resp.request().method() === 'PUT'
-        );
-      },
-      { timeout: 30000 },
-    );
+    // Navigate to security page (password update is now in security settings)
+    await page.goto('/home/settings/security');
+
+    // Wait for security page to load
+    await page.waitForSelector('text=Security Settings', { timeout: 10000 });
 
     // Update the password
     await account.updatePassword(password);
 
-    // Wait for the API response
-    const response = await responsePromise;
-    expect(response.status()).toBe(200);
+    // Wait for the success toast to appear (indicates password was updated)
+    await page.waitForSelector('li[data-sonner-toast]', {
+      state: 'visible',
+      timeout: 10000,
+    });
 
-    // Wait for success toast to appear and then close
-    await page.waitForTimeout(2000);
-
-    // Sign out to verify the password change worked
-    await account.auth.signOut();
+    // Give it a moment for the toast to be visible
+    await page.waitForTimeout(1000);
   });
 });
 

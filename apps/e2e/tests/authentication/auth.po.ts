@@ -56,13 +56,22 @@ export class AuthPageObject {
     // Clear any blocking elements (toasts, portals, etc.)
     await this.clearBlockingElements();
 
+    // Wait for page to be fully loaded and interactive
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
+
     const trigger = this.page.locator('[data-test="account-dropdown-trigger"]');
 
     // Wait for the trigger to be visible and clickable (not just attached)
     await trigger.waitFor({ state: 'visible', timeout: 10000 });
 
+    // Ensure the trigger is not disabled or in a loading state
+    await this.page.waitForTimeout(500);
+
     // Use force click to bypass any potential portal overlays
     await trigger.click({ force: true, timeout: 10000 });
+
+    // Wait a moment for the dropdown animation to complete
+    await this.page.waitForTimeout(300);
 
     // Wait for dropdown menu content to be visible with longer timeout
     await this.page.waitForSelector('[data-test="account-dropdown-sign-out"]', {

@@ -15,7 +15,7 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
-    "@playwright/test": "^1.51.1",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^22.15.23",
     "node-html-parser": "^7.0.1"
   }
