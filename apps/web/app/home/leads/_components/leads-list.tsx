@@ -158,55 +158,61 @@ export function LeadsList() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="text-muted-foreground h-4 w-4" />
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-semibold tracking-tight">Total Leads</CardTitle>
+            <div className="bg-primary/10 rounded-lg p-2">
+              <Users className="text-primary h-5 w-5" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{total}</div>
-            <p className="text-muted-foreground text-xs">Across all sources</p>
+          <CardContent className="space-y-1">
+            <div className="text-3xl font-bold tracking-tight">{total}</div>
+            <p className="text-muted-foreground text-sm">Across all sources</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-semibold tracking-tight">
               From Integrations
             </CardTitle>
-            <DatabaseIcon className="text-muted-foreground h-4 w-4" />
+            <div className="bg-blue-500/10 rounded-lg p-2">
+              <DatabaseIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="space-y-1">
+            <div className="text-3xl font-bold tracking-tight">
               {
                 leads.filter(
                   (c) => c.source !== 'manual' && c.source !== 'csv_import',
                 ).length
               }
             </div>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               Via Salesforce, HubSpot, etc.
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Manual & CSV</CardTitle>
-            <Upload className="text-muted-foreground h-4 w-4" />
+        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-semibold tracking-tight">Manual & CSV</CardTitle>
+            <div className="bg-green-500/10 rounded-lg p-2">
+              <Upload className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="space-y-1">
+            <div className="text-3xl font-bold tracking-tight">
               {
                 leads.filter(
                   (c) => c.source === 'manual' || c.source === 'csv_import',
                 ).length
               }
             </div>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               Added manually or imported
             </p>
           </CardContent>
@@ -214,20 +220,21 @@ export function LeadsList() {
       </div>
 
       {/* Main Table Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Leads</CardTitle>
-              <CardDescription>
-                Manage and organize your leads database
+      <Card className="border-2">
+        <CardHeader className="pb-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1.5">
+              <CardTitle className="text-xl font-semibold tracking-tight">Leads Database</CardTitle>
+              <CardDescription className="text-base">
+                Manage and organize your leads across all sources
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setListsDialogOpen(true)}
+                className="h-9"
               >
                 <Users className="mr-2 h-4 w-4" />
                 Manage Lists
@@ -236,37 +243,39 @@ export function LeadsList() {
                 variant="outline"
                 size="sm"
                 onClick={() => setImportDialogOpen(true)}
+                className="h-9"
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Import
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-9">
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+              <Button size="sm" onClick={() => setAddDialogOpen(true)} className="h-9">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Lead
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           {/* Search and Filters */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search leads by name, email, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="h-10 pl-10 pr-4"
               />
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setFiltersOpen(!filtersOpen)}
+              className="h-10 px-4"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filters
@@ -279,11 +288,11 @@ export function LeadsList() {
           )}
 
           {/* Table */}
-          <div className="rounded-md border">
+          <div className="overflow-hidden rounded-lg border-2">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">
+              <TableHeader className="bg-muted/50">
+                <TableRow className="hover:bg-muted/50">
+                  <TableHead className="h-12 w-[50px]">
                     <Checkbox
                       checked={isAllSelected}
                       onCheckedChange={handleSelectAll}
@@ -291,13 +300,13 @@ export function LeadsList() {
                       {...(isIndeterminate && { 'data-indeterminate': true })}
                     />
                   </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="h-12 font-semibold">Name</TableHead>
+                  <TableHead className="h-12 font-semibold">Email</TableHead>
+                  <TableHead className="h-12 font-semibold">Phone</TableHead>
+                  <TableHead className="h-12 font-semibold">Company</TableHead>
+                  <TableHead className="h-12 font-semibold">Source</TableHead>
+                  <TableHead className="h-12 font-semibold">Tags</TableHead>
+                  <TableHead className="h-12 w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -305,7 +314,7 @@ export function LeadsList() {
                   <TableRow>
                     <TableCell
                       colSpan={8}
-                      className="text-muted-foreground text-center"
+                      className="text-muted-foreground h-32 text-center"
                     >
                       Loading leads...
                     </TableCell>
@@ -314,7 +323,7 @@ export function LeadsList() {
                   <TableRow>
                     <TableCell
                       colSpan={8}
-                      className="text-muted-foreground text-center"
+                      className="text-muted-foreground h-32 text-center"
                     >
                       {searchQuery
                         ? 'No leads found matching your search'
@@ -323,8 +332,8 @@ export function LeadsList() {
                   </TableRow>
                 ) : (
                   leads.map((lead) => (
-                    <TableRow key={lead.id}>
-                      <TableCell>
+                    <TableRow key={lead.id} className="group">
+                      <TableCell className="py-4">
                         <Checkbox
                           checked={selectedLeadIds.has(lead.id)}
                           onCheckedChange={(checked) =>
@@ -333,59 +342,59 @@ export function LeadsList() {
                           aria-label={`Select ${lead.first_name} ${lead.last_name}`}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="py-4 font-semibold">
                         {lead.first_name} {lead.last_name}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">
                         <a
                           href={`mailto:${lead.email}`}
-                          className="text-blue-600 hover:underline dark:text-blue-400"
+                          className="text-primary hover:underline"
                         >
                           {lead.email}
                         </a>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {lead.phone}
+                      <TableCell className="text-muted-foreground py-4">
+                        {lead.phone || '—'}
                       </TableCell>
-                      <TableCell>{lead.company || '—'}</TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">{lead.company || '—'}</TableCell>
+                      <TableCell className="py-4">
                         <Badge
-                          variant="outline"
-                          className={getSourceBadgeColor(lead.source)}
+                          variant="secondary"
+                          className={`font-medium ${getSourceBadgeColor(lead.source)}`}
                         >
                           {lead.source}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
+                      <TableCell className="py-4">
+                        <div className="flex flex-wrap gap-1.5">
                           {Array.isArray(lead.tags) &&
                             (lead.tags as string[])
                               .slice(0, 2)
                               .map((tag: string) => (
                                 <Badge
                                   key={tag}
-                                  variant="secondary"
-                                  className="text-xs"
+                                  variant="outline"
+                                  className="text-xs font-medium"
                                 >
                                   {tag}
                                 </Badge>
                               ))}
                           {Array.isArray(lead.tags) &&
                             (lead.tags as string[]).length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="outline" className="text-xs font-medium">
                                 +{(lead.tags as string[]).length - 2}
                               </Badge>
                             )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem
                               onClick={() => setEditingLead(lead)}
                             >
@@ -405,7 +414,7 @@ export function LeadsList() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-red-600 focus:text-red-600"
                               onClick={() => setDeleteLeadId(lead.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
@@ -423,21 +432,22 @@ export function LeadsList() {
 
           {/* Pagination Controls */}
           {pageCount > 1 && (
-            <div className="flex items-center justify-between px-2">
-              <div className="text-muted-foreground text-sm">
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="text-muted-foreground text-sm font-medium">
                 Showing {page * pageSize + 1} to{' '}
                 {Math.min((page + 1) * pageSize, total)} of {total} leads
               </div>
-              <div className="flex items-center gap-2">
-                <div className="text-muted-foreground text-sm">
+              <div className="flex items-center gap-4">
+                <div className="text-muted-foreground text-sm font-medium">
                   Page {page + 1} of {pageCount}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => setPage(0)}
                     disabled={page === 0}
+                    className="h-9 w-9"
                   >
                     <ChevronsLeft className="h-4 w-4" />
                   </Button>
@@ -446,6 +456,7 @@ export function LeadsList() {
                     size="icon"
                     onClick={() => setPage(page - 1)}
                     disabled={page === 0}
+                    className="h-9 w-9"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -454,6 +465,7 @@ export function LeadsList() {
                     size="icon"
                     onClick={() => setPage(page + 1)}
                     disabled={page >= pageCount - 1}
+                    className="h-9 w-9"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -462,6 +474,7 @@ export function LeadsList() {
                     size="icon"
                     onClick={() => setPage(pageCount - 1)}
                     disabled={page >= pageCount - 1}
+                    className="h-9 w-9"
                   >
                     <ChevronsRight className="h-4 w-4" />
                   </Button>

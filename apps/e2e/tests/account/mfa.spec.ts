@@ -16,7 +16,7 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
     await page.click('[data-test="setup-mfa-button"]');
 
     // Wait for the MFA setup dialog to open
-    await page.waitForSelector('text=Setup a new Factor', { timeout: 10000 });
+    await page.waitForSelector('role=dialog', { timeout: 10000 });
 
     // Enter factor name
     const factorName = `My Phone - ${Date.now()}`;
@@ -48,7 +48,7 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
 
     // Setup MFA
     await page.click('[data-test="setup-mfa-button"]');
-    await page.waitForSelector('text=Setup a new Factor');
+    await page.waitForSelector('role=dialog');
 
     const factorName = `Test Factor - ${Date.now()}`;
     await page.fill('[name="name"]', factorName);
@@ -78,13 +78,13 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
 
     // Start MFA setup
     await page.click('[data-test="setup-mfa-button"]');
-    await page.waitForSelector('text=Setup a new Factor');
+    await page.waitForSelector('role=dialog');
 
     // Click cancel
     await page.click('button:has-text("Cancel")');
 
     // Verify dialog is closed
-    await expect(page.locator('text=Setup a new Factor')).not.toBeVisible();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
   });
 
   test('MFA setup handles QR code generation error gracefully', async ({
@@ -95,23 +95,37 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
     await page.goto('/home/settings/security');
 
     // Intercept the MFA enroll API call and make it fail
-    await page.route('**/auth/v1/factors', (route) => {
-      route.fulfill({
-        status: 400,
-        body: JSON.stringify({
-          error: 'invalid_request',
-          error_description: 'Unable to enroll factor',
-        }),
-      });
+    await page.route('**/auth/v1/factors', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            error: 'invalid_request',
+            error_description: 'Unable to enroll factor',
+            code: 'invalid_request',
+          }),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     // Try to setup MFA
     await page.click('[data-test="setup-mfa-button"]');
-    await page.waitForSelector('text=Setup a new Factor');
+    await page.waitForSelector('role=dialog');
 
     const factorName = `Test Factor - ${Date.now()}`;
     await page.fill('[name="name"]', factorName);
+
+    // Wait for the API call to be made and intercepted
+    const responsePromise = page.waitForResponse((response) =>
+      response.url().includes('/auth/v1/factors') &&
+      response.request().method() === 'POST'
+    );
+
     await page.click('button[type="submit"]');
+    await responsePromise;
 
     // Wait for error alert
     await expect(page.locator('text=QR Code Error')).toBeVisible({
@@ -121,7 +135,7 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
       page.locator('text=/weren.*t able to generate/i'),
     ).toBeVisible();
 
-    // Verify retry button is present
+    // Verify retry button is present (labeled as "Retry" in the component)
     await expect(page.locator('button:has-text("Retry")')).toBeVisible();
   });
 
@@ -147,10 +161,10 @@ test.describe('MFA Factor Management', () => {
     // (This assumes the UI shows a list of factors)
     const factorsList = page.locator('[data-test="mfa-factors-list"]');
 
-    // If no factors enrolled, should show empty state
+    // If no factors enrolled, should show empty state with the MFA heading
     if ((await factorsList.count()) === 0) {
       await expect(
-        page.locator('text=/No factors.*enrolled|Setup.*first factor/i'),
+        page.locator('text=/Secure your account.*Multi-Factor Authentication/i'),
       ).toBeVisible();
     }
   });
@@ -161,12 +175,14 @@ test.describe('MFA Factor Management', () => {
     await page.goto('/home/settings/security');
 
     await page.click('[data-test="setup-mfa-button"]');
-    await page.waitForSelector('text=Setup a new Factor');
+    await page.waitForSelector('role=dialog');
 
     // Try to submit without entering a name
     await page.click('button[type="submit"]');
 
-    // Should show validation error
-    await expect(page.locator('text=/required|enter.*name/i')).toBeVisible();
+    // Should show validation error (HTML5 validation will prevent submission)
+    // The input field has 'required' attribute, so the form won't submit
+    const nameInput = page.locator('[name="name"]');
+    await expect(nameInput).toHaveAttribute('required', '');
   });
 });

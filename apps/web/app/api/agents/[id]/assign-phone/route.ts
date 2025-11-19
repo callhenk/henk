@@ -117,7 +117,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       JSON.stringify(result).slice(0, 400),
     );
 
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload = {
       caller_id: phoneNumberId,
     };
 
