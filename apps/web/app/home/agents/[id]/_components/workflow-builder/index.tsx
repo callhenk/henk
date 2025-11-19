@@ -2,9 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { Maximize, Minimize } from 'lucide-react';
 import { type Connection, type Edge, type Node } from 'reactflow';
+import { toast } from 'sonner';
 
-import { type WorkflowTemplate } from '../workflow-templates';
+import { useSaveWorkflow } from '@kit/supabase/hooks/workflows/use-workflow-mutations';
+import { Button } from '@kit/ui/button';
+
+import type { WorkflowTemplate } from '../workflow-templates';
 import { ConnectionDialog } from './connection-dialog';
 import { useWorkflowHistory } from './hooks/use-workflow-history';
 import { useWorkflowState } from './hooks/use-workflow-state';
@@ -13,8 +18,18 @@ import { TemplateSelectionDialog } from './template-selection-dialog';
 import { WorkflowCanvas } from './workflow-canvas';
 import { WorkflowInstructions } from './workflow-instructions';
 import { WorkflowToolbar } from './workflow-toolbar';
+import {
+  reactFlowEdgesToDbEdges,
+  reactFlowNodesToDbNodes,
+} from './workflow-transforms';
+import { type ValidationResult, validateWorkflow } from './workflow-validation';
+import { WorkflowValidationPanel } from './workflow-validation-panel';
 
-export function WorkflowBuilder() {
+interface WorkflowBuilderProps {
+  agentId: string;
+}
+
+export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
   const {
     nodes,
     edges,
@@ -38,6 +53,88 @@ export function WorkflowBuilder() {
   );
   const [isConnectionDialogOpen, setIsConnectionDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(
+    null,
+  );
+  const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [validation, setValidation] = useState<ValidationResult>({
+    isValid: false,
+    issues: [],
+  });
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Save workflow mutation
+  const saveWorkflowMutation = useSaveWorkflow();
+
+  // Run validation when nodes or edges change
+  useEffect(() => {
+    const validationResult = validateWorkflow(nodes, edges);
+    setValidation(validationResult);
+  }, [nodes, edges]);
+
+  // Track changes for unsaved indicator
+  useEffect(() => {
+    if (nodes.length > 0 || edges.length > 0) {
+      setHasUnsavedChanges(true);
+    }
+  }, [nodes, edges]);
+
+  // Save workflow to database
+  const handleSaveWorkflow = useCallback(async () => {
+    if (nodes.length === 0) {
+      toast.error('Cannot save an empty workflow');
+      return;
+    }
+
+    // Check validation before saving
+    const validationResult = validateWorkflow(nodes, edges);
+    if (!validationResult.isValid) {
+      const errorCount = validationResult.issues.filter(
+        (i) => i.type === 'error',
+      ).length;
+      toast.error(
+        `Cannot save workflow with ${errorCount} error${errorCount !== 1 ? 's' : ''}. Please fix the issues first.`,
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const dbNodes = reactFlowNodesToDbNodes(nodes);
+      const dbEdges = reactFlowEdgesToDbEdges(edges);
+
+      await saveWorkflowMutation.mutateAsync({
+        workflow: {
+          id: currentWorkflowId || undefined,
+          agent_id: agentId,
+          name: workflowName,
+          description: 'AI agent call workflow',
+          status: 'active',
+        },
+        nodes: dbNodes as any,
+        edges: dbEdges as any,
+      });
+
+      setHasUnsavedChanges(false);
+      toast.success(`Workflow "${workflowName}" saved successfully!`);
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+      toast.error(
+        `Failed to save workflow: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    nodes,
+    edges,
+    currentWorkflowId,
+    agentId,
+    workflowName,
+    saveWorkflowMutation,
+  ]);
 
   // Load template
   const loadTemplate = useCallback(
@@ -46,6 +143,7 @@ export function WorkflowBuilder() {
       setEdges(template.edges);
       saveToHistory(template.nodes, template.edges);
       setIsTemplateDialogOpen(false);
+      setHasUnsavedChanges(true);
     },
     [setNodes, setEdges, saveToHistory],
   );
@@ -62,6 +160,12 @@ export function WorkflowBuilder() {
         }
       }
 
+      // Ctrl+S to save
+      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+        event.preventDefault();
+        handleSaveWorkflow();
+      }
+
       // Delete key for selected elements
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
@@ -74,10 +178,14 @@ export function WorkflowBuilder() {
         }
       }
 
-      // Escape key to clear selection
+      // Escape key to clear selection or exit fullscreen
       if (event.key === 'Escape') {
-        setSelectedNode(null);
-        setSelectedEdge(null);
+        if (isFullScreen) {
+          setIsFullScreen(false);
+        } else {
+          setSelectedNode(null);
+          setSelectedEdge(null);
+        }
       }
     };
 
@@ -90,6 +198,8 @@ export function WorkflowBuilder() {
     selectedEdge,
     deleteSelectedNode,
     deleteSelectedEdge,
+    handleSaveWorkflow,
+    isFullScreen,
   ]);
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -157,9 +267,57 @@ export function WorkflowBuilder() {
   const connectionOptions = sourceNode?.data.options || [];
 
   return (
-    <div className="space-y-6">
+    <div
+      className={`${isFullScreen ? 'bg-background fixed inset-0 z-50 p-6' : 'space-y-6'}`}
+    >
+      {/* Workflow Header with Save Button */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <input
+            data-testid="workflow-name-input"
+            type="text"
+            value={workflowName}
+            onChange={(e) => setWorkflowName(e.target.value)}
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full max-w-md rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Workflow name..."
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {hasUnsavedChanges && (
+            <span
+              data-testid="workflow-unsaved-indicator"
+              className="text-muted-foreground text-sm"
+            >
+              Unsaved changes
+            </span>
+          )}
+          <Button
+            data-testid="workflow-fullscreen-toggle"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            title={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullScreen ? (
+              <Minimize className="h-4 w-4" />
+            ) : (
+              <Maximize className="h-4 w-4" />
+            )}
+          </Button>
+          <Button
+            data-testid="workflow-save-button"
+            onClick={handleSaveWorkflow}
+            disabled={isSaving || nodes.length === 0}
+          >
+            {isSaving ? 'Saving...' : 'Save Workflow'}
+          </Button>
+        </div>
+      </div>
+
       <div className="bg-card text-card-foreground rounded-xl border p-4 sm:p-6">
-        <div className="flex h-[600px] w-full flex-col">
+        <div
+          className={`flex w-full flex-col ${isFullScreen ? 'h-[calc(100vh-12rem)]' : 'h-[calc(100vh-20rem)]'}`}
+        >
           <WorkflowToolbar
             historyIndex={historyIndex}
             historyLength={history.length}
@@ -180,7 +338,13 @@ export function WorkflowBuilder() {
 
           <WorkflowInstructions />
 
+          {/* Validation Panel */}
+          {nodes.length > 0 && (
+            <WorkflowValidationPanel validation={validation} />
+          )}
+
           <WorkflowCanvas
+            data-testid="workflow-canvas"
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
