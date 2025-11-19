@@ -10,7 +10,8 @@ const SIGN_IN_PATH = '/auth/sign-in';
  * @description Require a session to be present in the request
  * @param client
  */
-export async function requireUser(client: SupabaseClient): Promise<
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function requireUser(client: SupabaseClient<any, any, any>): Promise<
   | {
       error: null;
       data: User;

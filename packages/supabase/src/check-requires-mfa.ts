@@ -8,8 +8,9 @@ const ASSURANCE_LEVEL_2 = 'aal2';
  * We do it by checking that the next assurance level is AAL2 and that the current assurance level is not AAL2.
  * @param client
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function checkRequiresMultiFactorAuthentication(
-  client: SupabaseClient,
+  client: SupabaseClient<any, any, any>,
 ) {
   // Suppress the getSession warning. Remove when the issue is fixed.
   // https://github.com/supabase/auth-js/issues/873
