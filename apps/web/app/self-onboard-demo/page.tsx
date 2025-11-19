@@ -30,7 +30,7 @@ import { AGENT_TYPES } from '../home/agents/_components/agent-types-step';
 import { DetailsStep } from '../home/agents/_components/details-step';
 import { UseCaseStep } from '../home/agents/_components/use-case-step';
 
-type StepType = 'use-case' | 'details' | 'conversation';
+type StepType = 'use-case' | 'details' | 'email-capture' | 'conversation';
 
 interface CreatedAgent {
   id: string;
@@ -181,6 +181,12 @@ export default function SelfOnboardDemoPage() {
       description: 'Name & goal',
     },
     {
+      key: 'email-capture',
+      title: 'Your Info',
+      icon: <Mail className="h-4 w-4" />,
+      description: 'Email (required)',
+    },
+    {
       key: 'conversation',
       title: 'Talk',
       icon: <PhoneCall className="h-4 w-4" />,
@@ -196,6 +202,10 @@ export default function SelfOnboardDemoPage() {
         return useCase !== null;
       case 'details':
         return Boolean(name.trim() && contextPrompt.trim());
+      case 'email-capture':
+        return Boolean(
+          email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()),
+        );
       case 'conversation':
         return createdAgent !== null;
       default:
@@ -475,6 +485,49 @@ export default function SelfOnboardDemoPage() {
               </div>
             )}
 
+            {step === 'email-capture' && (
+              <div className="animate-in fade-in space-y-6 duration-300">
+                <div className="space-y-4 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30">
+                    <Mail className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold tracking-tight">
+                      Want AI Agents for Your Organization?
+                    </h3>
+                    <p className="text-muted-foreground mx-auto max-w-md text-sm leading-relaxed">
+                      Get personalized insights and learn how AI voice agents
+                      can transform your operations
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <Input
+                      type="text"
+                      placeholder="Your name (optional)"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      className="h-11"
+                    />
+                    <Input
+                      type="email"
+                      placeholder="Your email *"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-11"
+                      required
+                    />
+                  </div>
+                  <p className="text-muted-foreground text-center text-xs">
+                    Required to test your agent and receive personalized
+                    insights
+                  </p>
+                </div>
+              </div>
+            )}
+
             {step === 'conversation' && createdAgent && (
               <div className="animate-in fade-in space-y-6 duration-300">
                 {/* Success Banner */}
@@ -507,6 +560,9 @@ export default function SelfOnboardDemoPage() {
                   agentName={createdAgent.name}
                   elevenlabsAgentId={createdAgent.elevenlabs_agent_id}
                   inline={true}
+                  demoUserEmail={email}
+                  demoUserName={userName}
+                  demoUseCase={useCase || undefined}
                 />
 
                 {/* Email Capture & Calendly */}
@@ -717,7 +773,8 @@ export default function SelfOnboardDemoPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    {stepIndex < steps.length - 2 ? (
+                    {stepIndex < steps.length - 1 &&
+                    step !== 'email-capture' ? (
                       <Button
                         onClick={goNext}
                         disabled={!canProceed()}
@@ -726,7 +783,7 @@ export default function SelfOnboardDemoPage() {
                       >
                         Next <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    ) : (
+                    ) : step === 'email-capture' ? (
                       <Button
                         onClick={handleCreateAgent}
                         disabled={isSubmitting || !canProceed()}
@@ -744,7 +801,7 @@ export default function SelfOnboardDemoPage() {
                           'Create & Test Agent'
                         )}
                       </Button>
-                    )}
+                    ) : null}
                   </>
                 )}
               </div>
@@ -774,7 +831,7 @@ export default function SelfOnboardDemoPage() {
 
       {/* Floating bar when email section is not visible */}
       {showFloatingBar && createdAgent && !emailSent && (
-        <div className="animate-in slide-in-from-bottom-4 fade-in bg-background fixed right-0 bottom-0 left-0 z-50 border-t shadow-lg duration-300">
+        <div className="animate-in slide-in-from-bottom-4 fade-in bg-background fixed bottom-0 left-0 right-0 z-50 border-t shadow-lg duration-300">
           <div className="mx-auto max-w-4xl p-4">
             <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
               <div className="flex items-center gap-3 text-center sm:text-left">

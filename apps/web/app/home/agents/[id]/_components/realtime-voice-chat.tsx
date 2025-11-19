@@ -18,6 +18,10 @@ interface RealtimeVoiceChatProps {
   elevenlabsAgentId: string;
   onClose?: () => void;
   inline?: boolean;
+  // Optional demo notification data
+  demoUserEmail?: string;
+  demoUserName?: string;
+  demoUseCase?: string;
 }
 
 export function RealtimeVoiceChat({
@@ -26,6 +30,9 @@ export function RealtimeVoiceChat({
   elevenlabsAgentId,
   onClose,
   inline = false,
+  demoUserEmail,
+  demoUserName,
+  demoUseCase,
 }: RealtimeVoiceChatProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
@@ -48,6 +55,33 @@ export function RealtimeVoiceChat({
       toast.success('Connected to AI agent!', {
         description: 'You can now start speaking with your agent.',
       });
+
+      // Send demo notification if this is a demo conversation
+      if (demoUserEmail) {
+        const conversationId = conversation.getId();
+        fetch('/api/demo/conversation-started', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agent_id: elevenlabsAgentId,
+            agent_name: agentName,
+            conversation_id: conversationId,
+            email: demoUserEmail,
+            name: demoUserName,
+            use_case: demoUseCase,
+            metadata: {
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              locale: navigator.language,
+              userAgent: navigator.userAgent,
+              timestamp: new Date().toISOString(),
+            },
+          }),
+        }).catch((err) => {
+          console.error('Failed to send demo notification:', err);
+        });
+      }
     },
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs');
@@ -209,7 +243,7 @@ export function RealtimeVoiceChat({
                 />
               </div>
               {isConnected && (
-                <div className="absolute -right-2 -bottom-2 animate-pulse">
+                <div className="absolute -bottom-2 -right-2 animate-pulse">
                   <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-lg dark:border-gray-900">
                     <div className="h-3 w-3 rounded-full bg-white"></div>
                   </div>
