@@ -69,6 +69,12 @@ export async function POST(request: NextRequest) {
     // Initialize Resend
     const resend = new Resend(resendApiKey);
 
+    // Determine recipient email based on environment
+    const recipientEmail =
+      process.env.NODE_ENV === 'production'
+        ? 'jerome+grant@callhenk.com'
+        : 'cyrus+grant@callhenk.com';
+
     // Build metadata HTML
     const timestamp = metadata?.timestamp || new Date().toISOString();
     const metadataHtml = `
@@ -104,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Send email notification
     const { error } = await resend.emails.send({
       from: 'Henk Grants <grants@callhenk.com>',
-      to: 'jerome+grant@callhenk.com',
+      to: recipientEmail,
       subject: `🎯 New Grant Application Started - ${new Date(timestamp).toLocaleDateString()}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
