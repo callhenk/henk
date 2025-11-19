@@ -243,7 +243,7 @@ export function RealtimeVoiceChat({
                 />
               </div>
               {isConnected && (
-                <div className="absolute -bottom-2 -right-2 animate-pulse">
+                <div className="absolute -right-2 -bottom-2 animate-pulse">
                   <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full border-2 border-white shadow-lg dark:border-gray-900">
                     <div className="h-3 w-3 rounded-full bg-white"></div>
                   </div>
