@@ -1,10 +1,9 @@
 import { use } from 'react';
 
-import Link from 'next/link';
-
 import { Eye, Key, Lock, Shield } from 'lucide-react';
 
 import { MultiFactorAuthFactorsList } from '@kit/accounts/mfa';
+import { UpdatePasswordFormContainer } from '@kit/accounts/password';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
@@ -115,11 +114,12 @@ function SecuritySettingsPage() {
               <CardDescription>Update your account password</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" asChild>
-                <Link href={pathsConfig.app.profileSettings}>
-                  Change Password
-                </Link>
-              </Button>
+              <UpdatePasswordFormContainer
+                callbackPath={
+                  pathsConfig.auth.callback +
+                  `?next=${pathsConfig.app.profileSettings}/security`
+                }
+              />
             </CardContent>
           </Card>
 
