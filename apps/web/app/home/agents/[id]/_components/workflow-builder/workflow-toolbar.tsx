@@ -35,57 +35,82 @@ export function WorkflowToolbar({
   const hasSelection = selectedNode || selectedEdge;
 
   return (
-    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      {/* Selection Status */}
+    <div className="mb-4 flex flex-col gap-3">
+      {/* Primary Actions Row */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Add Nodes Group */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            data-testid="workflow-add-decision"
+            variant="outline"
+            size="sm"
+            onClick={onAddDecision}
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Decision</span>
+          </Button>
+          <Button
+            data-testid="workflow-add-action"
+            variant="outline"
+            size="sm"
+            onClick={onAddAction}
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Action</span>
+          </Button>
+        </div>
+
+        {/* History & Template Group */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            data-testid="workflow-undo"
+            variant="outline"
+            size="sm"
+            onClick={onUndo}
+            disabled={historyIndex <= 0}
+            title="Undo (Ctrl+Z)"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span className="sr-only">Undo</span>
+          </Button>
+          <Button
+            data-testid="workflow-redo"
+            variant="outline"
+            size="sm"
+            onClick={onRedo}
+            disabled={historyIndex >= historyLength - 1}
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <RotateCw className="h-4 w-4" />
+            <span className="sr-only">Redo</span>
+          </Button>
+          <Button
+            data-testid="workflow-load-template"
+            variant="outline"
+            size="sm"
+            onClick={onOpenTemplateDialog}
+            className="hidden sm:flex"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Template
+          </Button>
+        </div>
+      </div>
+
+      {/* Selection Status Row */}
       {hasSelection && (
-        <div className="flex items-center gap-2">
-          <div className="bg-muted text-muted-foreground flex items-center gap-1 rounded-md px-3 py-2 text-sm">
-            <div className="bg-muted-foreground h-2 w-2 rounded-full"></div>
-            <span>
-              {selectedNode ? `Selected: ${selectedNode.data.label}` : ''}
-              {selectedEdge ? 'Selected: Connection' : ''}
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            data-testid="workflow-selection-indicator"
+            className="bg-muted text-muted-foreground flex flex-1 items-center gap-1 rounded-md px-3 py-2 text-sm"
+          >
+            <div className="bg-muted-foreground h-2 w-2 flex-shrink-0 rounded-full"></div>
+            <span className="truncate">
+              {selectedNode ? `${selectedNode.data.label}` : 'Connection'}
             </span>
           </div>
-          {/* Duplicate quick-delete removed; rely on the Destructive Delete button below */}
-        </div>
-      )}
-
-      {/* Toolbar Actions */}
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={onOpenTemplateDialog}>
-          <FileText className="mr-2 h-4 w-4" />
-          Load Template
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onUndo}
-          disabled={historyIndex <= 0}
-          title="Undo (Ctrl+Z)"
-        >
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Undo
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRedo}
-          disabled={historyIndex >= historyLength - 1}
-          title="Redo (Ctrl+Shift+Z)"
-        >
-          <RotateCw className="mr-2 h-4 w-4" />
-          Redo
-        </Button>
-        <Button variant="outline" size="sm" onClick={onAddDecision}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Decision
-        </Button>
-        <Button variant="outline" size="sm" onClick={onAddAction}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Action
-        </Button>
-        {hasSelection && (
           <Button
+            data-testid="workflow-delete-selected"
             variant="destructive"
             size="sm"
             onClick={() => {
@@ -94,11 +119,11 @@ export function WorkflowToolbar({
             }}
             title="Delete selected element (Delete key)"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            <Trash2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Delete</span>
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
