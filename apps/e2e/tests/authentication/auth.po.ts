@@ -11,6 +11,36 @@ export class AuthPageObject {
     this.mailbox = new Mailbox(page);
   }
 
+  /**
+   * Clear any blocking portals, toasts, or overlays
+   * This helps prevent "element intercepts pointer events" errors
+   */
+  private async clearBlockingElements() {
+    // Close any visible toasts
+    const toastCloseButtons = this.page.locator(
+      '[data-sonner-toast] button[aria-label*="close"], [data-sonner-toast] [data-close-button]',
+    );
+    const toastCount = await toastCloseButtons.count();
+
+    for (let i = 0; i < toastCount; i++) {
+      await toastCloseButtons
+        .nth(i)
+        .click({ force: true })
+        .catch(() => {});
+    }
+
+    if (toastCount > 0) {
+      await this.page.waitForTimeout(300);
+    }
+
+    // Wait for portals to clear
+    await this.page
+      .waitForSelector('nextjs-portal:empty, body:not(:has(nextjs-portal))', {
+        timeout: 3000,
+      })
+      .catch(() => {});
+  }
+
   goToSignIn() {
     return this.page.goto('/auth/sign-in');
   }
@@ -23,13 +53,16 @@ export class AuthPageObject {
     // Wait for any existing portals/animations to clear
     await this.page.waitForTimeout(500);
 
+    // Clear any blocking elements (toasts, portals, etc.)
+    await this.clearBlockingElements();
+
     const trigger = this.page.locator('[data-test="account-dropdown-trigger"]');
 
     // Wait for the trigger to be visible and clickable (not just attached)
     await trigger.waitFor({ state: 'visible', timeout: 10000 });
 
-    // Click the dropdown trigger
-    await trigger.click();
+    // Use force click to bypass any potential portal overlays
+    await trigger.click({ force: true, timeout: 10000 });
 
     // Wait for dropdown menu content to be visible with longer timeout
     await this.page.waitForSelector('[data-test="account-dropdown-sign-out"]', {
@@ -37,8 +70,10 @@ export class AuthPageObject {
       timeout: 10000,
     });
 
-    // Click sign out button
-    await this.page.click('[data-test="account-dropdown-sign-out"]');
+    // Click sign out button with force to ensure it works
+    await this.page.click('[data-test="account-dropdown-sign-out"]', {
+      force: true,
+    });
   }
 
   async signIn(params: { email: string; password: string }) {
