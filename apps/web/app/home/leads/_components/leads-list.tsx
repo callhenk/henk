@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import {
+  ArrowUpCircle,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -20,6 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useCanPerformAction } from '@kit/supabase/hooks/billing';
 import { useDeleteLead } from '@kit/supabase/hooks/leads/use-lead-mutations';
 import {
   type LeadsFilters as LeadsFiltersType,
@@ -61,6 +65,12 @@ import {
   TableHeader,
   TableRow,
 } from '@kit/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@kit/ui/tooltip';
 
 import type { Database } from '~/lib/database.types';
 import { getSourceBadgeColor } from '~/lib/utils/badges';
@@ -76,6 +86,7 @@ import { LeadsFilters } from './leads-filters';
 type Lead = Database['public']['Tables']['leads']['Row'];
 
 export function LeadsList() {
+  const router = useRouter();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [listsDialogOpen, setListsDialogOpen] = useState(false);
@@ -88,6 +99,7 @@ export function LeadsList() {
     name: string;
   } | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -105,6 +117,13 @@ export function LeadsList() {
     pageSize,
   });
   const deleteLead = useDeleteLead();
+
+  // Check if user can create more contacts
+  const {
+    canPerform: canCreateContact,
+    reason: cannotCreateReason,
+    isLoading: checkingLimit,
+  } = useCanPerformAction('contacts');
 
   const leads = leadsResult?.data ?? [];
   const total = leadsResult?.total ?? 0;
@@ -245,27 +264,75 @@ export function LeadsList() {
                 <Users className="mr-2 h-4 w-4" />
                 Manage Lists
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setImportDialogOpen(true)}
-                className="h-9"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Import
-              </Button>
+              <TooltipProvider>
+                <Tooltip
+                  open={!canCreateContact && !checkingLimit ? undefined : false}
+                >
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!canCreateContact) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setImportDialogOpen(true);
+                        }
+                      }}
+                      disabled={checkingLimit}
+                      className="h-9"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import
+                      {!canCreateContact && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Upgrade
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-semibold">Contact limit reached</p>
+                    <p className="text-sm">{cannotCreateReason}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button variant="outline" size="sm" className="h-9">
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <Button
-                size="sm"
-                onClick={() => setAddDialogOpen(true)}
-                className="h-9"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Lead
-              </Button>
+              <TooltipProvider>
+                <Tooltip
+                  open={!canCreateContact && !checkingLimit ? undefined : false}
+                >
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (!canCreateContact) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setAddDialogOpen(true);
+                        }
+                      }}
+                      disabled={checkingLimit}
+                      className="h-9"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Lead
+                      {!canCreateContact && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Upgrade
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-semibold">Contact limit reached</p>
+                    <p className="text-sm">{cannotCreateReason}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardHeader>
@@ -273,12 +340,12 @@ export function LeadsList() {
           {/* Search and Filters */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
+              <Search className="text-muted-foreground absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search leads by name, email, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 pr-4 pl-10"
+                className="h-10 pl-10 pr-4"
               />
             </div>
             <Button
@@ -563,6 +630,31 @@ export function LeadsList() {
           onClearSelection={clearSelection}
         />
       )}
+
+      {/* Upgrade Dialog */}
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upgrade Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cannotCreateReason}
+              <br />
+              <br />
+              Upgrade your plan to add more contacts and unlock additional
+              features.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => router.push('/home/settings/billing')}
+            >
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              View Plans
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -74,6 +74,8 @@ const ALLOWED_PATHS = [
   'scripts/check-secrets.mjs', // This file (contains patterns)
   'apps/web/supabase/seed.sql', // Test data
   'CLAUDE.md', // Documentation
+  'apps/e2e/.env.example', // E2E test environment example (uses public Supabase local dev keys)
+  'apps/e2e/tests/utils/test-db-setup.ts', // E2E test utilities (uses public Supabase local dev keys)
 ];
 
 function getStagedFiles() {

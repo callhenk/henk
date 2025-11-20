@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import {
   Archive,
+  ArrowUpCircle,
   Copy,
   DollarSign,
   Eye,
@@ -23,6 +24,7 @@ import {
 // Import our Supabase hooks
 import type { Tables } from '@kit/supabase/database';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCanPerformAction } from '@kit/supabase/hooks/billing';
 import { useDeleteCampaign } from '@kit/supabase/hooks/campaigns/use-campaign-mutations';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
@@ -37,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@kit/ui/alert-dialog';
+import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -62,6 +65,12 @@ import {
   TableHeader,
   TableRow,
 } from '@kit/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@kit/ui/tooltip';
 
 // Tabs removed; filters handle status selection
 
@@ -109,9 +118,19 @@ export function CampaignsList() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showWizard, setShowWizard] = useState(false);
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+
+  const router = useRouter();
 
   // Delete mutation
   const deleteCampaignMutation = useDeleteCampaign();
+
+  // Check if user can create more campaigns
+  const {
+    canPerform: canCreateCampaign,
+    reason: cannotCreateReason,
+    isLoading: checkingLimit,
+  } = useCanPerformAction('campaigns');
 
   // Enhance campaigns with calculated performance data
   const enhancedCampaigns = useMemo(() => {
@@ -307,10 +326,38 @@ export function CampaignsList() {
             </div>
             <div className="flex items-center gap-2">
               <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-              <Button onClick={() => setShowWizard(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Campaign
-              </Button>
+              <TooltipProvider>
+                <Tooltip
+                  open={
+                    !canCreateCampaign && !checkingLimit ? undefined : false
+                  }
+                >
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        if (!canCreateCampaign) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setShowWizard(true);
+                        }
+                      }}
+                      disabled={checkingLimit}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Campaign
+                      {!canCreateCampaign && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Upgrade
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-semibold">Campaign limit reached</p>
+                    <p className="text-sm">{cannotCreateReason}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardHeader>
@@ -419,6 +466,31 @@ export function CampaignsList() {
           </div>
         </div>
       )}
+
+      {/* Upgrade Dialog */}
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upgrade Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cannotCreateReason}
+              <br />
+              <br />
+              Upgrade your plan to create more campaigns and unlock additional
+              features.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => router.push('/home/settings/billing')}
+            >
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              View Plans
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

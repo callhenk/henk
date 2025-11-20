@@ -3,10 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Call, Device } from '@twilio/voice-sdk';
-import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from 'lucide-react';
+import {
+  AlertCircle,
+  Mic,
+  MicOff,
+  Phone,
+  PhoneOff,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import {
   Card,
@@ -40,19 +47,11 @@ export function CallsController() {
   });
   const [isMuted, setIsMuted] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [callerId, setCallerId] = useState<string>('');
-  const [_audioDevices, _setAudioDevices] = useState<{
-    input: string;
-    output: string;
-  }>({ input: 'default', output: 'default' });
 
-  // Helper to add debug logs
+  // Helper to add debug logs (console only)
   const addLog = (message: string) => {
     console.log(message);
-    setDebugLogs((prev) =>
-      [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10),
-    );
   };
 
   // Initialize on mount - using useEffect with empty dependency array
@@ -230,6 +229,44 @@ export function CallsController() {
     };
   }, []); // Empty dependency array - only run once on mount
 
+  // Add keyboard support for DTMF
+  useEffect(() => {
+    if (callState.status !== 'connected') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not focused on an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      // Check if key is a valid DTMF digit
+      const validDigits = [
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '*',
+        '#',
+      ];
+      if (validDigits.includes(e.key)) {
+        e.preventDefault();
+        sendDTMF(e.key);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [callState.status]); // Re-run when call status changes
+
   // Handle making a call
   const makeCall = async () => {
     if (!deviceRef.current || !callState.phoneNumber) {
@@ -392,6 +429,22 @@ export function CallsController() {
     }
   };
 
+  // Send DTMF tone
+  const sendDTMF = (digit: string) => {
+    if (!callRef.current || callState.status !== 'connected') {
+      return;
+    }
+
+    try {
+      callRef.current.sendDigits(digit);
+      addLog(`📱 Sent DTMF tone: ${digit}`);
+      toast.success(`Pressed ${digit}`, { duration: 500 });
+    } catch (error) {
+      addLog(`❌ Failed to send DTMF: ${error}`);
+      toast.error('Failed to send key press');
+    }
+  };
+
   // Format duration display
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -412,169 +465,195 @@ export function CallsController() {
   };
 
   return (
-    <div className="max-w-2xl space-y-4">
-      {/* Configuration Warning */}
-      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950/50">
-        <div className="flex items-start gap-3">
-          <div className="text-yellow-600 dark:text-yellow-400">⚠️</div>
-          <div className="flex-1">
-            <p className="font-medium text-yellow-900 dark:text-yellow-100">
-              Important: Twilio TwiML App Configuration Required
-            </p>
-            <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-              If calls connect but you hear no audio, your TwiML App Voice URL
-              is likely not configured. Go to{' '}
-              <a
-                href="https://console.twilio.com/us1/develop/voice/manage/twiml-apps"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium underline"
-              >
-                Twilio Console → TwiML Apps
-              </a>{' '}
-              and set the <strong>Voice Request URL</strong> to:{' '}
-              <code className="rounded bg-yellow-100 px-1 py-0.5 text-xs dark:bg-yellow-900">
-                {process.env.NEXT_PUBLIC_APP_URL || 'YOUR_APP_URL'}
-                /api/twilio/twiml
-              </code>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Simple Call Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Direct Call</CardTitle>
-          <CardDescription>
-            {isInitialized
-              ? 'Phone system ready - Enter a number and press Call'
-              : isInitializing
-                ? 'Initializing phone system... (Check browser console if this takes too long)'
-                : 'Phone system offline - Check Twilio configuration'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Phone Number Input */}
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              placeholder="+1234567890"
-              value={callState.phoneNumber}
-              onChange={(e) =>
-                setCallState((prev) => ({
-                  ...prev,
-                  phoneNumber: e.target.value,
-                }))
-              }
-              onKeyPress={handleKeyPress}
-              disabled={callState.status !== 'idle'}
-              className="text-lg"
-            />
-            <p className="text-muted-foreground text-sm">
-              Enter the phone number in international format (e.g., +1234567890)
-            </p>
-          </div>
-
-          {/* Call Status */}
-          {callState.status !== 'idle' && (
-            <div className="bg-muted flex items-center justify-between rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    callState.status === 'connected' ? 'success' : 'secondary'
-                  }
-                >
-                  {callState.status}
-                </Badge>
-                <span className="text-lg font-medium">
-                  {formatDuration(callState.duration)}
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Main Call Interface */}
+      <Card className="border-2">
+        <CardHeader className="space-y-1 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Make a Call</CardTitle>
+              <CardDescription className="mt-1.5">
+                {isInitialized
+                  ? 'Phone system ready'
+                  : isInitializing
+                    ? 'Initializing...'
+                    : 'System offline'}
+              </CardDescription>
+            </div>
+            {isInitialized && (
+              <div className="flex items-center gap-2 rounded-full bg-green-50 px-3 py-1.5 dark:bg-green-950">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                  Ready
                 </span>
               </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggleMute}
-                  disabled={callState.status !== 'connected'}
-                >
-                  {isMuted ? (
-                    <MicOff className="h-4 w-4" />
-                  ) : (
-                    <Mic className="h-4 w-4" />
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Phone Number Input */}
+          {callState.status === 'idle' && (
+            <div className="space-y-3">
+              <Label htmlFor="phoneNumber" className="text-base">
+                Phone Number
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="+1 (555) 000-0000"
+                  value={callState.phoneNumber}
+                  onChange={(e) =>
+                    setCallState((prev) => ({
+                      ...prev,
+                      phoneNumber: e.target.value,
+                    }))
+                  }
+                  onKeyPress={handleKeyPress}
+                  disabled={!isInitialized}
+                  className="h-12 pl-10 text-lg"
+                />
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Enter number in international format (e.g., +1234567890)
+              </p>
+            </div>
+          )}
+
+          {/* Call Status - Connected/Connecting */}
+          {callState.status !== 'idle' && (
+            <div className="space-y-4">
+              {/* Active Call Header */}
+              <div className="border-primary/20 bg-primary/5 flex items-center justify-between rounded-lg border-2 p-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-3 w-3 rounded-full ${
+                        callState.status === 'connected'
+                          ? 'animate-pulse bg-green-500'
+                          : 'animate-pulse bg-yellow-500'
+                      }`}
+                    />
+                    <span className="text-sm font-medium capitalize text-gray-700 dark:text-gray-300">
+                      {callState.status}
+                    </span>
+                  </div>
+                  <p className="font-mono text-2xl font-bold tracking-tight">
+                    {formatDuration(callState.duration)}
+                  </p>
+                  {callState.phoneNumber && (
+                    <p className="text-muted-foreground text-sm">
+                      {callState.phoneNumber}
+                    </p>
                   )}
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggleSpeaker}
-                  disabled={callState.status !== 'connected'}
-                >
-                  {speakerEnabled ? (
-                    <Volume2 className="h-4 w-4" />
-                  ) : (
-                    <VolumeX className="h-4 w-4" />
-                  )}
-                </Button>
+                </div>
+
+                {/* Call Controls */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant={isMuted ? 'destructive' : 'outline'}
+                    onClick={toggleMute}
+                    disabled={callState.status !== 'connected'}
+                    className="h-10 w-10"
+                  >
+                    {isMuted ? (
+                      <MicOff className="h-5 w-5" />
+                    ) : (
+                      <Mic className="h-5 w-5" />
+                    )}
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant={!speakerEnabled ? 'destructive' : 'outline'}
+                    onClick={toggleSpeaker}
+                    disabled={callState.status !== 'connected'}
+                    className="h-10 w-10"
+                  >
+                    {speakerEnabled ? (
+                      <Volume2 className="h-5 w-5" />
+                    ) : (
+                      <VolumeX className="h-5 w-5" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Call Actions */}
-          <div className="flex gap-2">
-            {callState.status === 'idle' ? (
-              <Button
-                className="flex-1"
-                size="lg"
-                onClick={makeCall}
-                disabled={!isInitialized || !callState.phoneNumber}
-              >
-                <Phone className="mr-2 h-4 w-4" />
-                Call
-              </Button>
-            ) : (
-              <Button
-                className="flex-1"
-                size="lg"
-                variant="destructive"
-                onClick={endCall}
-              >
-                <PhoneOff className="mr-2 h-4 w-4" />
-                End Call
-              </Button>
-            )}
-          </div>
+          {callState.status === 'idle' ? (
+            <Button
+              size="lg"
+              onClick={makeCall}
+              disabled={!isInitialized || !callState.phoneNumber}
+              className="h-14 w-full text-lg font-semibold"
+            >
+              <Phone className="mr-2 h-5 w-5" />
+              Start Call
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              variant="destructive"
+              onClick={endCall}
+              className="h-14 w-full text-lg font-semibold"
+            >
+              <PhoneOff className="mr-2 h-5 w-5" />
+              End Call
+            </Button>
+          )}
 
-          {/* Error State */}
-          {callState.status === 'error' && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/50">
-              <p className="text-sm font-medium text-red-900 dark:text-red-100">
-                Connection Error
-              </p>
-              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                Unable to connect to phone system. Please check Twilio
-                configuration and try again.
-              </p>
+          {/* DTMF Keypad */}
+          {callState.status === 'connected' && (
+            <div className="space-y-4 rounded-lg border bg-gray-50/50 p-4 dark:bg-gray-900/50">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Keypad</Label>
+                <p className="text-muted-foreground text-xs">
+                  Click or press 0-9, *, #
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  '1',
+                  '2',
+                  '3',
+                  '4',
+                  '5',
+                  '6',
+                  '7',
+                  '8',
+                  '9',
+                  '*',
+                  '0',
+                  '#',
+                ].map((digit) => (
+                  <Button
+                    key={digit}
+                    variant="outline"
+                    size="lg"
+                    onClick={() => sendDTMF(digit)}
+                    className="hover:border-primary h-16 border-2 bg-white text-2xl font-bold shadow-sm transition-all hover:scale-105 hover:shadow-md active:scale-95 dark:bg-gray-800"
+                  >
+                    {digit}
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Debug Logs */}
-          {debugLogs.length > 0 && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/50">
-              <p className="mb-2 text-sm font-medium text-blue-900 dark:text-blue-100">
-                Debug Log
-              </p>
-              <div className="max-h-40 space-y-1 overflow-y-auto">
-                {debugLogs.map((log, index) => (
-                  <p
-                    key={index}
-                    className="font-mono text-xs text-blue-700 dark:text-blue-300"
-                  >
-                    {log}
-                  </p>
-                ))}
+          {/* Error State */}
+          {callState.status === 'error' && (
+            <div className="flex items-start gap-3 rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/50">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+              <div className="flex-1">
+                <p className="font-semibold text-red-900 dark:text-red-100">
+                  Connection Error
+                </p>
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                  Unable to connect to phone system. Please try again.
+                </p>
               </div>
             </div>
           )}

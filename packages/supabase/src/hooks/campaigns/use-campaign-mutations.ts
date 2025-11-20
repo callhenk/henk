@@ -1,11 +1,71 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
+import type {
+  Database,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
 type Campaign = Tables<'campaigns'>;
 type CreateCampaignData = Omit<TablesInsert<'campaigns'>, 'business_id'>;
 type UpdateCampaignData = TablesUpdate<'campaigns'> & { id: string };
+
+/**
+ * Check usage limit before creating a resource
+ */
+async function checkAndEnforceLimit(
+  supabase: SupabaseClient<Database>,
+  businessId: string,
+  limitKey: string,
+  increment: number = 1,
+): Promise<void> {
+  // Get subscription and plan
+  const { data: subscription, error: subError } = await supabase
+    .from('business_subscriptions')
+    .select(
+      `
+      *,
+      plan:billing_plans(*)
+    `,
+    )
+    .eq('business_id', businessId)
+    .single();
+
+  if (subError || !subscription || !subscription.plan) {
+    throw new Error('No active subscription found');
+  }
+
+  const plan = Array.isArray(subscription.plan)
+    ? subscription.plan[0]
+    : subscription.plan;
+  const limit =
+    ((plan?.limits as Record<string, unknown>)?.[limitKey] as number) ?? 999999;
+
+  // Get current usage
+  const { data: usage } = await supabase
+    .from('usage_records')
+    .select('*')
+    .eq('business_id', businessId)
+    .eq('period_start', subscription.current_period_start)
+    .eq('period_end', subscription.current_period_end)
+    .single();
+
+  const currentUsage =
+    ((usage?.usage_data as Record<string, unknown>)?.[limitKey] as number) ?? 0;
+
+  // Check if limit would be exceeded
+  if (currentUsage + increment > limit) {
+    const error = new Error(
+      `You have reached your ${limitKey} limit of ${limit}. Current usage: ${currentUsage}. Please upgrade your plan to continue.`,
+    );
+    error.name = 'UsageLimitExceededError';
+    throw error;
+  }
+}
 
 export function useCreateCampaign() {
   const supabase = useSupabase();
@@ -33,6 +93,13 @@ export function useCreateCampaign() {
         throw new Error('No active business found for user');
       }
 
+      // Check usage limit BEFORE creating the campaign
+      await checkAndEnforceLimit(
+        supabase,
+        teamMembership.business_id,
+        'campaigns',
+      );
+
       const { data: campaign, error } = await supabase
         .from('campaigns')
         .insert({
@@ -48,8 +115,25 @@ export function useCreateCampaign() {
 
       return campaign;
     },
-    onSuccess: () => {
+    onSuccess: async (campaign) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
+      // Increment usage for campaigns
+      try {
+        const { error } = await supabase.rpc('increment_usage', {
+          p_business_id: campaign.business_id,
+          p_usage_key: 'campaigns',
+          p_increment: 1,
+        });
+
+        if (error) {
+          console.error('Failed to increment campaign usage:', error);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['current-usage'] });
+        }
+      } catch (error) {
+        console.error('Error incrementing usage:', error);
+      }
     },
   });
 }
@@ -87,15 +171,43 @@ export function useDeleteCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
+    mutationFn: async (id: string): Promise<string> => {
+      // Get campaign business_id before deleting
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('business_id')
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase.from('campaigns').delete().eq('id', id);
 
       if (error) {
         throw new Error(`Failed to delete campaign: ${error.message}`);
       }
+
+      return campaign?.business_id || '';
     },
-    onSuccess: () => {
+    onSuccess: async (businessId) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
+      // Decrement usage for campaigns
+      if (businessId) {
+        try {
+          const { error } = await supabase.rpc('increment_usage', {
+            p_business_id: businessId,
+            p_usage_key: 'campaigns',
+            p_increment: -1,
+          });
+
+          if (error) {
+            console.error('Failed to decrement campaign usage:', error);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['current-usage'] });
+          }
+        } catch (error) {
+          console.error('Error decrementing usage:', error);
+        }
+      }
     },
   });
 }

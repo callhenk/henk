@@ -1,6 +1,13 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Tables, TablesInsert, TablesUpdate } from '../../database.types';
+import type {
+  Database,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from '../../database.types';
 import { useSupabase } from '../use-supabase';
 
 type Lead = Tables<'leads'>;
@@ -16,12 +23,67 @@ export interface BulkCreateLeadsData {
   leads: Omit<CreateLeadData, 'business_id'>[];
 }
 
+/**
+ * Check usage limit before creating a resource
+ */
+async function checkAndEnforceLimit(
+  supabase: SupabaseClient<Database>,
+  businessId: string,
+  limitKey: string,
+  increment: number = 1,
+): Promise<void> {
+  // Get subscription and plan
+  const { data: subscription, error: subError } = await supabase
+    .from('business_subscriptions')
+    .select(
+      `
+      *,
+      plan:billing_plans(*)
+    `,
+    )
+    .eq('business_id', businessId)
+    .single();
+
+  if (subError || !subscription || !subscription.plan) {
+    throw new Error('No active subscription found');
+  }
+
+  const plan = Array.isArray(subscription.plan)
+    ? subscription.plan[0]
+    : subscription.plan;
+  const limit =
+    ((plan?.limits as Record<string, unknown>)?.[limitKey] as number) ?? 999999;
+
+  // Get current usage
+  const { data: usage } = await supabase
+    .from('usage_records')
+    .select('*')
+    .eq('business_id', businessId)
+    .eq('period_start', subscription.current_period_start)
+    .eq('period_end', subscription.current_period_end)
+    .single();
+
+  const currentUsage =
+    ((usage?.usage_data as Record<string, unknown>)?.[limitKey] as number) ?? 0;
+
+  // Check if limit would be exceeded
+  if (currentUsage + increment > limit) {
+    const error = new Error(
+      `You have reached your ${limitKey} limit of ${limit}. Current usage: ${currentUsage}. Please upgrade your plan to continue.`,
+    );
+    error.name = 'UsageLimitExceededError';
+    throw error;
+  }
+}
+
 export function useCreateLead() {
   const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateLeadData): Promise<Lead> => {
+      // Check usage limit BEFORE creating the lead
+      await checkAndEnforceLimit(supabase, data.business_id, 'contacts');
       const { data: lead, error } = await supabase
         .from('leads')
         .insert(data)
@@ -34,8 +96,25 @@ export function useCreateLead() {
 
       return lead;
     },
-    onSuccess: (_data) => {
+    onSuccess: async (lead) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
+
+      // Increment usage for contacts
+      try {
+        const { error } = await supabase.rpc('increment_usage', {
+          p_business_id: lead.business_id,
+          p_usage_key: 'contacts',
+          p_increment: 1,
+        });
+
+        if (error) {
+          console.error('Failed to increment contact usage:', error);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['current-usage'] });
+        }
+      } catch (error) {
+        console.error('Error incrementing usage:', error);
+      }
     },
   });
 }
@@ -73,15 +152,43 @@ export function useDeleteLead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
+    mutationFn: async (id: string): Promise<string> => {
+      // Get lead business_id before deleting
+      const { data: lead } = await supabase
+        .from('leads')
+        .select('business_id')
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase.from('leads').delete().eq('id', id);
 
       if (error) {
         throw new Error(`Failed to delete lead: ${error.message}`);
       }
+
+      return lead?.business_id || '';
     },
-    onSuccess: () => {
+    onSuccess: async (businessId) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
+
+      // Decrement usage for contacts
+      if (businessId) {
+        try {
+          const { error } = await supabase.rpc('increment_usage', {
+            p_business_id: businessId,
+            p_usage_key: 'contacts',
+            p_increment: -1,
+          });
+
+          if (error) {
+            console.error('Failed to decrement contact usage:', error);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['current-usage'] });
+          }
+        } catch (error) {
+          console.error('Error decrementing usage:', error);
+        }
+      }
     },
   });
 }
@@ -92,6 +199,14 @@ export function useBulkCreateLeads() {
 
   return useMutation({
     mutationFn: async (data: BulkCreateLeadsData): Promise<Lead[]> => {
+      // Check usage limit BEFORE creating the leads (check for bulk count)
+      await checkAndEnforceLimit(
+        supabase,
+        data.business_id,
+        'contacts',
+        data.leads.length,
+      );
+
       const leadsData = data.leads.map((lead) => ({
         ...lead,
         business_id: data.business_id,
@@ -108,8 +223,27 @@ export function useBulkCreateLeads() {
 
       return leads || [];
     },
-    onSuccess: (_data) => {
+    onSuccess: async (leads, variables) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
+
+      // Increment usage for contacts by the number of leads created
+      if (leads.length > 0) {
+        try {
+          const { error } = await supabase.rpc('increment_usage', {
+            p_business_id: variables.business_id,
+            p_usage_key: 'contacts',
+            p_increment: leads.length,
+          });
+
+          if (error) {
+            console.error('Failed to increment contact usage:', error);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['current-usage'] });
+          }
+        } catch (error) {
+          console.error('Error incrementing usage:', error);
+        }
+      }
     },
   });
 }

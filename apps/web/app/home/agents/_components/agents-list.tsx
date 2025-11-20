@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  ArrowUpCircle,
   ChevronDown,
   ChevronUp,
   Copy,
@@ -27,6 +28,7 @@ import {
 import type { Tables } from '@kit/supabase/database';
 import { useDeleteAgent } from '@kit/supabase/hooks/agents/use-agent-mutations';
 import { useAgents } from '@kit/supabase/hooks/agents/use-agents';
+import { useCanPerformAction } from '@kit/supabase/hooks/billing';
 import { useCampaigns } from '@kit/supabase/hooks/campaigns/use-campaigns';
 import { useConversations } from '@kit/supabase/hooks/conversations/use-conversations';
 import {
@@ -66,6 +68,12 @@ import {
   TableHeader,
   TableRow,
 } from '@kit/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@kit/ui/tooltip';
 
 import { SearchFilters, StatsCard, StatusBadge } from '~/components/shared';
 // Import demo mode
@@ -395,6 +403,7 @@ export function AgentsList() {
     null,
   );
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   // Get demo mode state and mock data
   const { isDemoMode, mockAgents, mockCampaigns, mockConversations } =
@@ -404,6 +413,13 @@ export function AgentsList() {
   const { data: realAgents = [], isLoading: loadingAgents } = useAgents();
   const { data: realConversationsResult } = useConversations();
   const { data: realCampaigns = [] } = useCampaigns();
+
+  // Check if user can create more agents
+  const {
+    canPerform: canCreateAgent,
+    reason: cannotCreateReason,
+    isLoading: checkingLimit,
+  } = useCanPerformAction('agents');
 
   // Use mock data if demo mode is enabled, otherwise use real data
   const agents = isDemoMode ? mockAgents : realAgents;
@@ -635,10 +651,36 @@ export function AgentsList() {
             </div>
             <div className="flex items-center gap-2">
               <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-              <Button onClick={() => setShowCreatePanel(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Agent
-              </Button>
+              <TooltipProvider>
+                <Tooltip
+                  open={!canCreateAgent && !checkingLimit ? undefined : false}
+                >
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        if (!canCreateAgent) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setShowCreatePanel(true);
+                        }
+                      }}
+                      disabled={checkingLimit}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Agent
+                      {!canCreateAgent && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Upgrade
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-semibold">Agent limit reached</p>
+                    <p className="text-sm">{cannotCreateReason}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardHeader>
@@ -808,6 +850,31 @@ export function AgentsList() {
         open={showCreatePanel}
         onOpenChange={setShowCreatePanel}
       />
+
+      {/* Upgrade Dialog */}
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upgrade Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cannotCreateReason}
+              <br />
+              <br />
+              Upgrade your plan to create more agents and unlock additional
+              features.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => router.push('/home/settings/billing')}
+            >
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              View Plans
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
