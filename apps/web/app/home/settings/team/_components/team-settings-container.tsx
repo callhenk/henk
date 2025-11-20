@@ -11,156 +11,30 @@ import {
 } from '@kit/supabase/hooks/team-members/use-team-member-mutations';
 import { useTeamMembersByBusiness } from '@kit/supabase/hooks/team-members/use-team-members';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@kit/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@kit/ui/avatar';
-import { Badge } from '@kit/ui/badge';
-import { Button } from '@kit/ui/button';
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@kit/ui/dialog';
-import { Input } from '@kit/ui/input';
-import { Label } from '@kit/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@kit/ui/select';
 import { Skeleton } from '@kit/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@kit/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
+
+import { BusinessCard } from './business-card';
+import { InviteMemberDialog } from './invite-member-dialog';
+import { MemberCard } from './member-card';
+import { RolePermissionsCard } from './role-permissions-card';
+import {
+  BusinessSelectionSkeleton,
+  TeamMembersTableSkeleton,
+} from './skeletons';
+import { TeamMembersTable } from './team-members-table';
 
 type Business = Tables<'businesses'>;
 
 interface TeamSettingsContainerProps {
   _userId: string;
   hideHeader?: boolean;
-}
-
-function BusinessSelectionSkeleton() {
-  return (
-    <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-      <CardHeader className="space-y-1 px-4 sm:px-6">
-        <CardTitle className="text-lg sm:text-xl">Select Business</CardTitle>
-        <CardDescription className="text-sm">
-          Choose a business to manage its team members
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-4 sm:px-6">
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Card
-              key={index}
-              className="glass-panel cursor-pointer border transition-all"
-            >
-              <CardHeader className="space-y-2 p-4">
-                <div className="flex items-center justify-between">
-                  <Skeleton className="h-5 w-32" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-3 w-48" />
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TeamMembersTableSkeleton() {
-  return (
-    <Tabs defaultValue="all" className="space-y-4">
-      <TabsList>
-        <Skeleton className="h-10 w-32" />
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-28" />
-      </TabsList>
-
-      <TabsContent value="all" className="space-y-4">
-        <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-          <CardHeader className="space-y-1 px-4 sm:px-6">
-            <CardTitle className="text-lg sm:text-xl">
-              All Team Members
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Complete list of team members and their roles
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 sm:px-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                        <div>
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-3 w-16" />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-8 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-5 w-16" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-8 w-16" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
-  );
 }
 
 export function TeamSettingsContainer({
@@ -181,23 +55,19 @@ export function TeamSettingsContainer({
   const updateTeamMemberMutation = useUpdateTeamMember();
   const deleteTeamMemberMutation = useDeleteTeamMember();
 
-  // Form states
-  const [inviteForm, setInviteForm] = useState({
-    email: '',
-    role: 'member' as 'owner' | 'admin' | 'member' | 'viewer',
-  });
-
-  const handleInviteMember = async () => {
+  const handleInviteMember = async (
+    email: string,
+    role: 'owner' | 'admin' | 'member' | 'viewer',
+  ) => {
     if (!selectedBusiness) return;
 
     try {
       await createTeamMemberMutation.mutateAsync({
         business_id: selectedBusiness.id,
-        user_id: inviteForm.email, // This should be a user ID, but for now we'll use email
-        role: inviteForm.role,
+        user_id: email,
+        role,
         status: 'invited',
       });
-      setInviteForm({ email: '', role: 'member' });
       setIsInviteDialogOpen(false);
     } catch (error) {
       console.error('Failed to invite member:', error);
@@ -223,40 +93,9 @@ export function TeamSettingsContainer({
     }
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'bg-purple-100 text-purple-800';
-      case 'admin':
-        return 'bg-red-100 text-red-800';
-      case 'member':
-        return 'bg-blue-100 text-blue-800';
-      case 'viewer':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'invited':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'suspended':
-        return 'bg-red-100 text-red-800';
-      case 'left':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (businessesLoading) {
     return (
       <div className="space-y-4 sm:space-y-6">
-        {/* Header Skeleton */}
         {!hideHeader && (
           <div className="flex items-center justify-between">
             <div>
@@ -265,8 +104,6 @@ export function TeamSettingsContainer({
             </div>
           </div>
         )}
-
-        {/* Business Selection Skeleton */}
         <BusinessSelectionSkeleton />
       </div>
     );
@@ -297,34 +134,12 @@ export function TeamSettingsContainer({
         <CardContent className="px-4 sm:px-6">
           <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {businesses?.map((business) => (
-              <Card
+              <BusinessCard
                 key={business.id}
-                className={`glass-panel cursor-pointer border transition-all hover:shadow-md ${
-                  selectedBusiness?.id === business.id
-                    ? 'ring-primary ring-2'
-                    : ''
-                }`}
+                business={business}
+                isSelected={selectedBusiness?.id === business.id}
                 onClick={() => setSelectedBusiness(business)}
-              >
-                <CardHeader className="space-y-2 p-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base sm:text-lg">
-                      {business.name}
-                    </CardTitle>
-                    <Badge
-                      variant={
-                        business.status === 'active' ? 'default' : 'secondary'
-                      }
-                      className="text-xs"
-                    >
-                      {business.status}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs sm:text-sm">
-                    {business.description || 'No description'}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              />
             ))}
           </div>
         </CardContent>
@@ -342,76 +157,12 @@ export function TeamSettingsContainer({
                 Manage team members and their roles
               </p>
             </div>
-            <Dialog
-              open={isInviteDialogOpen}
+            <InviteMemberDialog
+              businessName={selectedBusiness.name}
+              isOpen={isInviteDialogOpen}
               onOpenChange={setIsInviteDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>Invite Member</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Invite Team Member</DialogTitle>
-                  <DialogDescription>
-                    Invite a new member to {selectedBusiness.name}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="invite-email">Email</Label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      value={inviteForm.email}
-                      onChange={(e) =>
-                        setInviteForm({ ...inviteForm, email: e.target.value })
-                      }
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="invite-role">Role</Label>
-                    <Select
-                      value={inviteForm.role}
-                      onValueChange={(value) =>
-                        setInviteForm({
-                          ...inviteForm,
-                          role: value as
-                            | 'owner'
-                            | 'admin'
-                            | 'member'
-                            | 'viewer',
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="owner">Owner</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsInviteDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleInviteMember}
-                    disabled={!inviteForm.email}
-                  >
-                    Invite Member
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              onInvite={handleInviteMember}
+            />
           </div>
 
           {teamMembersLoading ? (
@@ -437,116 +188,11 @@ export function TeamSettingsContainer({
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-                  <CardHeader className="space-y-1 px-4 sm:px-6">
-                    <CardTitle className="text-lg sm:text-xl">
-                      All Team Members
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      Complete list of team members and their roles
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="px-2 sm:px-6">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Member</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Joined</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {teamMembers?.map((member) => (
-                          <TableRow key={member.id}>
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src="" />
-                                  <AvatarFallback>
-                                    {member.user_id.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium">
-                                    {member.user_id}
-                                  </p>
-                                  <p className="text-muted-foreground text-sm">
-                                    User ID
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={member.role}
-                                onValueChange={(value) =>
-                                  handleUpdateMemberRole(member.id, value)
-                                }
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="owner">Owner</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="member">Member</SelectItem>
-                                  <SelectItem value="viewer">Viewer</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={getStatusColor(member.status)}>
-                                {member.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {member.created_at
-                                ? new Date(
-                                    member.created_at,
-                                  ).toLocaleDateString()
-                                : 'Unknown'}
-                            </TableCell>
-                            <TableCell>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="destructive" size="sm">
-                                    Remove
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Remove Team Member
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to remove this team
-                                      member? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() =>
-                                        handleRemoveMember(member.id)
-                                      }
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                      Remove
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+                <TeamMembersTable
+                  members={teamMembers || []}
+                  onUpdateRole={handleUpdateMemberRole}
+                  onRemoveMember={handleRemoveMember}
+                />
               </TabsContent>
 
               <TabsContent value="active" className="space-y-4">
@@ -564,41 +210,7 @@ export function TeamSettingsContainer({
                       {teamMembers
                         ?.filter((m) => m.status === 'active')
                         .map((member) => (
-                          <Card
-                            key={member.id}
-                            className="glass-panel border transition-all hover:shadow-md"
-                          >
-                            <CardHeader className="space-y-3 p-4">
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src="" />
-                                  <AvatarFallback>
-                                    {member.user_id.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 space-y-1">
-                                  <p className="text-sm font-medium">
-                                    {member.user_id}
-                                  </p>
-                                  <Badge
-                                    className={`${getRoleColor(member.role)} text-xs`}
-                                  >
-                                    {member.role}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="px-4 pt-0 pb-4">
-                              <p className="text-muted-foreground text-xs">
-                                Joined{' '}
-                                {member.created_at
-                                  ? new Date(
-                                      member.created_at,
-                                    ).toLocaleDateString()
-                                  : 'Unknown'}
-                              </p>
-                            </CardContent>
-                          </Card>
+                          <MemberCard key={member.id} member={member} />
                         ))}
                     </div>
                   </CardContent>
@@ -620,41 +232,11 @@ export function TeamSettingsContainer({
                       {teamMembers
                         ?.filter((m) => m.status === 'invited')
                         .map((member) => (
-                          <Card
+                          <MemberCard
                             key={member.id}
-                            className="glass-panel border transition-all hover:shadow-md"
-                          >
-                            <CardHeader className="space-y-3 p-4">
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src="" />
-                                  <AvatarFallback>
-                                    {member.user_id.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 space-y-1">
-                                  <p className="text-sm font-medium">
-                                    {member.user_id}
-                                  </p>
-                                  <Badge
-                                    className={`${getRoleColor(member.role)} text-xs`}
-                                  >
-                                    {member.role}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="px-4 pt-0 pb-4">
-                              <p className="text-muted-foreground text-xs">
-                                Invited{' '}
-                                {member.created_at
-                                  ? new Date(
-                                      member.created_at,
-                                    ).toLocaleDateString()
-                                  : 'Unknown'}
-                              </p>
-                            </CardContent>
-                          </Card>
+                            member={member}
+                            dateLabel="Invited"
+                          />
                         ))}
                     </div>
                   </CardContent>
@@ -666,62 +248,7 @@ export function TeamSettingsContainer({
       )}
 
       {/* Role Permissions Guide */}
-      {selectedBusiness && (
-        <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-          <CardHeader className="space-y-1 px-4 sm:px-6">
-            <CardTitle className="text-lg sm:text-xl">
-              Role Permissions
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Understanding different team member roles and their permissions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div>
-                  <Badge className="bg-purple-100 text-xs text-purple-800">
-                    Owner
-                  </Badge>
-                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Full access to all features, can manage team members and
-                    business settings
-                  </p>
-                </div>
-                <div>
-                  <Badge className="bg-red-100 text-xs text-red-800">
-                    Admin
-                  </Badge>
-                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Can manage campaigns, agents, and team members, but cannot
-                    delete the business
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <Badge className="bg-blue-100 text-xs text-blue-800">
-                    Member
-                  </Badge>
-                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Can create and manage campaigns and agents, limited team
-                    management
-                  </p>
-                </div>
-                <div>
-                  <Badge className="bg-gray-100 text-xs text-gray-800">
-                    Viewer
-                  </Badge>
-                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Read-only access to campaigns and agents, cannot make
-                    changes
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {selectedBusiness && <RolePermissionsCard />}
     </div>
   );
 }
