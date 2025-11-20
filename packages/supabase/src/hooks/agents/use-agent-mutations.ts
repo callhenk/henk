@@ -15,6 +15,17 @@ type CreateAgentData = Omit<TablesInsert<'agents'>, 'business_id'>;
 type UpdateAgentData = TablesUpdate<'agents'> & { id: string };
 
 /**
+ * Default free plan limits (used when no subscription exists)
+ */
+const DEFAULT_FREE_LIMITS: Record<string, number> = {
+  agents: 3,
+  campaigns: 5,
+  contacts: 100,
+  team_members: 3,
+  integrations: 2,
+};
+
+/**
  * Error thrown when a usage limit is exceeded
  */
 export class UsageLimitExceededError extends Error {
@@ -51,28 +62,67 @@ async function checkAndEnforceLimit(
     .eq('business_id', businessId)
     .single();
 
-  // If no subscription exists, allow unlimited usage (for demo accounts, seed data, etc.)
+  // Determine the limit to use
+  let limit: number;
+
   if (subError || !subscription || !subscription.plan) {
-    return; // No limits enforced
+    // No subscription: use default free plan limits
+    limit = DEFAULT_FREE_LIMITS[limitKey] ?? 999999;
+  } else {
+    // Has subscription: use plan limits
+    const plan = Array.isArray(subscription.plan)
+      ? subscription.plan[0]
+      : subscription.plan;
+    limit =
+      ((plan?.limits as Record<string, unknown>)?.[limitKey] as number) ??
+      999999;
   }
 
-  const plan = Array.isArray(subscription.plan)
-    ? subscription.plan[0]
-    : subscription.plan;
-  const limit =
-    ((plan?.limits as Record<string, unknown>)?.[limitKey] as number) ?? 999999;
+  // Get current usage (count actual records if no subscription)
+  let currentUsage = 0;
 
-  // Get current usage
-  const { data: usage } = await supabase
-    .from('usage_records')
-    .select('*')
-    .eq('business_id', businessId)
-    .eq('period_start', subscription.current_period_start)
-    .eq('period_end', subscription.current_period_end)
-    .single();
+  if (!subscription) {
+    // No subscription: count actual resources from database
+    if (limitKey === 'agents') {
+      const { count } = await supabase
+        .from('agents')
+        .select('*', { count: 'exact', head: true })
+        .eq('business_id', businessId);
+      currentUsage = count ?? 0;
+    } else if (limitKey === 'campaigns') {
+      const { count } = await supabase
+        .from('campaigns')
+        .select('*', { count: 'exact', head: true })
+        .eq('business_id', businessId);
+      currentUsage = count ?? 0;
+    } else if (limitKey === 'contacts') {
+      const { count } = await supabase
+        .from('leads')
+        .select('*', { count: 'exact', head: true })
+        .eq('business_id', businessId);
+      currentUsage = count ?? 0;
+    } else if (limitKey === 'team_members') {
+      const { count } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('business_id', businessId)
+        .eq('status', 'active');
+      currentUsage = count ?? 0;
+    }
+  } else {
+    // Has subscription: use usage_records table
+    const { data: usage } = await supabase
+      .from('usage_records')
+      .select('*')
+      .eq('business_id', businessId)
+      .eq('period_start', subscription.current_period_start)
+      .eq('period_end', subscription.current_period_end)
+      .single();
 
-  const currentUsage =
-    ((usage?.usage_data as Record<string, unknown>)?.[limitKey] as number) ?? 0;
+    currentUsage =
+      ((usage?.usage_data as Record<string, unknown>)?.[limitKey] as number) ??
+      0;
+  }
 
   // Check if limit would be exceeded
   if (currentUsage + increment > limit) {

@@ -105,21 +105,84 @@ export function useCheckUsageLimit(limitKey: string) {
 }
 
 /**
+ * Hook to get actual usage counts from the database
+ */
+export function useActualUsageCounts() {
+  const supabase = useSupabase();
+  const { data: businessContext } = useBusinessContext();
+
+  return useQuery({
+    queryKey: ['actual-usage-counts', businessContext?.business_id],
+    queryFn: async () => {
+      if (!businessContext?.business_id) {
+        return null;
+      }
+
+      // Count all resources in parallel
+      const [agents, contacts, teamMembers, campaigns, integrations] =
+        await Promise.all([
+          supabase
+            .from('agents')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessContext.business_id),
+          supabase
+            .from('leads')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessContext.business_id),
+          supabase
+            .from('team_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessContext.business_id)
+            .eq('status', 'active'),
+          supabase
+            .from('campaigns')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessContext.business_id),
+          supabase
+            .from('integrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessContext.business_id)
+            .eq('status', 'active'),
+        ]);
+
+      return {
+        agents: agents.count ?? 0,
+        contacts: contacts.count ?? 0,
+        team_members: teamMembers.count ?? 0,
+        campaigns: campaigns.count ?? 0,
+        integrations: integrations.count ?? 0,
+        storage_gb: 0, // TODO: Calculate actual storage usage
+        api_requests_per_day: 0, // TODO: Calculate from logs
+        calls_per_month: 0, // TODO: Calculate from current period
+      };
+    },
+    enabled: !!businessContext?.business_id,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+}
+
+/**
  * Hook to get all usage limits and their current status
  */
 export function useAllUsageLimits() {
   const { data: subscription, isLoading: subscriptionLoading } =
     useBusinessSubscription();
   const { data: usage, isLoading: usageLoading } = useCurrentUsage();
+  const { data: actualCounts, isLoading: countsLoading } =
+    useActualUsageCounts();
 
   const limits: UsageLimitCheck[] = [];
 
   if (subscription?.plan?.limits) {
     Object.keys(subscription.plan.limits).forEach((key) => {
       const limitsRecord = subscription.plan.limits as Record<string, unknown>;
+      // Use usage record if available, otherwise fall back to actual counts
       const usageRecord = (usage?.usage_data as Record<string, unknown>) || {};
+      const actualCountsRecord = (actualCounts as Record<string, number>) || {};
+
       const limit = limitsRecord[key] as number;
-      const currentUsage = (usageRecord[key] as number) ?? 0;
+      const currentUsage =
+        (usageRecord[key] as number) ?? actualCountsRecord[key] ?? 0;
       const isExceeded = currentUsage >= limit;
       const percentageUsed = limit > 0 ? (currentUsage / limit) * 100 : 0;
       const remaining = Math.max(0, limit - currentUsage);
@@ -139,7 +202,7 @@ export function useAllUsageLimits() {
     limits,
     plan: subscription?.plan || null,
     usage,
-    isLoading: subscriptionLoading || usageLoading,
+    isLoading: subscriptionLoading || usageLoading || countsLoading,
   };
 }
 

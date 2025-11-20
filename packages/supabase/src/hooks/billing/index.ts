@@ -33,6 +33,7 @@ export {
 
 // Usage Limits
 export {
+  useActualUsageCounts,
   useAllUsageLimits,
   useCanPerformAction,
   useCheckUsageLimit,
