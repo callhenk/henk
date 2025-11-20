@@ -19,10 +19,10 @@ export class TeamPageObject {
     // Wait for network to settle
     await this.page.waitForLoadState('networkidle');
 
-    // More specific selector: look for Card components that are clickable (cursor-pointer)
-    // and are within the business selection grid
+    // Look for business cards by finding Cards with cursor-pointer within the business selection section
+    // Business cards have: h3 headings (business name) and are clickable
     const businessCards = this.page.locator(
-      '[class*="glass-panel"][class*="cursor-pointer"]',
+      'div[class*="cursor-pointer"][class*="border-2"]',
     );
 
     // Check if any business cards exist
@@ -38,15 +38,16 @@ export class TeamPageObject {
     await businessCards.first().click();
 
     // Verify team members section appears
-    await expect(this.page.getByText(/Team Members -/)).toBeVisible({
+    await expect(this.page.getByText(/Team Members/)).toBeVisible({
       timeout: 10000,
     });
   }
 
   async hasBusinesses(): Promise<boolean> {
     await this.page.waitForLoadState('networkidle');
+    // Look for business cards with the actual classes used in BusinessCard component
     const businessCards = this.page.locator(
-      '[class*="glass-panel"][class*="cursor-pointer"]',
+      'div[class*="cursor-pointer"][class*="border-2"]',
     );
     const count = await businessCards.count();
     return count > 0;
