@@ -38,18 +38,31 @@ function OnboardingManager() {
 
       // Wait for DOM to be ready and navigation to render
       const startTour = (retries = 0) => {
-        const MAX_RETRIES = 10; // 2 seconds total (10 * 200ms)
-        const firstElement = document.querySelector('a[href="/home"]');
+        const MAX_RETRIES = 20; // 4 seconds total (20 * 200ms) - increased for reliability
+        // Try multiple selectors as fallback
+        const firstElement =
+          document.querySelector('a[href="/home"]') ||
+          document.querySelector('[data-tour="dashboard"]') ||
+          document.querySelector('nav a:first-child');
 
         if (firstElement) {
-          startOnborda('onboarding');
+          console.log('[OnboardingManager] Starting tour');
+          try {
+            startOnborda('onboarding');
+          } catch (error) {
+            console.error('[OnboardingManager] Failed to start tour:', error);
+          }
         } else if (retries < MAX_RETRIES) {
           const timeoutId = setTimeout(() => startTour(retries + 1), 200);
           timeoutIds.push(timeoutId);
         } else {
           console.error(
-            '[OnboardingManager] Failed to find home navigation element after retries',
+            '[OnboardingManager] Failed to find navigation elements after',
+            MAX_RETRIES,
+            'retries',
           );
+          // Gracefully fail by marking tour as skipped
+          completeTour();
         }
       };
 
@@ -61,7 +74,7 @@ function OnboardingManager() {
         timeoutIds.forEach((id) => clearTimeout(id));
       };
     }
-  }, [isActive, isOnbordaVisible, startOnborda]);
+  }, [isActive, isOnbordaVisible, startOnborda, completeTour]);
 
   // Track step changes
   useEffect(() => {
@@ -71,11 +84,16 @@ function OnboardingManager() {
       // Check if tour is completed (reached last step)
       const totalSteps = onboardingTours[0]?.steps.length || 0;
       if (currentStep >= totalSteps - 1) {
-        // User reached the last step
+        // User reached the last step - give them more time to read
+        console.log('[OnboardingManager] Reached last step, completing tour');
         const timeoutId = setTimeout(() => {
-          completeTour();
-          closeOnborda();
-        }, 2000);
+          try {
+            completeTour();
+            closeOnborda();
+          } catch (error) {
+            console.error('[OnboardingManager] Error completing tour:', error);
+          }
+        }, 5000); // Increased from 2s to 5s to give users time to read
 
         // Cleanup timeout on unmount or dependency change
         return () => {

@@ -42,7 +42,7 @@ const featuresFlagConfig = FeatureFlagsSchema.parse({
   ),
   enableUserOnboarding: getBoolean(
     process.env.NEXT_PUBLIC_ENABLE_USER_ONBOARDING,
-    true,
+    false,
   ),
 } satisfies z.infer<typeof FeatureFlagsSchema>);
 
