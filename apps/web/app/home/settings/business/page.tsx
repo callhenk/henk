@@ -23,8 +23,8 @@ function BusinessSettingsPage() {
         description="Manage your businesses and related preferences"
       />
       <PageBody>
-        <div className={'w-full max-w-4xl'}>
-          <BusinessSettingsContainer userId={user.id} hideHeader />
+        <div className="mx-auto w-full max-w-4xl">
+          <BusinessSettingsContainer userId={user.id} />
         </div>
       </PageBody>
     </>
