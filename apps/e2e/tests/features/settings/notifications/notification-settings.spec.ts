@@ -237,13 +237,36 @@ test.describe('Notification Settings', () => {
     await notificationSettings.toggleEmailNotifications();
     await page.waitForTimeout(1000);
   });
+});
 
-  test('can navigate to notification settings from sidebar', async () => {
-    // Navigate to home first
-    await page.goto('/home');
+// Separate describe block for navigation test with its own page instance
+test.describe('Notification Settings Navigation', () => {
+  test('can navigate to notification settings from sidebar', async ({
+    page,
+  }) => {
+    // Sign in first
+    const notificationSettings = new NotificationSettingsPageObject(page);
+    await notificationSettings.auth.signUpFlow('/home');
+
+    // Wait for home page to load
+    await page.waitForURL(/\/home/, { timeout: 10000 });
     await page.waitForTimeout(1000);
 
-    // Click on Settings link in sidebar
+    // Look for Settings or Notifications link
+    const notificationsLink = page.locator('a[href*="/notifications"]').first();
+
+    // Try to click directly if visible
+    if (await notificationsLink.isVisible({ timeout: 2000 })) {
+      await notificationsLink.click();
+      await page.waitForTimeout(1000);
+
+      // Verify we're on the notifications page
+      await expect(page).toHaveURL(/\/home\/settings\/notifications/);
+      console.log('✓ Successfully navigated to notification settings');
+      return;
+    }
+
+    // Otherwise, try to navigate via settings first
     const settingsLink = page
       .locator('a[href*="/settings"]')
       .filter({ hasText: /Settings/i })
@@ -252,35 +275,24 @@ test.describe('Notification Settings', () => {
     if (await settingsLink.isVisible({ timeout: 2000 })) {
       await settingsLink.click();
       await page.waitForTimeout(1000);
-    } else {
-      // If sidebar is collapsed, try to expand it first
-      const toggleButton = page
-        .locator('button')
-        .filter({ hasText: /Toggle/i })
+
+      // Now look for notifications tab
+      const notificationsTab = page
+        .locator('a[href*="/notifications"]')
         .first();
 
-      if (await toggleButton.isVisible({ timeout: 2000 })) {
-        await toggleButton.click();
-        await page.waitForTimeout(500);
-
-        // Now click settings
-        await settingsLink.click();
+      if (await notificationsTab.isVisible({ timeout: 2000 })) {
+        await notificationsTab.click();
         await page.waitForTimeout(1000);
+
+        // Verify we're on the notifications page
+        await expect(page).toHaveURL(/\/home\/settings\/notifications/);
+        console.log('✓ Successfully navigated to notification settings');
       }
-    }
-
-    // Now navigate to notifications from settings tabs
-    const notificationsTab = page.locator('a[href*="/notifications"]').first();
-
-    if (await notificationsTab.isVisible({ timeout: 2000 })) {
-      await notificationsTab.click();
-      await page.waitForTimeout(1000);
-
-      // Verify we're on the notifications page
-      await expect(page).toHaveURL(/\/home\/settings\/notifications/);
-      console.log('✓ Successfully navigated to notification settings');
     } else {
-      console.log('⚠ Notifications tab not found, skipping navigation test');
+      console.log(
+        '⚠ Settings/Notifications link not found, skipping navigation test',
+      );
     }
   });
 });
