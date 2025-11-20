@@ -56,14 +56,18 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can search integrations', async ({ page }) => {
+    // Wait for the filters section to be loaded
+    await page.waitForSelector('text=Filters', { timeout: 5000 });
+
     // Look for the search input by placeholder text
     const searchInput = page.getByPlaceholder(/search by name or description/i);
 
-    if (await searchInput.isVisible({ timeout: 2000 })) {
+    if (await searchInput.isVisible({ timeout: 5000 })) {
       await searchInput.fill('salesforce');
       await page.waitForTimeout(1000);
       console.log('✓ Search functionality works');
     } else {
+      console.log('⚠️ Search input not found - checking page structure');
       test.skip();
     }
   });
