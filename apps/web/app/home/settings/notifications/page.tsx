@@ -1,21 +1,11 @@
 import { use } from 'react';
 
-import { AlertTriangle, Bell, Mail, MessageSquare } from 'lucide-react';
-
-import { Badge } from '@kit/ui/badge';
-import { Button } from '@kit/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@kit/ui/card';
 import { PageBody, PageHeader } from '@kit/ui/page';
-import { Separator } from '@kit/ui/separator';
 
 import { withI18n } from '~/lib/i18n/with-i18n';
 import { requireUserInServerComponent } from '~/lib/server/require-user-in-server-component';
+
+import { NotificationSettingsForm } from './_components/notification-settings-form';
 
 export const generateMetadata = async () => {
   return {
@@ -24,7 +14,7 @@ export const generateMetadata = async () => {
 };
 
 function NotificationSettingsPage() {
-  const _user = use(requireUserInServerComponent());
+  const user = use(requireUserInServerComponent());
 
   return (
     <>
@@ -33,124 +23,7 @@ function NotificationSettingsPage() {
         description="Manage your notification preferences and communication settings"
       />
       <PageBody>
-        <div className="w-full max-w-3xl space-y-6">
-          <Card className="glass-panel">
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Bell className="h-5 w-5" />
-                <CardTitle>Notification Overview</CardTitle>
-              </div>
-              <CardDescription>
-                Current notification status and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Email Notifications
-                  </p>
-                  <Badge variant="default" className="mt-1">
-                    Enabled
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Push Notifications
-                  </p>
-                  <Badge variant="secondary" className="mt-1">
-                    Disabled
-                  </Badge>
-                </div>
-              </div>
-              <Separator />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Campaign Alerts
-                  </p>
-                  <Badge variant="default" className="mt-1">
-                    Enabled
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Weekly Reports
-                  </p>
-                  <Badge variant="default" className="mt-1">
-                    Enabled
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Mail className="h-5 w-5" />
-                <CardTitle>Email Notifications</CardTitle>
-              </div>
-              <CardDescription>
-                Configure email notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4 text-sm">
-                Control which email notifications you receive for account
-                activity, campaigns, and system updates. Choose notification
-                frequency and customize which events trigger emails.
-              </p>
-              <Button variant="outline" disabled>
-                Configure Email Settings (Coming Soon)
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5" />
-                <CardTitle>Campaign Notifications</CardTitle>
-              </div>
-              <CardDescription>
-                Manage notifications for campaign events and updates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4 text-sm">
-                Get notified about campaign starts, completions, and important
-                milestones. Set up alerts for call outcomes, conversion events,
-                and campaign performance metrics.
-              </p>
-              <Button variant="outline" disabled>
-                Configure Campaign Alerts (Coming Soon)
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="h-5 w-5" />
-                <CardTitle>System Alerts</CardTitle>
-              </div>
-              <CardDescription>
-                Configure system and security notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4 text-sm">
-                Receive alerts for security events, system maintenance, and
-                critical updates. Stay informed about account activity, login
-                attempts, and platform status.
-              </p>
-              <Button variant="outline" disabled>
-                Configure System Alerts (Coming Soon)
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <NotificationSettingsForm userId={user.id} />
       </PageBody>
     </>
   );

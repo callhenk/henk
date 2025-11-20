@@ -23,7 +23,7 @@ function TeamSettingsPage() {
         description="Manage team members, roles, and permissions"
       />
       <PageBody>
-        <div className={'w-full max-w-5xl'}>
+        <div className="w-full space-y-4 sm:space-y-6 lg:max-w-5xl">
           <TeamSettingsContainer _userId={user.id} hideHeader />
         </div>
       </PageBody>

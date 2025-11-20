@@ -2,24 +2,11 @@
 
 import React, { useState } from 'react';
 
-import { Save, Trash2 } from 'lucide-react';
+import { Save } from 'lucide-react';
 
 import type { Tables } from '@kit/supabase/database';
-import {
-  useDeleteBusiness,
-  useUpdateBusiness,
-} from '@kit/supabase/hooks/businesses/use-business-mutations';
+import { useUpdateBusiness } from '@kit/supabase/hooks/businesses/use-business-mutations';
 import { useUserBusinesses } from '@kit/supabase/hooks/businesses/use-businesses';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@kit/ui/alert-dialog';
 import { Badge } from '@kit/ui/badge';
 import { Button } from '@kit/ui/button';
 import { Input } from '@kit/ui/input';
@@ -58,13 +45,9 @@ export function BusinessSettingsContainer({
   userId: _userId,
   hideHeader = false,
 }: BusinessSettingsContainerProps) {
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
-    null,
-  );
   const { data: businesses, isLoading: businessesLoading } =
     useUserBusinesses();
   const updateBusinessMutation = useUpdateBusiness();
-  const deleteBusinessMutation = useDeleteBusiness();
   type FormState = {
     name: string;
     description: string;
@@ -155,16 +138,6 @@ export function BusinessSettingsContainer({
       });
     } catch {
       // Optionally show a toast
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedBusiness) return;
-    try {
-      await deleteBusinessMutation.mutateAsync(selectedBusiness.id);
-      setSelectedBusiness(null);
-    } catch {
-      // Handle error
     }
   };
 
@@ -265,21 +238,13 @@ export function BusinessSettingsContainer({
                 )}
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end">
                 <Button
                   onClick={() => handleSave(business)}
                   disabled={updateBusinessMutation.isPending}
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {updateBusinessMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => setSelectedBusiness(business)}
-                  disabled={deleteBusinessMutation.isPending}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
                 </Button>
               </div>
             </div>
@@ -288,31 +253,6 @@ export function BusinessSettingsContainer({
           </div>
         ))}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!selectedBusiness}
-        onOpenChange={(open) => !open && setSelectedBusiness(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Business</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &quot;{selectedBusiness?.name}
-              &quot;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

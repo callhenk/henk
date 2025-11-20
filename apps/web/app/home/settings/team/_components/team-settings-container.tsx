@@ -271,13 +271,13 @@ export function TeamSettingsContainer({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       {!hideHeader && (
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Team Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl font-bold sm:text-2xl">Team Management</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Manage team members, roles, and permissions across your businesses
             </p>
           </div>
@@ -285,37 +285,40 @@ export function TeamSettingsContainer({
       )}
 
       {/* Business Selection */}
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle>Select Business</CardTitle>
-          <CardDescription>
+      <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+        <CardHeader className="space-y-1 px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Select Business</CardTitle>
+          <CardDescription className="text-sm">
             Choose a business to manage its team members
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="px-4 sm:px-6">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {businesses?.map((business) => (
               <Card
                 key={business.id}
-                className={`glass-panel cursor-pointer transition-all ${
+                className={`glass-panel cursor-pointer border transition-all hover:shadow-md ${
                   selectedBusiness?.id === business.id
                     ? 'ring-primary ring-2'
                     : ''
                 }`}
                 onClick={() => setSelectedBusiness(business)}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="space-y-2 p-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{business.name}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">
+                      {business.name}
+                    </CardTitle>
                     <Badge
                       variant={
                         business.status === 'active' ? 'default' : 'secondary'
                       }
+                      className="text-xs"
                     >
                       {business.status}
                     </Badge>
                   </div>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">
                     {business.description || 'No description'}
                   </CardDescription>
                 </CardHeader>
@@ -327,13 +330,13 @@ export function TeamSettingsContainer({
 
       {/* Team Members Section */}
       {selectedBusiness && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-lg font-semibold sm:text-xl">
                 Team Members - {selectedBusiness.name}
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Manage team members and their roles
               </p>
             </div>
@@ -432,14 +435,16 @@ export function TeamSettingsContainer({
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                <Card className="glass-panel">
-                  <CardHeader>
-                    <CardTitle>All Team Members</CardTitle>
-                    <CardDescription>
+                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+                  <CardHeader className="space-y-1 px-4 sm:px-6">
+                    <CardTitle className="text-lg sm:text-xl">
+                      All Team Members
+                    </CardTitle>
+                    <CardDescription className="text-sm">
                       Complete list of team members and their roles
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-2 sm:px-6">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -543,39 +548,46 @@ export function TeamSettingsContainer({
               </TabsContent>
 
               <TabsContent value="active" className="space-y-4">
-                <Card className="glass-panel">
-                  <CardHeader>
-                    <CardTitle>Active Members</CardTitle>
-                    <CardDescription>
+                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+                  <CardHeader className="space-y-1 px-4 sm:px-6">
+                    <CardTitle className="text-lg sm:text-xl">
+                      Active Members
+                    </CardTitle>
+                    <CardDescription className="text-sm">
                       Team members with active status
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <CardContent className="px-4 sm:px-6">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {teamMembers
                         ?.filter((m) => m.status === 'active')
                         .map((member) => (
-                          <Card key={member.id} className="glass-panel">
-                            <CardHeader className="pb-3">
+                          <Card
+                            key={member.id}
+                            className="glass-panel border transition-all hover:shadow-md"
+                          >
+                            <CardHeader className="space-y-3 p-4">
                               <div className="flex items-center space-x-3">
-                                <Avatar>
+                                <Avatar className="h-10 w-10">
                                   <AvatarImage src="" />
                                   <AvatarFallback>
                                     {member.user_id.charAt(0).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div>
-                                  <p className="font-medium">
+                                <div className="flex-1 space-y-1">
+                                  <p className="text-sm font-medium">
                                     {member.user_id}
                                   </p>
-                                  <Badge className={getRoleColor(member.role)}>
+                                  <Badge
+                                    className={`${getRoleColor(member.role)} text-xs`}
+                                  >
                                     {member.role}
                                   </Badge>
                                 </div>
                               </div>
                             </CardHeader>
-                            <CardContent>
-                              <p className="text-muted-foreground text-sm">
+                            <CardContent className="px-4 pt-0 pb-4">
+                              <p className="text-muted-foreground text-xs">
                                 Joined{' '}
                                 {member.created_at
                                   ? new Date(

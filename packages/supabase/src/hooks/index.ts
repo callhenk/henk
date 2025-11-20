@@ -23,6 +23,7 @@ export * from './campaigns';
 export * from './conversations';
 export * from './integrations';
 export * from './leads';
+export * from './notification-settings';
 export * from './team-members';
 export * from './workflows';
 
