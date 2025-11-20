@@ -36,12 +36,14 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can see integration cards', async ({ page }) => {
-    // Check for integration cards (Salesforce, HubSpot, etc.)
-    const salesforceCard = page
-      .locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")')
+    // Check for integration cards using CardTitle role
+    // Look for common integration names like Salesforce, HubSpot, ElevenLabs
+    const integrationCard = page
+      .getByRole('heading')
+      .filter({ hasText: /Salesforce|HubSpot|ElevenLabs|Twilio/i })
       .first();
 
-    if (await salesforceCard.isVisible({ timeout: 5000 })) {
+    if (await integrationCard.isVisible({ timeout: 5000 })) {
       console.log('✓ Integration cards are visible');
     } else {
       test.skip();
@@ -49,9 +51,8 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can search integrations', async ({ page }) => {
-    const searchInput = page.locator(
-      'input[type="search"], input[placeholder*="Search" i]',
-    );
+    // Look for the search input by placeholder text
+    const searchInput = page.getByPlaceholder(/search by name or description/i);
 
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('salesforce');
@@ -63,16 +64,22 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can view integration details', async ({ page }) => {
-    // Try to click on an integration card
-    const integrationCard = page
-      .locator('h3:has-text("Salesforce"), h3:has-text("HubSpot")')
+    // Look for "Manage" or "Connect" button on an integration card
+    const manageButton = page
+      .getByRole('button', { name: /manage|connect/i })
       .first();
 
-    if (await integrationCard.isVisible({ timeout: 2000 })) {
-      const parentCard = integrationCard.locator('..');
-      await parentCard.click();
-      await page.waitForTimeout(2000);
-      console.log('✓ Can view integration details');
+    if (await manageButton.isVisible({ timeout: 2000 })) {
+      await manageButton.click();
+      await page.waitForTimeout(1000);
+
+      // Check if drawer/dialog opened (look for close button or dialog content)
+      const drawer = page.locator('[role="dialog"], [role="complementary"]');
+      if (await drawer.isVisible({ timeout: 2000 })) {
+        console.log('✓ Can view integration details');
+      } else {
+        test.skip();
+      }
     } else {
       test.skip();
     }

@@ -66,12 +66,19 @@ test.describe('Conversations Page Tests', () => {
     const conversationsLink = page.locator('a:has-text("Conversations")');
 
     if (await conversationsLink.isVisible({ timeout: 2000 })) {
-      const filterButton = page
-        .locator('button')
-        .filter({ hasText: /Filter|Filters/ });
+      // Look for the Filter card/section (contains Filter icon and title)
+      const filterSection = page.getByRole('heading', { name: /filters/i });
 
-      if (await filterButton.isVisible({ timeout: 2000 })) {
-        console.log('✓ Filter functionality available');
+      if (await filterSection.isVisible({ timeout: 2000 })) {
+        // Check for filter controls (status, campaign, agent, outcome dropdowns)
+        const statusSelect = page
+          .locator('button:has-text("All Statuses")')
+          .first();
+        if (await statusSelect.isVisible({ timeout: 2000 })) {
+          console.log('✓ Filter functionality available');
+        } else {
+          test.skip();
+        }
       } else {
         test.skip();
       }
@@ -84,13 +91,27 @@ test.describe('Conversations Page Tests', () => {
     const conversationsLink = page.locator('a:has-text("Conversations")');
 
     if (await conversationsLink.isVisible({ timeout: 2000 })) {
-      // Try to click on a conversation row
-      const conversationRow = page.locator('[role="row"], tr').nth(1);
+      // Look for the "View Details" button in the actions dropdown
+      // First find a conversation row with actions menu
+      const actionsButton = page
+        .getByRole('button')
+        .filter({ has: page.locator('svg') })
+        .first();
 
-      if (await conversationRow.isVisible({ timeout: 2000 })) {
-        await conversationRow.click();
-        await page.waitForTimeout(2000);
-        console.log('✓ Can view conversation details');
+      if (await actionsButton.isVisible({ timeout: 2000 })) {
+        // Click actions menu
+        await actionsButton.click();
+        await page.waitForTimeout(500);
+
+        // Look for "View Details" option
+        const viewDetailsOption = page.getByRole('menuitem', {
+          name: /view details/i,
+        });
+        if (await viewDetailsOption.isVisible({ timeout: 2000 })) {
+          console.log('✓ Can view conversation details');
+        } else {
+          test.skip();
+        }
       } else {
         test.skip();
       }
