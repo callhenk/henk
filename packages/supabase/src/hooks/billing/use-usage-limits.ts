@@ -108,15 +108,16 @@ export function useCheckUsageLimit(limitKey: string) {
  * Hook to get all usage limits and their current status
  */
 export function useAllUsageLimits() {
-  const { data: subscription } = useBusinessSubscription();
-  const { data: usage } = useCurrentUsage();
+  const { data: subscription, isLoading: subscriptionLoading } =
+    useBusinessSubscription();
+  const { data: usage, isLoading: usageLoading } = useCurrentUsage();
 
   const limits: UsageLimitCheck[] = [];
 
-  if (subscription?.plan?.limits && usage) {
+  if (subscription?.plan?.limits) {
     Object.keys(subscription.plan.limits).forEach((key) => {
       const limitsRecord = subscription.plan.limits as Record<string, unknown>;
-      const usageRecord = usage.usage_data as Record<string, unknown>;
+      const usageRecord = (usage?.usage_data as Record<string, unknown>) || {};
       const limit = limitsRecord[key] as number;
       const currentUsage = (usageRecord[key] as number) ?? 0;
       const isExceeded = currentUsage >= limit;
@@ -138,7 +139,7 @@ export function useAllUsageLimits() {
     limits,
     plan: subscription?.plan || null,
     usage,
-    isLoading: !subscription || !usage,
+    isLoading: subscriptionLoading || usageLoading,
   };
 }
 
@@ -227,13 +228,18 @@ export function useSetUsage() {
       }
 
       // Get or create usage record
-      const { data: existingUsage } = await supabase
+      const { data: existingUsage, error: fetchError } = await supabase
         .from('usage_records')
         .select('*')
         .eq('business_id', businessContext.business_id)
         .eq('period_start', subscription.current_period_start)
         .eq('period_end', subscription.current_period_end)
         .single();
+
+      // If error is PGRST116, it means no record exists yet - this is fine
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw new Error(`Failed to fetch usage record: ${fetchError.message}`);
+      }
 
       const updatedUsageData = {
         ...((existingUsage?.usage_data as Record<string, number>) || {}),

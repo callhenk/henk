@@ -44,8 +44,9 @@ async function checkAndEnforceLimit(
     .eq('business_id', businessId)
     .single();
 
+  // If no subscription exists, allow unlimited usage (for demo accounts, seed data, etc.)
   if (subError || !subscription || !subscription.plan) {
-    throw new Error('No active subscription found');
+    return; // No limits enforced
   }
 
   const plan = Array.isArray(subscription.plan)
