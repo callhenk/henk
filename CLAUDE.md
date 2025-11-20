@@ -201,6 +201,8 @@ import { Button } from '@kit/ui/button';
 
 // 1. 'use client' directive (if needed)
 
+// 1. 'use client' directive (if needed)
+
 // 3. Types/Interfaces
 interface MyComponentProps {
   title: string;
@@ -486,6 +488,8 @@ Follow conventional commits format:
 - `refactor: Simplify integration drawer logic`
 - `docs: Update Salesforce setup guide`
 - `chore: Update dependencies`
+
+**Important:** Do NOT include "Co-Authored-By: Claude" or any AI attribution in commit messages.
 
 ### Branch Naming
 
