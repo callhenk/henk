@@ -22,6 +22,13 @@ export function OnboardingWelcomeModal() {
   const isOnboardingEnabled = featuresFlagConfig.enableUserOnboarding;
   const shouldShow = isOnboardingEnabled && showWelcome;
 
+  console.log(
+    '[OnboardingWelcomeModal] Feature flag enabled:',
+    isOnboardingEnabled,
+  );
+  console.log('[OnboardingWelcomeModal] showWelcome:', showWelcome);
+  console.log('[OnboardingWelcomeModal] shouldShow:', shouldShow);
+
   return (
     <Dialog open={shouldShow} onOpenChange={(open) => !open && skipTour()}>
       <DialogContent className="sm:max-w-md">

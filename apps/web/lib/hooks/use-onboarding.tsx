@@ -129,7 +129,7 @@ export function OnboardingProvider({
         }
 
         if (teamMember) {
-          setState({
+          const newState = {
             isActive: false,
             currentStep: teamMember.onboarding_current_step || 0,
             isCompleted: teamMember.onboarding_completed || false,
@@ -137,7 +137,10 @@ export function OnboardingProvider({
             showWelcome:
               !teamMember.onboarding_completed &&
               !teamMember.onboarding_skipped,
-          });
+          };
+          console.log('[useOnboarding] Setting state:', newState);
+          console.log('[useOnboarding] Team member data:', teamMember);
+          setState(newState);
         }
 
         setIsLoading(false);
