@@ -70,18 +70,20 @@ export function NotificationSettingsForm({
   }
 
   return (
-    <div className="w-full max-w-3xl space-y-6">
-      <Card className="glass-panel">
-        <CardHeader>
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-center space-x-2">
             <Bell className="h-5 w-5" />
-            <CardTitle>Notification Overview</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-tight">
+              Notification Overview
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-sm leading-relaxed">
             Current notification status and preferences
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <p className="text-muted-foreground text-sm font-medium">
@@ -92,7 +94,7 @@ export function NotificationSettingsForm({
                 variant={
                   settings?.email_notifications ? 'default' : 'secondary'
                 }
-                className="mt-1"
+                className="mt-1.5 font-medium"
               >
                 {settings?.email_notifications ? 'Enabled' : 'Disabled'}
               </Badge>
@@ -104,7 +106,7 @@ export function NotificationSettingsForm({
               <Badge
                 data-testid="push-notification-badge"
                 variant={settings?.push_notifications ? 'default' : 'secondary'}
-                className="mt-1"
+                className="mt-1.5 font-medium"
               >
                 {settings?.push_notifications ? 'Enabled' : 'Disabled'}
               </Badge>
@@ -119,7 +121,7 @@ export function NotificationSettingsForm({
               <Badge
                 data-testid="campaign-alerts-badge"
                 variant={settings?.campaign_alerts ? 'default' : 'secondary'}
-                className="mt-1"
+                className="mt-1.5 font-medium"
               >
                 {settings?.campaign_alerts ? 'Enabled' : 'Disabled'}
               </Badge>
@@ -131,7 +133,7 @@ export function NotificationSettingsForm({
               <Badge
                 data-testid="weekly-reports-badge"
                 variant={settings?.weekly_reports ? 'default' : 'secondary'}
-                className="mt-1"
+                className="mt-1.5 font-medium"
               >
                 {settings?.weekly_reports ? 'Enabled' : 'Disabled'}
               </Badge>
@@ -140,18 +142,20 @@ export function NotificationSettingsForm({
         </CardContent>
       </Card>
 
-      <Card className="glass-panel">
-        <CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-center space-x-2">
             <Mail className="h-5 w-5" />
-            <CardTitle>Email Notifications</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-tight">
+              Email Notifications
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-sm leading-relaxed">
             Configure email notification preferences
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground mb-4 text-sm">
+        <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+          <p className="text-muted-foreground mb-5 text-sm leading-relaxed">
             Control which email notifications you receive for account activity,
             campaigns, and system updates.
           </p>
@@ -176,18 +180,20 @@ export function NotificationSettingsForm({
         </CardContent>
       </Card>
 
-      <Card className="glass-panel">
-        <CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-center space-x-2">
             <MessageSquare className="h-5 w-5" />
-            <CardTitle>Campaign Notifications</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-tight">
+              Campaign Notifications
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-sm leading-relaxed">
             Manage notifications for campaign events and updates
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground mb-4 text-sm">
+        <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+          <p className="text-muted-foreground mb-5 text-sm leading-relaxed">
             Get notified about campaign starts, completions, and important
             milestones.
           </p>
@@ -233,18 +239,20 @@ export function NotificationSettingsForm({
         </CardContent>
       </Card>
 
-      <Card className="glass-panel">
-        <CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-center space-x-2">
             <Bell className="h-5 w-5" />
-            <CardTitle>Push Notifications</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-tight">
+              Push Notifications
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-sm leading-relaxed">
             Configure browser push notification settings
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground mb-4 text-sm">
+        <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+          <p className="text-muted-foreground mb-5 text-sm leading-relaxed">
             Enable push notifications to receive real-time updates in your
             browser.
           </p>

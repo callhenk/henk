@@ -45,19 +45,19 @@ function AccountSettingsPageContent() {
         title="Account Settings"
         description="Manage your personal account information and preferences"
       />
-
       <PageBody>
-        <div className="w-full space-y-4 sm:space-y-6 lg:max-w-3xl">
-          <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-            <CardHeader className="space-y-1 px-4 sm:px-6">
-              <CardTitle className="text-lg sm:text-xl">
+        <div className="mx-auto w-full max-w-4xl space-y-6 sm:space-y-8">
+
+          <Card className="shadow-sm">
+            <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+              <CardTitle className="text-lg font-semibold tracking-tight">
                 Personal Information
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-sm leading-relaxed">
                 Update your account details and profile information
               </CardDescription>
             </CardHeader>
-            <CardContent className="px-4 sm:px-6">
+            <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
               <PersonalAccountSettingsContainer
                 userId={user.id}
                 paths={paths}
@@ -66,55 +66,55 @@ function AccountSettingsPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-            <CardHeader className="space-y-1 px-4 sm:px-6">
-              <CardTitle className="text-lg sm:text-xl">
+          <Card className="shadow-sm">
+            <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+              <CardTitle className="text-lg font-semibold tracking-tight">
                 Account Overview
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-sm leading-relaxed">
                 Quick overview of your account status and settings
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-4 sm:px-6">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Account Status
-                  </p>
-                  <Badge variant="default" className="mt-1">
-                    Active
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Member Since
-                  </p>
-                  <p className="text-sm">
-                    {new Date(user.created_at || Date.now()).toLocaleDateString(
-                      'en-US',
-                      {
-                        year: 'numeric',
-                        month: 'long',
-                      },
-                    )}
-                  </p>
-                </div>
+            <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Account Status
+                </p>
+                <Badge variant="default" className="mt-1.5 font-medium">
+                  Active
+                </Badge>
               </div>
-              <Separator />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Email Verification
-                  </p>
-                  <Badge variant="default" className="mt-1">
-                    Verified
-                  </Badge>
-                </div>
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Member Since
+                </p>
+                <p className="mt-1.5 text-sm">
+                  {new Date(user.created_at || Date.now()).toLocaleDateString(
+                    'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'long',
+                    },
+                  )}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </PageBody>
+            </div>
+            <Separator />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Email Verification
+                </p>
+                <Badge variant="default" className="mt-1.5 font-medium">
+                  Verified
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageBody>
     </>
   );
 }
