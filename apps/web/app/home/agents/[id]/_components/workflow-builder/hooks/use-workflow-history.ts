@@ -14,8 +14,11 @@ export function useWorkflowHistory(
   setNodes: (nodes: Node[]) => void,
   setEdges: (edges: Edge[]) => void,
 ) {
-  const [history, setHistory] = useState<HistoryState[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  // Initialize history with empty state
+  const [history, setHistory] = useState<HistoryState[]>([
+    { nodes: [], edges: [] },
+  ]);
+  const [historyIndex, setHistoryIndex] = useState(0);
   const isApplyingHistory = useRef(false);
 
   // Save current state to history

@@ -793,42 +793,42 @@ export function AgentDetail({ agentId }: { agentId: string }) {
           }}
           className="w-full"
         >
-          <CardHeader>
-            <TabsList className="grid w-full grid-cols-5">
+          <CardHeader className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-5 gap-1">
               <TabsTrigger
                 value="overview"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-1 px-2 text-xs sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <LayoutDashboard className="h-4 w-4" />
-                <span>Overview</span>
+                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Overview</span>
               </TabsTrigger>
               <TabsTrigger
                 value="knowledge"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-1 px-2 text-xs sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <BookOpen className="h-4 w-4" />
-                <span>Knowledge</span>
+                <BookOpen className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Knowledge</span>
               </TabsTrigger>
               <TabsTrigger
                 value="voice"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-1 px-2 text-xs sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <Mic className="h-4 w-4" />
-                <span>Voice</span>
+                <Mic className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Voice</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tools"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-1 px-2 text-xs sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <Wrench className="h-4 w-4" />
-                <span>Tools</span>
+                <Wrench className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Tools</span>
               </TabsTrigger>
               <TabsTrigger
                 value="workflow"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-1 px-2 text-xs sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <GitBranch className="h-4 w-4" />
-                <span>Workflow</span>
+                <GitBranch className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Workflow</span>
               </TabsTrigger>
             </TabsList>
           </CardHeader>
