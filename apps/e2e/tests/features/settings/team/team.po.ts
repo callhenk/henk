@@ -58,11 +58,14 @@ export class TeamPageObject {
   async selectBusinessByName(name: string) {
     await this.page.waitForLoadState('networkidle');
     const businessCard = this.page.locator(
-      `[class*="glass-panel"]:has-text("${name}")`,
+      `div[class*="cursor-pointer"][class*="border-2"]:has-text("${name}")`,
     );
     await businessCard.click();
 
-    await expect(this.page.getByText(/Team Members -/)).toBeVisible();
+    // Verify team members section appears
+    await expect(
+      this.page.getByRole('heading', { name: 'Team Members', exact: true }),
+    ).toBeVisible();
   }
 
   async openInviteDialog() {

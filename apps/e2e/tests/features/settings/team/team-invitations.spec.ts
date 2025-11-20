@@ -41,7 +41,10 @@ test.describe('Team Invitations - Full Flow', () => {
 
     // Step 3: Select first business
     await team.selectFirstBusiness();
-    await expect(page.getByText(/Team Members -/)).toBeVisible();
+    // Verify team members section is visible (already verified in selectFirstBusiness, but double-check)
+    await expect(
+      page.getByRole('heading', { name: 'Team Members', exact: true }),
+    ).toBeVisible();
 
     // Step 4: Verify role permissions guide
     await team.verifyRolePermissionsGuide();
@@ -135,7 +138,9 @@ test.describe('Team Member Management', () => {
     await team.selectFirstBusiness();
 
     // Verify team members section appears
-    await expect(page.getByText(/Team Members -/)).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Team Members', exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Invite Member' }),
     ).toBeVisible();
