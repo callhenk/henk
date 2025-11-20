@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   type Edge,
@@ -16,6 +16,19 @@ import { useWorkflowHistory } from './use-workflow-history';
 export function useWorkflowState() {
   const [nodes, setNodesInternal] = useState<Node[]>([]);
   const [edges, setEdgesInternal] = useState<Edge[]>([]);
+
+  // Refs to track current values
+  const nodesRef = useRef<Node[]>([]);
+  const edgesRef = useRef<Edge[]>([]);
+
+  // Update refs when state changes
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   const {
     saveToHistory,
@@ -43,24 +56,26 @@ export function useWorkflowState() {
     (nodesOrUpdater: Node[] | ((prev: Node[]) => Node[])) => {
       const newNodes =
         typeof nodesOrUpdater === 'function'
-          ? nodesOrUpdater(nodes)
+          ? nodesOrUpdater(nodesRef.current)
           : nodesOrUpdater;
       setNodesInternal(newNodes);
-      saveToHistory(newNodes, edges);
+      // Use ref to get latest edges value
+      saveToHistory(newNodes, edgesRef.current);
     },
-    [nodes, edges, saveToHistory],
+    [saveToHistory],
   );
 
   const setEdges = useCallback(
     (edgesOrUpdater: Edge[] | ((prev: Edge[]) => Edge[])) => {
       const newEdges =
         typeof edgesOrUpdater === 'function'
-          ? edgesOrUpdater(edges)
+          ? edgesOrUpdater(edgesRef.current)
           : edgesOrUpdater;
       setEdgesInternal(newEdges);
-      saveToHistory(nodes, newEdges);
+      // Use ref to get latest nodes value
+      saveToHistory(nodesRef.current, newEdges);
     },
-    [nodes, edges, saveToHistory],
+    [saveToHistory],
   );
 
   const onNodesChange = useCallback(
@@ -75,15 +90,15 @@ export function useWorkflowState() {
         );
       });
 
-      const newNodes = applyNodeChanges(changes, nodes);
+      const newNodes = applyNodeChanges(changes, nodesRef.current);
       setNodesInternal(newNodes);
 
       // Only save to history for meaningful changes
       if (hasMeaningfulChange) {
-        saveToHistory(newNodes, edges);
+        saveToHistory(newNodes, edgesRef.current);
       }
     },
-    [nodes, edges, saveToHistory],
+    [saveToHistory],
   );
 
   const onEdgesChange = useCallback(
@@ -97,15 +112,15 @@ export function useWorkflowState() {
         );
       });
 
-      const newEdges = applyEdgeChanges(changes, edges);
+      const newEdges = applyEdgeChanges(changes, edgesRef.current);
       setEdgesInternal(newEdges);
 
       // Only save to history for meaningful changes
       if (hasMeaningfulChange) {
-        saveToHistory(nodes, newEdges);
+        saveToHistory(nodesRef.current, newEdges);
       }
     },
-    [nodes, edges, saveToHistory],
+    [saveToHistory],
   );
 
   const addNewNode = useCallback(
@@ -121,17 +136,19 @@ export function useWorkflowState() {
           options: ['Yes', 'No'],
         },
       };
-      const newNodes = [...nodes, newNode];
+      const newNodes = [...nodesRef.current, newNode];
       setNodes(newNodes);
     },
-    [nodes, setNodes],
+    [setNodes],
   );
 
   const deleteSelectedNode = useCallback(
     (selectedNode: Node | null) => {
       if (selectedNode) {
-        const newNodes = nodes.filter((n) => n.id !== selectedNode.id);
-        const newEdges = edges.filter(
+        const newNodes = nodesRef.current.filter(
+          (n) => n.id !== selectedNode.id,
+        );
+        const newEdges = edgesRef.current.filter(
           (e) => e.source !== selectedNode.id && e.target !== selectedNode.id,
         );
         // Update both nodes and edges, then save to history
@@ -140,17 +157,19 @@ export function useWorkflowState() {
         saveToHistory(newNodes, newEdges);
       }
     },
-    [nodes, edges, saveToHistory],
+    [saveToHistory],
   );
 
   const deleteSelectedEdge = useCallback(
     (selectedEdge: Edge | null) => {
       if (selectedEdge) {
-        const newEdges = edges.filter((e) => e.id !== selectedEdge.id);
+        const newEdges = edgesRef.current.filter(
+          (e) => e.id !== selectedEdge.id,
+        );
         setEdges(newEdges);
       }
     },
-    [edges, setEdges],
+    [setEdges],
   );
 
   // Wrap undo/redo with logging
@@ -161,10 +180,13 @@ export function useWorkflowState() {
       'historyIndex:',
       historyIndex,
     );
-    console.log('[useWorkflowState] Before undo - nodes:', nodes.length);
+    console.log(
+      '[useWorkflowState] Before undo - nodes:',
+      nodesRef.current.length,
+    );
     undo();
     console.log('[useWorkflowState] After undo called');
-  }, [undo, canUndo, historyIndex, nodes.length]);
+  }, [undo, canUndo, historyIndex]);
 
   const redoWithLogging = useCallback(() => {
     console.log('[useWorkflowState] Redo called, canRedo:', canRedo);

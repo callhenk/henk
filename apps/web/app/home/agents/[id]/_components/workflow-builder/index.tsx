@@ -253,7 +253,7 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
             type="text"
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full max-w-md rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full max-w-md rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Workflow name..."
           />
         </div>
@@ -300,12 +300,18 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
             onRedo={redo}
             onAddDecision={() => addNewNode('decision', { x: 100, y: 100 })}
             onAddAction={() => addNewNode('action', { x: 100, y: 100 })}
-            onDeleteNode={() =>
-              selectedNode && deleteSelectedNode(selectedNode)
-            }
-            onDeleteEdge={() =>
-              selectedEdge && deleteSelectedEdge(selectedEdge)
-            }
+            onDeleteNode={() => {
+              if (selectedNode) {
+                deleteSelectedNode(selectedNode);
+                setSelectedNode(null);
+              }
+            }}
+            onDeleteEdge={() => {
+              if (selectedEdge) {
+                deleteSelectedEdge(selectedEdge);
+                setSelectedEdge(null);
+              }
+            }}
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
             onOpenTemplateDialog={() => setIsTemplateDialogOpen(true)}
