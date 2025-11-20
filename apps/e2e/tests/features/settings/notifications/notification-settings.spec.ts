@@ -49,10 +49,24 @@ test.describe('Notification Settings', () => {
       page.locator('text=Current notification status'),
     ).toBeVisible();
 
-    // Check that at least one badge is visible (either Enabled or Disabled)
-    const badges = page.locator('[class*="badge"]');
-    const badgeCount = await badges.count();
-    expect(badgeCount).toBeGreaterThan(0);
+    // Wait for at least one badge to be visible (settings need to load first)
+    await expect(
+      page.locator('[data-testid="email-notification-badge"]').first(),
+    ).toBeVisible({ timeout: 10000 });
+
+    // Check that all four status badges are visible
+    await expect(
+      page.locator('[data-testid="email-notification-badge"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="push-notification-badge"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="campaign-alerts-badge"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="weekly-reports-badge"]'),
+    ).toBeVisible();
 
     console.log('✓ Notification overview section displays correctly');
   });

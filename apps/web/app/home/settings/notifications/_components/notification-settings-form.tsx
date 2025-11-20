@@ -88,6 +88,7 @@ export function NotificationSettingsForm({
                 Email Notifications
               </p>
               <Badge
+                data-testid="email-notification-badge"
                 variant={
                   settings?.email_notifications ? 'default' : 'secondary'
                 }
@@ -101,6 +102,7 @@ export function NotificationSettingsForm({
                 Push Notifications
               </p>
               <Badge
+                data-testid="push-notification-badge"
                 variant={settings?.push_notifications ? 'default' : 'secondary'}
                 className="mt-1"
               >
@@ -115,6 +117,7 @@ export function NotificationSettingsForm({
                 Campaign Alerts
               </p>
               <Badge
+                data-testid="campaign-alerts-badge"
                 variant={settings?.campaign_alerts ? 'default' : 'secondary'}
                 className="mt-1"
               >
@@ -126,6 +129,7 @@ export function NotificationSettingsForm({
                 Weekly Reports
               </p>
               <Badge
+                data-testid="weekly-reports-badge"
                 variant={settings?.weekly_reports ? 'default' : 'secondary'}
                 className="mt-1"
               >
