@@ -37,8 +37,10 @@ export class TeamPageObject {
     // Click the first business card
     await businessCards.first().click();
 
-    // Verify team members section appears
-    await expect(this.page.getByText(/Team Members/)).toBeVisible({
+    // Verify team members section appears (use exact match to avoid strict mode violation)
+    await expect(
+      this.page.getByRole('heading', { name: 'Team Members', exact: true }),
+    ).toBeVisible({
       timeout: 10000,
     });
   }
