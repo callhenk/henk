@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 
-import { Mailbox } from '../utils/mailbox';
+import { Mailbox } from '../../utils/mailbox';
 
 export class AuthPageObject {
   private readonly page: Page;
