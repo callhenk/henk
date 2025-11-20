@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { AuthPageObject } from '../authentication/auth.po';
+import { AuthPageObject } from '../../auth/auth.po';
 import { TeamPageObject } from './team.po';
 
 test.describe('Team Invitations - Full Flow', () => {

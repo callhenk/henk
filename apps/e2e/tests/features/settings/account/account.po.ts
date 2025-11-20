@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 
-import { AuthPageObject } from '../authentication/auth.po';
+import { AuthPageObject } from '../../auth/auth.po';
 
 export class AccountPageObject {
   private readonly page: Page;
