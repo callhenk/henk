@@ -4,10 +4,10 @@ import { Bell, Mail, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
+  useBusinessContext,
   useNotificationSettings,
   useUpdateNotificationSettings,
-} from '@kit/supabase/hooks/notification-settings';
-import { useBusinessContext } from '@kit/supabase/hooks/use-business-context';
+} from '@kit/supabase/hooks';
 import { Badge } from '@kit/ui/badge';
 import {
   Card,

@@ -1,12 +1,8 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-import type { Database } from '../../database.types';
 import { useSupabase } from '../use-supabase';
-
-type NotificationSettings =
-  Database['public']['Tables']['notification_settings']['Row'];
 
 interface UseNotificationSettingsParams {
   userId: string;
@@ -18,7 +14,6 @@ export function useNotificationSettings({
   businessId,
 }: UseNotificationSettingsParams) {
   const client = useSupabase();
-  const queryClient = useQueryClient();
 
   const queryKey = ['notification-settings', userId, businessId];
 

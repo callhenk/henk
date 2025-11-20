@@ -6,8 +6,6 @@ import type { Database } from '../../database.types';
 import { useSupabase } from '../use-supabase';
 import { useNotificationSettingsKey } from './use-notification-settings';
 
-type NotificationSettings =
-  Database['public']['Tables']['notification_settings']['Row'];
 type NotificationSettingsUpdate =
   Database['public']['Tables']['notification_settings']['Update'];
 
