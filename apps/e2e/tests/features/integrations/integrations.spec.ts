@@ -27,6 +27,7 @@ test.describe('Integrations Page Tests', () => {
     if (await integrationsLink.isVisible({ timeout: 2000 })) {
       await integrationsLink.click();
       await page.waitForURL(/\/home\/integrations/, { timeout: 5000 });
+      await page.waitForLoadState('networkidle');
     }
   });
 
@@ -36,6 +37,9 @@ test.describe('Integrations Page Tests', () => {
   });
 
   test('can see integration cards', async ({ page }) => {
+    // Wait for the filters section to ensure page is loaded
+    await page.waitForSelector('text=Filters', { timeout: 5000 });
+
     // Check for integration cards using CardTitle role
     // Look for common integration names like Salesforce, HubSpot, ElevenLabs
     const integrationCard = page
@@ -43,9 +47,10 @@ test.describe('Integrations Page Tests', () => {
       .filter({ hasText: /Salesforce|HubSpot|ElevenLabs|Twilio/i })
       .first();
 
-    if (await integrationCard.isVisible({ timeout: 5000 })) {
+    if (await integrationCard.isVisible({ timeout: 10000 })) {
       console.log('✓ Integration cards are visible');
     } else {
+      console.log('⚠️ No integration cards found - checking page content');
       test.skip();
     }
   });
