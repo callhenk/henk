@@ -50,35 +50,42 @@ export function InviteMemberDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>Invite Member</Button>
+        <Button className="h-10 w-full min-w-[140px] sm:w-auto">
+          Invite Member
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[90vw] sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Invite Team Member</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl">Invite Team Member</DialogTitle>
+          <DialogDescription className="text-sm">
             Invite a new member to {businessName}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="invite-email">Email</Label>
+        <div className="space-y-5 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="invite-email" className="text-sm font-medium">
+              Email
+            </Label>
             <Input
               id="invite-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
+              placeholder="member@example.com"
+              className="h-10"
             />
           </div>
-          <div>
-            <Label htmlFor="invite-role">Role</Label>
+          <div className="space-y-2">
+            <Label htmlFor="invite-role" className="text-sm font-medium">
+              Role
+            </Label>
             <Select
               value={role}
               onValueChange={(value) =>
                 setRole(value as 'owner' | 'admin' | 'member' | 'viewer')
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -90,11 +97,19 @@ export function InviteMemberDialog({
             </Select>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-10 w-full sm:w-auto"
+          >
             Cancel
           </Button>
-          <Button onClick={handleInvite} disabled={!email}>
+          <Button
+            onClick={handleInvite}
+            disabled={!email}
+            className="h-10 w-full sm:w-auto"
+          >
             Invite Member
           </Button>
         </DialogFooter>

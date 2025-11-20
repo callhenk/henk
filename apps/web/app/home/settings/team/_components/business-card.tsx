@@ -1,6 +1,7 @@
 import type { Tables } from '@kit/supabase/database';
 import { Badge } from '@kit/ui/badge';
-import { Card, CardDescription, CardHeader, CardTitle } from '@kit/ui/card';
+import { Card } from '@kit/ui/card';
+import { Check } from 'lucide-react';
 
 type Business = Tables<'businesses'>;
 
@@ -17,27 +18,41 @@ export function BusinessCard({
 }: BusinessCardProps) {
   return (
     <Card
-      className={`glass-panel cursor-pointer border transition-all hover:shadow-md ${
-        isSelected ? 'ring-primary ring-2' : ''
+      className={`group relative cursor-pointer border-2 bg-card transition-all duration-200 hover:shadow-lg ${
+        isSelected
+          ? 'border-primary shadow-md ring-2 ring-primary/20'
+          : 'border-border hover:border-primary/50'
       }`}
       onClick={onClick}
     >
-      <CardHeader className="space-y-2 p-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base sm:text-lg">
-            {business.name}
-          </CardTitle>
+      <div className="relative p-5 sm:p-6">
+        {/* Active badge - top right */}
+        <div className="absolute right-4 top-4">
           <Badge
             variant={business.status === 'active' ? 'default' : 'secondary'}
-            className="text-xs"
+            className="text-xs font-medium"
           >
             {business.status}
           </Badge>
         </div>
-        <CardDescription className="text-xs sm:text-sm">
-          {business.description || 'No description'}
-        </CardDescription>
-      </CardHeader>
+
+        {/* Selected indicator */}
+        {isSelected && (
+          <div className="bg-primary absolute left-4 top-4 flex h-5 w-5 items-center justify-center rounded-full">
+            <Check className="h-3.5 w-3.5 text-primary-foreground" />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="space-y-3 pt-2">
+          <h3 className="text-foreground pr-20 text-lg font-semibold tracking-tight sm:text-xl">
+            {business.name}
+          </h3>
+          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+            {business.description || 'No description provided'}
+          </p>
+        </div>
+      </div>
     </Card>
   );
 }

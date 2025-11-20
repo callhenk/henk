@@ -36,23 +36,25 @@ const ROLE_PERMISSIONS = [
 
 export function RolePermissionsCard() {
   return (
-    <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-      <CardHeader className="space-y-1 px-4 sm:px-6">
-        <CardTitle className="text-lg sm:text-xl">Role Permissions</CardTitle>
-        <CardDescription className="text-sm">
+    <Card className="shadow-sm">
+      <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+        <CardTitle className="text-xl font-semibold tracking-tight">
+          Role Permissions
+        </CardTitle>
+        <CardDescription className="text-sm leading-relaxed">
           Understanding different team member roles and their permissions
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-4 sm:px-6">
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-          {ROLE_PERMISSIONS.map((item, index) => (
-            <div key={item.role} className={index < 2 ? 'space-y-4' : ''}>
-              <div>
-                <Badge className={item.colorClass}>{item.role}</Badge>
-                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
+      <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+        <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {ROLE_PERMISSIONS.map((item) => (
+            <div key={item.role} className="space-y-2.5">
+              <Badge className={`${item.colorClass} font-medium`}>
+                {item.role}
+              </Badge>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {item.description}
+              </p>
             </div>
           ))}
         </div>
