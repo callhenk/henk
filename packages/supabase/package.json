@@ -18,6 +18,7 @@
     "./require-user": "./src/require-user.ts",
     "./hooks": "./src/hooks/index.ts",
     "./hooks/*": "./src/hooks/*.ts",
+    "./hooks/billing": "./src/hooks/billing/index.ts",
     "./database": "./src/database.types.ts",
     "./auth": "./src/auth.ts"
   },

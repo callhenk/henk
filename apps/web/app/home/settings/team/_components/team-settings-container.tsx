@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@kit/ui/card';
-import { Skeleton } from '@kit/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@kit/ui/tabs';
 
 import { BusinessCard } from './business-card';
@@ -34,12 +33,12 @@ type Business = Tables<'businesses'>;
 
 interface TeamSettingsContainerProps {
   _userId: string;
-  hideHeader?: boolean;
+  _hideHeader?: boolean;
 }
 
 export function TeamSettingsContainer({
   _userId,
-  hideHeader = false,
+  _hideHeader = false,
 }: TeamSettingsContainerProps) {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null,
@@ -103,7 +102,6 @@ export function TeamSettingsContainer({
 
   return (
     <div className="space-y-6">
-
       {/* Business Selection */}
       <Card className="shadow-sm">
         <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
@@ -156,7 +154,7 @@ export function TeamSettingsContainer({
             <TeamMembersTableSkeleton />
           ) : (
             <Tabs defaultValue="all" className="space-y-5">
-              <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+              <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
                 <TabsTrigger value="all" className="gap-1.5">
                   <span>All Members</span>
                   <span className="text-muted-foreground">

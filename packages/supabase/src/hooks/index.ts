@@ -18,6 +18,7 @@ export * from './use-business-context';
 
 // Table-specific hooks
 export * from './agents';
+export * from './billing';
 export * from './businesses';
 export * from './campaigns';
 export * from './conversations';
