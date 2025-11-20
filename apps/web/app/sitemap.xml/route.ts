@@ -29,21 +29,22 @@ function getPaths() {
       changeFreq: 'monthly' as const,
       priority: 1.0,
     },
-    {
-      path: '/privacy-policy',
-      changeFreq: 'yearly' as const,
-      priority: 0.5,
-    },
-    {
-      path: '/terms-of-service',
-      changeFreq: 'yearly' as const,
-      priority: 0.5,
-    },
-    {
-      path: '/cookie-policy',
-      changeFreq: 'yearly' as const,
-      priority: 0.5,
-    },
+    // TODO: Uncomment these when the pages are created
+    // {
+    //   path: '/privacy-policy',
+    //   changeFreq: 'yearly' as const,
+    //   priority: 0.5,
+    // },
+    // {
+    //   path: '/terms-of-service',
+    //   changeFreq: 'yearly' as const,
+    //   priority: 0.5,
+    // },
+    // {
+    //   path: '/cookie-policy',
+    //   changeFreq: 'yearly' as const,
+    //   priority: 0.5,
+    // },
     // Add additional public marketing pages here as needed
     // Example:
     // {
