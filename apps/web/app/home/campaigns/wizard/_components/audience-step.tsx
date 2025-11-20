@@ -77,7 +77,7 @@ export function AudienceStep({
             Required headers: first_name, phone. Optional: last_name, email,
             timezone, opt_in.
           </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             <CsvDropzone disabled={false} onFileSelected={onDropCsv}>
               Drop CSV here or click to choose
             </CsvDropzone>

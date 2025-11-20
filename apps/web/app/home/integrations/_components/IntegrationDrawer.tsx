@@ -170,11 +170,11 @@ export function IntegrationDrawer({
         </SheetHeader>
 
         {/* Steps header */}
-        <div className="mt-4 grid grid-cols-3 text-center text-xs">
+        <div className="mt-4 grid grid-cols-3 gap-1 text-center text-xs">
           {['Overview', 'Authentication', 'Review'].map((label, i) => (
             <div
               key={label}
-              className={`truncate ${
+              className={`truncate px-1 ${
                 stepIndex(step) >= i
                   ? 'text-foreground'
                   : 'text-muted-foreground'
@@ -347,12 +347,16 @@ export function IntegrationDrawer({
                 onValueChange={(v) => setMode(v as 'oauth' | 'api')}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-2 gap-1">
                   {canUseOAuth && (
-                    <TabsTrigger value="oauth">OAuth</TabsTrigger>
+                    <TabsTrigger value="oauth" className="text-xs sm:text-sm">
+                      OAuth
+                    </TabsTrigger>
                   )}
                   {canUseApiKey && (
-                    <TabsTrigger value="api">API key</TabsTrigger>
+                    <TabsTrigger value="api" className="text-xs sm:text-sm">
+                      API key
+                    </TabsTrigger>
                   )}
                 </TabsList>
                 {canUseOAuth && (

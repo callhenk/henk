@@ -72,7 +72,7 @@ export function LeadsPageSidebar({
   );
 
   return (
-    <div className="bg-card flex h-full w-64 flex-col border-r">
+    <div className="bg-card hidden h-full w-64 flex-col border-r md:flex">
       <div className="border-b p-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Filter className="h-5 w-5" />

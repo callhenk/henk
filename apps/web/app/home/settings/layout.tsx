@@ -69,32 +69,34 @@ function UserSettingsLayout(props: React.PropsWithChildren) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile top nav */}
-        <div className="glass-panel -mx-2 mb-3 block snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth rounded-md border p-1.5 pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
-          <div className="flex min-w-max flex-nowrap gap-2">
-            {settingsNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Button
-                  key={item.href}
-                  variant={isActive ? 'secondary' : 'outline'}
-                  size="sm"
-                  className="shrink-0 snap-start"
-                  asChild
-                >
-                  <Link href={item.href} className="whitespace-nowrap">
-                    <Icon className="mr-1.5 h-3.5 w-3.5" />
-                    {item.title}
-                  </Link>
-                </Button>
-              );
-            })}
+        {/* Mobile top nav - sticky */}
+        <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-14 z-10 -mx-3 -mt-2 mb-0 block backdrop-blur lg:hidden">
+          <div className="snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth border-b px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-nowrap gap-2 pr-3">
+              {settingsNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Button
+                    key={item.href}
+                    variant={isActive ? 'secondary' : 'outline'}
+                    size="sm"
+                    className="shrink-0 snap-start"
+                    asChild
+                  >
+                    <Link href={item.href} className="whitespace-nowrap">
+                      <Icon className="mr-1.5 h-3.5 w-3.5" />
+                      {item.title}
+                    </Link>
+                  </Button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Page content */}
-        {props.children}
+        {/* Page content with top padding on mobile */}
+        <div className="pt-4 lg:pt-0">{props.children}</div>
       </div>
     </div>
   );

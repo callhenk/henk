@@ -462,14 +462,14 @@ export function ConversationsList() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">
+            <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">
                 All ({sortedConversations.length})
               </TabsTrigger>
-              <TabsTrigger value="today">
+              <TabsTrigger value="today" className="text-xs sm:text-sm">
                 Today ({todayConversations})
               </TabsTrigger>
-              <TabsTrigger value="donations">
+              <TabsTrigger value="donations" className="text-xs sm:text-sm">
                 Donations (
                 {
                   enhancedConversations.filter((c) => c.outcome === 'donated')
@@ -477,7 +477,7 @@ export function ConversationsList() {
                 }
                 )
               </TabsTrigger>
-              <TabsTrigger value="callbacks">
+              <TabsTrigger value="callbacks" className="text-xs sm:text-sm">
                 Callbacks (
                 {
                   enhancedConversations.filter(
@@ -615,21 +615,21 @@ function ConversationsTable({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Donor</TableHead>
-            <TableHead>Timezone</TableHead>
-            <TableHead>Campaign</TableHead>
-            <TableHead>Agent</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Outcome</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead>Sentiment</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="min-w-[150px]">Donor</TableHead>
+            <TableHead className="min-w-[100px]">Timezone</TableHead>
+            <TableHead className="min-w-[120px]">Campaign</TableHead>
+            <TableHead className="min-w-[100px]">Agent</TableHead>
+            <TableHead className="min-w-[100px]">Status</TableHead>
+            <TableHead className="min-w-[120px]">Outcome</TableHead>
+            <TableHead className="min-w-[80px]">Duration</TableHead>
+            <TableHead className="min-w-[100px]">Sentiment</TableHead>
+            <TableHead className="min-w-[80px]">Amount</TableHead>
+            <TableHead className="min-w-[100px]">Date</TableHead>
+            <TableHead className="min-w-[80px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

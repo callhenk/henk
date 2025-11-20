@@ -146,7 +146,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <Skeleton className="h-8 w-48" />
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-lg" />
           ))}
@@ -197,7 +197,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       />
 
       {/* Metrics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Leads"
           value={leads.length.toLocaleString()}
@@ -227,10 +227,16 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       {/* Tabs */}
       <div className="glass-panel space-y-6 p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basics">Basics</TabsTrigger>
-            <TabsTrigger value="audience">Audience</TabsTrigger>
-            <TabsTrigger value="voice">Voice & Script</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 gap-1">
+            <TabsTrigger value="basics" className="text-xs sm:text-sm">
+              Basics
+            </TabsTrigger>
+            <TabsTrigger value="audience" className="text-xs sm:text-sm">
+              Audience
+            </TabsTrigger>
+            <TabsTrigger value="voice" className="text-xs sm:text-sm">
+              Voice & Script
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="basics" className="space-y-5">
             <div className="mb-4 px-0 pt-0 text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -527,7 +533,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             </div>
 
             {/* Read-only preview */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-md border p-3">
                 <div className="mb-2 text-sm font-medium">Caller ID</div>
                 <div className="text-sm">

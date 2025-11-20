@@ -105,7 +105,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
           {/* Personal Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Personal Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="first_name">First Name *</Label>
                 <Input
@@ -130,7 +130,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
           {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Contact Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -151,7 +151,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="mobile_phone">Mobile Phone</Label>
                 <Input
@@ -189,7 +189,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
           {/* Organization */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Organization</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="company">Company</Label>
                 <Input id="company" name="company" placeholder="Acme Corp" />
@@ -212,7 +212,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
               <Label htmlFor="street">Street</Label>
               <Input id="street" name="street" placeholder="123 Main St" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input id="city" name="city" placeholder="New York" />
@@ -222,7 +222,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                 <Input id="state" name="state" placeholder="NY" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="postal_code">Postal Code</Label>
                 <Input

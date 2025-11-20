@@ -47,15 +47,17 @@ function AccountSettingsPageContent() {
       />
 
       <PageBody>
-        <div className="w-full max-w-3xl space-y-6">
-          <Card className={'glass-panel'}>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
+        <div className="w-full space-y-4 sm:space-y-6 lg:max-w-3xl">
+          <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+            <CardHeader className="space-y-1 px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">
+                Personal Information
+              </CardTitle>
+              <CardDescription className="text-sm">
                 Update your account details and profile information
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <PersonalAccountSettingsContainer
                 userId={user.id}
                 paths={paths}
@@ -64,14 +66,16 @@ function AccountSettingsPageContent() {
             </CardContent>
           </Card>
 
-          <Card className={'glass-panel'}>
-            <CardHeader>
-              <CardTitle>Account Overview</CardTitle>
-              <CardDescription>
+          <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+            <CardHeader className="space-y-1 px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">
+                Account Overview
+              </CardTitle>
+              <CardDescription className="text-sm">
                 Quick overview of your account status and settings
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 sm:px-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">
