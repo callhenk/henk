@@ -161,9 +161,11 @@ export function LeadsList() {
     <div className="space-y-8">
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+        <Card className="hover:border-primary/50 border-2 transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight">Total Leads</CardTitle>
+            <CardTitle className="text-sm font-semibold tracking-tight">
+              Total Leads
+            </CardTitle>
             <div className="bg-primary/10 rounded-lg p-2">
               <Users className="text-primary h-5 w-5" />
             </div>
@@ -174,12 +176,12 @@ export function LeadsList() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+        <Card className="hover:border-primary/50 border-2 transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-sm font-semibold tracking-tight">
               From Integrations
             </CardTitle>
-            <div className="bg-blue-500/10 rounded-lg p-2">
+            <div className="rounded-lg bg-blue-500/10 p-2">
               <DatabaseIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
           </CardHeader>
@@ -197,10 +199,12 @@ export function LeadsList() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 transition-all hover:border-primary/50 hover:shadow-md">
+        <Card className="hover:border-primary/50 border-2 transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight">Manual & CSV</CardTitle>
-            <div className="bg-green-500/10 rounded-lg p-2">
+            <CardTitle className="text-sm font-semibold tracking-tight">
+              Manual & CSV
+            </CardTitle>
+            <div className="rounded-lg bg-green-500/10 p-2">
               <Upload className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           </CardHeader>
@@ -224,7 +228,9 @@ export function LeadsList() {
         <CardHeader className="pb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
-              <CardTitle className="text-xl font-semibold tracking-tight">Leads Database</CardTitle>
+              <CardTitle className="text-xl font-semibold tracking-tight">
+                Leads Database
+              </CardTitle>
               <CardDescription className="text-base">
                 Manage and organize your leads across all sources
               </CardDescription>
@@ -252,7 +258,11 @@ export function LeadsList() {
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <Button size="sm" onClick={() => setAddDialogOpen(true)} className="h-9">
+              <Button
+                size="sm"
+                onClick={() => setAddDialogOpen(true)}
+                className="h-9"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Lead
               </Button>
@@ -268,7 +278,7 @@ export function LeadsList() {
                 placeholder="Search leads by name, email, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 pl-10 pr-4"
+                className="h-10 pr-4 pl-10"
               />
             </div>
             <Button
@@ -356,7 +366,9 @@ export function LeadsList() {
                       <TableCell className="text-muted-foreground py-4">
                         {lead.phone || '—'}
                       </TableCell>
-                      <TableCell className="py-4">{lead.company || '—'}</TableCell>
+                      <TableCell className="py-4">
+                        {lead.company || '—'}
+                      </TableCell>
                       <TableCell className="py-4">
                         <Badge
                           variant="secondary"
@@ -381,7 +393,10 @@ export function LeadsList() {
                               ))}
                           {Array.isArray(lead.tags) &&
                             (lead.tags as string[]).length > 2 && (
-                              <Badge variant="outline" className="text-xs font-medium">
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-medium"
+                              >
                                 +{(lead.tags as string[]).length - 2}
                               </Badge>
                             )}
@@ -390,7 +405,11 @@ export function LeadsList() {
                       <TableCell className="py-4">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>

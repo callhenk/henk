@@ -7,7 +7,13 @@ export interface WorkflowTemplate {
   description: string;
   nodes: Node[];
   edges: Edge[];
-  category: 'fundraising' | 'support' | 'survey' | 'sales' | 'appointment' | 'custom';
+  category:
+    | 'fundraising'
+    | 'support'
+    | 'survey'
+    | 'sales'
+    | 'appointment'
+    | 'custom';
 }
 
 // Workflow templates

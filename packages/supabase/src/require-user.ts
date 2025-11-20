@@ -11,7 +11,9 @@ const SIGN_IN_PATH = '/auth/sign-in';
  * @param client
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function requireUser(client: SupabaseClient<any, any, any>): Promise<
+export async function requireUser(
+  client: SupabaseClient<any, any, any>,
+): Promise<
   | {
       error: null;
       data: User;
