@@ -8,6 +8,7 @@
     "test": "playwright test --max-failures=1",
     "test:ui": "playwright test --ui",
     "test:pages": "playwright test tests/pages/ --reporter=list",
+    "test:settings": "playwright test tests/settings/ --reporter=list",
     "test:smoke": "playwright test tests/core-functionality/smoke-test.spec.ts --reporter=list"
   },
   "keywords": [],
