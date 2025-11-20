@@ -69,26 +69,26 @@ interface TeamSettingsContainerProps {
 
 function BusinessSelectionSkeleton() {
   return (
-    <Card className="glass-panel">
-      <CardHeader>
-        <CardTitle>Select Business</CardTitle>
-        <CardDescription>
+    <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+      <CardHeader className="space-y-1 px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">Select Business</CardTitle>
+        <CardDescription className="text-sm">
           Choose a business to manage its team members
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="px-4 sm:px-6">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <Card
               key={index}
-              className="glass-panel cursor-pointer transition-all"
+              className="glass-panel cursor-pointer border transition-all"
             >
-              <CardHeader className="pb-3">
+              <CardHeader className="space-y-2 p-4">
                 <div className="flex items-center justify-between">
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-16" />
                 </div>
-                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-48" />
               </CardHeader>
             </Card>
           ))}
@@ -108,14 +108,16 @@ function TeamMembersTableSkeleton() {
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>All Team Members</CardTitle>
-            <CardDescription>
+        <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+          <CardHeader className="space-y-1 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">
+              All Team Members
+            </CardTitle>
+            <CardDescription className="text-sm">
               Complete list of team members and their roles
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -253,13 +255,13 @@ export function TeamSettingsContainer({
 
   if (businessesLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header Skeleton */}
         {!hideHeader && (
           <div className="flex items-center justify-between">
             <div>
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="mt-2 h-4 w-64" />
+              <Skeleton className="h-7 w-48 sm:h-8" />
+              <Skeleton className="mt-2 h-3 w-64 sm:h-4" />
             </div>
           </div>
         )}
@@ -604,37 +606,46 @@ export function TeamSettingsContainer({
               </TabsContent>
 
               <TabsContent value="invited" className="space-y-4">
-                <Card className="glass-panel">
-                  <CardHeader>
-                    <CardTitle>Invited Members</CardTitle>
-                    <CardDescription>Pending invitations</CardDescription>
+                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+                  <CardHeader className="space-y-1 px-4 sm:px-6">
+                    <CardTitle className="text-lg sm:text-xl">
+                      Invited Members
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      Pending invitations
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <CardContent className="px-4 sm:px-6">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {teamMembers
                         ?.filter((m) => m.status === 'invited')
                         .map((member) => (
-                          <Card key={member.id} className="glass-panel">
-                            <CardHeader className="pb-3">
+                          <Card
+                            key={member.id}
+                            className="glass-panel border transition-all hover:shadow-md"
+                          >
+                            <CardHeader className="space-y-3 p-4">
                               <div className="flex items-center space-x-3">
-                                <Avatar>
+                                <Avatar className="h-10 w-10">
                                   <AvatarImage src="" />
                                   <AvatarFallback>
                                     {member.user_id.charAt(0).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div>
-                                  <p className="font-medium">
+                                <div className="flex-1 space-y-1">
+                                  <p className="text-sm font-medium">
                                     {member.user_id}
                                   </p>
-                                  <Badge className={getRoleColor(member.role)}>
+                                  <Badge
+                                    className={`${getRoleColor(member.role)} text-xs`}
+                                  >
                                     {member.role}
                                   </Badge>
                                 </div>
                               </div>
                             </CardHeader>
-                            <CardContent>
-                              <p className="text-muted-foreground text-sm">
+                            <CardContent className="px-4 pt-0 pb-4">
+                              <p className="text-muted-foreground text-xs">
                                 Invited{' '}
                                 {member.created_at
                                   ? new Date(
@@ -656,42 +667,52 @@ export function TeamSettingsContainer({
 
       {/* Role Permissions Guide */}
       {selectedBusiness && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>Role Permissions</CardTitle>
-            <CardDescription>
+        <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
+          <CardHeader className="space-y-1 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">
+              Role Permissions
+            </CardTitle>
+            <CardDescription className="text-sm">
               Understanding different team member roles and their permissions
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+              <div className="space-y-4">
                 <div>
-                  <Badge className="bg-purple-100 text-purple-800">Owner</Badge>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <Badge className="bg-purple-100 text-xs text-purple-800">
+                    Owner
+                  </Badge>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                     Full access to all features, can manage team members and
                     business settings
                   </p>
                 </div>
                 <div>
-                  <Badge className="bg-red-100 text-red-800">Admin</Badge>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <Badge className="bg-red-100 text-xs text-red-800">
+                    Admin
+                  </Badge>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                     Can manage campaigns, agents, and team members, but cannot
                     delete the business
                   </p>
                 </div>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <Badge className="bg-blue-100 text-blue-800">Member</Badge>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <Badge className="bg-blue-100 text-xs text-blue-800">
+                    Member
+                  </Badge>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                     Can create and manage campaigns and agents, limited team
                     management
                   </p>
                 </div>
                 <div>
-                  <Badge className="bg-gray-100 text-gray-800">Viewer</Badge>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <Badge className="bg-gray-100 text-xs text-gray-800">
+                    Viewer
+                  </Badge>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                     Read-only access to campaigns and agents, cannot make
                     changes
                   </p>
