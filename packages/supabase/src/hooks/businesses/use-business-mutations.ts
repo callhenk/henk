@@ -72,21 +72,17 @@ export function useUpdateBusiness() {
   });
 }
 
+/**
+ * @deprecated Business deletion is permanently disabled.
+ * This function is kept for type compatibility but will always throw an error.
+ * Businesses cannot be deleted - only created and updated.
+ */
 export function useDeleteBusiness() {
-  const supabase = useSupabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from('businesses').delete().eq('id', id);
-
-      if (error) {
-        throw new Error(`Failed to delete business: ${error.message}`);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['businesses'] });
-      queryClient.invalidateQueries({ queryKey: ['user-businesses'] });
+    mutationFn: async (_id: string): Promise<void> => {
+      throw new Error(
+        'Business deletion is disabled. Businesses cannot be deleted from the system. Contact support if you need assistance.',
+      );
     },
   });
 }
