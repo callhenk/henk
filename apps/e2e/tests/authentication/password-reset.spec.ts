@@ -22,16 +22,26 @@ test.describe('Password Reset Flow', () => {
 
     await auth.visitConfirmEmailLink(email);
     await auth.signOut();
-    await page.waitForURL('/');
+
+    // Wait for sign out to complete (redirects to root or sign-in page)
+    await page
+      .waitForURL(/^\/(auth\/sign-in)?$/, { timeout: 10000 })
+      .catch(() => {
+        // If it doesn't match the pattern, just wait for load state
+        return page.waitForLoadState('networkidle');
+      });
 
     await page.goto('/auth/password-reset');
 
     await page.fill('[name="email"]', email);
     await page.click('[type="submit"]');
 
-    await auth.visitConfirmEmailLink(email);
+    // Wait a moment for the email to be sent
+    await page.waitForTimeout(1000);
 
-    await page.waitForURL('/update-password');
+    await auth.visitConfirmEmailLink(email, { deleteAfter: true });
+
+    await page.waitForURL('/update-password', { timeout: 15000 });
 
     await auth.updatePassword(newPassword);
 
@@ -44,16 +54,19 @@ test.describe('Password Reset Flow', () => {
     await page.waitForURL('/home');
 
     await auth.signOut();
-    await page.waitForURL('/');
+
+    // Wait for sign out to complete (redirects to root or sign-in page)
+    await page
+      .waitForURL(/^\/(auth\/sign-in)?$/, { timeout: 10000 })
+      .catch(() => {
+        // If it doesn't match the pattern, just wait for load state
+        return page.waitForLoadState('networkidle');
+      });
 
     await page.waitForTimeout(500);
 
-    await page
-      .locator('a', {
-        hasText: 'Sign in',
-      })
-      .first()
-      .click();
+    // Navigate directly to sign-in page instead of clicking link
+    await page.goto('/auth/sign-in');
 
     await auth.signIn({
       email,

@@ -101,6 +101,11 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
       }
     });
 
+    // Log browser console messages
+    page.on('console', (msg) => {
+      console.log('BROWSER:', msg.text());
+    });
+
     // Intercept the MFA enroll API call and make it fail - try broader pattern
     await page.route('**/*factors*', async (route) => {
       console.log(
@@ -120,8 +125,9 @@ test.describe('Multi-Factor Authentication (MFA)', () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            error: 'mfa_factor_name_conflict',
-            error_description: 'Unable to enroll factor',
+            code: 'mfa_factor_name_conflict',
+            msg: 'Unable to enroll factor',
+            error_code: 'mfa_factor_name_conflict',
           }),
         });
       } else {

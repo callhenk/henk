@@ -92,73 +92,92 @@ export class TeamPageObject {
 
     // Wait for dialog to close
     await expect(this.page.getByText('Invite Team Member')).not.toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
+
+    // Wait for dialog backdrop to be fully removed
+    await this.page.waitForTimeout(500);
   }
 
   async switchToTab(tabName: 'All Members' | 'Active' | 'Invited') {
-    await this.page
-      .getByRole('tab', { name: new RegExp(tabName, 'i') })
-      .click();
+    // Wait for tabs to be visible first
+    await this.page.waitForSelector('[role="tablist"]', { timeout: 5000 });
+
+    // Find and click the tab - match by partial text since tabs include counts like "Active (2)"
+    const tab = this.page.locator('[role="tab"]', {
+      hasText: tabName,
+    });
+
+    await tab.waitFor({ state: 'visible', timeout: 5000 });
+    await tab.click({ timeout: 5000 });
+
+    // Give the tab content a moment to start rendering
+    await this.page.waitForTimeout(500);
   }
 
   async getMemberCount(status?: 'all' | 'active' | 'invited') {
+    let tabLocator;
+
     if (status === 'active') {
-      const activeTab = await this.page
-        .getByRole('tab', { name: /Active/ })
-        .textContent();
-      const match = activeTab?.match(/\((\d+)\)/);
-      return match ? parseInt(match[1]) : 0;
+      tabLocator = this.page.locator('[role="tab"]', { hasText: 'Active' });
     } else if (status === 'invited') {
-      const invitedTab = await this.page
-        .getByRole('tab', { name: /Invited/ })
-        .textContent();
-      const match = invitedTab?.match(/\((\d+)\)/);
-      return match ? parseInt(match[1]) : 0;
+      tabLocator = this.page.locator('[role="tab"]', { hasText: 'Invited' });
     } else {
-      const allTab = await this.page
-        .getByRole('tab', { name: /All Members/ })
-        .textContent();
-      const match = allTab?.match(/\((\d+)\)/);
-      return match ? parseInt(match[1]) : 0;
+      tabLocator = this.page.locator('[role="tab"]', {
+        hasText: 'All Members',
+      });
     }
+
+    const tabText = await tabLocator.textContent();
+    const match = tabText?.match(/\((\d+)\)/);
+    return match ? parseInt(match[1]) : 0;
   }
 
   async updateMemberRole(
-    memberEmail: string,
+    memberIdentifier: string,
     newRole: 'owner' | 'admin' | 'member' | 'viewer',
   ) {
-    // Find the row containing the member
-    const row = this.page.locator(`tr:has-text("${memberEmail}")`);
+    // This only works on the "All Members" tab which has a table view
+    // Find the row containing the member (by user_id or email)
+    const row = this.page.locator(`tr:has-text("${memberIdentifier}")`);
 
-    // Click the role select
+    // Click the role select dropdown
     await row.locator('button[role="combobox"]').click();
 
-    // Select new role
+    // Select new role from dropdown
     await this.page.getByRole('option', { name: newRole, exact: true }).click();
+
+    // Wait for update to complete
+    await this.page.waitForTimeout(1000);
   }
 
-  async removeMember(memberEmail: string) {
-    // Find the row containing the member
-    const row = this.page.locator(`tr:has-text("${memberEmail}")`);
+  async removeMember(memberIdentifier: string) {
+    // This only works on the "All Members" tab which has a table view with Remove buttons
+    // Find the row containing the member (by user_id or email)
+    const row = this.page.locator(`tr:has-text("${memberIdentifier}")`);
 
     // Click Remove button
     await row.getByRole('button', { name: 'Remove' }).click();
 
-    // Confirm in dialog
+    // Confirm in alert dialog
     await expect(this.page.getByText('Remove Team Member')).toBeVisible();
-    await this.page.getByRole('button', { name: 'Remove' }).last().click();
+    await this.page
+      .getByRole('button', { name: 'Remove' })
+      .filter({ hasNotText: 'Cancel' })
+      .last()
+      .click();
 
     // Wait for removal to complete
     await this.page.waitForTimeout(1000);
   }
 
-  async verifyMemberExists(email: string) {
-    await expect(this.page.getByText(email)).toBeVisible();
+  async verifyMemberExists(identifier: string) {
+    // Member could be shown by user_id or email depending on the implementation
+    await expect(this.page.getByText(identifier)).toBeVisible();
   }
 
-  async verifyMemberNotExists(email: string) {
-    await expect(this.page.getByText(email)).not.toBeVisible();
+  async verifyMemberNotExists(identifier: string) {
+    await expect(this.page.getByText(identifier)).not.toBeVisible();
   }
 
   async verifyRolePermissionsGuide() {
@@ -166,5 +185,54 @@ export class TeamPageObject {
     await expect(
       this.page.getByRole('heading', { name: 'Role Permissions' }),
     ).toBeVisible();
+  }
+
+  async verifyActiveTabGridView() {
+    // Verify Active tab shows grid layout with cards
+    await this.switchToTab('Active');
+
+    // Wait for the Active tab content to appear
+    await expect(this.page.getByText('Active Members')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(
+      this.page.getByText('Team members with active status'),
+    ).toBeVisible();
+  }
+
+  async verifyInvitedTabGridView() {
+    // Verify Invited tab shows grid layout with cards
+    await this.switchToTab('Invited');
+
+    // Wait for the Invited tab content to appear
+    await expect(this.page.getByText('Invited Members')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(this.page.getByText('Pending invitations')).toBeVisible();
+  }
+
+  async verifyAllMembersTabTableView() {
+    // Verify All Members tab shows table layout
+    await this.switchToTab('All Members');
+
+    // Wait for the All Members tab content to appear
+    await expect(this.page.getByText('All Team Members')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(
+      this.page.getByText('Complete list of team members and their roles'),
+    ).toBeVisible();
+
+    // Check for table structure by looking for table element and headers as text
+    const table = this.page.locator('table');
+    await expect(table).toBeVisible();
+
+    // Verify table headers exist (using text content)
+    const headerRow = table.locator('thead tr');
+    await expect(headerRow.getByText('Member')).toBeVisible();
+    await expect(headerRow.getByText('Role')).toBeVisible();
+    await expect(headerRow.getByText('Status')).toBeVisible();
+    await expect(headerRow.getByText('Joined')).toBeVisible();
+    await expect(headerRow.getByText('Actions')).toBeVisible();
   }
 }

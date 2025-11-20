@@ -59,30 +59,55 @@ export class AuthPageObject {
     // Wait for page to be fully loaded and interactive
     await this.page.waitForLoadState('networkidle', { timeout: 10000 });
 
+    // Hide Next.js dev overlay and any other potential overlays
+    await this.page.evaluate(() => {
+      const nextjsPortal = document.querySelector('nextjs-portal');
+      if (nextjsPortal) {
+        (nextjsPortal as HTMLElement).style.display = 'none';
+      }
+      // Also hide any floating elements that might interfere
+      const floatingElements = document.querySelectorAll(
+        '[style*="position: fixed"]',
+      );
+      floatingElements.forEach((el) => {
+        if (
+          el.tagName !== 'ASIDE' &&
+          !(el as HTMLElement).closest('[data-radix-popper-content-wrapper]')
+        ) {
+          (el as HTMLElement).style.zIndex = '-1';
+        }
+      });
+    });
+
     const trigger = this.page.locator('[data-test="account-dropdown-trigger"]');
 
-    // Wait for the trigger to be visible and clickable (not just attached)
+    // Wait for the trigger to be visible and attached
     await trigger.waitFor({ state: 'visible', timeout: 10000 });
 
-    // Ensure the trigger is not disabled or in a loading state
+    // Scroll into view
+    await trigger.scrollIntoViewIfNeeded();
+
+    // Wait a bit for any animations
     await this.page.waitForTimeout(500);
 
-    // Use force click to bypass any potential portal overlays
-    await trigger.click({ force: true, timeout: 10000 });
+    // Try clicking with regular Playwright click (not force, not JS)
+    // This should properly trigger Radix UI event handlers
+    await trigger.click({ timeout: 10000 });
 
-    // Wait a moment for the dropdown animation to complete
-    await this.page.waitForTimeout(300);
+    // Wait for the dropdown menu to appear
+    await this.page.waitForTimeout(500);
 
-    // Wait for dropdown menu content to be visible with longer timeout
-    await this.page.waitForSelector('[data-test="account-dropdown-sign-out"]', {
+    // Wait for dropdown menu content to be visible
+    const signOutButton = this.page.locator(
+      '[data-test="account-dropdown-sign-out"]',
+    );
+    await signOutButton.waitFor({
       state: 'visible',
       timeout: 10000,
     });
 
-    // Click sign out button with force to ensure it works
-    await this.page.click('[data-test="account-dropdown-sign-out"]', {
-      force: true,
-    });
+    // Click sign out (don't wait for navigation - let tests handle their own expectations)
+    await signOutButton.click({ timeout: 5000 });
   }
 
   async signIn(params: { email: string; password: string }) {
@@ -120,8 +145,9 @@ export class AuthPageObject {
 
       expect(res).not.toBeNull();
     }).toPass({
-      intervals: [2_000, 3_000, 5_000, 5_000],
-      timeout: 60_000, // 60 seconds to wait for email
+      // Check more frequently to reduce time between email arrival and usage
+      intervals: [1_000, 1_000, 2_000, 2_000, 3_000, 3_000],
+      timeout: 30_000, // 30 seconds should be enough for local email
     });
   }
 

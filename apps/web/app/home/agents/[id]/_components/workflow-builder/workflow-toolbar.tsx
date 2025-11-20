@@ -6,8 +6,8 @@ import { type Edge, type Node } from 'reactflow';
 import { Button } from '@kit/ui/button';
 
 interface WorkflowToolbarProps {
-  historyIndex: number;
-  historyLength: number;
+  canUndo: boolean;
+  canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
   onAddDecision: () => void;
@@ -20,8 +20,8 @@ interface WorkflowToolbarProps {
 }
 
 export function WorkflowToolbar({
-  historyIndex,
-  historyLength,
+  canUndo,
+  canRedo,
   onUndo,
   onRedo,
   onAddDecision,
@@ -67,7 +67,7 @@ export function WorkflowToolbar({
             variant="outline"
             size="sm"
             onClick={onUndo}
-            disabled={historyIndex <= 0}
+            disabled={!canUndo}
             title="Undo (Ctrl+Z)"
           >
             <RotateCcw className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function WorkflowToolbar({
             variant="outline"
             size="sm"
             onClick={onRedo}
-            disabled={historyIndex >= historyLength - 1}
+            disabled={!canRedo}
             title="Redo (Ctrl+Shift+Z)"
           >
             <RotateCw className="h-4 w-4" />

@@ -62,24 +62,28 @@ function DecisionNode({
       <Handle
         type="target"
         position={Position.Top}
+        id="top"
         className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
         style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
+        id="bottom"
         className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
         style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Left}
+        id="left"
         className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
         style={{ zIndex: 10 }}
       />
       <Handle
         type="source"
         position={Position.Right}
+        id="right"
         className="h-4 w-4 bg-blue-500 transition-colors hover:bg-blue-600"
         style={{ zIndex: 10 }}
       />

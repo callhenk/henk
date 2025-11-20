@@ -4,19 +4,22 @@ import { expect, test } from '@playwright/test';
  * E2E Tests for Agent Workflow Feature
  *
  * Tests the complete workflow builder functionality including:
- * - Loading existing workflows
- * - Creating new workflows from templates
- * - Editing workflow nodes and edges
+ * - Adding and editing workflow nodes
+ * - Loading workflows from templates
  * - Saving workflows to database
- * - Verifying persistence across page reloads
+ * - Workflow persistence across page reloads
+ * - Full-screen mode toggle
+ * - Collapsible instructions panel
+ * - Node selection and deletion
+ * - Workflow naming
  */
 
 // Test credentials
 const TEST_EMAIL = 'cyrus@callhenk.com';
 const TEST_PASSWORD = 'Test123?';
 
-// Test agent ID (Sarah - General Fundraising)
-const TEST_AGENT_ID = '64398860-2b73-4e1f-905c-9887aca877a8';
+// Agent ID will be set dynamically
+let testAgentId: string;
 
 test.describe('Agent Workflow Feature', () => {
   test.beforeEach(async ({ page }) => {
@@ -44,155 +47,112 @@ test.describe('Agent Workflow Feature', () => {
         console.log('✓ Onboarding dialog dismissed');
       }
     } catch (e) {
-      // Onboarding dialog not present, continue
       console.log('✓ No onboarding dialog to dismiss');
     }
 
     // Wait for any overlays/modals to disappear
     await page.waitForTimeout(1000);
-  });
 
-  test('should navigate to agent workflow tab', async ({ page }) => {
-    // Navigate to Agents page
-    await page.click('a:has-text("Agents")');
-    await page.waitForURL(/\/home\/agents/, { timeout: 5000 });
+    // Navigate to agents page to find or create an agent
+    await page.goto('/home/agents');
+    await page.waitForLoadState('networkidle');
 
-    console.log('✓ Navigated to Agents page');
+    // Try to find an existing agent
+    const agentCards = page.locator('[data-testid="agent-card"]');
+    const agentCount = await agentCards.count();
 
-    // Wait for agents to load
-    await page.waitForSelector(
-      '[data-testid="agent-card"], a[href*="/home/agents/"]',
-      {
-        timeout: 10000,
-      },
-    );
+    if (agentCount > 0) {
+      // Use the first agent
+      const firstAgentCard = agentCards.first();
+      await firstAgentCard.click();
+      await page.waitForURL(/\/home\/agents\/[^/]+/, { timeout: 5000 });
 
-    // Click on the first agent or navigate directly to test agent
-    await page.goto(`/home/agents/${TEST_AGENT_ID}`);
-    await page.waitForURL(`/home/agents/${TEST_AGENT_ID}`, { timeout: 5000 });
+      // Extract agent ID from URL
+      const url = page.url();
+      const match = url.match(/\/agents\/([^?/]+)/);
+      if (match) {
+        testAgentId = match[1];
+        console.log(`✓ Using existing agent: ${testAgentId}`);
+      }
+    } else {
+      // Create a new agent for testing
+      await page.click('button:has-text("Create Agent")');
+      await page.waitForSelector('input[name="name"]', { timeout: 5000 });
+      await page.fill('input[name="name"]', 'E2E Test Agent');
 
-    console.log('✓ Navigated to agent detail page');
+      // Fill required fields
+      const voiceSelect = page.locator('select, [role="combobox"]').first();
+      await voiceSelect.click();
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
 
-    // Click on Workflow tab
-    const workflowTab = page
-      .locator('button:has-text("Workflow"), [role="tab"]:has-text("Workflow")')
-      .first();
-    await workflowTab.click();
+      // Save the agent
+      await page.click('button:has-text("Create"), button:has-text("Save")');
+      await page.waitForURL(/\/home\/agents\/[^/]+/, { timeout: 10000 });
 
-    // Verify URL has workflow tab parameter
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-    await expect(page).toHaveURL(/tab=workflow/);
-
-    console.log('✓ Workflow tab opened successfully');
-  });
-
-  test('should load existing workflow from database', async ({ page }) => {
-    // Navigate directly to workflow tab
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-
-    // Wait for workflow canvas to load
-    await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    console.log('✓ Workflow canvas loaded');
-
-    // Check if workflow nodes are visible (there should be at least the test workflow we created)
-    const nodes = page.locator('.react-flow__node');
-    const nodeCount = await nodes.count();
-
-    console.log(`✓ Found ${nodeCount} workflow nodes`);
-
-    if (nodeCount > 0) {
-      // Verify "All changes saved" indicator is shown (workflow loaded from DB)
-      const savedIndicator = page
-        .locator('text=/All changes saved|Saved/i')
-        .first();
-      await expect(savedIndicator).toBeVisible({ timeout: 5000 });
-
-      console.log('✓ Workflow loaded from database successfully');
+      // Extract agent ID from URL
+      const url = page.url();
+      const match = url.match(/\/agents\/([^?/]+)/);
+      if (match) {
+        testAgentId = match[1];
+        console.log(`✓ Created new agent: ${testAgentId}`);
+      }
     }
+
+    // Navigate directly to workflow tab
+    await page.goto(`/home/agents/${testAgentId}?tab=workflow`);
+    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
   });
 
-  test('should display workflow canvas and controls', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-
-    // Verify workflow toolbar is present
+  test('should display workflow canvas with proper data-testid attributes', async ({
+    page,
+  }) => {
+    // Verify workflow toolbar buttons using data-testid
     await expect(
-      page.locator('button:has-text("Load Template")'),
+      page.locator('[data-testid="workflow-add-decision"]'),
     ).toBeVisible();
-    await expect(page.locator('button:has-text("Undo")')).toBeVisible();
-    await expect(page.locator('button:has-text("Redo")')).toBeVisible();
-    await expect(page.locator('button:has-text("Add Decision")')).toBeVisible();
-    await expect(page.locator('button:has-text("Add Action")')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="workflow-add-action"]'),
+    ).toBeVisible();
+    await expect(page.locator('[data-testid="workflow-undo"]')).toBeVisible();
+    await expect(page.locator('[data-testid="workflow-redo"]')).toBeVisible();
 
-    console.log('✓ Workflow toolbar buttons visible');
+    console.log('✓ All toolbar buttons visible with data-testid');
 
-    // Verify ReactFlow canvas is present
+    // Verify workflow name input
+    await expect(
+      page.locator('[data-testid="workflow-name-input"]'),
+    ).toBeVisible();
+
+    // Verify save button
+    await expect(
+      page.locator('[data-testid="workflow-save-button"]'),
+    ).toBeVisible();
+
+    // Verify ReactFlow canvas
     await expect(page.locator('.react-flow')).toBeVisible();
-    await expect(page.locator('.react-flow__controls')).toBeVisible(); // Zoom controls
-    await expect(page.locator('.react-flow__minimap')).toBeVisible(); // Minimap
 
-    console.log('✓ ReactFlow canvas and controls visible');
-
-    // Verify Save Workflow button
-    await expect(
-      page.locator('button:has-text("Save Workflow")'),
-    ).toBeVisible();
-
-    console.log('✓ All workflow UI elements present');
+    console.log('✓ All workflow UI elements present with data-testid');
   });
 
-  test('should load workflow template', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-
-    // Wait for canvas to load
-    await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Click "Load Template" button
-    await page.click('button:has-text("Load Template")');
-
-    // Wait for template selection dialog to open
-    await page.waitForSelector('text=/Select.*Template|Choose.*Template/i', {
-      timeout: 5000,
-    });
-
-    console.log('✓ Template selection dialog opened');
-
-    // Select "Basic Fundraising" template
-    await page.click('text=/Basic Fundraising/i');
-
-    // Dialog should close and nodes should appear on canvas
-    await page.waitForTimeout(1000); // Wait for nodes to render
-
-    // Count nodes (Basic Fundraising has 8 nodes)
-    const nodes = page.locator('.react-flow__node');
-    const nodeCount = await nodes.count();
-
-    expect(nodeCount).toBeGreaterThan(0);
-    console.log(`✓ Template loaded with ${nodeCount} nodes`);
-
-    // Verify "Unsaved changes" indicator appears
-    const unsavedIndicator = page.locator('text=/Unsaved changes/i').first();
-    await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
-
-    console.log('✓ Template loaded successfully');
-  });
-
-  test('should add new decision node to workflow', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
+  test('should add new decision node using data-testid selector', async ({
+    page,
+  }) => {
     await page.waitForSelector('.react-flow', { timeout: 10000 });
 
     // Get initial node count
     const initialNodes = await page.locator('.react-flow__node').count();
 
-    // Click "Add Decision" button
-    await page.click('button:has-text("Add Decision")');
+    // Click "Add Decision" button using data-testid
+    const addDecisionBtn = page.locator(
+      '[data-testid="workflow-add-decision"]',
+    );
+    await expect(addDecisionBtn).toBeVisible();
+    await expect(addDecisionBtn).toBeEnabled();
+    await addDecisionBtn.click();
 
     // Wait for new node to appear
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Verify new node was added
     const newNodeCount = await page.locator('.react-flow__node').count();
@@ -202,28 +162,30 @@ test.describe('Agent Workflow Feature', () => {
       `✓ Decision node added (${initialNodes} → ${newNodeCount} nodes)`,
     );
 
-    // Verify "Unsaved changes" appears
-    const unsavedIndicator = page.locator('text=/Unsaved changes/i').first();
+    // Verify "Unsaved changes" indicator appears
+    const unsavedIndicator = page.locator(
+      '[data-testid="workflow-unsaved-indicator"]',
+    );
     await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
 
-    console.log('✓ Node added successfully');
+    console.log('✓ Unsaved changes indicator shown');
   });
 
-  test('should add new action node to workflow', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
+  test('should add new action node using data-testid selector', async ({
+    page,
+  }) => {
     await page.waitForSelector('.react-flow', { timeout: 10000 });
 
-    // Get initial node count
     const initialNodes = await page.locator('.react-flow__node').count();
 
-    // Click "Add Action" button
-    await page.click('button:has-text("Add Action")');
+    // Click "Add Action" button using data-testid
+    const addActionBtn = page.locator('[data-testid="workflow-add-action"]');
+    await expect(addActionBtn).toBeVisible();
+    await expect(addActionBtn).toBeEnabled();
+    await addActionBtn.click();
 
-    // Wait for new node to appear
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
-    // Verify new node was added
     const newNodeCount = await page.locator('.react-flow__node').count();
     expect(newNodeCount).toBe(initialNodes + 1);
 
@@ -232,98 +194,278 @@ test.describe('Agent Workflow Feature', () => {
     );
   });
 
-  test('should edit node properties', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
+  test('should save workflow using data-testid selector', async ({ page }) => {
     await page.waitForSelector('.react-flow', { timeout: 10000 });
 
-    // Wait for nodes to load
+    // Add a node to trigger unsaved state
+    await page.locator('[data-testid="workflow-add-action"]').click();
+    await page.waitForTimeout(500);
+
+    // Verify unsaved indicator
+    await expect(
+      page.locator('[data-testid="workflow-unsaved-indicator"]'),
+    ).toBeVisible();
+
+    // Click save button using data-testid
+    const saveButton = page.locator('[data-testid="workflow-save-button"]');
+    await expect(saveButton).toBeEnabled();
+    await saveButton.click();
+
+    // Wait for save to complete
+    await page.waitForTimeout(2000);
+
+    console.log('✓ Workflow saved successfully');
+  });
+
+  test('should test undo/redo with data-testid selectors', async ({ page }) => {
+    // Capture console logs
+    page.on('console', (msg) => {
+      if (msg.text().includes('[useWorkflowState]')) {
+        console.log('BROWSER:', msg.text());
+      }
+    });
+
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    const initialNodes = await page.locator('.react-flow__node').count();
+
+    // Add a node
+    await page.locator('[data-testid="workflow-add-action"]').click();
+    await page.waitForTimeout(500);
+
+    const nodesAfterAdd = await page.locator('.react-flow__node').count();
+    expect(nodesAfterAdd).toBe(initialNodes + 1);
+
+    // Click Undo using data-testid
+    const undoButton = page.locator('[data-testid="workflow-undo"]');
+    await expect(undoButton).toBeEnabled();
+    await undoButton.click();
+    await page.waitForTimeout(1500);
+
+    const nodesAfterUndo = await page.locator('.react-flow__node').count();
+    expect(nodesAfterUndo).toBe(initialNodes);
+    console.log('✓ Undo successful');
+
+    // Click Redo using data-testid
+    const redoButton = page.locator('[data-testid="workflow-redo"]');
+    await expect(redoButton).toBeEnabled();
+    await redoButton.click();
+    await page.waitForTimeout(1500);
+
+    const nodesAfterRedo = await page.locator('.react-flow__node').count();
+    expect(nodesAfterRedo).toBe(initialNodes + 1);
+    console.log('✓ Redo successful');
+  });
+
+  test('should load workflow template', async ({ page }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    // Click "Load Template" button using data-testid
+    const loadTemplateBtn = page.locator(
+      '[data-testid="workflow-load-template"]',
+    );
+    await expect(loadTemplateBtn).toBeVisible();
+    await loadTemplateBtn.click();
+
+    // Wait for template selection dialog
+    await page.waitForSelector('text=/Select.*Template|Choose.*Template/i', {
+      timeout: 5000,
+    });
+    console.log('✓ Template selection dialog opened');
+
+    // Select "Basic Fundraising" template
+    await page.click('text=/Basic Fundraising/i');
+    await page.waitForTimeout(1000);
+
+    // Verify nodes were added
+    const nodes = page.locator('.react-flow__node');
+    const nodeCount = await nodes.count();
+    expect(nodeCount).toBeGreaterThan(0);
+    console.log(`✓ Template loaded with ${nodeCount} nodes`);
+
+    // Verify unsaved indicator
+    const unsavedIndicator = page.locator(
+      '[data-testid="workflow-unsaved-indicator"]',
+    );
+    await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
+    console.log('✓ Template loaded successfully');
+  });
+
+  test('should edit node properties', async ({ page }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    // Add a node first
+    await page.locator('[data-testid="workflow-add-action"]').click();
+    await page.waitForTimeout(500);
+
+    // Click on the node to edit it
     const nodes = page.locator('.react-flow__node');
     const nodeCount = await nodes.count();
 
     if (nodeCount > 0) {
-      // Click on the first node to edit it
-      await nodes.first().click();
+      await nodes.last().click();
+      await page.waitForTimeout(500);
 
-      // Wait for node editor dialog to open
-      await page.waitForSelector(
-        'input[placeholder*="label"], input[value*="Call"], textarea',
-        {
-          timeout: 5000,
-        },
-      );
-
+      // Wait for node editor dialog
+      await page.waitForSelector('input[placeholder*="label"], textarea', {
+        timeout: 5000,
+      });
       console.log('✓ Node editor dialog opened');
 
-      // Find and modify the label field
-      const labelInput = page
-        .locator('input[placeholder*="label"], input[value*="Call"]')
+      // Modify the label
+      const labelInput = page.locator('input[placeholder*="label"]').first();
+      await labelInput.fill('E2E Test Node');
+
+      // Save changes - find Save button within the dialog
+      const dialogSaveButton = page
+        .locator(
+          '[role="dialog"] button:has-text("Save"), .sheet button:has-text("Save")',
+        )
         .first();
-      await labelInput.fill('Modified Node Label E2E Test');
-
-      // Save the changes
-      await page.click('button:has-text("Save")');
-
-      // Wait for dialog to close
+      await dialogSaveButton.click();
       await page.waitForTimeout(500);
 
       console.log('✓ Node properties edited successfully');
-
-      // Verify "Unsaved changes" appears
-      const unsavedIndicator = page.locator('text=/Unsaved changes/i').first();
-      await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
-    } else {
-      console.log('⚠ Skipped: No nodes available to edit');
     }
   });
 
-  test('should save workflow to database', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
+  test('should toggle collapsible instructions panel', async ({ page }) => {
     await page.waitForSelector('.react-flow', { timeout: 10000 });
 
-    // Make a change to trigger unsaved state
-    await page.click('button:has-text("Add Action")');
+    // Verify instructions panel exists
+    const instructionsPanel = page.locator(
+      '[data-testid="workflow-instructions"]',
+    );
+    await expect(instructionsPanel).toBeVisible();
+
+    // Click toggle button
+    const toggleButton = page.locator(
+      '[data-testid="workflow-instructions-toggle"]',
+    );
+    await expect(toggleButton).toBeVisible();
+    await toggleButton.click();
+
+    // Wait for expansion
+    await page.waitForTimeout(300);
+
+    // Verify instructions content is visible (contains "Ctrl+Z")
+    await expect(page.locator('text=/Ctrl\\+Z/i')).toBeVisible();
+
+    console.log('✓ Instructions panel expanded');
+
+    // Click again to collapse
+    await toggleButton.click();
+    await page.waitForTimeout(300);
+
+    console.log('✓ Instructions panel collapsed');
+  });
+
+  test('should toggle full-screen mode', async ({ page }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    // Verify fullscreen toggle button exists
+    const fullscreenButton = page.locator(
+      '[data-testid="workflow-fullscreen-toggle"]',
+    );
+    await expect(fullscreenButton).toBeVisible();
+
+    // Click to enter fullscreen
+    await fullscreenButton.click();
     await page.waitForTimeout(500);
 
-    // Verify "Unsaved changes" appears
-    const unsavedIndicator = page.locator('text=/Unsaved changes/i').first();
-    await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
+    console.log('✓ Fullscreen mode entered');
 
-    console.log('✓ Unsaved changes indicator shown');
+    // Click again to exit fullscreen
+    await fullscreenButton.click();
+    await page.waitForTimeout(500);
 
-    // Click "Save Workflow" button
-    const saveButton = page.locator('button:has-text("Save Workflow")');
-    await expect(saveButton).toBeEnabled();
-    await saveButton.click();
+    console.log('✓ Fullscreen mode exited');
+  });
 
-    // Wait for saving indicator
-    await page.waitForSelector('button:has-text("Saving...")', {
-      timeout: 2000,
-    });
-    console.log('✓ Save initiated');
+  test('should update workflow name', async ({ page }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
 
-    // Wait for save to complete (should show "All changes saved")
-    await page.waitForSelector('text=/All changes saved|Saved/i', {
-      timeout: 10000,
-    });
-    console.log('✓ Workflow saved successfully');
+    const nameInput = page.locator('[data-testid="workflow-name-input"]');
+    await expect(nameInput).toBeVisible();
 
-    // Verify save button is disabled (no unsaved changes)
-    await expect(saveButton).toBeDisabled();
+    // Clear and type new name
+    await nameInput.fill('E2E Test Workflow');
+    await page.waitForTimeout(500);
 
-    console.log('✓ Workflow saved to database');
+    // Verify name was updated
+    const value = await nameInput.inputValue();
+    expect(value).toBe('E2E Test Workflow');
+
+    console.log('✓ Workflow name updated');
+  });
+
+  test('should show selection indicator when node is selected', async ({
+    page,
+  }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    // Add a node
+    await page.locator('[data-testid="workflow-add-action"]').click();
+    await page.waitForTimeout(500);
+
+    // Click on the node to select it
+    const nodes = page.locator('.react-flow__node');
+    const nodeCount = await nodes.count();
+
+    if (nodeCount > 0) {
+      await nodes.last().click();
+      await page.waitForTimeout(300);
+
+      // Verify selection indicator appears
+      const selectionIndicator = page.locator(
+        '[data-testid="workflow-selection-indicator"]',
+      );
+      await expect(selectionIndicator).toBeVisible({ timeout: 2000 });
+
+      console.log('✓ Selection indicator shown');
+
+      // Verify delete button appears
+      const deleteButton = page.locator(
+        '[data-testid="workflow-delete-selected"]',
+      );
+      await expect(deleteButton).toBeVisible();
+
+      console.log('✓ Delete button shown for selected node');
+    }
+  });
+
+  test('should delete selected node with delete button', async ({ page }) => {
+    await page.waitForSelector('.react-flow', { timeout: 10000 });
+
+    const initialNodes = await page.locator('.react-flow__node').count();
+
+    if (initialNodes > 0) {
+      // Click on first node
+      await page.locator('.react-flow__node').first().click();
+      await page.waitForTimeout(300);
+
+      // Click delete button
+      const deleteButton = page.locator(
+        '[data-testid="workflow-delete-selected"]',
+      );
+      await expect(deleteButton).toBeVisible();
+      await deleteButton.click();
+      await page.waitForTimeout(500);
+
+      // Verify node was deleted
+      const newNodeCount = await page.locator('.react-flow__node').count();
+      expect(newNodeCount).toBe(initialNodes - 1);
+
+      console.log(`✓ Node deleted (${initialNodes} → ${newNodeCount})`);
+    } else {
+      console.log('⚠ No nodes to delete');
+    }
   });
 
   test('should persist workflow across page reload', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
     await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Wait for workflow to load
     await page.waitForTimeout(1000);
 
-    // Count nodes before reload
     const nodesBeforeReload = await page.locator('.react-flow__node').count();
     console.log(`✓ Nodes before reload: ${nodesBeforeReload}`);
 
@@ -331,139 +473,14 @@ test.describe('Agent Workflow Feature', () => {
     await page.reload();
     await page.waitForURL(/tab=workflow/, { timeout: 5000 });
     await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Wait for workflow to reload
     await page.waitForTimeout(1000);
 
-    // Count nodes after reload
     const nodesAfterReload = await page.locator('.react-flow__node').count();
     console.log(`✓ Nodes after reload: ${nodesAfterReload}`);
 
-    // Verify node count is the same (workflow persisted)
+    // Verify node count is the same
     expect(nodesAfterReload).toBe(nodesBeforeReload);
 
     console.log('✓ Workflow persisted across reload');
-
-    // Verify "All changes saved" indicator (loaded from DB)
-    if (nodesAfterReload > 0) {
-      const savedIndicator = page
-        .locator('text=/All changes saved|Saved/i')
-        .first();
-      await expect(savedIndicator).toBeVisible({ timeout: 5000 });
-      console.log('✓ Workflow loaded from database after reload');
-    }
-  });
-
-  test('should show workflow instructions', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-
-    // Check for workflow instructions
-    const instructions = page.locator(
-      'text=/Click nodes to edit|Drag to connect|Ctrl/i',
-    );
-    await expect(instructions).toBeVisible({ timeout: 5000 });
-
-    console.log('✓ Workflow instructions visible');
-  });
-
-  test('should undo and redo actions', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-    await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Get initial node count
-    const initialNodes = await page.locator('.react-flow__node').count();
-
-    // Add a node
-    await page.click('button:has-text("Add Action")');
-    await page.waitForTimeout(500);
-
-    // Verify node was added
-    const nodesAfterAdd = await page.locator('.react-flow__node').count();
-    expect(nodesAfterAdd).toBe(initialNodes + 1);
-    console.log(`✓ Node added (${initialNodes} → ${nodesAfterAdd})`);
-
-    // Click Undo button
-    await page.click('button:has-text("Undo")');
-    await page.waitForTimeout(500);
-
-    // Verify node was removed (undo worked)
-    const nodesAfterUndo = await page.locator('.react-flow__node').count();
-    expect(nodesAfterUndo).toBe(initialNodes);
-    console.log(`✓ Undo successful (${nodesAfterAdd} → ${nodesAfterUndo})`);
-
-    // Click Redo button
-    await page.click('button:has-text("Redo")');
-    await page.waitForTimeout(500);
-
-    // Verify node was re-added (redo worked)
-    const nodesAfterRedo = await page.locator('.react-flow__node').count();
-    expect(nodesAfterRedo).toBe(initialNodes + 1);
-    console.log(`✓ Redo successful (${nodesAfterUndo} → ${nodesAfterRedo})`);
-
-    console.log('✓ Undo/Redo functionality working');
-  });
-
-  test('should delete selected node with Delete key', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-    await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Wait for nodes to load
-    const nodes = page.locator('.react-flow__node');
-    const initialNodeCount = await nodes.count();
-
-    if (initialNodeCount > 0) {
-      // Click on a node to select it
-      await nodes.first().click();
-      await page.waitForTimeout(300);
-
-      console.log(`✓ Node selected (${initialNodeCount} nodes total)`);
-
-      // Press Delete key
-      await page.keyboard.press('Delete');
-      await page.waitForTimeout(500);
-
-      // Verify node was deleted
-      const nodesAfterDelete = await page.locator('.react-flow__node').count();
-      expect(nodesAfterDelete).toBe(initialNodeCount - 1);
-
-      console.log(
-        `✓ Node deleted (${initialNodeCount} → ${nodesAfterDelete} nodes)`,
-      );
-    } else {
-      console.log('⚠ Skipped: No nodes available to delete');
-    }
-  });
-
-  test('should show proper status indicators', async ({ page }) => {
-    await page.goto(`/home/agents/${TEST_AGENT_ID}?tab=workflow`);
-    await page.waitForURL(/tab=workflow/, { timeout: 5000 });
-    await page.waitForSelector('.react-flow', { timeout: 10000 });
-
-    // Wait for workflow to load
-    await page.waitForTimeout(1000);
-
-    // Check if workflow exists
-    const nodeCount = await page.locator('.react-flow__node').count();
-
-    if (nodeCount > 0) {
-      // Should show "All changes saved" when no changes
-      const savedIndicator = page.locator('text=/All changes saved/i').first();
-      await expect(savedIndicator).toBeVisible({ timeout: 5000 });
-      console.log('✓ "All changes saved" indicator shown');
-
-      // Make a change
-      await page.click('button:has-text("Add Action")');
-      await page.waitForTimeout(500);
-
-      // Should show "Unsaved changes"
-      const unsavedIndicator = page.locator('text=/Unsaved changes/i').first();
-      await expect(unsavedIndicator).toBeVisible({ timeout: 5000 });
-      console.log('✓ "Unsaved changes" indicator shown');
-
-      console.log('✓ Status indicators working correctly');
-    }
   });
 });

@@ -12,7 +12,6 @@ import { Button } from '@kit/ui/button';
 
 import type { WorkflowTemplate } from '../workflow-templates';
 import { ConnectionDialog } from './connection-dialog';
-import { useWorkflowHistory } from './hooks/use-workflow-history';
 import { useWorkflowState } from './hooks/use-workflow-state';
 import { NodeEditorDialog } from './node-editor-dialog';
 import { TemplateSelectionDialog } from './template-selection-dialog';
@@ -39,10 +38,12 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
     addNewNode,
     deleteSelectedNode,
     deleteSelectedEdge,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    historyLength: _historyLength,
   } = useWorkflowState();
-
-  const { history, historyIndex, saveToHistory, undo, redo } =
-    useWorkflowHistory(nodes, edges, setNodes, setEdges);
 
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
@@ -118,11 +119,10 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
     (template: WorkflowTemplate) => {
       setNodes(template.nodes);
       setEdges(template.edges);
-      saveToHistory(template.nodes, template.edges);
       setIsTemplateDialogOpen(false);
       setHasUnsavedChanges(true);
     },
-    [setNodes, setEdges, saveToHistory],
+    [setNodes, setEdges],
   );
 
   // Keyboard shortcuts
@@ -203,9 +203,8 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
           : node,
       );
       setNodes(newNodes);
-      saveToHistory(newNodes, edges);
     },
-    [selectedNode, nodes, edges, setNodes, saveToHistory],
+    [selectedNode, nodes, setNodes],
   );
 
   const handleConnectionConfirm = useCallback(
@@ -229,12 +228,11 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
 
       const newEdges = [...edges, newEdge];
       setEdges(newEdges);
-      saveToHistory(nodes, newEdges);
 
       setPendingConnection(null);
       setIsConnectionDialogOpen(false);
     },
-    [pendingConnection, edges, nodes, setEdges, saveToHistory],
+    [pendingConnection, edges, setEdges],
   );
 
   // Get source node options for connection dialog
@@ -255,7 +253,7 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
             type="text"
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full max-w-md rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full max-w-md rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Workflow name..."
           />
         </div>
@@ -296,8 +294,8 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
           className={`flex w-full flex-col ${isFullScreen ? 'h-[calc(100vh-12rem)]' : 'h-[calc(100vh-20rem)]'}`}
         >
           <WorkflowToolbar
-            historyIndex={historyIndex}
-            historyLength={history.length}
+            canUndo={canUndo}
+            canRedo={canRedo}
             onUndo={undo}
             onRedo={redo}
             onAddDecision={() => addNewNode('decision', { x: 100, y: 100 })}
@@ -369,9 +367,7 @@ export function WorkflowBuilder({ agentId }: WorkflowBuilderProps) {
 
               const newEdges = [...edges, newEdge];
               setEdges(newEdges);
-              saveToHistory(nodes, newEdges);
             }}
-            isEmpty={nodes.length === 0}
             onLoadTemplate={() => setIsTemplateDialogOpen(true)}
           />
         </div>
