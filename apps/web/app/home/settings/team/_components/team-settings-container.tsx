@@ -95,44 +95,27 @@ export function TeamSettingsContainer({
 
   if (businessesLoading) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        {!hideHeader && (
-          <div className="flex items-center justify-between">
-            <div>
-              <Skeleton className="h-7 w-48 sm:h-8" />
-              <Skeleton className="mt-2 h-3 w-64 sm:h-4" />
-            </div>
-          </div>
-        )}
+      <div className="space-y-6">
         <BusinessSelectionSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      {!hideHeader && (
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold sm:text-2xl">Team Management</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Manage team members, roles, and permissions across your businesses
-            </p>
-          </div>
-        </div>
-      )}
+    <div className="space-y-6">
 
       {/* Business Selection */}
-      <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-        <CardHeader className="space-y-1 px-4 sm:px-6">
-          <CardTitle className="text-lg sm:text-xl">Select Business</CardTitle>
-          <CardDescription className="text-sm">
-            Choose a business to manage its team members
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+          <CardTitle className="text-lg font-semibold tracking-tight">
+            Select Business
+          </CardTitle>
+          <CardDescription className="text-sm leading-relaxed">
+            Choose a business to manage its team members and permissions
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6">
-          <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
             {businesses?.map((business) => (
               <BusinessCard
                 key={business.id}
@@ -147,47 +130,60 @@ export function TeamSettingsContainer({
 
       {/* Team Members Section */}
       {selectedBusiness && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold sm:text-xl">
-                Team Members - {selectedBusiness.name}
+        <div className="space-y-5 sm:space-y-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1.5">
+              <h2 className="text-foreground text-lg font-semibold tracking-tight">
+                Team Members
               </h2>
-              <p className="text-muted-foreground text-sm">
-                Manage team members and their roles
+              <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                <span className="font-medium">{selectedBusiness.name}</span>
+                <span>•</span>
+                <span>Manage team members and their roles</span>
               </p>
             </div>
-            <InviteMemberDialog
-              businessName={selectedBusiness.name}
-              isOpen={isInviteDialogOpen}
-              onOpenChange={setIsInviteDialogOpen}
-              onInvite={handleInviteMember}
-            />
+            <div className="w-full sm:w-auto">
+              <InviteMemberDialog
+                businessName={selectedBusiness.name}
+                isOpen={isInviteDialogOpen}
+                onOpenChange={setIsInviteDialogOpen}
+                onInvite={handleInviteMember}
+              />
+            </div>
           </div>
 
           {teamMembersLoading ? (
             <TeamMembersTableSkeleton />
           ) : (
-            <Tabs defaultValue="all" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="all">
-                  All Members ({teamMembers?.length || 0})
+            <Tabs defaultValue="all" className="space-y-5">
+              <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+                <TabsTrigger value="all" className="gap-1.5">
+                  <span>All Members</span>
+                  <span className="text-muted-foreground">
+                    ({teamMembers?.length || 0})
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="active">
-                  Active (
-                  {teamMembers?.filter((m) => m.status === 'active').length ||
-                    0}
-                  )
+                <TabsTrigger value="active" className="gap-1.5">
+                  <span>Active</span>
+                  <span className="text-muted-foreground">
+                    (
+                    {teamMembers?.filter((m) => m.status === 'active').length ||
+                      0}
+                    )
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="invited">
-                  Invited (
-                  {teamMembers?.filter((m) => m.status === 'invited').length ||
-                    0}
-                  )
+                <TabsTrigger value="invited" className="gap-1.5">
+                  <span>Invited</span>
+                  <span className="text-muted-foreground">
+                    (
+                    {teamMembers?.filter((m) => m.status === 'invited')
+                      .length || 0}
+                    )
+                  </span>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="all" className="space-y-4">
+              <TabsContent value="all" className="space-y-5">
                 <TeamMembersTable
                   members={teamMembers || []}
                   onUpdateRole={handleUpdateMemberRole}
@@ -195,18 +191,18 @@ export function TeamSettingsContainer({
                 />
               </TabsContent>
 
-              <TabsContent value="active" className="space-y-4">
-                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-                  <CardHeader className="space-y-1 px-4 sm:px-6">
-                    <CardTitle className="text-lg sm:text-xl">
+              <TabsContent value="active" className="space-y-5">
+                <Card className="shadow-sm">
+                  <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+                    <CardTitle className="text-xl font-semibold tracking-tight">
                       Active Members
                     </CardTitle>
-                    <CardDescription className="text-sm">
+                    <CardDescription className="text-sm leading-relaxed">
                       Team members with active status
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="px-4 sm:px-6">
-                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+                    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                       {teamMembers
                         ?.filter((m) => m.status === 'active')
                         .map((member) => (
@@ -217,18 +213,18 @@ export function TeamSettingsContainer({
                 </Card>
               </TabsContent>
 
-              <TabsContent value="invited" className="space-y-4">
-                <Card className="glass-panel border-0 shadow-sm sm:border sm:shadow-none">
-                  <CardHeader className="space-y-1 px-4 sm:px-6">
-                    <CardTitle className="text-lg sm:text-xl">
+              <TabsContent value="invited" className="space-y-5">
+                <Card className="shadow-sm">
+                  <CardHeader className="space-y-1.5 px-5 py-5 sm:px-6 sm:py-6">
+                    <CardTitle className="text-xl font-semibold tracking-tight">
                       Invited Members
                     </CardTitle>
-                    <CardDescription className="text-sm">
+                    <CardDescription className="text-sm leading-relaxed">
                       Pending invitations
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="px-4 sm:px-6">
-                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+                    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                       {teamMembers
                         ?.filter((m) => m.status === 'invited')
                         .map((member) => (
